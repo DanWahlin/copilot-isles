@@ -11,16 +11,24 @@ import {
   attribute,
   cameraPosition,
   color,
+  cross,
+  dot,
   float,
   floor,
   fract,
   fwidth,
   max,
   mix,
+  normalView,
+  normalWorld,
+  positionView,
   positionWorld,
+  reflect,
   sin,
   smoothstep,
   uv,
+  vec2,
+  vec3,
 } from 'three/tsl';
 import { world } from '../uniforms';
 
@@ -31,13 +39,30 @@ type AnyNode = any;
 /**
  * Per-strip flow: how full (0 dry → 1 full, also the opacity), how fast it runs, and extra foam.
  * `kind` picks a look within the one shared material: 0 channel water (the mill's), 1 a still lake
- * (deep teal, a slow sparkle, a softer sky), −1 falling water (white, streaked down its length).
+ * (deep teal, a slow sparkle, a softer sky), −1 falling water (white, streaked down its length),
+ * 2 a natural stream and 3 a natural pool (clear in the shallows, jade in the deep, broken ripples
+ * flowing down the course or spreading from where the water comes in; `QuadCorners` gives each
+ * vertex its depth, foam and ripple distance).
  */
 export interface StripFlow {
   fill: number;
   speed: number;
   foam?: number;
   kind?: number;
+}
+
+/** Per-vertex values for a quad's corners (a, b, c, d), overriding the strip's own. */
+export interface QuadCorners {
+  /** The water's depth over the drawn ground (m; below 0 the ground stands over it). */
+  depth?: readonly number[];
+  /** White water (0..1). */
+  foam?: readonly number[];
+  /** `v`: metres along the flow, or for a pool the distance from where its water comes in. */
+  along?: readonly number[];
+  /** The look (`StripFlow.kind`), where a strip eases from one to another (a stream into a pool). */
+  kind?: readonly number[];
+  /** How full (`StripFlow.fill`), where two strips overlap and cross-fade (a stream into a pool). */
+  fill?: readonly number[];
 }
 
 /**
@@ -52,7 +77,10 @@ export class WaterStrips {
   private readonly nrm: Float32Array;
   private readonly tex: Float32Array;
   private readonly flw: Float32Array;
+  private readonly bed: Float32Array;
   private quads = 0;
+  /** Quads asked for past `maxQuads` since `begin` (dropped). */
+  dropped = 0;
 
   constructor(
     private readonly maxQuads = 256,
@@ -63,6 +91,7 @@ export class WaterStrips {
     this.nrm = new Float32Array(n * 3);
     this.tex = new Float32Array(n * 2);
     this.flw = new Float32Array(n * 4);
+    this.bed = new Float32Array(n).fill(1);
     const idx = new Uint32Array(maxQuads * 6);
     for (let i = 0; i < maxQuads; i++) {
       const a = i * 4;
@@ -73,6 +102,7 @@ export class WaterStrips {
     this.geo.setAttribute('normal', attr(this.nrm, 3));
     this.geo.setAttribute('uv', attr(this.tex, 2));
     this.geo.setAttribute('flow', attr(this.flw, 4));
+    this.geo.setAttribute('bed', attr(this.bed, 1));
     this.geo.setIndex(new BufferAttribute(idx, 1));
     this.geo.setDrawRange(0, 0);
     this.mesh = new Mesh(this.geo, material);
@@ -82,8 +112,13 @@ export class WaterStrips {
     this.mesh.renderOrder = 1;
   }
 
+  private twoSided(): boolean {
+    return (this.mesh.material as MeshStandardNodeMaterial).side === DoubleSide;
+  }
+
   begin(): void {
     this.quads = 0;
+    this.dropped = 0;
   }
 
   /**
@@ -101,8 +136,13 @@ export class WaterStrips {
     f: StripFlow,
     u0 = 0,
     u1 = 1,
+    corners4?: QuadCorners,
   ): void {
-    if (this.quads >= this.maxQuads || f.fill <= 0.001) return;
+    if (f.fill <= 0.001) return;
+    if (this.quads >= this.maxQuads) {
+      this.dropped++;
+      return;
+    }
     const i = this.quads++ * 4;
     const corners = [a, b, c, d];
     // Normal from the two edges (consistent winding; flipped up if it points down).
@@ -128,17 +168,33 @@ export class WaterStrips {
     nx /= len;
     ny /= len;
     nz /= len;
+    // Facing down as wound: flip the normal up, and (on the shared two-sided look) the winding with it,
+    // each corner swapping with its neighbour across. The winding decides which face three takes for
+    // the front: wound down, the water seen from above was its back face and its normal turned down
+    // again, lit from below (the Silver Pool read as a dark grey slab). A one-sided mesh (the
+    // fountain) lays its own windings.
+    const down = ny < -0.2 && this.twoSided();
     if (ny < -0.2) {
       nx = -nx;
       ny = -ny;
       nz = -nz;
     }
     for (let k = 0; k < 4; k++) {
-      const p = corners[k]!;
+      const c = down ? k ^ 1 : k;
+      const p = corners[c]!;
       this.pos.set([p[0]!, p[1]!, p[2]!], (i + k) * 3);
       this.nrm.set([nx, ny, nz], (i + k) * 3);
-      this.tex.set([k % 2 === 0 ? u0 : u1, k < 2 ? v0 : v1], (i + k) * 2);
-      this.flw.set([f.fill, f.speed, f.foam ?? 0, f.kind ?? 0], (i + k) * 4);
+      this.tex.set([c % 2 === 0 ? u0 : u1, corners4?.along?.[c] ?? (c < 2 ? v0 : v1)], (i + k) * 2);
+      this.flw.set(
+        [
+          corners4?.fill?.[c] ?? f.fill,
+          f.speed,
+          corners4?.foam?.[c] ?? f.foam ?? 0,
+          corners4?.kind?.[c] ?? f.kind ?? 0,
+        ],
+        (i + k) * 4,
+      );
+      this.bed[i + k] = corners4?.depth?.[c] ?? 1;
     }
   }
 
@@ -197,7 +253,7 @@ export class WaterStrips {
 
   end(): void {
     this.geo.setDrawRange(0, this.quads * 6);
-    for (const name of ['position', 'normal', 'uv', 'flow']) {
+    for (const name of ['position', 'normal', 'uv', 'flow', 'bed']) {
       (this.geo.getAttribute(name) as BufferAttribute).needsUpdate = true;
     }
     this.mesh.visible = this.quads > 0;
@@ -251,8 +307,10 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
   const channelOpacity = f.x.mul(float(0.7).add(foam.mul(0.28))).clamp(0, 1) as AnyNode;
   const channelRough = float(0.06).add(foam.mul(0.5)) as AnyNode;
 
-  // A still lake: deep teal with slow, crossing swells of light, and a softer sky in it.
-  const lake = max(f.w, float(0)) as AnyNode;
+  // A still lake: deep teal with slow, crossing swells of light, and a softer sky in it (kind 1 only).
+  const lake = float(1)
+    .sub(abs(f.w.sub(1)))
+    .max(0) as AnyNode;
   const p = positionWorld as AnyNode;
   const swell = sin(p.x.mul(0.31).add(time.mul(0.35)))
     .mul(sin(p.z.mul(0.27).sub(time.mul(0.28))))
@@ -332,29 +390,162 @@ function createFlowingWaterMaterial(): MeshStandardNodeMaterial {
     smoothstep(float(1), float(1).sub(edgeWidth), across),
   );
 
-  m.colorNode = mix(mix(channel, lakeColor, lake), fallColor, fall) as AnyNode;
+  const nat = naturalWater(f, t, time);
+  const natural = nat.natural;
+  m.colorNode = mix(mix(mix(channel, lakeColor, lake), fallColor, fall), nat.color, natural) as AnyNode;
   m.opacityNode = mix(
-    mix(channelOpacity, f.x.mul(0.96), lake),
-    // Thin between its ribbons (you see through a falling sheet), dense where the white water runs.
-    // Close up (from behind a fall, in its cave) the sheet thins between its ribbons, so you see the
-    // world through it; from a distance it reads as white water, and so does a narrow one.
-    f.x
-      .mul(edgeFade)
-      .mul(
-        mix(
+    mix(
+      mix(channelOpacity, f.x.mul(0.96), lake),
+      // Thin between its ribbons (you see through a falling sheet), dense where the white water runs.
+      // Close up (from behind a fall, in its cave) the sheet thins between its ribbons, so you see the
+      // world through it; from a distance it reads as white water, and so does a narrow one.
+      f.x
+        .mul(edgeFade)
+        .mul(
           mix(
-            float(0.16),
-            float(0.5),
-            smoothstep(float(4), float(16), (positionWorld as AnyNode).distance(cameraPosition)),
-          ),
-          float(0.62),
-          narrow,
-        ).add(sheet.mul(0.5)),
-      ),
-    fall,
+            mix(
+              float(0.16),
+              float(0.5),
+              smoothstep(float(4), float(16), (positionWorld as AnyNode).distance(cameraPosition)),
+            ),
+            float(0.62),
+            narrow,
+          ).add(sheet.mul(0.5)),
+        ),
+      fall,
+    ),
+    nat.opacity,
+    natural,
   ) as AnyNode;
-  m.roughnessNode = mix(mix(channelRough, float(0.5), lake), float(0.55), fall) as AnyNode;
+  m.roughnessNode = mix(
+    mix(mix(channelRough, float(0.5), lake), float(0.55), fall),
+    nat.roughness,
+    natural,
+  ) as AnyNode;
+  m.normalNode = mix(normalView, nat.normal, natural).normalize() as AnyNode;
   // A fall glows a little with the light it carries, so it reads bright from its shaded back too.
-  m.emissiveNode = fallColor.mul(fall.mul(sheet.mul(0.35).add(0.12))) as AnyNode;
+  m.emissiveNode = mix(fallColor.mul(fall.mul(sheet.mul(0.35).add(0.12))), nat.emissive, natural) as AnyNode;
   return m;
+}
+
+/** A hash of a 2D lattice point without `sin` (steady at the large coordinates of world space). */
+function hash2(p: AnyNode): AnyNode {
+  const p3 = fract(vec3(p.x, p.y, p.x).mul(0.1031)) as AnyNode;
+  const q = p3.add(dot(p3, p3.yzx.add(33.33))) as AnyNode;
+  return fract(q.x.add(q.y).mul(q.z));
+}
+
+/** Smooth value noise, 0..1. */
+function valueNoise(p: AnyNode): AnyNode {
+  const i = floor(p) as AnyNode;
+  const f = fract(p) as AnyNode;
+  const u = f.mul(f).mul(f.mul(-2).add(3)) as AnyNode;
+  const a = hash2(i);
+  const b = hash2(i.add(vec2(1, 0)));
+  const c = hash2(i.add(vec2(0, 1)));
+  const d = hash2(i.add(vec2(1, 1)));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+/**
+ * Natural water (kinds 2 and 3): its colour, opacity, roughness and rippled normal, and how much of
+ * it a fragment is. Clear and light in the shallows, jade (#2E9C8A, spec §2) and darker in the deep,
+ * fading out wherever the ground meets it; ripples broken by a warp (no regular stripes), stretched
+ * along a stream and flowing with it, faster in narrow riffles; in a pool they drift and spread in
+ * rings from where its water comes in. White water where the strip asks for it (round stones, in
+ * riffles, under a fall), broken by the same ripples. Every pattern is at least ~0.5 m and fades to
+ * its mean as it shrinks under a few pixels, so temporal AA keeps its motion (the frozen-falls lesson).
+ */
+function naturalWater(f: AnyNode, t: AnyNode, time: AnyNode) {
+  const w = f.w as AnyNode;
+  const natural = smoothstep(float(1.5), float(2), w) as AnyNode;
+  const pool = w.sub(2).clamp(0, 1) as AnyNode;
+  const speed = f.y as AnyNode;
+  const foamWanted = f.z as AnyNode;
+  const depth = attribute('bed', 'float') as AnyNode;
+  const p = positionWorld as AnyNode;
+  // A stream's ripples run in its own frame (u across, v along, flowing); a pool's in the world's.
+  const flowing = vec2(t.x, t.y.sub(time.mul(speed).mul(0.9))) as AnyNode;
+  const still = vec2(p.x.add(time.mul(0.07)), p.z.sub(time.mul(0.05))) as AnyNode;
+  const q = mix(flowing, still, pool) as AnyNode;
+  // Metres a pixel spans here: patterns finer than a few pixels fade to their mean.
+  const px = fwidth(q.x).add(fwidth(q.y)) as AnyNode;
+  const fine = float(1).sub(smoothstep(float(0.05), float(0.14), px));
+  const broad = float(1).sub(smoothstep(float(0.14), float(0.45), px));
+  const warp = valueNoise(q.mul(0.31).add(vec2(time.mul(0.09), time.mul(-0.06)))) as AnyNode;
+  const qw = q.add(vec2(warp.sub(0.5).mul(2.2), warp.sub(0.5).mul(-1.4))) as AnyNode;
+  // Long ripples down a stream (stretched along its flow), round ones on a pool.
+  const stretch = mix(vec2(0.95, 0.42), vec2(0.62, 0.62), pool) as AnyNode;
+  const r1 = valueNoise(qw.mul(stretch)) as AnyNode;
+  const r2 = valueNoise(qw.mul(2.3).add(vec2(5.2, 1.7))) as AnyNode;
+  // Rings spreading from where a pool's water comes in (`v` is the distance from there).
+  const rings = sin(t.y.mul(2.1).sub(time.mul(1.9)).add(warp.mul(3.0)))
+    .mul(0.5)
+    .add(0.5)
+    .mul(float(1).sub(smoothstep(float(2), float(16), t.y)))
+    .mul(pool)
+    .mul(broad) as AnyNode;
+  const ripple = r1
+    .sub(0.5)
+    .mul(broad)
+    .add(r2.sub(0.5).mul(0.45).mul(fine))
+    .add(rings.sub(0.25).mul(0.6)) as AnyNode;
+  // White water: thresholded by the ripples, so it breaks into flecks and clots rather than bands.
+  const churn = r1.mul(0.55).add(
+    r2
+      .mul(0.45)
+      .mul(fine)
+      .add(float(0.225).mul(float(1).sub(fine))),
+  );
+  const white = smoothstep(
+    float(0.72).sub(foamWanted.mul(0.55)),
+    float(0.95).sub(foamWanted.mul(0.4)),
+    churn.add(rings.mul(foamWanted).mul(0.35)),
+  )
+    .mul(smoothstep(float(0.02), float(0.25), foamWanted))
+    .add(foamWanted.mul(0.25))
+    .clamp(0, 1) as AnyNode;
+  // Clear and light in the shallows (the bed shows), jade, then dark in the deep middle.
+  // (Water's own colour is mostly what it absorbs: dark under the sun, the sky in it does the rest.)
+  const shallowTone = mix(color(0x6aa890), color(0x1d6b5d), smoothstep(float(0.02), float(0.45), depth));
+  const water = mix(shallowTone, color(0x0b3833), smoothstep(float(0.4), float(1.5), depth)) as AnyNode;
+  const lit = water.add(ripple.mul(0.07)) as AnyNode;
+  const colorOut = mix(lit, color(0xf2fbf8), white.mul(0.85));
+  // Glancing views see the sky in it whatever the depth (a fresnel lift of the opacity).
+  const toEye = cameraPosition.sub(p).normalize() as AnyNode;
+  const glance = float(1).sub(abs(toEye.y)).pow(4) as AnyNode;
+  const shore = smoothstep(float(0), float(0.08), depth);
+  const body = mix(float(0.26), float(0.84), smoothstep(float(0.04), float(1), depth));
+  const opacity = shore.mul(body.add(glance.mul(0.3)).add(white.mul(0.6)).clamp(0, 1)).mul(f.x) as AnyNode;
+  // Matte to the scene's lights (a mirror of the bright environment washed it white); the sky it
+  // reflects and the sun's glints are its own, below, with water's Fresnel (as the sea's, F0 0.02).
+  const roughness = float(0.92) as AnyNode;
+  // The ripples tilt the normal (from their screen-space slope; Mikkelsen's surface-gradient bump).
+  const height = ripple.mul(0.03).add(white.mul(0.015)) as AnyNode;
+  const sx = positionView.dFdx() as AnyNode;
+  const sy = positionView.dFdy() as AnyNode;
+  const n = normalView as AnyNode;
+  const r1v = cross(sy, n) as AnyNode;
+  const r2v = cross(n, sx) as AnyNode;
+  const det = dot(sx, r1v) as AnyNode;
+  const grad = det.sign().mul(height.dFdx().mul(r1v).add(height.dFdy().mul(r2v))) as AnyNode;
+  const normal = det.abs().max(1e-12).mul(n).sub(grad).normalize() as AnyNode;
+  const N = normalWorld as AnyNode;
+  const nDotV = dot(N, toEye).max(0) as AnyNode;
+  const fresnel = float(0.02).add(float(0.98).mul(float(1).sub(nDotV).pow(5))) as AnyNode;
+  const mirrored = reflect(toEye.negate(), N) as AnyNode;
+  // The sky it mirrors, dimmed by the canopy and the banks round it (a white ribbon from afar otherwise).
+  const sky = mix(world.hazeColor, world.skyColor, smoothstep(float(-0.15), float(0.25), mirrored.y)).mul(
+    mix(float(0.62), float(0.3), world.night),
+  ) as AnyNode;
+  const half = (world.sunDir as AnyNode).add(toEye).normalize() as AnyNode;
+  const day = smoothstep(float(-0.03), float(0.08), world.sunDir.y) as AnyNode;
+  const glint = (world.sunColor as AnyNode).mul(
+    dot(N, half).max(0).pow(220).mul(3).mul(fresnel.add(0.05)).mul(day),
+  ) as AnyNode;
+  const emissive = sky
+    .mul(fresnel)
+    .add(glint)
+    .mul(float(1).sub(white.mul(0.8))) as AnyNode;
+  return { natural, color: colorOut, opacity, roughness, normal, emissive };
 }

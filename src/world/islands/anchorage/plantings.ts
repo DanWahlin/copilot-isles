@@ -1,5 +1,6 @@
 import type { Tier } from '../../contracts';
 import type { PlantInstance, PlantSpecies } from '../../vegetation/types';
+import { lowestOnRing } from '../../vegetation/scatter';
 
 /**
  * Anchorage's hand-placed village planting (Dan: "place some palm trees in the village"). The
@@ -113,12 +114,7 @@ export function villagePlantInstances(
       y = ground(s.x, s.z) + PLANTER.height - 0.06;
     } else {
       // Sit the base on the lowest ground under the trunk, a little sunk, as the scatter does.
-      y = terrain(s.x, s.z);
-      for (let i = 0; i < 6; i += 1) {
-        const a = (i / 6) * Math.PI * 2;
-        y = Math.min(y, terrain(s.x + Math.cos(a) * 0.6, s.z + Math.sin(a) * 0.6));
-      }
-      y -= 0.1;
+      y = lowestOnRing(terrain, s.x, s.z, terrain(s.x, s.z), 0.6, 6) - 0.1;
     }
     // The vegetation shears in model space before it turns the plant, so turn the world lean back.
     const lx = s.lean ? s.lean.x * Math.cos(s.rotation) - s.lean.z * Math.sin(s.rotation) : 0;

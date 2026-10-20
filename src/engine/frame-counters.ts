@@ -89,11 +89,13 @@ export class FrameCounters {
   private settle = 0;
   private base = { programs: 0, geometries: 0, textures: 0 };
   private readonly info: InfoLike;
+  /** Recounts textures whose size changed since three counted them (engine/memory-ledger.ts). */
+  private readonly recountTextures: () => void;
 
   constructor(renderer: WebGPURenderer | { info: InfoLike }) {
     this.info = renderer.info as unknown as InfoLike;
     this.info.autoReset = false;
-    correctMemoryInfo(renderer.info as unknown as InfoWithMemory);
+    this.recountTextures = correctMemoryInfo(renderer.info as unknown as InfoWithMemory);
   }
 
   beginFrame(): void {
@@ -101,6 +103,7 @@ export class FrameCounters {
   }
 
   endFrame(t: number): void {
+    this.recountTextures();
     const { render, memory } = this.info;
     const programs = memory.programs ?? 0;
     this.last = {

@@ -110,13 +110,6 @@ export function addBlob(
   b[key].push(g);
 }
 
-/** A point `lx` along and `lz` out from (x, z) turned by `rot` (the town's localToWorld). */
-export function local(x: number, z: number, rot: number, lx: number, lz: number): { x: number; z: number } {
-  const c = Math.cos(rot);
-  const s = Math.sin(rot);
-  return { x: x + lx * c + lz * s, z: z - lx * s + lz * c };
-}
-
 /**
  * Builds a geometry from flat faces (each face its own vertices, so hard edges stay hard): a list of
  * quads or triangles in world space, with UVs per corner. Painted with `colour` (the town's paint:

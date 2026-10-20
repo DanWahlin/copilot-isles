@@ -17,7 +17,7 @@ import {
   type CraneEvent,
   type CraneState,
 } from '../../world/sites/crane-logic';
-import { lineOf, textOf } from '../../course/puzzles';
+import { lineOf, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 import { craneContent } from '../../world/sites/crane-logic';
 import { POL_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
@@ -26,18 +26,22 @@ const CRANE_ID = 'P0.2';
 /** The crane's words and lines (`puzzles/crane.json`). */
 const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(craneContent(), key, v);
 const L = (key: string) => lineOf(craneContent(), key);
-const QUEST = 'Q0.7';
 
 /**
- * P0.2 The Dry-Run Crane (POC §4.5): turn the capstan (E) to aim the crane at a berth, pull
- * Dry-Run to preview (ghost crates land and the sign shows `Repository:`), and pull `--yes` once
- * the preview shows your own fork. Real crates stock your ship, the stores board ticks, and the
- * "Setup complete." banner unfurls. Guards teach rather than fail: Pol stops a `--yes` without a
+ * P0.2 The Dry-Run Crane (POC §4.5): turn the capstan (E) to aim the crane at a berth, pull the
+ * dry-run lever to preview (ghost crates land and the sign names the repository), and pull the
+ * confirm lever once the preview shows your own fork. Real crates stock your ship, the stores board
+ * ticks, and the banner unfurls. Guards teach rather than fail: Pol stops a confirm without a
  * preview, the script refuses a repository you don't own, the quay isn't a repository at all, and
- * until you've pulled Suri's gate lever (Q0.7's `actions` step: your fork's Actions tab) your fork's
- * dry run warns that GitHub Actions isn't active and `--yes` stops with the script's "Setup failed".
+ * until Suri's gate lever has moved the quest past its `gate` step, your fork's dry run warns and the
+ * confirm fails. Every word of it is the course's (`puzzles/crane.json`).
  */
 export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
+  const quest = puzzleQuest('crane');
+  /** Its steps, as the course's quest calls them (`gate` is the step the mill's gate lever ends). */
+  const S = puzzleSteps('crane');
+  /** The gear rack's quest: the notice reads whether it's finished. */
+  const gearQuest = puzzleQuest('gear-rack');
   const saved = host.learn?.progress.data.puzzles[CRANE_ID];
   let state: CraneState = restoreCrane(saved?.state, saved?.solved ?? false);
   let hintOn = false;
@@ -46,11 +50,11 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   const yours = () => forkName(host.learn?.progress.data.fork ?? null);
 
   const started = () => {
-    const q = host.quests()[QUEST];
-    return q === 'actions' || q === 'crane' || q === 'solved' || q === 'done';
+    const q = host.quests()[quest];
+    return q === S.gate || q === S.crane || q === S.solved || q === 'done';
   };
-  /** Your fork's workflows are on: Suri's gate lever moves the job past `actions` (the sluice does). */
-  const actionsOn = () => host.quests()[QUEST] !== 'actions';
+  /** The gate's up: Suri's gate lever moves the job past its `gate` step (the sluice does). */
+  const actionsOn = () => host.quests()[quest] !== S.gate;
   const save = () =>
     host.learn?.progress.setPuzzle(CRANE_ID, { solved: state.complete, state: saveCrane(state) });
 
@@ -74,7 +78,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     site.setBanner(true, true);
   } else if (state.preview !== null) site.showCrates('ghost', state.preview, CRANE_CARGO.length);
   readout();
-  if (state.complete && host.quests()[QUEST] === 'crane') host.setQuest(QUEST, 'solved');
+  if (state.complete && host.quests()[quest] === S.crane) host.setQuest(quest, S.solved);
 
   const spots = site.spots();
   const say = (speaker: string, line: string, s = 4.5) => host.hud.showText(speaker, line, s);
@@ -90,7 +94,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     radius: 2.5,
     enabled: () => host.canAct() && !started() && !state.complete,
     onInteract: () =>
-      say(T('noticeTitle'), host.quests()['Q0.4'] === 'done' ? T('noticeBefore') : T('noticeAfter'), 6),
+      say(T('noticeTitle'), host.quests()[gearQuest] === 'done' ? T('noticeBefore') : T('noticeAfter'), 6),
   });
   host.interactions.add({
     id: 'crane:capstan',
@@ -199,7 +203,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       case 'refused':
         await refused(ev);
         return;
-      case 'actions-off':
+      case 'gate-shut':
         await actionsOff();
         return;
       case 'complete':
@@ -228,7 +232,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
   /** `--yes` on your fork with its workflows off: the script's "Setup failed", and Pol says why. */
   async function actionsOff(): Promise<void> {
     site.refuse();
-    readout({ kind: 'actions-off', repository: yours() });
+    readout({ kind: 'gate-shut', repository: yours() });
     host.audio?.sfx.oneShot('crane_ratchet', spots.capstan, 1);
     running = true;
     await host.beat([{ say: L('refuseActions') }], 'Pol');
@@ -255,7 +259,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
     readout();
     site.setBanner(true);
     save();
-    host.setQuest(QUEST, 'solved');
+    host.setQuest(quest, S.solved);
     running = false;
     await new Promise((r) => setTimeout(r, 900));
     host.audio?.sfx.oneShot('chime_solve', undefined, 0.8);
@@ -317,7 +321,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       if (stale && !running && !site.busy) readout();
     },
     terminal() {
-      if (!started() || host.quests()[QUEST] === 'done' || !near(9)) return null;
+      if (!started() || host.quests()[quest] === 'done' || !near(9)) return null;
       return {
         title: T('terminalTitle', { repo: host.learn?.progress.data.fork?.repo ?? COURSE_REPO }),
         lines: terminal.map((text) => ({ text, tone: lineTone(text, yours()) })),
@@ -330,8 +334,8 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
       yes: () => confirm(),
       solve: async () => {
         if (state.complete) return;
-        // Tests that skip the mill: workflows count as on.
-        if (!actionsOn()) host.setQuest(QUEST, 'crane');
+        // Tests that skip the mill: the gate counts as up.
+        if (!actionsOn()) host.setQuest(quest, S.crane);
         while (state.facing !== YOUR_FACING) turn();
         while (site.busy) await new Promise((r) => setTimeout(r, 100));
         await preview();

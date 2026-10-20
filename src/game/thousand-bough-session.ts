@@ -12,7 +12,7 @@ import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contra
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { createBottles, type BottleSite } from '../world/sites/bottles';
 import { loadVillageKit } from '../world/village/kit';
-import type { BoxCollider, CollisionWorld, WalkSurface } from './collision';
+import type { BoxCollider, CollisionWorld, InlandWater, WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
 import type { CameraShot } from './follow-camera';
 import type { Interactions } from './interaction';
@@ -20,7 +20,9 @@ import { NpcCrowd, type Npc } from './npcs';
 import { createChannelRouting } from './puzzles/channel-routing/puzzle';
 import {
   FlagHoist,
+  HOIST_ID,
   HOIST_ORDERS,
+  halyardOf,
   hoistContent,
   orderPicks,
   pickFlag,
@@ -28,6 +30,7 @@ import {
   type HoistOrder,
 } from './puzzles/flag-hoist';
 import { lineOf, puzzleOn, textOf } from '../course/puzzles';
+import { storyHolds, type StoryCondition } from './story';
 import { createPracticeSession } from './puzzles/practice-session';
 import type { Puzzle, PuzzleHost } from './puzzles/types';
 import type { ScriptStep } from './script';
@@ -86,8 +89,8 @@ export interface ThousandBoughHost {
 export interface ThousandBoughContent {
   /** The island's walk surfaces (decks, the stair, bridges), live once the world's streamed. */
   readonly surface: WalkSurface;
-  /** Its pools and streams, for wading. */
-  inland(x: number, z: number): number | null;
+  /** Its pools and streams, for wading (see `ThousandBoughWorld.inland`). */
+  inland(x: number, z: number, ground: number, out: InlandWater): boolean;
   /** Builds the cast, chests, bottles and set pieces once the world's in (hidden until `reveal`). */
   setup(sys: ThousandBoughSystem): Promise<{ roots: Object3D[]; reveal(): void }>;
   /**
@@ -182,7 +185,8 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   let unwatchBranch: (() => void) | null = null;
   const ids = new Set(THOUSAND_BOUGH_NPCS.map((n) => n.id));
   const q = () => host.puzzleHost.quests();
-  const done = (id: string) => q()[id] === 'done';
+  /** One of the island's story conditions (the course's quests: src/game/story.ts). */
+  const story = (name: StoryCondition<'thousand-bough'>) => storyHolds('thousand-bough', name, q());
   const sfx = (id: SliceName, at: { x: number; y: number; z: number }, gain: number) =>
     host.audio?.sfx.oneShot(id, at, gain);
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -231,7 +235,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     hoistView.set({ busy: true, focus: Math.max(0, orderPicks(o).indexOf(pick)) });
     if (flag) {
       sfx('rope_hoist', mast, 0.7);
-      await sys.mast.hoist(flag, r.ok);
+      await sys.mast.hoist(halyardOf(flag), r.ok);
     }
     if (!r.ok) {
       hoistView.set({ message: { text: r.reason, tone: 'bad' } });
@@ -288,7 +292,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       ),
     );
     setModal(true);
-    host.label('puzzle:P2.3');
+    host.label(`puzzle:${HOIST_ID}`);
     hoistView.set({
       open: true,
       step: 0,
@@ -328,7 +332,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   }
 
   // ---- The Sky Basket: Root Hall ↔ Crown Deck, once the Elder sends it down ----
-  const basketOpen = () => !!q()['Q2.9'] && q()['Q2.9'] !== 'start';
+  const basketOpen = () => story('basketOpen');
   let riding = false;
   async function rideBasket(up: boolean): Promise<void> {
     if (riding || !host.walking()) return;
@@ -350,9 +354,10 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   }
 
   // ---- Cues the scripts wait on ----
-  host.cues.set('tb-chest:C2.1', async () => {
-    await host.openChest('C2.1');
-  });
+  for (const c of THOUSAND_BOUGH.chests)
+    host.cues.set(`tb-chest:${c.id}`, async () => {
+      await host.openChest(c.id);
+    });
   host.cues.set('tb-gondola', async () => {
     if (!sys) return;
     host.frame(GONDOLA_SHOT);
@@ -374,7 +379,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     if (puzzleOn('flag-hoist')) await runHoist();
   });
   host.cues.set('tb-crown-view', async () => {
-    if (done('Q2.9') || q()['Q2.9'] === 'exam') return;
+    if (story('skipCrownView')) return;
     crownView = true;
     host.frame(CROWN_SHOT);
     await wait(host.reducedMotion() ? 1200 : 2600);
@@ -429,7 +434,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     const anchors = s.anchors as unknown as Record<string, typeof s.anchors.tamsin>;
     const cast = [
       ...THOUSAND_BOUGH_NPCS.map((n) => ({ ...n, keepY: true })),
-      ...thousandBoughExtras(anchors, q()['Q2.5'] === 'done'),
+      ...thousandBoughExtras(anchors, story('secondBridge')),
     ];
     // A character a slice: the whole cast at once stalled a frame for ~190 ms while you sailed.
     const made = await NpcCrowd.createAsync(
@@ -461,14 +466,10 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     await buildSlice();
     if (gone()) return none;
 
-    // Chests: Lyra's by the third booth, and one in the cave behind Great Falls.
-    // Each faces the way you come to it: C2.1 the Fern Walk, C2.2 the Mirror Pool out of the cave.
-    const faces: Record<string, { x: number; z: number }> = {
-      'C2.1': { x: 1950, z: -1510 },
-      'C2.2': { x: 2120, z: -1595 },
-    };
+    // Chests: Lyra's by the third booth, and one in the cave behind Great Falls, each facing the way
+    // you come to it.
     for (const c of THOUSAND_BOUGH.chests) {
-      const f = faces[c.id] ?? A.lyra;
+      const f = c.face;
       const g = host.placeChest(c.id, c.x, c.y, c.z, Math.atan2(f.x - c.x, f.z - c.z), host.detail);
       if (g) added.chests.push(c.id);
       if (g) {
@@ -528,7 +529,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
           rook: A.rook,
           player: host.player,
           setup: () => host.learn?.getState().setup ?? null,
-          started: () => !!q()['Q2.7'],
+          started: () => story('practiceStarted'),
         });
     for (const p of [routing, practice]) {
       if (!p) continue;
@@ -540,7 +541,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       label: () => 'Ring the gondola bell',
       ...A.gondolaBell,
       radius: 2.2,
-      enabled: () => host.puzzleHost.canAct() && done('Q2.4'),
+      enabled: () => host.puzzleHost.canAct() && story('gondolaOpen'),
       onInteract: () => void ringGondola(),
     });
     for (const [id, a, up] of [
@@ -564,19 +565,19 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
       label: () => (lantern === 'day' ? 'Close the shutters' : 'Open the shutters'),
       ...A.lanternHouse,
       radius: 2.2,
-      enabled: () => host.puzzleHost.canAct() && done('Q2.9'),
+      enabled: () => host.puzzleHost.canAct() && story('sealed'),
       onInteract: () => {
         lantern = lantern === 'day' ? 'night' : 'day';
         sfx('lever', A.lanternHouse, 0.6);
         s.fx.lanternHouse(lantern);
       },
     });
-    if (q()['Q2.5'] === 'done') {
+    if (story('secondBridge')) {
       void s.spire.openSecondBridge();
-      s.spire.preview('feature', 5173, true);
-      s.spire.preview('docs', 5174, true);
+      s.spire.preview('blue', 1, true);
+      s.spire.preview('teal', 2, true);
     }
-    if (done('Q2.9')) void s.fx.sealCascade(true);
+    if (story('sealed')) void s.fx.sealCascade(true);
 
     return {
       roots,
@@ -663,7 +664,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
 
   return {
     surface,
-    inland: (x, z) => sys?.inland(x, z) ?? null,
+    inland: (x, z, ground, out) => sys?.inland(x, z, ground, out) ?? false,
     setup,
     teardown,
     get npcs() {

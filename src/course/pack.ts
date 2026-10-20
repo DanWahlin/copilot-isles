@@ -1,6 +1,7 @@
 import type { MarketData } from '../content/market';
 import type { CourseBoardsData } from '../content/course-boards';
 import type { Beat } from '../game/beats';
+import type { IslandStory } from '../game/story';
 import type { ScriptStep } from '../game/script';
 import type { ModelsFile } from '../game/market/catalog';
 import type { ChartLabelText } from '../learn/content/labels';
@@ -44,12 +45,22 @@ export type PackScriptStep = ScriptStep | { script: string };
 export interface IslandQuestsFile {
   island: string;
   /** The tracker's header (the island's name is the game's). */
-  tracker: { chapter: string; goal: string; next: string };
+  tracker: {
+    chapter: string;
+    goal: string;
+    next: string;
+    /** Anchorage: what's next once the next island's open (it replaces `next`). */
+    nextSail?: string;
+  };
   quests: readonly QuestDef[];
   /** `<quest>:<step>` → where the compass points. */
   targets: Readonly<Record<string, QuestTarget>>;
   /** Which script or line each NPC offers for the quest state; the first row that fits wins. */
   beats: readonly Beat[];
+  /** The conditions and events the game asks the island for, in this course's quests (src/game/story.ts). */
+  story?: IslandStory;
+  /** The island's signs with course words, by the names the game asks for (`ISLAND_SIGNS`). */
+  signs?: Readonly<Record<string, string>>;
   /** Named scripts the island's NPCs and puzzles play (src/game/script.ts). */
   scripts: Readonly<Record<string, readonly PackScriptStep[]>>;
   /** What each script is for (for authors; the game ignores it). */
@@ -62,6 +73,12 @@ export interface IslandQuestsFile {
 export interface IslandQuests extends Omit<IslandQuestsFile, 'scripts'> {
   scripts: Readonly<Record<string, readonly ScriptStep[]>>;
 }
+
+/**
+ * The signs each island's dressing asks the course for (`quests/<island>.json` → `signs`): Thousand-
+ * Bough's `loft`, the board over the top deck's house. Blank without a course.
+ */
+export const ISLAND_SIGNS: Readonly<Record<string, readonly string[]>> = { 'thousand-bough': ['loft'] };
 
 /** The kinds of puzzle the game can run (COURSE-PACKS.md §4): a puzzle file names its mechanic. */
 export const PUZZLE_MECHANICS = [
@@ -85,6 +102,13 @@ export interface PuzzleFile {
   chapter?: string;
   /** Off for this course: its site stays as scenery and the game doesn't create the puzzle. */
   disabled?: boolean;
+  /**
+   * The quest it plays in: the steps its mechanic sets and waits on (`PUZZLE_STEPS`,
+   * src/course/puzzles.ts) are that quest's.
+   */
+  quest?: string;
+  /** Its mechanic's steps (`PUZZLE_STEPS`) the quest calls something else: game step → quest step. */
+  steps?: Readonly<Record<string, string>>;
   /** Its words (labels, hints, readouts), by key; `{name}` marks a value the game fills in. */
   text?: Readonly<Record<string, string>>;
   /** Its voiced lines, by what they're for. */
@@ -188,7 +212,7 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     puzzles,
     labels: need<{ labels: Record<string, ChartLabelText> }>(files, 'labels.json', id).labels,
     boards: withoutMeta(need<CourseBoardsData>(files, 'boards.json', id)),
-    // The Model Market teaches the Copilot app's models: a course without one has neither file.
+    // A course without the Model Market (it's optional) has neither file.
     market: files['market.json'] ? withoutMeta(files['market.json'] as MarketData) : NO_MARKET,
     models: (files['models.json'] as ModelsFile | undefined) ?? NO_MODELS,
     lock: need<CourseLock>(files, 'lock.json', id),

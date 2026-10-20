@@ -19,6 +19,19 @@
     "mechanic": {
       "const": "match"
     },
+    "quest": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$",
+      "description": "The quest the puzzle plays in (a quest of this course): the steps its mechanic sets and waits on (PUZZLE_STEPS, src/course/puzzles.ts) are that quest's."
+    },
+    "steps": {
+      "type": "object",
+      "description": "The mechanic's steps (PUZZLE_STEPS) that the quest calls something else: game step → the quest's step.",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "disabled": {
       "type": "boolean",
       "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
@@ -44,11 +57,14 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "name", "icon", "island"],
+        "required": ["id", "acts", "name", "icon", "island"],
         "properties": {
           "id": {
             "type": "string",
             "minLength": 1
+          },
+          "acts": {
+            "enum": ["channel", "hall", "gondola"]
           },
           "name": {
             "type": "string",
@@ -63,7 +79,8 @@
             "minLength": 1
           }
         }
-      }
+      },
+      "description": "The course's places, each bound to what the game does with the crew's water (channel: its own channel to its wheel; hall: through the Great Hall; gondola: off the deck), each once. Orders name places by the course's ids."
     },
     "orders": {
       "type": "object",

@@ -30,9 +30,9 @@ export const PAINT = {
   iron: 0x4a4a48,
   brass: 0xb8923e,
   lantern: 0xffb54a,
-  feature: 0x3b82f6,
-  bugfix: 0x3fa34d,
-  docs: 0x1ea7a7,
+  blue: 0x3b82f6,
+  green: 0x3fa34d,
+  teal: 0x1ea7a7,
   lilac: 0xe9e4f5,
   heliconia: 0xe2552d,
   orchid: 0xc2307a,
@@ -204,6 +204,17 @@ export function rope(
   }
 }
 
+/** Two triangles for each cell of a `rows` × `cols` grid of vertices (row-major). */
+export function gridIndex(rows: number, cols: number): number[] {
+  const idx: number[] = [];
+  for (let r = 0; r < rows - 1; r++)
+    for (let c = 0; c < cols - 1; c++) {
+      const a = r * cols + c;
+      idx.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
+    }
+  return idx;
+}
+
 /**
  * A custom surface from a grid of points (`rows` × `cols`, row-major), as one painted piece: its
  * normals from the grid. Used for curved boards (the stair's walkway, the plinth's faces, thatch).
@@ -229,16 +240,10 @@ export function gridSurface(
     uvs[i * 2] = wood ? Math.floor(i / cols) * uvScale : (i % cols) * uvScale;
     uvs[i * 2 + 1] = wood ? v0 + 0.23 * ((i % cols) / Math.max(1, cols - 1)) : Math.floor(i / cols) * uvScale;
   });
-  const idx: number[] = [];
-  for (let r = 0; r < rows - 1; r++)
-    for (let c = 0; c < cols - 1; c++) {
-      const a = r * cols + c;
-      idx.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
-    }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('uv', new BufferAttribute(uvs, 2));
-  g.setIndex(idx);
+  g.setIndex(gridIndex(rows, cols));
   return put(buckets, key, g.toNonIndexed(), colour);
 }
 

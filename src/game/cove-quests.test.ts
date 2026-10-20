@@ -2,15 +2,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  boardingOpen,
   currentQuest,
-  migrateQuests,
   npcScript,
   POL_SOLVED,
   questTarget,
   questTracker,
   type QuestState,
 } from './cove-quests';
+import { migrateQuests, storyHolds } from './story';
 
 const ORDER = ['Q0.2', 'Q0.3', 'Q0.4', 'Q0.7', 'Q0.8', 'Q0.10', 'Q0.11'];
 const through = (last: string): Record<string, string> => {
@@ -18,6 +17,7 @@ const through = (last: string): Record<string, string> => {
   for (const id of ORDER.slice(0, ORDER.indexOf(last) + 1)) q[id] = 'done';
   return q;
 };
+const boardingOpen = (q: QuestState) => storyHolds('anchorage', 'gangwayDown', q);
 const migrated = (saved: QuestState) => {
   const q = { ...saved };
   migrateQuests(saved, (id, step) => (q[id] = step));

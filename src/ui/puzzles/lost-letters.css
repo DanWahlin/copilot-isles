@@ -102,7 +102,7 @@
   font: 700 0.9rem/1.2 var(--ci-ui);
   text-align: left;
 }
-.ci-ll-choices button.is-projects {
+.ci-ll-choices button.is-apart {
   background: rgba(107, 74, 31, 0.4);
 }
 .ci-ll-choices button:hover:not(:disabled),

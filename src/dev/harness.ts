@@ -6,7 +6,7 @@ import {
   type Object3D,
   type WebGPURenderer,
 } from 'three/webgpu';
-import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { DayClock } from '../engine/day-clock';
 import { Engine } from '../engine/engine';
 import { TIERS, type TierSettings } from '../engine/quality';
@@ -46,6 +46,14 @@ export async function createDevHarness(): Promise<DevHarness> {
   const tm = q.get('tm') as keyof typeof TONE_MAPPINGS | null;
   if (tm && TONE_MAPPINGS[tm]) renderer.toneMapping = TONE_MAPPINGS[tm];
   return { q, backend, tier, canvas, renderer, engine };
+}
+
+/** Damped orbit controls that keep the camera above the horizon (the pages over the sea). */
+export function seaOrbitControls(camera: Camera, canvas: HTMLCanvasElement): OrbitControls {
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.maxPolarAngle = Math.PI * 0.495;
+  return controls;
 }
 
 /** A named camera pose: [camera position, orbit target]. */

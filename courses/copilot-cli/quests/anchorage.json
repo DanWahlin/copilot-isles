@@ -259,6 +259,18 @@
       "say": "cli.juno.done.01"
     }
   ],
+  "story": {
+    "conditions": {
+      "firstVisit": { "Q0.2": "start" },
+      "trialStarted": { "Q0.10": "start" },
+      "sealed": { "Q0.10": "done" },
+      "gangwayDown": { "Q0.11": ["sail", "done"] }
+    },
+    "events": {
+      "landed": [{ "when": { "Q0.2": null }, "set": { "Q0.2": "start" } }],
+      "setSail": [{ "when": { "Q0.11": "sail" }, "set": { "Q0.11": "done" } }]
+    }
+  },
   "scripts": {
     "nell.papers": [
       {

@@ -6,6 +6,7 @@ import {
   Color,
   DoubleSide,
   Euler,
+  Group,
   Matrix4,
   Mesh,
   Object3D,
@@ -457,6 +458,15 @@ function floatAttribute(attr: BufferAttribute): BufferAttribute {
     if (attr.itemSize > 3) data[i * attr.itemSize + 3] = attr.getW(i);
   }
   return new BufferAttribute(data, attr.itemSize);
+}
+
+/** A site's local frame: a group at an anchor's position, turned by its heading, its world matrix set. */
+export function anchorFrame(anchor: VillageAnchor): Group {
+  const frame = new Group();
+  frame.position.set(anchor.x, anchor.y, anchor.z);
+  frame.rotation.y = anchor.heading;
+  frame.updateMatrixWorld(true);
+  return frame;
 }
 
 export function localToWorld(

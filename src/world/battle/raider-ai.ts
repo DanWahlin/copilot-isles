@@ -1,4 +1,5 @@
 import { pointOfSailCurve } from '../ship/dynamics';
+import { wrapAngle } from '../../util/math';
 import type { Side } from './gunnery';
 
 /** What a raider's helmsman asks of its ship this step. */
@@ -28,15 +29,28 @@ export interface RaiderView {
   avoidZ: number;
 }
 
+/** A view with nothing seen yet (whole hull, at the origin), for the battle to fill each step. */
+export function emptyRaiderView(): RaiderView {
+  return {
+    x: 0,
+    z: 0,
+    heading: 0,
+    headingRate: 0,
+    targetX: 0,
+    targetZ: 0,
+    windX: 0,
+    windZ: 0,
+    loadedPort: 0,
+    loadedStarboard: 0,
+    hull: 1,
+    avoidX: 0,
+    avoidZ: 0,
+  };
+}
+
 const TWO_PI = Math.PI * 2;
 /** Half-width of the no-go zone either side of the wind's eye (radians), with a little margin. */
 const NO_GO = 0.8;
-
-function wrap(a: number): number {
-  let d = (a + Math.PI) % TWO_PI;
-  if (d < 0) d += TWO_PI;
-  return d - Math.PI;
-}
 
 /** How well a ship on `heading` sails in the wind (0 in irons … ~1 on a broad reach). */
 function sailing(heading: number, windX: number, windZ: number): number {
@@ -81,7 +95,7 @@ export class RaiderBrain {
       const h = toTarget - side * (Math.PI / 2 - close);
       const loaded = side === 1 ? v.loadedPort : v.loadedStarboard;
       let score = sailing(h, v.windX, v.windZ) * 2 + loaded * 0.15;
-      score -= Math.abs(wrap(h - v.heading)) * 0.35;
+      score -= Math.abs(wrapAngle(h - v.heading)) * 0.35;
       if (side === this.side) score += this.commit > 0 ? 3 : 0.25;
       if (score > bestScore) {
         bestScore = score;
@@ -98,25 +112,25 @@ export class RaiderBrain {
     const push = Math.hypot(v.avoidX, v.avoidZ);
     if (push > 0.01) {
       const away = Math.atan2(v.avoidX, v.avoidZ);
-      best += wrap(away - best) * Math.min(0.7, push / 30);
+      best += wrapAngle(away - best) * Math.min(0.7, push / 30);
     }
     // Never sit in irons: slide to the edge of the no-go zone on the nearer tack.
     if (sailing(best, v.windX, v.windZ) < 0.35) {
       const from = Math.atan2(-v.windX, -v.windZ);
-      best = from + (wrap(best - from) >= 0 ? 1 : -1) * (NO_GO + 0.35);
+      best = from + (wrapAngle(best - from) >= 0 ? 1 : -1) * (NO_GO + 0.35);
     }
-    this.desired = wrap(best);
+    this.desired = wrapAngle(best);
 
     // Wear ship rather than tack: if the short turn passes through the wind's eye, go the long way round.
-    let err = wrap(this.desired - v.heading);
+    let err = wrapAngle(this.desired - v.heading);
     const windFrom = Math.atan2(-v.windX, -v.windZ);
-    const toWind = wrap(windFrom - v.heading);
+    const toWind = wrapAngle(windFrom - v.heading);
     if (Math.abs(toWind) < NO_GO) err = toWind > 0 ? -1 : 1;
     else if (Math.sign(toWind) === Math.sign(err) && Math.abs(toWind) - NO_GO < Math.abs(err))
       err -= Math.sign(err) * TWO_PI;
     out.rudder = Math.max(-1, Math.min(1, err * 2.4 - v.headingRate * 1.2));
     // Ease off close in so it doesn't overrun; never ram.
-    const ahead = Math.abs(wrap(toTarget - v.heading)) < 0.5 && dist < 45;
+    const ahead = Math.abs(wrapAngle(toTarget - v.heading)) < 0.5 && dist < 45;
     out.trim = ahead ? 0.35 : dist < want * 0.7 ? 0.55 : 0.85;
     return out;
   }

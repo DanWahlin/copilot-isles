@@ -3,25 +3,36 @@ import { WaterStrips, type StripFlow } from '../sites/water';
 import { meridianWater } from './meridian';
 import type { FreshWater, WaterBasin } from './meridian-water';
 import { smoothstep } from '../../util/math';
+import { addNaturalFreshWater, FALLS, steepness, type NaturalWaterOptions } from './fresh-water-natural';
 
 /** Segments round a basin's shore (the fan's rim). */
 const RIM = 40;
 
 /**
- * Port Meridian's fresh water as one static mesh (one draw) in the mill race's flowing-water material
- * (same TSL graph, so no new program): still fans for the tarn, the plunge pool and the lake, and
- * strips down the cascade, the brook and the outflow. Steep stretches run fast and white; where the
- * cascade lands, a ring of churned foam. Built once; only the shader's time moves it.
+ * An island's fresh water (Port Meridian's by default) as one static mesh (one draw) in the mill
+ * race's flowing-water material (same TSL graph, so no new program). With `natural` (both islands)
+ * its pools and streams are natural water (`addNaturalFreshWater`) and only its falls keep the
+ * falling-water look, white and fast; without it, still fans for the basins and strips down the
+ * streams, with a ring of churned foam where a fall lands. Built once; only the shader's time moves it.
  */
 export function createMeridianWaterMesh(
   water: FreshWater = meridianWater(),
-  opts: { name?: string; maxQuads?: number; extra?: (strips: WaterStrips) => void } = {},
+  opts: {
+    name?: string;
+    maxQuads?: number;
+    extra?: (strips: WaterStrips) => void;
+    /** Draw the pools and the gentler streams as natural water (only the falls keep their look). */
+    natural?: NaturalWaterOptions;
+  } = {},
 ): WaterStrips {
   const strips = new WaterStrips(opts.maxQuads ?? 1200);
   strips.mesh.name = opts.name ?? 'meridian fresh water';
   strips.begin();
-  for (const b of Object.values(water.basins))
-    basin(strips, water, b, 1.05, b.level, { fill: 1, speed: 0.05, kind: 1 });
+  const natural = opts.natural;
+  if (natural) addNaturalFreshWater(strips, water, natural);
+  else
+    for (const b of Object.values(water.basins))
+      basin(strips, water, b, 1.05, b.level, { fill: 1, speed: 0.05, kind: 1 });
   // White water where the cascade and the brook's rapids plunge in.
   for (const s of water.streams) {
     const n = s.count;
@@ -33,7 +44,9 @@ export function createMeridianWaterMesh(
       const run = Math.hypot(x1 - x0, z1 - z0) || 1;
       const drop = s.surface[i]! - s.surface[i + 1]!;
       const slope = Math.max(0, drop / run);
-      const steep = Math.min(1, slope / 0.9);
+      const steep = steepness(slope);
+      // Natural water draws all but the falls (and its pools foam under them).
+      if (natural && steep <= FALLS) continue;
       // Falls spread a little wider than the channel, and run fast and foamy; the width breathes.
       const w = s.spec.halfWidth * (1 + steep * 0.12) * (0.9 + 0.1 * Math.sin(s.along[i]! * 0.19 + 1));
       const tx0 = tangent(s.x, s.z, n, i);
@@ -52,14 +65,14 @@ export function createMeridianWaterMesh(
           fill: 1,
           speed: 0.8 + steep * 2.6,
           foam: smoothstep(0.12, 0.8, slope) * 0.7,
-          kind: steep > 0.6 ? -1 : 0,
+          kind: steep > FALLS ? -1 : 0,
         },
         0,
         1,
       );
       // Where a fall lands in a basin, churned foam round the foot.
       const next = i + 2 < n ? s.surface[i + 1]! - s.surface[i + 2]! : 0;
-      if (slope > 0.5 && next < 0.2 && s.spec.to !== 'sea') {
+      if (!natural && slope > 0.5 && next < 0.2 && s.spec.to !== 'sea') {
         const b = water.basins[s.spec.to]!;
         foamRing(strips, x1, z1, b.level + 0.03, s.spec.halfWidth * 2.2);
       }

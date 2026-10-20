@@ -2,6 +2,7 @@
   "$schema": "../../schemas/puzzle-route.schema.json",
   "id": "P0.1",
   "mechanic": "route",
+  "quest": "Q0.6",
   "$comment": "Suri's mill race (Q0.6, optional): turn the channel tiles until the water from the spring reaches both outlets. The grid is the game's; what the spring, the wheel and the check gate stand for (for the Copilot app course: the fork's GitHub Actions, the practice checks running, and the check that fails on purpose) is this file's.",
   "signs": {
     "gate": ["Workflows aren’t being run", "on this forked repository."],

@@ -8,7 +8,7 @@ import { createSparkleMaterial, shaftGeometry, starGeometry } from './sparkle';
  * Anchorage Cay's message bottles (POC §4.4, B0.1-B0.4): sea-green bottles washed up on the beaches,
  * each with a rolled note inside and a soft glint so they're findable. They're optional, and each
  * holds one troubleshooting page. All the bottles merge into one mesh per material (4 draws; 2 on
- * Lite, where the note and the cork draw with the glass), rebuilt only when one's picked up.
+ * Lite, where the note and the cork draw with the glass), built once; a picked-up one's vertices collapse.
  */
 export interface BottleSpot {
   id: string;
@@ -18,7 +18,7 @@ export interface BottleSpot {
   yaw: number;
 }
 
-const COVE_BOTTLES: readonly BottleSpot[] = [
+export const COVE_BOTTLES: readonly BottleSpot[] = [
   // West strand, just past the end of the quay: the first one most players find.
   { id: 'B0.1', x: -156, z: -48, yaw: 2.2 },
   // South-west cove below the hill.
@@ -66,40 +66,61 @@ export function createBottles(o: {
     cork: o.kit.materials.wood,
     glint: sparkle,
   };
-  const meshes: Mesh[] = [];
   const lying = list.map((b) => {
     const r = 0.075 * S;
     return { ...b, y: o.ground(b.x, b.z) + r * 0.55 };
   });
 
-  const rebuild = () => {
-    for (const m of meshes.splice(0)) {
-      m.geometry.dispose();
-      m.removeFromParent();
-    }
-    const parts: Record<keyof typeof materials, BufferGeometry[]> = {
-      glass: [],
-      note: [],
-      cork: [],
-      glint: [],
+  // Every bottle is built once, read or not: picking one up collapses its vertices (a buffer update),
+  // never a new geometry mid-play (4 new geometries at each pickup tripped the hitch guard).
+  type Key = keyof typeof materials;
+  const keys = Object.keys(materials) as Key[];
+  const parts: Record<Key, BufferGeometry[]> = { glass: [], note: [], cork: [], glint: [] };
+  const vertices: Record<Key, number> = { glass: 0, note: 0, cork: 0, glint: 0 };
+  /** Each bottle's vertex range (start, count) in each material's merged geometry. */
+  const ranges = new Map<string, Partial<Record<Key, readonly [number, number]>>>();
+  for (const b of lying) {
+    const from: Record<Key, number> = {
+      glass: parts.glass.length,
+      note: parts.note.length,
+      cork: parts.cork.length,
+      glint: parts.glint.length,
     };
-    for (const b of lying) {
-      if (collected.has(b.id)) continue;
-      addBottle(parts, b);
+    addBottle(parts, b);
+    if (o.lite) parts.glass.push(...parts.note.splice(from.note), ...parts.cork.splice(from.cork));
+    const own: Partial<Record<Key, readonly [number, number]>> = {};
+    for (const key of keys) {
+      let n = 0;
+      for (let i = from[key]; i < parts[key].length; i++) n += parts[key][i]!.getAttribute('position').count;
+      if (n > 0) own[key] = [vertices[key], n];
+      vertices[key] += n;
     }
-    if (o.lite) parts.glass.push(...parts.note.splice(0), ...parts.cork.splice(0));
-    for (const key of Object.keys(parts) as (keyof typeof materials)[]) {
-      if (parts[key].length === 0) continue;
-      const mesh = new Mesh(merge(parts[key]), materials[key]);
-      mesh.name = `message bottles ${key}`;
-      mesh.castShadow = key !== 'glint';
-      mesh.receiveShadow = key !== 'glint';
-      if (key === 'glint') mesh.renderOrder = 2;
-      group.add(mesh);
-      meshes.push(mesh);
+    ranges.set(b.id, own);
+  }
+  const meshes: { key: Key; mesh: Mesh; rest: Float32Array }[] = [];
+  for (const key of keys) {
+    if (parts[key].length === 0) continue;
+    const mesh = new Mesh(merge(parts[key]), materials[key]);
+    mesh.name = `message bottles ${key}`;
+    mesh.castShadow = key !== 'glint';
+    mesh.receiveShadow = key !== 'glint';
+    if (key === 'glint') mesh.renderOrder = 2;
+    group.add(mesh);
+    meshes.push({ key, mesh, rest: (mesh.geometry.getAttribute('position').array as Float32Array).slice() });
+  }
+  /** Puts a bottle's vertices back, or folds them onto its first one (no triangles left to draw). */
+  const show = (id: string, on: boolean) => {
+    for (const { key, mesh, rest } of meshes) {
+      const range = ranges.get(id)?.[key];
+      if (!range) continue;
+      const position = mesh.geometry.getAttribute('position');
+      const a = position.array as Float32Array;
+      const [start, count] = range;
+      for (let i = start * 3; i < (start + count) * 3; i++) a[i] = on ? rest[i]! : rest[start * 3 + (i % 3)]!;
+      position.needsUpdate = true;
+      mesh.visible = lying.some((b) => !collected.has(b.id) && !!ranges.get(b.id)?.[key]);
     }
   };
-  rebuild();
 
   return {
     group,
@@ -110,13 +131,13 @@ export function createBottles(o: {
       if (isCollected === collected.has(id)) return;
       if (isCollected) collected.add(id);
       else collected.delete(id);
-      rebuild();
+      show(id, !isCollected);
     },
     excludes(x, z) {
       return lying.some((b) => Math.hypot(x - b.x, z - b.z) < 1.1);
     },
     dispose() {
-      for (const m of meshes) m.geometry.dispose();
+      for (const { mesh } of meshes) mesh.geometry.dispose();
       sparkle.dispose();
       unreflected.delete(group);
       group.removeFromParent();

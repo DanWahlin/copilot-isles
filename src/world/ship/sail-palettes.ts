@@ -1,7 +1,7 @@
 /**
- * Paint Your Sails (POC §4.4, Q0.2): six sail palettes. The app's theme lives in Settings → Themes
- * (Chapter 01 · Settings), and the course shows one theme there, **GitHub**, so that's the only
- * palette named after an app theme (with the app-style preview card in the picker). The rest are
+ * Paint Your Sails (POC §4.4): six sail palettes. For the Copilot app course, the app's theme lives
+ * in Settings → Themes (Chapter 01 · Settings), and the course shows one theme there, **GitHub**, so
+ * that's the only palette named after an app theme (with the app-style preview card in the picker). The rest are
  * plain sail colours that make no claim about the app. Ids are what saves store, so they stay as
  * they were when the palettes carried older theme names. `cloth` and `stripe` colour the
  * brigantine's canvas.

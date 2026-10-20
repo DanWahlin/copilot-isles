@@ -306,7 +306,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "none",
       "indices": 30,
-      "path": "gear rack (Q0.4)/gear rack plaques#0",
+      "path": "gear rack/gear rack plaques#0",
       "position": "a1dcc5f1",
       "uv": "e81c1815",
       "vertices": 20,
@@ -314,7 +314,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "2ebb7055",
       "indices": 216,
-      "path": "gear rack (Q0.4)/gear rack wood#1",
+      "path": "gear rack/gear rack wood#1",
       "position": "ac8f484a",
       "uv": "eaf43e95",
       "vertices": 144,
@@ -322,7 +322,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "29359bd4",
       "indices": 4740,
-      "path": "gear rack (Q0.4)/gear rack metal#2",
+      "path": "gear rack/gear rack metal#2",
       "position": "0ae3e26c",
       "uv": "a4384d50",
       "vertices": 1495,
@@ -330,7 +330,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "815be1ed",
       "indices": 1800,
-      "path": "gear rack (Q0.4)/gear rack rope#3",
+      "path": "gear rack/gear rack rope#3",
       "position": "90b0d10a",
       "uv": "a3067667",
       "vertices": 397,
@@ -338,7 +338,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "11d8252d",
       "indices": 468,
-      "path": "gear rack (Q0.4)/gear rack glow#4",
+      "path": "gear rack/gear rack glow#4",
       "position": "515ff50d",
       "uv": "feb0e3cd",
       "vertices": 272,
@@ -348,7 +348,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "2d01b6fe",
       "indices": 2076,
-      "path": "bard hammock camp (Q0.9)/bard hammock wood props#2",
+      "path": "bard hammock camp/bard hammock wood props#2",
       "position": "9ac59d8e",
       "uv": "e83eaf19",
       "vertices": 876,
@@ -356,7 +356,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "b35b9aa9",
       "indices": 711,
-      "path": "bard hammock camp (Q0.9)/bard hammock animated cloth#3",
+      "path": "bard hammock camp/bard hammock animated cloth#3",
       "position": "a078e971",
       "uv": "a0d8c588",
       "vertices": 182,
@@ -364,7 +364,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "9c9a5b35",
       "indices": 1116,
-      "path": "bard hammock camp (Q0.9)/bard hammock cold firepit#4",
+      "path": "bard hammock camp/bard hammock cold firepit#4",
       "position": "437c1b15",
       "uv": "f3c91bec",
       "vertices": 600,
@@ -463,8 +463,8 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
       "color": "none",
       "indices": 1920,
       "path": "mill race (P0.1)/site water#16",
-      "position": "904078bb",
-      "uv": "9370c691",
+      "position": "a7c4a13b",
+      "uv": "79bec7d5",
       "vertices": 1280,
     },
   ],
@@ -472,7 +472,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "8dabc885",
       "indices": 1068,
-      "path": "palette stand (Q0.2)/palette stand timber#0",
+      "path": "palette stand/palette stand timber#0",
       "position": "b83e7646",
       "uv": "a692cc97",
       "vertices": 620,
@@ -480,7 +480,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "1aa42575",
       "indices": 312,
-      "path": "palette stand (Q0.2)/palette stand swatches and sample sail#1",
+      "path": "palette stand/palette stand swatches and sample sail#1",
       "position": "92ab2d71",
       "uv": "6075eda7",
       "vertices": 130,
@@ -488,7 +488,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "none",
       "indices": 42,
-      "path": "palette stand (Q0.2)/palette stand labels#2",
+      "path": "palette stand/palette stand labels#2",
       "position": "10a77eed",
       "uv": "c1df45dd",
       "vertices": 28,
@@ -496,7 +496,7 @@ exports[`site geometry fingerprints > stay stable across site cleanup refactors 
     {
       "color": "b17eccf5",
       "indices": 336,
-      "path": "palette stand (Q0.2)/palette stand hint sparkle#3",
+      "path": "palette stand/palette stand hint sparkle#3",
       "position": "e724afe7",
       "uv": "none",
       "vertices": 93,

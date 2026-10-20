@@ -392,7 +392,12 @@ export function thousandBoughHeight(x: number, z: number): number {
   return thousandBoughWater().carve(x, z, thousandBoughHeightDry(x, z));
 }
 
-function normalAt(x: number, z: number, out: number[]): number[] {
+/** The ground's normal at (x, z), from the height's central differences 1.5 m either side. */
+export function thousandBoughNormal(
+  x: number,
+  z: number,
+  out: Float32Array | number[],
+): Float32Array | number[] {
   const e = 1.5;
   const nx = -(thousandBoughHeight(x + e, z) - thousandBoughHeight(x - e, z)) / (2 * e);
   const nz = -(thousandBoughHeight(x, z + e) - thousandBoughHeight(x, z - e)) / (2 * e);
@@ -414,7 +419,7 @@ export function thousandBoughMasks(
   z: number,
 ): { sand: number; grass: number; rock: number; cliff: number } {
   const h = thousandBoughHeight(x, z);
-  const n = normalAt(x, z, normal);
+  const n = thousandBoughNormal(x, z, normal);
   const slope = Math.hypot(n[0]!, n[2]!) / Math.max(0.05, n[1]!);
   const shore = smoothstep(-6, -0.8, h) * (1 - smoothstep(1.6, 3.6, h));
   let sand = shore * (1 - smoothstep(0.35, 0.7, slope));

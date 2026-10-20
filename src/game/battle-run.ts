@@ -4,7 +4,7 @@ import type { Engine } from '../engine/engine';
 import type { InputState } from '../engine/input';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
-import { BATTLE_PLANS, Battle, type BattlePlan, type BattleSnapshot } from '../world/battle/battle';
+import { BATTLE_PLANS, Battle, emptyBattleSnapshot, type BattlePlan } from '../world/battle/battle';
 import type { HeightField } from '../world/contracts';
 import type { CoveScene } from '../world/cove-scene';
 import { unreflected } from '../world/reflection';
@@ -67,24 +67,7 @@ export class BattleRun {
   private musicInBattle = false;
   private navHeld = false;
   private wasDirecting = false;
-  private readonly snap: BattleSnapshot = {
-    phase: 'idle',
-    wave: 0,
-    waves: 0,
-    hull: 1,
-    raidersLeft: 0,
-    raidersTotal: 0,
-    bears: [false, false],
-    breakOffs: 0,
-    calm: false,
-    doubleShot: false,
-    stores: { timber: 0, powder: 0 },
-    lull: 0,
-    title: '',
-    hint: '',
-    hintTurn: 0,
-    assist: false,
-  };
+  private readonly snap = emptyBattleSnapshot();
   private readonly focusAt = { x: 0, z: 0 };
   private readonly look = { x: 0, y: 3, z: 0 };
   private readonly dcam = { x: 0, y: 0, z: 0 };

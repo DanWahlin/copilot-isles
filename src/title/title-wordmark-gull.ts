@@ -1,6 +1,6 @@
 import { Object3D, Vector3, type Group, type PerspectiveCamera } from 'three/webgpu';
 import { world } from '../world/uniforms';
-import { clamp, lerp, smoothstep } from '../util/math';
+import { clamp, lerp, seededRandom, smoothstep } from '../util/math';
 
 export interface TitleWordmarkGull {
   readonly group: Group;
@@ -127,15 +127,6 @@ function bez(a: number, b: number, c: number, d: number, u: number): number {
   return v * v * v * a + 3 * v * v * u * b + 3 * v * u * u * c + u * u * u * d;
 }
 
-function random(seed: number): () => number {
-  let s = seed >>> 0 || 0x12345678;
-  return () => {
-    s = Math.imul(s ^ (s >>> 15), 1 | s);
-    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
-    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /** The touchdown cell `t` s after landing, or null once it's done. */
 function touchdownCell(t: number): string | null {
   let end = 0;
@@ -225,7 +216,7 @@ function inView(t: LandingTarget | null): t is LandingTarget {
 export function createTitleWordmarkGull(seed = 0xc0ffee, ship?: GullShipPerches): TitleWordmarkGull {
   const group = new Object3D() as Group;
   group.name = 'title-wordmark-gull-anchor';
-  const rng = random(seed);
+  const rng = seededRandom(seed);
   const reducedMotionQuery =
     typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
 

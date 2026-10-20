@@ -10,17 +10,17 @@ import { HELM_ORDER, HELM_ORDERS, MERIDIAN_HELMS, SHOAL, sampleCourse, type Helm
 
 /** Metres from the route point to its marker float. */
 const MARK_OFFSET = 9;
-/** The charted route's dashes on the water (Plan): length, width, and spacing, in metres. */
+/** The charted route's dashes on the water (`review`): length, width, and spacing, in metres. */
 const DASH = { length: 2.8, width: 0.9, every: 5 } as const;
 
-/** A route on the water: a mode's, or Plan's first chart (the one across the Shoal). */
+/** A route on the water: a helm's, or the `review` helm's first chart (the one across the Shoal). */
 export type HelmRoute = HelmMode | 'draft';
 
 export interface HelmBuoysSite {
   readonly group: Group;
   /**
-   * Shows a route's marker floats (Plan's charted route also as a dashed line on the water;
-   * Interactive shows the next mark).
+   * Shows a route's marker floats (the `review` helm's chart also as a dashed line on the water;
+   * `steer` shows the next mark).
    */
   showRoute(route: HelmRoute | null, upTo?: number, from?: number): void;
   /** Dims a helm's flag once it's been sailed. */
@@ -32,7 +32,7 @@ export interface HelmBuoysSite {
 /**
  * The Three Helms' buoys in the bay (P1.2): a big float for each of Rhea's orders with its colour
  * flag and a board you can read from the helm (the order's number and name, not its mode), small
- * marker floats along each route, Plan's charted route as a dashed line, and the Shoal: a hazard
+ * marker floats along each route, the `review` helm's chart as a dashed line, and the Shoal: a hazard
  * float on rocks that Rhea's first chart cuts across. They ride the waves. The float bodies draw as
  * one instanced mesh and the boards as one sign atlas.
  */
@@ -83,9 +83,9 @@ export function createHelmBuoys(o: { kit: VillageKit; waves: WaveSampler }): Hel
     disposables.push(flagGeo);
 
     routes.set(mode, routeMarkers(run.buoy, run.route, run.colour));
-    if (mode === 'plan') {
+    if (mode === 'review') {
       routes.set('draft', routeMarkers(run.buoy, run.draft!.route, run.colour));
-      lines.set('plan', routeLine(run.buoy, run.route, run.colour));
+      lines.set('review', routeLine(run.buoy, run.route, run.colour));
       lines.set('draft', routeLine(run.buoy, run.draft!.route, run.colour));
     }
   }

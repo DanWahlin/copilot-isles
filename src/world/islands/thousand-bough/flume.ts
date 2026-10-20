@@ -26,6 +26,7 @@ import {
   beam,
   box,
   cone,
+  gridIndex,
   gridSurface,
   lanternPaint,
   makeBuckets,
@@ -55,14 +56,14 @@ const CHANNEL = 0.62;
 /** Water runs along the tiles at 4 m/s (spec §5.4): this long per cell. */
 const CELL_TIME = TILE / 4;
 
-const CREWS: readonly Crew[] = ['feature', 'bugfix', 'docs'];
+const CREWS: readonly Crew[] = ['blue', 'green', 'teal'];
 const DYE: Record<Crew | 'mixed', number> = {
-  feature: PAINT.feature,
-  bugfix: PAINT.bugfix,
-  docs: PAINT.docs,
+  blue: PAINT.blue,
+  green: PAINT.green,
+  teal: PAINT.teal,
   mixed: 0x7a5a32,
 };
-const DYES = ['feature', 'bugfix', 'docs', 'mixed'] as const;
+const DYES = ['blue', 'green', 'teal', 'mixed'] as const;
 type Dye = (typeof DYES)[number];
 
 export function tileCentre(row: number, col: number, out: Vector3): Vector3 {
@@ -307,18 +308,12 @@ function troughWaterReach(reach: number): BufferGeometry {
       nrm[i * 3 + 1] = 1;
     }
   }
-  const idx: number[] = [];
-  for (let r = 0; r < rows - 1; r++)
-    for (let c = 0; c < cols - 1; c++) {
-      const a = r * cols + c;
-      idx.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
-    }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('normal', new BufferAttribute(nrm, 3));
   g.setAttribute('uv', new BufferAttribute(new Float32Array(n * 2), 2));
   g.setAttribute('color', new BufferAttribute(col, 3));
-  g.setIndex(idx);
+  g.setIndex(gridIndex(rows, cols));
   return g;
 }
 
@@ -355,7 +350,7 @@ function flatShape(
 
 /** What each crew's water carries (spec §5.2): blue blossoms, leaves, paper boats. */
 function floatShape(crew: Crew): BufferGeometry {
-  if (crew === 'feature') {
+  if (crew === 'blue') {
     const pts: [number, number][] = [[0, 0]];
     for (let k = 0; k <= 10; k++) {
       const a = (k / 10) * Math.PI * 2;
@@ -364,7 +359,7 @@ function floatShape(crew: Crew): BufferGeometry {
     }
     return flatShape(pts, 0xa8ccff, 3.4);
   }
-  if (crew === 'bugfix')
+  if (crew === 'green')
     return flatShape(
       [
         [0, -0.3],
@@ -590,9 +585,9 @@ export function createFlumeTerrace(
     stone.push(standInRock(TILE_ROCK_ASSET));
   }
   const glowIndex: Record<Dye, { straight: number[]; elbow: number[] }> = {
-    feature: { straight: [], elbow: [] },
-    bugfix: { straight: [], elbow: [] },
-    docs: { straight: [], elbow: [] },
+    blue: { straight: [], elbow: [] },
+    green: { straight: [], elbow: [] },
+    teal: { straight: [], elbow: [] },
     mixed: { straight: [], elbow: [] },
   };
   for (const dye of DYES)

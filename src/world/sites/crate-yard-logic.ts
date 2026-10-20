@@ -2,7 +2,8 @@
  * P1.1 The Crate Yard (Anders), a classify puzzle: push each crate onto a plate of its kind. The crates
  * (their stencils, kinds and the reasons) and the plates' signs are the course pack's
  * (`puzzles/crate-yard.json`; for the Copilot app course, 01 §Chats, Project Sessions, and Modes: a
- * chat for questions, a project session when the agent needs your repository). The grid, the plates
+ * chat for questions on the tavern side, a project session when the agent needs your repository on
+ * the slipway). The grid, the plates
  * and the crates' starting cells are the game's. Pure grid logic; the site draws it and the puzzle
  * drives it.
  *
@@ -16,8 +17,12 @@ import type { PuzzleFile } from '../../course/pack';
 import { puzzleContent, puzzleMaybe } from '../../course/puzzles';
 import type { SourceRef } from '../../learn/types';
 
-/** The yard's two kinds of plate (the tavern side and the slipway); the course says what they mean. */
-export type CrateKind = 'chat' | 'project';
+/**
+ * The yard's two kinds of plate (the tavern side and the slipway): a course binds each of its bins to
+ * one (`acts`) and says what it means.
+ */
+export const CRATE_KINDS = ['tavern', 'slipway'] as const;
+export type CrateKind = (typeof CRATE_KINDS)[number];
 
 export interface CrateDef {
   id: string;
@@ -34,8 +39,8 @@ export interface YardLayout {
   cols: number;
   rows: number;
   /** Plate cells: [x, z]. */
-  chatPlates: readonly (readonly [number, number])[];
-  projectPlates: readonly (readonly [number, number])[];
+  tavernPlates: readonly (readonly [number, number])[];
+  slipwayPlates: readonly (readonly [number, number])[];
   crates: readonly (CrateDef & { at: readonly [number, number] })[];
   /** Where you walk in (a cell that's always free at the start). */
   entry: readonly [number, number];
@@ -56,16 +61,17 @@ export const DIRS: Readonly<Record<Dir, readonly [number, number]>> = {
 
 /**
  * The tavern plates are on the west side (x = 0) and the slipway plates on the east. Each trick crate
- * starts a push from the wrong plate: the book-app tour (it changes no files, but it needs your
- * repository) beside the tavern, and the general worktree question beside the slipway. Solvable in
+ * starts a push from the wrong plate (for the Copilot app course: the book-app tour, which changes no
+ * files but needs your repository, beside the tavern, and the general worktree question beside the
+ * slipway). Solvable in
  * 15 pushes (the solver test checks it).
  */
 /** `puzzles/crate-yard.json`: classify each crate onto its kind's plates. */
 export interface CrateYardFile extends PuzzleFile {
-  /** The plates' signs, by kind. */
-  bins: Readonly<Record<CrateKind, { sign: string; sub: string }>>;
-  /** The crates, in the yard's slot order (`SLOTS`). */
-  items: readonly CrateDef[];
+  /** The plates' signs, by the course's bin ids, each bound to a kind of plate. */
+  bins: Readonly<Record<string, { acts: CrateKind; sign: string; sub: string }>>;
+  /** The crates, in the yard's slot order (`SLOTS`); each one's `kind` is a bin of the file. */
+  items: readonly (Omit<CrateDef, 'kind'> & { kind: string })[];
 }
 
 export const crateYardContent = () => puzzleContent<CrateYardFile>('crate-yard');
@@ -85,32 +91,33 @@ const SLOTS: readonly (readonly [number, number])[] = [
 export let MERIDIAN_YARD: YardLayout = {
   cols: 5,
   rows: 5,
-  chatPlates: [],
-  projectPlates: [],
+  tavernPlates: [],
+  slipwayPlates: [],
   crates: [],
   entry: [2, 4],
 };
 
 onCourse(() => {
   // A course without Port Meridian has no crate yard: an empty yard.
-  const items = puzzleMaybe<CrateYardFile>('crate-yard')?.items ?? [];
+  const file = puzzleMaybe<CrateYardFile>('crate-yard');
+  const items = file?.items ?? [];
   if (items.length > SLOTS.length)
     throw new Error(`The crate yard has ${SLOTS.length} slots, not ${items.length}`);
   MERIDIAN_YARD = {
     cols: 5,
     rows: 5,
-    chatPlates: [
+    tavernPlates: [
       [0, 1],
       [0, 2],
       [0, 3],
     ],
-    projectPlates: [
+    slipwayPlates: [
       [4, 0],
       [4, 1],
       [4, 2],
       [4, 3],
     ],
-    crates: items.map((c, i) => ({ ...c, at: SLOTS[i]! })),
+    crates: items.map((c, i) => ({ ...c, kind: file!.bins[c.kind]!.acts, at: SLOTS[i]! })),
     entry: [2, 4],
   };
 });
@@ -122,8 +129,8 @@ export function initialState(layout: YardLayout): YardState {
 const key = (x: number, z: number) => `${x},${z}`;
 
 export function plateAt(layout: YardLayout, x: number, z: number): CrateKind | null {
-  if (layout.chatPlates.some(([px, pz]) => px === x && pz === z)) return 'chat';
-  if (layout.projectPlates.some(([px, pz]) => px === x && pz === z)) return 'project';
+  if (layout.tavernPlates.some(([px, pz]) => px === x && pz === z)) return 'tavern';
+  if (layout.slipwayPlates.some(([px, pz]) => px === x && pz === z)) return 'slipway';
   return null;
 }
 
@@ -225,7 +232,7 @@ export interface SolveStep {
  * pushed against the yard's edge only slides along that edge from then on.
  */
 export function deadCrate(layout: YardLayout, kind: CrateKind, x: number, z: number): boolean {
-  const plates = kind === 'chat' ? layout.chatPlates : layout.projectPlates;
+  const plates = kind === 'tavern' ? layout.tavernPlates : layout.slipwayPlates;
   const onEdgeX = x === 0 || x === layout.cols - 1;
   const onEdgeZ = z === 0 || z === layout.rows - 1;
   if (onEdgeX && onEdgeZ) return !plates.some(([px, pz]) => px === x && pz === z);
@@ -238,7 +245,7 @@ export function deadCrate(layout: YardLayout, kind: CrateKind, x: number, z: num
 function estimate(layout: YardLayout, state: YardState): number {
   let sum = 0;
   state.at.forEach(([x, z], i) => {
-    const plates = layout.crates[i]!.kind === 'chat' ? layout.chatPlates : layout.projectPlates;
+    const plates = layout.crates[i]!.kind === 'tavern' ? layout.tavernPlates : layout.slipwayPlates;
     let best = Infinity;
     for (const [px, pz] of plates) best = Math.min(best, Math.abs(px - x) + Math.abs(pz - z));
     sum += best;

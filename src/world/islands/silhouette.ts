@@ -117,10 +117,26 @@ export interface SilhouetteOptions {
   forestHeight?: number;
   /** With masks: how far the grid's sheer faces (over ~45°) take the cliff colour (0-1). */
   sheer?: number;
+  /**
+   * How much its bare ground takes the low sun's sheen (0-1, default 1): less where the real island's
+   * bare faces are its cliff meshes, which don't shine like dry ground.
+   */
+  sheen?: number;
   light?: SilhouetteLight;
   blocks?: readonly SilhouetteBlock[];
   towers?: readonly SilhouetteTower[];
   ribbons?: readonly SilhouetteRibbon[];
+}
+
+/** sRGB hex a toward b by t (a colour weathered toward another at a distance). */
+export function mixHex(a: number, b: number, t: number): number {
+  let out = 0;
+  for (const shift of [16, 8, 0]) {
+    const ca = (a >> shift) & 255;
+    const cb = (b >> shift) & 255;
+    out |= Math.round(ca + (cb - ca) * t) << shift;
+  }
+  return out;
 }
 
 /** Below this height (m) the ground reads as beach. */
@@ -181,7 +197,7 @@ function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry,
         tmp.g = sand.g * m.sand + land.g * m.grass + rock.g * m.rock + cliff.g * m.cliff;
         tmp.b = sand.b * m.sand + land.b * m.grass + rock.b * m.rock + cliff.b * m.cliff;
         if (o.moss) tmp.lerp(moss, Math.min(1, Math.max(0, o.moss(x, z, m))));
-        shine[k] = (1 - m.grass) * (1 - f);
+        shine[k] = (1 - m.grass) * (1 - f) * (o.sheen ?? 1);
       } else tmp.copy(land);
       if (f > 0) tmp.lerp(forest, Math.min(1, f * 1.4));
       base.push(tmp.r, tmp.g, tmp.b);

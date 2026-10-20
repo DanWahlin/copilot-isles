@@ -11,6 +11,9 @@ import {
   createThousandBoughSilhouette,
   THOUSAND_BOUGH_SILHOUETTE_SKY,
 } from '../world/islands/thousand-bough/tree/silhouette';
+import { ANCHORAGE_SILHOUETTE_SKY } from '../world/islands/anchorage/silhouette';
+import { ANCHORAGE_FOOTPRINT } from '../world/islands/anchorage/stream';
+import { coveHeight } from '../world/terrain/cove-height';
 import { ISLANDS } from './islands';
 
 const breathe = async () => {};
@@ -37,6 +40,7 @@ function size(group: Group): { bytes: number; triangles: number; meshes: number 
 
 describe('island silhouettes', () => {
   it('bake the light of their island’s own sky', () => {
+    expect(ANCHORAGE_SILHOUETTE_SKY).toEqual(ISLANDS.anchorage.sky);
     expect(MERIDIAN_SILHOUETTE_SKY).toEqual(ISLANDS.meridian.sky);
     expect(THOUSAND_BOUGH_SILHOUETTE_SKY).toEqual(ISLANDS['thousand-bough'].sky);
   });
@@ -61,6 +65,8 @@ describe('island footprints', () => {
     expect(m.radii).toEqual(MERIDIAN_FOOTPRINT.radii);
     const t = measureFootprint(thousandBoughHeightDry, THOUSAND_BOUGH.center.x, THOUSAND_BOUGH.center.z);
     expect(t.radii).toEqual(THOUSAND_BOUGH_FOOTPRINT.radii);
+    const a = measureFootprint(coveHeight, ANCHORAGE_FOOTPRINT.x, ANCHORAGE_FOOTPRINT.z);
+    expect(a.radii).toEqual(ANCHORAGE_FOOTPRINT.radii);
   });
 
   it('measure from the shore: equally far off it is the same distance on every side', () => {

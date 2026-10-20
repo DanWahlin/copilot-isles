@@ -22,7 +22,7 @@
     }
   ],
   "skip": {
-    "anchors": ["prerequisites", "whats-next", "source-references"],
+    "anchors": ["prerequisites", "whats-next", "source-references", "learning-objectives", "key-takeaways"],
     "titlePrefixes": ["The Course Theme", "From the Studio"]
   }
 }

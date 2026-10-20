@@ -31,6 +31,7 @@ import { createVegetation, type VegetationSystem } from './vegetation';
 import { loadVillageKit, releaseVillageKitTextures } from './village/kit';
 import { DOCK_GULL_SPOT, createVillage, type VillageSystem } from './islands/anchorage/village';
 import { ANCHORAGE_VEGETATION } from './islands/anchorage/vegetation-rules';
+import { ANCHORAGE_FLORA } from './islands/anchorage/flora';
 import { createWreckSteps, wreckWaterline, type WreckSystem } from './islands/anchorage/wreck';
 import { createDockGull, type DockGull } from './life/dock-gull';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -83,6 +84,11 @@ export interface CoveScene {
   setLateWarm(warm: ((roots: Object3D[]) => Promise<void>) | null): void;
   /** Warms late arrivals (a sea battle's ships) through that warm, or `compileAsync` without one. */
   warmLate(roots: Object3D[]): Promise<void>;
+  /**
+   * The world's warm-up is done (`warmWorld`): what it drew is warm, so Anchorage may now swap to its
+   * silhouette by distance (its parts hidden before then would miss the warm).
+   */
+  worldWarmed(): void;
   /** The starfish to collect on both islands (the session sets their ground and which are found). */
   starfish: StarfishSystem;
   /**
@@ -228,6 +234,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       island: ANCHORAGE_VEGETATION,
       exclude: villageMask,
       extraPlants: village.plantings,
+      flora: ANCHORAGE_FLORA,
     });
     if (skipIslandShadows) skipSunShadows(vegetation.group);
     scene.add(vegetation.group);
@@ -334,16 +341,21 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const blobs = tier.tier === 'low' || tier.tier === 'lite' ? new BlobShadows(BLOB_RANGE[tier.tier]) : null;
   if (blobs) scene.add(blobs.mesh);
 
+  /** The flow's warm for anything that joins after the world's warm-up (`setLateWarm`). */
+  let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
+  let worldWarm = false;
   // Anchorage goes dormant while you're at another island (PLAN §13.3): its parts leave the scene
-  // and their GPU copies are freed, and its silhouette (ground and buildings) stands in.
+  // and their GPU copies are freed, and its silhouette (ground and buildings) stands in. It stands in
+  // past its swap distance too, while it's still resident.
+  const anchorageFar = createAnchorageSilhouette({
+    heightField: terrain.heightField,
+    bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
+    breathe,
+  });
   const anchorage = createAnchorageStream({
     scene,
     terrain,
-    silhouette: createAnchorageSilhouette({
-      heightField: terrain.heightField,
-      bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
-      buildings: village.colliders.boxes,
-    }),
+    silhouette: anchorageFar.group,
     parts: () =>
       [
         terrain.group,
@@ -359,11 +371,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ].filter((o): o is Object3D => !!o),
     plantsAwake: (on) => vegetation?.setHomeAwake(on),
     breathe,
+    warm: (roots) => (worldWarm && lateWarm ? lateWarm(roots) : null),
   });
 
   let leaps: LeapsSystem | null = null;
   const quietSea = new QuietSea();
-  let lateWarm: ((roots: Object3D[]) => Promise<void>) | null = null;
   let disposed = false;
   let result: CoveScene | null = null;
   const immediateLeaps = typeof location !== 'undefined' && location.pathname.includes('leaps');
@@ -447,10 +459,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ocean.update(camera, t);
       shipEnv.t = t;
       ship.update(dt, t, shipEnv);
-      // A dormant Anchorage's parts are out of the scene: they don't update until it's shown again.
+      // A dormant Anchorage's parts are out of the scene, and past its swap distance they're hidden
+      // (its silhouette draws): they don't update until it's shown again (decided first).
+      anchorage.update(camera);
       const home = anchorage.shown;
       if (home) terrain.update(camera);
-      anchorage.update(camera);
       detail.anchorage.update(camera.position.x, camera.position.z);
       detail.meridian.update(camera.position.x, camera.position.z);
       shipDetail.update(camera.position.x, camera.position.z);
@@ -476,7 +489,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     },
   });
   // The far islands' silhouettes are built a few rows a breath: in the scene before the island compiles.
-  await Promise.all([meridian.silhouetteReady, thousandBough.silhouetteReady]);
+  await Promise.all([meridian.silhouetteReady, thousandBough.silhouetteReady, anchorageFar.ready]);
   report(0.9, 'Lighting the lanterns');
 
   result = {
@@ -503,6 +516,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     detail,
     setLateWarm(warm) {
       lateWarm = warm;
+    },
+    worldWarmed() {
+      worldWarm = true;
     },
     async warmLate(roots) {
       if (lateWarm) return lateWarm(roots);

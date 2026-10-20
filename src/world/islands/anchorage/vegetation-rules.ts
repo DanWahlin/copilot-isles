@@ -2,10 +2,10 @@
 import { COVE } from '../../layout';
 import type { HeightField, Tier } from '../../contracts';
 import { clamp01, segmentDistance, smoothstep } from '../../../util/math';
-import { headlandCliffPlantSpots } from '../../terrain/headland-cliff-shape';
-import { seaStackPlantSpots } from '../../terrain/sea-stack-shape';
+import { headlandCliffPlantSpots, type HeadlandPlantSpot } from '../../terrain/headland-cliff-shape';
+import { seaStackPlantSpots, type SeaStackPlantSpot } from '../../terrain/sea-stack-shape';
 import { slopeDegFromNormal } from '../../vegetation/scatter';
-import { SeededRandom, hash2 } from '../../vegetation/random';
+import { SeededRandom, hash2, valueNoise } from '../../vegetation/random';
 import type {
   IslandVegetationRules,
   PlantInstance,
@@ -141,21 +141,6 @@ function hillScore(x: number, z: number, y: number, masks: VegetationMasks): num
       Math.hypot(x - COVE.hill.center.x, z - COVE.hill.center.z),
     );
   return clamp01(hill * smoothstep(3.5, 15, y) * (masks.grass * 0.9 + masks.rock * 0.18));
-}
-
-/** Smooth value noise (0-1) on a `cell`-metre lattice. */
-function valueNoise(x: number, z: number, cell: number, seed: number): number {
-  const gx = x / cell;
-  const gz = z / cell;
-  const ix = Math.floor(gx);
-  const iz = Math.floor(gz);
-  const fx = smoothstep(0, 1, gx - ix);
-  const fz = smoothstep(0, 1, gz - iz);
-  const a = hash2(ix, iz, seed);
-  const b = hash2(ix + 1, iz, seed);
-  const c = hash2(ix, iz + 1, seed);
-  const d = hash2(ix + 1, iz + 1, seed);
-  return a + (b - a) * fx + (c - a) * fz + (a - b - c + d) * fx * fz;
 }
 
 /** Where the hill's trees gather into groves, with open meadow between them (0 meadow → 1 grove). */
@@ -319,22 +304,27 @@ const CURATED_PALMS: ReadonlyArray<{
   { species: 'palmCluster', x: 132, z: -14, scale: 0.78, rotation: -2.9 },
 ];
 
+/** A plant on a landform's own shape (the sea stack, the headland): no slope, colour and LOD seeded by its spot. */
+function plantOnShape(spot: SeaStackPlantSpot | HeadlandPlantSpot): PlantInstance {
+  return {
+    species: spot.species,
+    x: spot.x,
+    y: spot.y,
+    z: spot.z,
+    scale: spot.scale,
+    rotation: spot.rotation,
+    leanX: spot.leanX,
+    leanZ: spot.leanZ,
+    colorSeed: spot.seed,
+    lodSeed: spot.seed,
+    slopeDeg: 0,
+  };
+}
+
 /** The jungle on the sea stack's dome and ledges (placed on its shape, not on the height field). */
 function appendSeaStackPlants(plants: Record<PlantSpecies, PlantInstance[]>): void {
   for (const spot of seaStackPlantSpots()) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
+    plants[spot.species].push(plantOnShape(spot));
   }
 }
 
@@ -353,19 +343,7 @@ function appendHeadlandPlants(
   tier: Tier,
 ): void {
   for (const spot of headlandCliffPlantSpots(heightField, HEADLAND_PLANT_DENSITY[tier])) {
-    plants[spot.species].push({
-      species: spot.species,
-      x: spot.x,
-      y: spot.y,
-      z: spot.z,
-      scale: spot.scale,
-      rotation: spot.rotation,
-      leanX: spot.leanX,
-      leanZ: spot.leanZ,
-      colorSeed: spot.seed,
-      lodSeed: spot.seed,
-      slopeDeg: 0,
-    });
+    plants[spot.species].push(plantOnShape(spot));
   }
 }
 

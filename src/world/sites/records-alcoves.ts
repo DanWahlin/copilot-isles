@@ -1,6 +1,6 @@
 import { Group, Matrix4, Mesh, Quaternion, Vector3, type Material } from 'three/webgpu';
 import { unreflected } from '../reflection';
-import type { VillageAnchor, VillageBoxCollider, VillageKit } from '../village/kit';
+import { anchorFrame, type VillageAnchor, type VillageBoxCollider, type VillageKit } from '../village/kit';
 import { box, merge } from './geo';
 import { mergeWithRigidParts } from './rigid-parts';
 import { SignSet } from './sign';
@@ -35,6 +35,8 @@ export interface RecordsShot {
 export interface RecordsAlcove {
   readonly id: string;
   readonly name: string;
+  /** Its plate is brown, set apart from the rest. */
+  readonly apart?: boolean;
 }
 
 export interface RecordsAlcovesSite {
@@ -55,8 +57,8 @@ export interface RecordsAlcovesSite {
 
 /**
  * The Hall of Records' alcoves (P1.3, POC §6.5): five oak record cabinets standing between the
- * portico's columns, two cubbies each, one cubby per Settings area in the app's order (the top row
- * first, Projects last on a brown plate), a "Settings" board on the middle one, and Pell's desk in
+ * portico's columns, two cubbies each, one cubby per bin in the course's order (the top row first,
+ * a bin set apart on a brown plate), the course's crest on the middle one, and Pell's desk in
  * front with the bundle of letters and his tray. A filed letter stands in its cubby (the decoy lies in
  * the tray). The cabinets stand in the column line, so no column hides a cubby from the front.
  * Everything's the village kit's wood and plaster plus one sign atlas (no new shader); the letters are
@@ -77,11 +79,8 @@ export function createRecordsAlcoves(o: {
   group.name = 'hall of records alcoves (P1.3)';
   // A Meridian site, so never in the Anchorage harbour mirror (PLAN §15.4).
   unreflected.add(group);
-  const root = new Group();
-  root.position.set(o.origin.x, o.origin.y, o.origin.z);
-  root.rotation.y = o.origin.heading;
+  const root = anchorFrame(o.origin);
   group.add(root);
-  root.updateMatrixWorld(true);
 
   const mats: Record<'wood' | 'plaster', Material> = {
     wood: o.kit.materials.wood,
@@ -176,14 +175,13 @@ export function createRecordsAlcoves(o: {
   };
   setFiled(0);
 
-  // Name plates under the cubbies (the last, Projects, on brown), and the crest on the middle cabinet.
+  // Name plates under the cubbies (one set apart, the last, on brown), and the crest on the middle cabinet.
   const signs = new SignSet('hall cubby plates');
   o.alcoves.forEach((a, i) => {
     const { x, shelf } = slot(i);
-    const projects = i === o.alcoves.length - 1;
     const s = signs.add([a.name], 1.22, 0.22, {
       size: 0.12,
-      fill: projects ? '#6b4a1f' : '#1f3a6b',
+      fill: a.apart ? '#6b4a1f' : '#1f3a6b',
       colors: ['#f1dca6'],
     });
     s.object.position.set(x, shelf - 0.16, front + 0.008);

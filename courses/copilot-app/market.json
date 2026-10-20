@@ -4,18 +4,21 @@
   "categories": [
     {
       "id": "Lightweight",
+      "acts": "small",
       "price": 1,
       "size": "Small",
       "tagline": "Quick looks and short answers"
     },
     {
       "id": "Versatile",
+      "acts": "medium",
       "price": 2,
       "size": "Medium",
       "tagline": "Everyday coding and agent work"
     },
     {
       "id": "Powerful",
+      "acts": "large",
       "price": 3,
       "size": "Large",
       "tagline": "Hard bugs and big changes"
@@ -98,7 +101,7 @@
       "anchor": "models-and-reasoning-effort",
       "hash": "84d625491118"
     },
-    "autopilot": {
+    "autoAside": {
       "text": "This is different from **Autopilot**, which controls how independently the agent works.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",

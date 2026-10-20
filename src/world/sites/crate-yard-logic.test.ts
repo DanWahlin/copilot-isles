@@ -23,8 +23,8 @@ const lock = JSON.parse(readFileSync(join(__dirname, '../../../courses/copilot-a
 
 describe('crate yard', () => {
   it('has a plate for every crate, all starting off the plates in the yard', () => {
-    expect(L.crates.filter((c) => c.kind === 'chat')).toHaveLength(L.chatPlates.length);
-    expect(L.crates.filter((c) => c.kind === 'project')).toHaveLength(L.projectPlates.length);
+    expect(L.crates.filter((c) => c.kind === 'tavern')).toHaveLength(L.tavernPlates.length);
+    expect(L.crates.filter((c) => c.kind === 'slipway')).toHaveLength(L.slipwayPlates.length);
     const s = initialState(L);
     for (const [x, z] of s.at) expect(plateAt(L, x, z)).toBeNull();
     expect(new Set(s.at.map(([x, z]) => `${x},${z}`)).size).toBe(L.crates.length);
@@ -40,12 +40,12 @@ describe('crate yard', () => {
   it('teaches the course’s rule: the read-only tour needs the repository, the general question doesn’t', () => {
     const tour = L.crates[idx('tour')]!;
     const worktree = L.crates[idx('worktree')]!;
-    expect(tour.kind).toBe('project');
+    expect(tour.kind).toBe('slipway');
     expect(tour.why).toBe('No files change, but it needs your repository. That’s a project session.');
-    expect(worktree.kind).toBe('chat');
+    expect(worktree.kind).toBe('tavern');
     // Each trick crate starts one push from the wrong plate.
-    expect(plateAt(L, tour.at[0] - 1, tour.at[1])).toBe('chat');
-    expect(plateAt(L, worktree.at[0] + 1, worktree.at[1])).toBe('project');
+    expect(plateAt(L, tour.at[0] - 1, tour.at[1])).toBe('tavern');
+    expect(plateAt(L, worktree.at[0] + 1, worktree.at[1])).toBe('slipway');
     // No reason leans on "does it change files" alone.
     for (const c of L.crates) expect(c.why, c.id).not.toMatch(/^.*changes files/);
   });
@@ -111,13 +111,13 @@ describe('crate yard', () => {
   });
 
   it('knows a crate pushed against an edge without its plate is stuck', () => {
-    expect(deadCrate(L, 'chat', 3, 0)).toBe(true);
-    expect(deadCrate(L, 'chat', 0, 0)).toBe(true);
-    expect(deadCrate(L, 'chat', 0, 2)).toBe(false);
-    expect(deadCrate(L, 'project', 0, 2)).toBe(true);
-    expect(deadCrate(L, 'project', 2, 0)).toBe(false);
-    expect(deadCrate(L, 'project', 4, 4)).toBe(true);
-    expect(deadCrate(L, 'project', 2, 2)).toBe(false);
+    expect(deadCrate(L, 'tavern', 3, 0)).toBe(true);
+    expect(deadCrate(L, 'tavern', 0, 0)).toBe(true);
+    expect(deadCrate(L, 'tavern', 0, 2)).toBe(false);
+    expect(deadCrate(L, 'slipway', 0, 2)).toBe(true);
+    expect(deadCrate(L, 'slipway', 2, 0)).toBe(false);
+    expect(deadCrate(L, 'slipway', 4, 4)).toBe(true);
+    expect(deadCrate(L, 'slipway', 2, 2)).toBe(false);
   });
 
   it('the player can reach a cell next to every crate at the start', () => {

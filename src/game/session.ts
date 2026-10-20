@@ -41,6 +41,7 @@ import type { BattleRun } from './battle-run';
 
 export { ISLANDS, islandAt } from './islands';
 import { MERIDIAN, meridianQuayHeight, meridianWater } from '../world/islands/meridian';
+import { naturalWaterAt } from '../world/islands/fresh-water-natural';
 import { terrainRockCameraBlockersSliced } from '../world/terrain/terrain-rocks';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { FlyoverPath } from './flyover';
@@ -54,10 +55,9 @@ import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import {
   COVE_CHESTS,
+  COVE_ISLAND,
   MERIDIAN_CHESTS,
-  boardingOpen,
   currentQuest,
-  migrateQuests,
   npcScript,
   questLog,
   questTarget,
@@ -75,9 +75,9 @@ import { TIP_SPOTS } from './island-tips';
 import { createCrateYard } from './puzzles/crate-yard';
 import { createCrateYardSite } from '../world/sites/crate-yard';
 import { createThreeHelms, type HelmsHost } from './puzzles/three-helms';
-import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
+import { createLostLetters, LETTERS_ID, type LettersHost } from './puzzles/lost-letters';
 import { ALCOVES, LETTERS, lettersContent } from './puzzles/hall-letters';
-import { puzzleOn, textOf } from '../course/puzzles';
+import { puzzleOn, puzzleQuest, puzzleSteps, textOf } from '../course/puzzles';
 import { createRecordsAlcoves } from '../world/sites/records-alcoves';
 import { createModelMarketSigns } from '../world/sites/model-market';
 import { createModelMarket, type MarketHost } from './puzzles/model-market';
@@ -110,7 +110,8 @@ import { createCrane } from './puzzles/crane';
 import { createFirstWords } from './puzzles/first-words';
 import { createGearRack } from './puzzles/gear-rack';
 import { createPaintSails } from './puzzles/paint-sails';
-import { createSluice } from './puzzles/sluice';
+import { createSluice, SLUICE_ID } from './puzzles/sluice';
+import { migrateQuests, storyEvent, storyHolds } from './story';
 import type { HintTier, Puzzle, PuzzleHost, PuzzleTerminal, SailAction } from './puzzles/types';
 
 type SessionMode = 'walk' | 'sail' | 'docking' | 'transition';
@@ -278,6 +279,11 @@ export interface GameSession {
     };
     /** Frees (or streams in) an island now, whatever the residency rules say (tests, screenshots). */
     unloadIsland(id: StreamedIsland): Promise<void>;
+    /**
+     * Keeps every island in memory that is (nothing's freed) while on, as if the world were busy
+     * (tests: measure an island you've arrived at with the last one still resident).
+     */
+    keepResident(on: boolean): void;
     loadIsland(id: StreamedIsland): Promise<void>;
   };
   dispose(): void;
@@ -391,8 +397,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ...meridianTownPlantColliders(tier.tier),
     ],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
-    // Port Meridian's lake and streams: wade the shallows, and the deep middle stops you.
-    inland: (x, z) => meridianWater().levelAt(x, z) ?? tb?.inland(x, z) ?? null,
+    // Port Meridian's and Thousand-Bough's pools and streams, as they're drawn over this tier's ground:
+    // wade the shallows and the streams, and the deep middle stops you.
+    inland: (x, z, g, out) =>
+      naturalWaterAt(meridianWater(), x, z, g, out) || (tb?.inland(x, z, g, out) ?? false),
   });
   // Boulders and the headland cliff's overhang: only the follow camera keeps out of them.
   // In slices: all at once, the headland's blockers held a frame for ~120 ms behind the cabin.
@@ -574,7 +582,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   if (island !== 'anchorage') applySky(berth.sky);
   const sailSky = { hours: 0, azimuth: 0 };
   /** Anchorage's gangway stays up until the christening; elsewhere you can always board. */
-  const canBoard = () => (island === 'anchorage' ? boardingOpen(quests()) : true);
+  const canBoard = () => (island === 'anchorage' ? storyHolds('anchorage', 'gangwayDown', quests()) : true);
   const plankTop = new Vector3();
   const tmp = new Vector3();
 
@@ -586,8 +594,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (learn) learn.progress.setQuest(id, step);
     else localQuests[id] = step;
     // Anchorage's Seal lights the point lighthouse (the cue shows it; this covers skips and tests).
-    if (id === 'Q0.10' && step === 'done') village.setLighthouseLit(true);
-    if (id === 'Q1.8') noteMeridianSeal(step === 'done');
+    if (storyHolds('anchorage', 'sealed', quests())) village.setLighthouseLit(true);
+    noteMeridianSeal(storyHolds('meridian', 'sealed', quests()));
     publishQuests();
   };
   const publishQuests = () =>
@@ -600,15 +608,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (island === 'meridian') return meridianTracker(quests());
     if (island === 'thousand-bough') return thousandBoughTracker(quests());
     const t = questTracker(quests());
-    return openIslands().some((b) => b.id === 'meridian')
-      ? { ...t, next: 'Port Meridian’s next. Board your ship and follow the compass north-east.' }
+    return COVE_ISLAND.nextSail && openIslands().some((b) => b.id === 'meridian')
+      ? { ...t, next: COVE_ISLAND.nextSail }
       : t;
   };
-  noteMeridianSeal(quests()['Q1.8'] === 'done');
-  if (!quests()['Q0.2']) setQuest('Q0.2', 'start');
-  // Suri's gate lever (P0.1) is the crane job's Actions step; without a save there's nothing to check.
+  noteMeridianSeal(storyHolds('meridian', 'sealed', quests()));
+  storyEvent('anchorage', 'landed', quests(), setQuest);
+  // Suri's gate lever (the mill race) is the crane job's Actions step; without a save there's nothing
+  // to check, so an old save's rules that ask for it don't fire.
   migrateQuests(quests(), setQuest, {
-    workflowsOn: learn ? !!learn.progress.data.puzzles['P0.1']?.flags?.includes('gate') : undefined,
+    workflowsOn: learn ? !!learn.progress.data.puzzles[SLUICE_ID]?.flags?.includes('gate') : undefined,
   });
   publishQuests();
   /** Chart labels already shown without a save (dev pages with `?nolearn`). */
@@ -741,7 +750,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (tb?.ids.has(n.spec.id)) return tb.script(n.spec.id);
     return meridianIds.has(n.spec.id)
       ? meridianNpcScript(n.spec.id, quests(), {
-          lettersFiled: learn ? !!learn.progress.data.puzzles['P1.3']?.solved : undefined,
+          lettersFiled: learn ? !!learn.progress.data.puzzles[LETTERS_ID]?.solved : undefined,
         })
       : npcScript(n.spec.id, quests());
   }
@@ -884,14 +893,15 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     input.enabled = !paused;
   }
   // Nell opens her chest while she talks you through the prerequisites (the `nell-chest` cue).
+  const nellChest = COVE_CHESTS.find((c) => c.npc === 'nell')?.id;
   cues.set('nell-chest', async () => {
-    const c = chests.find((v) => v.id === 'C0.1');
+    const c = chests.find((v) => v.id === nellChest);
     if (!c) return;
     if (!c.chest.opened) {
       audio?.sfx.oneShot('step_wood', c.chest.group.position, 1);
       await c.chest.open();
     }
-    await learn?.openChest('C0.1');
+    await learn?.openChest(c.id);
   });
 
   // Message bottles on the beaches (B0.1-B0.4): optional troubleshooting pages.
@@ -1299,6 +1309,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       tz: lh.z - dz * 6,
     };
   }
+  /** A Seal's lamp lighting: cut to `shot`, `light` it to a stinger, then cut back to the talk. */
+  async function showLighting(shot: CameraShot, light: () => void): Promise<void> {
+    await hud.fade(true, 260);
+    cam.cut(shot);
+    await hud.fade(false, 260);
+    await new Promise((r) => setTimeout(r, 1100));
+    light();
+    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
+    await new Promise((r) => setTimeout(r, 2600));
+    await hud.fade(true, 260);
+    if (talkShot) cam.cut(talkShot);
+    await hud.fade(false, 260);
+  }
   // The Seal: the lighthouse on the mole lights up across the harbour.
   cues.set('lighthouse', async () => {
     const town = cove.meridian.town;
@@ -1306,18 +1329,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     const adm = town?.anchors.admiral;
     if (!town || !lh || !adm) return;
     // Cuts, not eases: the sea shot is across the harbour, and an ease would swoop through the bluff.
-    const shot = lighthouseShot(adm, lh);
-    await hud.fade(true, 260);
-    cam.cut(shot);
-    await hud.fade(false, 260);
-    await new Promise((r) => setTimeout(r, 1100));
-    town.setLighthouseLit(true);
-    lighthouseLit = true;
-    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
-    await new Promise((r) => setTimeout(r, 2600));
-    await hud.fade(true, 260);
-    if (talkShot) cam.cut(talkShot);
-    await hud.fade(false, 260);
+    await showLighting(lighthouseShot(adm, lh), () => {
+      town.setLighthouseLit(true);
+      lighthouseLit = true;
+    });
   });
 
   // Anchorage's Seal (PLAN §4, Island 00 beat 11): the point lighthouse lights across the harbour.
@@ -1335,18 +1350,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ty: L.top + 11,
       tz: L.z,
     };
-    await hud.fade(true, 260);
-    cam.cut(shot);
-    await hud.fade(false, 260);
-    await new Promise((r) => setTimeout(r, 1100));
-    village.setLighthouseLit(true);
-    audio?.sfx.oneShot('stinger_triumph', player, 0.8);
-    await new Promise((r) => setTimeout(r, 2600));
-    await hud.fade(true, 260);
-    if (talkShot) cam.cut(talkShot);
-    await hud.fade(false, 260);
+    await showLighting(shot, () => village.setLighthouseLit(true));
   });
-  if (quests()['Q0.10'] === 'done') village.setLighthouseLit(true);
+  if (storyHolds('anchorage', 'sealed', quests())) village.setLighthouseLit(true);
 
   const noMeridian: IslandSetup = { roots: [], reveal() {} };
   /**
@@ -1412,7 +1418,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       c.chest.group.visible = false;
       scope.chests.push(c.id);
     }
-    if (quests()['Q1.8'] === 'done') {
+    if (storyHolds('meridian', 'sealed', quests())) {
       town.setLighthouseLit(true);
       lighthouseLit = true;
     }
@@ -1750,6 +1756,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   ]);
   const residencyOut: ResidencyDecision = { load: [], unload: [] };
   let residencyIn = 0;
+  /** Tests hold every island in memory (`debug.keepResident`). */
+  let keepResident = false;
   const reachable = (id: IslandId) => openIslands().some((b) => b.id === id);
   /** Where you are for residency: your feet ashore, the ship at sea (not the camera, which roams). */
   const residencyFocus = () =>
@@ -1771,6 +1779,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       tbModal ||
       cam.framing ||
       !!learn?.busy ||
+      keepResident ||
       puzzles.some((p) => p.engaged());
     const f = residencyFocus();
     residency.update(
@@ -2071,8 +2080,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsFor = 0;
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
-    if (quests()['Q0.11'] === 'sail') setQuest('Q0.11', 'done');
-    if (island === 'meridian' && quests()['Q1.5'] === 'helms') setRheaAboard(true);
+    storyEvent('anchorage', 'setSail', quests(), setQuest);
+    if (island === 'meridian' && quests()[puzzleQuest('three-helms')] === puzzleSteps('three-helms').helms)
+      setRheaAboard(true);
     audio?.music.setIsland('harbour');
   }
 
@@ -2094,7 +2104,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** Where the compass sends you while sailing: the next island once this one's done, else home. */
   function sailTarget(): IslandBerth {
     // Once Meridian's Seal is won, the compass points on to Thousand-Bough (and home there after).
-    if (tbReachable() && (island === 'thousand-bough' || quests()['Q1.8'] === 'done'))
+    if (tbReachable() && (island === 'thousand-bough' || storyHolds('meridian', 'sealed', quests())))
       return ISLANDS['thousand-bough'];
     if (meridianReachable() && !currentQuest(quests())) return ISLANDS.meridian;
     return island === 'meridian' && meridianReachable() ? ISLANDS.meridian : ISLANDS.anchorage;
@@ -2269,16 +2279,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const firstWelcome = (i: string) => [...(islandHooks(i).landing ?? []), ...courseWelcome(i)];
   const welcomeLines = (): string[] =>
     island === 'thousand-bough'
-      ? quests()['Q2.1'] === 'done'
-        ? []
-        : firstWelcome('thousand-bough')
+      ? storyHolds('thousand-bough', 'firstVisit', quests())
+        ? firstWelcome('thousand-bough')
+        : []
       : island === 'meridian'
-        ? quests()['Q1.1'] === 'done'
-          ? []
-          : firstWelcome('meridian')
+        ? storyHolds('meridian', 'firstVisit', quests())
+          ? firstWelcome('meridian')
+          : []
         : island !== 'anchorage'
           ? []
-          : quests()['Q0.2'] === 'start'
+          : storyHolds('anchorage', 'firstVisit', quests())
             ? firstWelcome('anchorage')
             : [...(islandHooks('anchorage').welcomeBack ?? [])];
   /** Wingman's welcome is on: the task list and compass stay up so he can point them out. */
@@ -3076,6 +3086,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       },
       battleRun: () => battles.current,
       unloadIsland: (id) => unloadIsland(id),
+      keepResident(on) {
+        keepResident = on;
+      },
       loadIsland: async (id) => void (await streams[id].load()),
       residency() {
         const states: Record<string, string> = {};

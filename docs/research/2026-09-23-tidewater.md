@@ -87,7 +87,7 @@
 - We may **copy and adapt** Tidewater code. Every adapted file keeps a header (`Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, <path>@d32799f`), and `THIRD_PARTY_NOTICES.md` carries the **full MIT notice**.
 - Its **CC0 audio and Poly Haven scans** can be reused and logged in `ASSETS.md`, with the Freesound author and link carried over from their credits.
 - **Don't** reuse `TSLPatches.js` without re-validating it against our three version. **Don't** copy its load strategy.
-- The other references (Arkenfall, Sakura Valley, Antikythera) stay **technique-only**.
+- The other references (Sakura Valley, Antikythera) stay **technique-only**.
 
 ## 7. Reuse matrix
 | Piece | Kind | Reuse path (renderer-independent unless noted) | Value |

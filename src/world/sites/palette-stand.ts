@@ -48,7 +48,7 @@ export function createPaletteStand(o: {
   ground: (x: number, z: number) => number;
 }): PaletteStandSite {
   const group = new Group();
-  group.name = 'palette stand (Q0.2)';
+  group.name = 'palette stand';
   const groundY = o.ground(STAND.x, STAND.z);
   const spotPos = STAND_FRAME.toWorld(0, 1.75);
   const spot = {

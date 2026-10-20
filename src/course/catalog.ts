@@ -1,5 +1,6 @@
 import COPILOT_APP from '../../courses/copilot-app/course.json';
 import COPILOT_CLI from '../../courses/copilot-cli/course.json';
+import type { StoryRule } from '../game/story';
 
 /**
  * The course catalog (docs/specs/COURSE-PACKS.md §2): every course pack's `course.json`, read at build
@@ -66,6 +67,16 @@ export interface CourseHooks {
   battles: Readonly<Record<string, BattleHooks>>;
 }
 
+/** How a course brings older saves in line with today's ids (src/game/story.ts, src/learn/progress.ts). */
+export interface CourseMigrations {
+  /** Rules for an older save's quests, applied in order when a session starts. */
+  quests?: readonly StoryRule[];
+  /** Logbook ids (pages, glossary terms) the course renamed or split: old id → today's. */
+  renamed?: Readonly<Record<string, readonly string[]>>;
+  /** Quest id → the glossary terms it teaches that saves which finished it before never got. */
+  taught?: Readonly<Record<string, readonly string[]>>;
+}
+
 export interface CourseMeta {
   id: string;
   version: number;
@@ -98,6 +109,14 @@ export interface CourseMeta {
   /** The "Your setup" forms' words (src/ui/learn/SetupForm.tsx), for a course that asks for them. */
   setup?: SetupCopy;
   hooks: CourseHooks;
+  /**
+   * Saves from before course packs (keys without a course) are this course's: copied to its keys
+   * once, mirrored for a release, and an export code without a course is its (src/game/save-keys.ts).
+   */
+  legacySaves?: boolean;
+  migrations?: CourseMigrations;
+  /** Whether players can choose it (default true); an unlisted course is still being written. */
+  listed?: boolean;
 }
 
 /** One "Your setup" form: its kicker (and the Logbook's note), titles, intro, and what it's used for. */
@@ -134,8 +153,23 @@ function meta(file: object): CourseMeta {
 /** Every course, in the picker's order. A new course adds one line here. */
 export const COURSES: readonly CourseMeta[] = [meta(COPILOT_APP), meta(COPILOT_CLI)];
 
-/** The course a save without one is (every save before course packs was this course's). */
-export const DEFAULT_COURSE_ID = 'copilot-app';
+/**
+ * The courses players can choose: the listed ones, or every course with `?courses=all` (for a course
+ * still being written). The course list and Continue read this; Credits and tools read `COURSES`
+ * (an unlisted course's snapshot still ships in the build, so it keeps its credit).
+ */
+export const PLAYABLE_COURSES: readonly CourseMeta[] =
+  typeof location !== 'undefined' && new URLSearchParams(location.search).get('courses') === 'all'
+    ? COURSES
+    : COURSES.filter((c) => c.listed !== false);
+
+export const PLAYABLE_IDS: readonly string[] = PLAYABLE_COURSES.map((c) => c.id);
+
+/** The course to start with when none is chosen yet: the first players can choose. */
+export const DEFAULT_COURSE_ID: string = (PLAYABLE_COURSES[0] ?? COURSES[0]!).id;
+
+/** The course saves from before course packs belong to (`"legacySaves": true`), if any. */
+export const LEGACY_COURSE: string | null = COURSES.find((c) => c.legacySaves)?.id ?? null;
 
 /**
  * The course the player's in: the one picked at the title (or the last one played), set before its

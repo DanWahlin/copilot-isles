@@ -18,6 +18,7 @@ Every island is a package; shared systems never import an island's coordinates.
 | Berth, music, sky, arrival | `src/game/islands.ts` (`ISLANDS`, `IslandId`)                                                                                                                                                             | one entry per island                                                                                                                               |
 | Terrain looks              | `src/world/terrain/terrain-material.ts` + `terrain-regions.ts` (`TerrainRegions`, `combineTerrainRegions`)                                                                                                | `src/world/islands/anchorage/terrain-regions.ts`, `src/world/islands/meridian-terrain-regions.ts`; registry `src/world/islands/terrain-regions.ts` |
 | Vegetation                 | `src/world/vegetation/scatter.ts`, `grass.ts`, `vegetation.ts` (`IslandVegetationRules` in `vegetation/types.ts`: bounds, grass bounds, species rules, exclusions, curated/extra plants, hero palm zones) | `src/world/islands/anchorage/vegetation-rules.ts` (`ANCHORAGE_VEGETATION`)                                                                         |
+| Grass and flowers (flora)  | `src/world/flora/` (`FloraPalette`, `FloraRules` in `types.ts`; `scatterFlora`, drifts, plant forms, species table, terrain `floraGround`), drawn by `vegetation/grass.ts`                                | `anchorage/flora*.ts`, `meridian-flora*.ts`, `thousand-bough/flora*.ts`; registry `src/world/islands/flora-palettes.ts`                            |
 | Starfish                   | `src/world/starfish/spots.ts` (`StarfishSpot`, `STARFISH`)                                                                                                                                                | `src/world/islands/anchorage/starfish.ts`, `src/world/islands/meridian-starfish.ts`                                                                |
 | Towns                      | `src/world/village/kit.ts` (kit loader, buckets, `transform`/`paint`/`localToWorld`, colliders, anchors), `house-builder.ts`, `materials.ts`                                                              | `src/world/islands/anchorage/village.ts` (+ `buildings.ts`, `plantings.ts`, `lighthouse-stair.ts`), `src/world/meridian-town/`                     |
 | Shore batteries            | `src/world/village/shore-battery.ts` (decks, stairs, fences, guns into the town buckets; walk surfaces, colliders), `shore-cannon.ts` (the gun model and its levels)                                      | `src/world/islands/anchorage/batteries.ts`, `src/world/islands/meridian-batteries.ts` (+ the citadel's embrasures)                                 |
@@ -33,7 +34,12 @@ course word (quests, scripts, barks, quizzes, pages, labels, board text, arrival
 their audio, the snapshot) is a course pack's, in `courses/<id>/` (docs/specs/COURSE-PACKS.md). A pack
 loads with the voyage (`src/course/load.ts`), never with the title: read its data through
 `src/course/active.ts` (or a module's `onCourse` hook), not at module top level. Its snapshot and
-voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBase()`).
+voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBase()`). Never write a
+quest id in game code: ask the island's story by name (`storyHolds`, `storyEvent`, src/game/story.ts;
+add the name to `STORY_CONDITIONS`), and read a puzzle's quest with `puzzleQuest()`. A mechanic acts on
+its own ids (`steer`, `channel`, `tavern`…); the pack binds its ids to them (`"acts"`, read with
+`byActs`/`rekey`), and a world sign with course words reads the pack and repaints in an `onCourse`
+hook (release it when the site is freed).
 
 ## 2. Shaders: TSL only, one graph per look
 
@@ -82,12 +88,18 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   - Only precompile what a pass really draws (the harbour mirror skips its hidden list).
 - Other islands load lazily (issue 232): stream one only when something needs it (boarding, the
   chart, a save or jump there, or coming within range), then warm it through the flow (see
-  `GameFlow.warmMeridian`). Keep it hidden until its warm-up draws it: a hidden group isn't compiled
-  by `compileAsync` (it compiles nothing), and a first on-screen draw builds shaders on the spot.
+  `warmIsland`, game/island-warm.ts). Keep it hidden until its warm-up draws it: a hidden group
+  isn't compiled by `compileAsync` (it compiles nothing), and a first on-screen draw builds shaders
+  on the spot.
   Terrain levels of detail need a real draw each (`warmTerrainLods`); a precompile won't upload them.
 - Anything added after the island's warm-up (late props, life, another island) goes through
-  `cove.setLateWarm`'s warm (`GameFlow.warmLate`), not a bare `renderer.compileAsync`: a top-level
-  precompile doesn't match the scene pass, so the first draw builds the shader anyway.
+  `cove.setLateWarm`'s warm (`warmLate`, game/island-warm.ts), not a bare `renderer.compileAsync`:
+  a top-level precompile doesn't match the scene pass, so the first draw builds the shader anyway.
+  So does what's hidden for the world's warm and shown later by code, not by `userData.prewarm`
+  (Anchorage's silhouette, shown when it goes dormant, uploaded its geometry mid-play: issue 254).
+- Don't rebuild a geometry during play (a pickup, a state change): change its buffer instead. The
+  message bottles merged a new mesh per material at each pickup (4 geometries, a hitch); now each
+  is built once and a read bottle's vertices collapse (`bottles.ts`).
 - Another island's plants go in with `vegetation.addPlants` when that island streams in, not in the
   first island's batches.
 - Shader sharing (issues 235–237): three r186 names some buffers after node ids, which makes every
@@ -122,8 +134,12 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
 - Use a uniform's node in a graph, never its `.value`: `world.sunDir.value.y` went into the
   vegetation shader as a constant, so each vegetation material built at another sun height (the
   banyan, the brush) was its own program, and the glow didn't follow the sun.
-- A dev page precompiles like the game (`post.compileObject` through `compileProgressively`), or its
-  census counts shaders the game never builds (play.html's bare `compileAsync` added about 12).
+- A dev page warms like the game, or its census counts shaders the game never builds and its
+  hitch guard sees what the game's wouldn't. play.html uses the game's own warms
+  (`warmWorld`, `warmIsland`, `warmLate` in game/island-warm.ts) and exposes `window.__isles`
+  (tests' hitch checks). Its own precompile, without `skipSunShadowsWhereOff` or a late warm,
+  counted 145-147 on Ultra at Thousand-Bough against the game's 131-133 (issue 253). Check a dev
+  page's number against the game's (`?debug`, `window.__flow.travelTo`) before cutting anything.
 - r186 `compileAsync` builds its node graphs in `scheduler.yield()` slices that run ahead of the
   next frame: dozens in flight at once held a frame for 100–120 ms. `compileProgressively` keeps
   four in flight. One build stage can't be split (a big compute kernel's setup took 60–110 ms, the
@@ -214,22 +230,49 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   parked parts back: their owners free them, and the world's dispose sends them `dispose`
   (`parkedRoots`). Put back, a quit while it was dormant left a ghost Anchorage on the title, drawn
   with freed buffers ("used in submit while destroyed").
+- An island you've left stays resident for its 20 s grace, but past its swap distance it draws its
+  silhouette, not its parts (issue 263: for 20 s after you reached Port Meridian, Anchorage's whole
+  village drew on the horizon, 1.00M triangles on Medium). Every island swaps by the same rule,
+  resident or not: the camera's `footprintDistance` against its `show`, with a ±20 m band
+  (`SilhouetteSwap`, islands/silhouette-swap.ts, pure and tested) so an orbiting camera doesn't
+  flicker at the line. It's decided in the stream's `update` (residency stays pure). Hiding frees
+  nothing: the parts are only hidden (coming back inside the band is instant) and their systems stop
+  updating (`shown` is false). Both sides stay warm: the parts were drawn by the world's warm, and
+  the silhouette, hidden for that warm, is warmed once (the cove's late warm) before the first swap;
+  the parts stay drawn until it's done. Not before the world's own warm-up is over
+  (`cove.worldWarmed()`): parts hidden then would miss it, and showing them later builds shaders.
 - A stream that fails part-way (a 404, offline) takes back what it added (scene, height field, ship
   obstacles) and goes `failed`: it tries again after `RETRY_AFTER_MS` or when asked (`load(…, true)`
   for a jump there), not every frame in range. A shared download promise (the kit) is never cached
   rejected. An optional speed-up (KTX2) is never `extensionsRequired`: the kit keeps its WebP.
 - Silhouettes stand in for an island at its swap distance, so they're built to read like it there,
-  per island (`meridian-silhouette.ts`, `thousand-bough/tree/silhouette.ts`): the baked masks'
-  colours, its sky's sun baked in (Lambert, with a sky-to-ground ambient), sheer faces as cliff, a
-  tree line, the town as blocks from the same terrace rows with roofs, landmarks as prisms, falls as
-  strips. The real ground's sheen toward a low sun is view dependent, so the one shared graph adds it
-  (on bare ground, the colour's alpha). Build them in slices (`createIslandSilhouetteAsync`) and wait
-  for them before the warm. Swap by distance from the shore (`footprintDistance`), not the centre:
+  per island (`anchorage/silhouette.ts`, `meridian-silhouette.ts`,
+  `thousand-bough/tree/silhouette.ts`): the baked masks' colours, its sky's sun baked in (Lambert,
+  with a sky-to-ground ambient), sheer faces as cliff, a tree line, the town as blocks from the same
+  data the town builds with roofs, landmarks as prisms, falls as strips. The real ground's sheen
+  toward a low sun is view dependent, so the one shared graph adds it (on bare ground, the colour's
+  alpha; `sheen` scales it where the bare faces are cliff meshes that don't shine: Anchorage's
+  headland read golden instead of grey). No tree bumps where the real trees are a pixel or two: on a
+  coarse grid they read as a jagged ridge. Build them in slices (`createIslandSilhouetteAsync`) and
+  wait for them before the warm. Swap by distance from the shore (`footprintDistance`), not the centre:
   Meridian's ridge runs ~500 m north-east of its centre, so a centre-distance swap came ~250 m off
   its cliffs. Compare real and silhouette from several bearings, High and Lite, before calling it done.
 - `renderer.info.memory` isn't the GPU's memory as three counts it: an interleaved buffer counts once
   per attribute (an instanced mesh's matrices four times, ~120 MB on High) and a compressed texture as
   1 byte. `engine/memory-ledger.ts` corrects both on our renderer. Use `trackedMB` from the counters.
+- three also counts a texture once, at its size when it's first seen: an image still decoding counts
+  as 1 × 1 (a 1024² kit WebP is 5.3 MB), and a render target keeps its first size through every resize
+  (TRAA's history, 11 MB on High, read 0 or 11 by the frame's luck). So the same stop read 453-484 MB
+  from run to run under load, and the memory gate saw growth that wasn't there (issue 261). The
+  ledger recounts a texture whose size changed (`refresh`, once a frame), and `check:memory` holds the
+  render scale at the tier's so screen targets are the same size at every stop. When a memory figure
+  moves between runs of the same tree, it's timing, not a leak: record every live resource (wrap the
+  info's create/destroy, or catch its `memoryMap` writes in a scratch init script), diff the stops by
+  name, size and owner, and compare each one's counted size with its current one.
+- An instanced mesh on the attribute path (`sharedInstancedMesh`, past 1024) gets its matrices (now
+  and last frame) as interleaved buffers three makes itself, and three frees them only with the
+  geometry, for the first render object that drew it. An island's instanced meshes over a geometry
+  that stays (a shared rock, the crates) leave ~128 KB each per visit (issue 262, open).
 - What paid (High, Anchorage, honest MB): the sun's shadow map colour target as R8 (three always
   makes an RGBA8 one; −48 MB at 4096²), NPC palettes as 32 × 32 nearest textures (the kit atlas is
   flat 32 px swatches; 1.3 MB → 4 KB each), sign atlases painted by board size and shelf-packed, Lite
@@ -247,6 +290,12 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   (`withVars` in vegetation/materials.ts), and check the built shader: `palm-material.test.ts` builds
   WGSL with three's node builder and flags a variable read on a path that never set it.
 
+- **A line down the sky (a wrapped texture coordinate):** the baked clouds' u is `fract(azimuth)`, and
+  where it jumps 1 → 0 an implicit-derivative sample takes the coarsest mip (issue 252). Sample a
+  wrapping coordinate with `.grad`, taking the derivative from it or its copy half a turn on, whichever
+  doesn't wrap there. And a `texture()` node's shader is built for whatever is in its slot then: a
+  Nearest placeholder made WebGPU's a `textureLoad` with no sampler (no filtering, no mips) for the
+  real texture too. Give placeholders the real texture's filters.
 - **Z-fighting with paper or decals:** geometry that lies exactly on a surface flickers through it.
   Sink it below the surface while it is flat (the chart's `PAPER_TUCK`), or offset it; never rely on
   equal depth.
@@ -256,6 +305,47 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
 - **Alpha-tested foliage at a distance:** thin leaf cards vanish when drawn small, leaving only their
   most opaque parts (red flowers became red blotches on the hills). Hand distant plants to impostors,
   and check authored leaf colours (the common bush's leaf map was red; it is recoloured green).
+- **LOD bands must be continuous (grass and trees popped in front of the captain, issue 257):** the
+  grass re-picks its clumps every metre or so and draws each with one of three blade geometries by
+  distance, so at a re-pick every tussock crossing a band's edge swapped its blades at once, a few
+  metres ahead of the captain. Impostors snapped between baked views 40° apart, and the kit's
+  textured plants (broadleaf, fern, banana, bushes) ignored their `fade`, so they appeared whole
+  where the field first drew them. A level of detail may only swap geometry where the shader already
+  makes both levels draw the same pixels:
+  - Make the coarse geometry a prefix of the dense one (a rank per blade, `bladeLayout`), shrink the
+    extra blades away and widen the rest with distance in the shader, and slide a near blade's middle
+    vertex onto its far triangle's edge (`bladeBandShape`, written once for CPU and shader through
+    `BandMath`). Wind both levels' triangles alike: a double-sided face wound the other way is lit
+    from behind, so the swap changed the shading.
+  - Finish every transition a re-pick's move before the swap (`bladeBands`), and measure fades and
+    bands from the same point the CPU uses (the clump's centre), or a clump left out at a re-pick is
+    one the shader still shows.
+  - Blend impostor views, and give every material of an instanced plant its dissolve (`lodMask`).
+  - Every vertex runs the whole graph: a `normalize()` of a vector that's zero for another part
+    (a flower's upright normal) is NaN, and NaN times a zero weight is still NaN (the flowers vanished).
+  - Measure with a pop metric: freeze the clock, step the camera in small equal steps, supersample
+    each still frame (thin blades alias without TAA), and flag blocks whose change is a one-step spike
+    over both neighbours' (parallax is steady). Check a swap directly by drawing one band's instances
+    with the other band's geometry and diffing.
+- **A flower species is data, never a material:** every island's species is a row in one shared
+  table (`floraSpeciesTable`, uniform arrays: shape, eye, glow, form), read by the one grass material by
+  the row in its instance's `grassShape.x`. Plant forms are geometries with the blades' attributes;
+  `grass-material.test.ts` builds every form's WGSL and expects one shader. Adding a species or an
+  island's palette added no program (Ultra census unchanged); the terrain looks drift colours up in a
+  table too (`DRIFT_BINS` rows per island), so its cost doesn't grow with islands or species.
+- **Flowers lost in grass, and confetti on the ground:** single 7 cm heads on stems under the grass's
+  height read as a few red specks. Plants are small clumps (three heads, five spikes, seven fronds)
+  standing above the blades, their faces tipped outward so a side-on camera still sees them, densest
+  in drifts. Past their reach the terrain carries the same drifts (`driftAt` and `driftNodes` share
+  constants). Its first try, pixel-sized dots on a world grid, read as litter: grid cells are squares
+  on the ground, so on slopes and at glancing angles every dot stretched into a dash, and cream
+  flowers on green read as paper scraps. `floraDrifts` keeps dots round on screen (squashed along the
+  view by the ground's foreshortening, searched over 2 × 2 cells so none is cut), swells and shrinks
+  them by clump noise instead of switching them on and off, fades them out by 48 m and as they shrink
+  under ~2 px, and leaves the distance to a patchy wash of the drift's colours (pale species darkened
+  toward their eye). It's one branch: off the open ground nothing runs, past 48 m only the wash.
+  Blades fill a disc (a sunflower spiral): a ring of blades read as circles on a sparse sward.
+
 - **Masks decide the look more than the palette:** brown hills came from slope and height mask rules
   calling grassy hillsides rock and cliff. Fix the masks (`coveMasks`) before re-tinting colours.
 - **Splashes from nowhere:** a splash reads as an event, so its cause must be visible at the distance
@@ -305,6 +395,44 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   readable at the distance it's seen: the shared water material fades sub-pixel ribbons by
   `fwidth` and carries the motion in broad surges down the sheet. Measure the change per frame on
   the effect against a still patch, with TAA on and off.
+- **A canal, a grey slab and a ditch (fresh water, issue 258):** Thousand-Bough's streams read as
+  canals and its Silver Pool as a dark grey slab (a brown basin at dusk, the stream's strip broken
+  across it). Four causes, each worth checking on any water: (1) **winding**: a double-sided quad
+  wound facing down is a back face seen from above, so three turns its normal down again and the
+  water is lit from below. `WaterStrips.quad` flips the winding with the normal. (2) **a mirror of
+  the environment**: a smooth `MeshStandardNodeMaterial` reflects the bright PMREM sky; small water
+  washes white. The natural look is matte to the scene's lights and adds its own sky and sun glints
+  with water's Fresnel (F0 0.02, like the sea). (3) **the shape**: a straight centre line, one
+  width and a flat strip on the ground. A `course` meanders it (seeded, pinned at bridges, none at
+  its ends), breathes its width, rounds its bed, caps its grade, and blends the nearest reaches so
+  the ground doesn't step at a bend. Opt-in, so another island's bake hash doesn't move. (4) **the
+  tier's mesh**: Lite draws the ground every 8 m (Low 6, Medium 4), which fills a 4 m channel, so
+  the water vanished in patches. Build the water against the tier's own height field (what's
+  drawn): its depth sets the look and its middle rides just over a coarse ground. Use a
+  per-vertex depth over the drawn ground for colour and a soft shore, not a ruled edge.
+- **Wade what's drawn (issue 259):** on Lite you walked through streams dry (Silver Run 22 %
+  wading, Fernrun 26 %): the walker stands on the tier's finest mesh (4 m on Lite), which fills a
+  3-5 m bed, while the gameplay water kept the stream's true surface. The water mesh already rode
+  over that ground; the walker didn't know. Now one function says where the water is and how deep
+  it reads over the drawn ground (`rideOver` in `fresh-water-natural.ts`); the mesh draws it and
+  `naturalWaterAt` hands the walker its surface and the bed you wade on (under a coarse ground that
+  fills it), through `CollisionWorld`'s `inland`. Any visual compromise a tier makes on water must
+  reach gameplay through the same code. And a flow speed that changes per reach tears a scrolling
+  pattern at every reach's edge (seams across the water, worse as the clock grows): scroll along
+  the time the water takes to get there (`travel`), at one speed, so each reach flows at its own pace.
+- **Water hidden by a far terrain level (issue 260):** past 40 m Lite draws the ground every 8 m
+  (16 m past 170 m; Low 6/12, Medium 4/8), whose triangles span a 3-5 m bed from bank to bank, so
+  about half of every stream's course vanished in the distance (it was patchy on the committed tree
+  too). Riding the water over each far level would float it near you, where the finest level is
+  drawn. The coarse levels keep under the water instead (`TerrainWaterCaps`, the terrain's
+  `freshWater` option): a vertex whose cells hold water stands just under the lowest water there, so
+  every triangle over the water lies under it, but never more than `maxDrop` lower (a cliff top over
+  a pool at its foot stays up). The finest level, the one you walk on, never changes.
+- **A seam where a stream meets a pool (issue 260):** two strips that abut show their edges (a
+  straight cut against a polygonal ring, different looks, heights a few cm apart). Overlap them and
+  cross-fade on one surface in one look: the pool's ring takes the stream's surface where the stream
+  runs, and fades out as the stream fades in, drawn in the pool's look (per-vertex `kind`, `fill` in
+  `QuadCorners`), then eases to its own look over a few metres (`joinPool`).
 - **Props stuck through an arm:** Rhea's spyglass sat on her forearm, placed for the bind pose, and
   her commander's hip fist went on the spyglass hand, so it stuck out through her arm in talk. Now a
   carried prop goes in the fist (`holdInFist`/`inFist` in npc-accessories: on the palm bone, its
@@ -325,11 +453,30 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   meshes (the trees' bark, the tree village's boxes): every hard-edge vertex is locked, so check what
   `buildChunkLodIndex`/`simplifyInPlace` return. And count what's drawn but unseen: plants past their
   dissolve band (fade 0) still cost their triangles.
+- **A frame budget measured mid-warm (issue 260):** `budgettest` sampled 8 frames 0.9 s after each
+  move. On a slow machine (15 fps) an island's warm-up is still running then (6-7 s after arrival
+  here): it redraws the static shadow map and every terrain level each frame, so the committed tree
+  read Low Meridian 627k and Medium 1.16M at the quay where a faster machine reads 461k and 935k.
+  The same clock hid a second dependence: the island you've left is freed 20 s after you leave it,
+  so whether Medium Meridian's worst view drew Anchorage's village (1.00M) or its silhouette (935k)
+  depended on how fast the run got there. Now the tool waits for the world, never on a clock: the
+  play page's `__dev.settled()` (no warm-up running, the sun shadow node not warming, every stream
+  absent, resident or failed and none held), then frames with no static shadow redraw and steady
+  counts. Each island is measured twice, both gated: on arrival with the island you've left still
+  resident (held by `debug.keepResident` for the set, so the moment is the same on any machine), and
+  with it freed (issue 263 made the first draw its silhouette). Compare trees on the same machine,
+  same script, measured settled, before blaming or clearing a change.
 
 ## 6. Verify like this
 
 - `npm run typecheck && npm run lint && npm run format:check && npm test`, then
   `npm run build && npm run check:budgets && npm run check:secrets`.
+- Frame budgets (PLAN §12.1): `npm run check:frame-budgets -- --base=<no-HMR server>` measures each
+  view only once the world has settled (`__dev.settled()` on the play page, steady frames with no
+  static shadow redraw), so a busy machine takes longer but reads the same; each island twice, with
+  the last island still resident and with the islands you've left freed, both gated. An island that doesn't settle within `--settle-timeout` fails as UNSETTLED with what it
+  waited on. The static shadow map's redraw (one frame per ~50 m walked, PLAN §12.4) is reported
+  on its own lines and not gated. A dev page that warms things must count them in `settled()`.
 - Terrain or mask changes: `npm run bake` and compare the printed hashes (unchanged hashes prove a
   refactor didn't move a single sample). Refactors of placement code should fingerprint their output
   (hash the scatter's JSON) before and after.
@@ -346,8 +493,8 @@ voice are served from `<base>courses/<id>/` (`courseAssetBase()`, `courseVoiceBa
   when touching the title or warm-up: timing-dependent hitches only show some of the time).
 - Dead code: `npx knip` with the real entry points (`src/boot/main.ts`, `src/dev/*.ts`, `tools/**`,
   tests). Duplication: `npx jscpd src --min-lines 12 --ignore "**/rock-assets.ts,**/*.test.ts"`.
-  Shared helpers live in `src/util/math.ts` (`smoothstep`, `clamp01`, `mulberry32`,
-  `segmentDistance`, `sinHash`); don't add local copies.
+  Shared helpers live in `src/util/math.ts` (`smoothstep`, `clamp01`, `wrapAngle`, `mulberry32`,
+  `seededRandom`, `segmentDistance`, `segmentDistance3`, `sinHash`); don't add local copies.
 
 ## 7. Scaling checklist
 

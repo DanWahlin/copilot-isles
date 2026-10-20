@@ -1,12 +1,11 @@
 import type { LearnState } from '../../learn/store';
 import { DEFAULT_SAIL_PALETTE } from '../../world/ship/sail-palettes';
 import type { PuzzleFile } from '../../course/pack';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 import type { ScriptStep } from '../script';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-const PAINT_SAILS_ID = 'Q0.2.palette';
-const QUEST = 'Q0.2';
+const PAINT_SAILS_ID = 'palette';
 
 /** What the puzzle needs from the palette stand site. */
 export interface PaintSailsStand {
@@ -23,14 +22,17 @@ interface PaletteFile extends PuzzleFile {
     /** For saves from before the New view moved: Nell shows it, if that page isn't in the Logbook yet. */
     newViewLate: readonly ScriptStep[];
   };
+  /** The page `newViewLate` shows: a save without it in the Logbook hears that script first. */
+  latePage?: string;
 }
 const content = () => puzzleContent<PaletteFile>('palette');
 const T = (key: string) => textOf(content(), key);
 
 /**
- * Paint Your Sails (POC §4.4, Q0.2): the palette stand beside Nell's door. The app's theme lives in
- * Settings → Themes; here, it's your sails. Pick a palette (it previews on the stand's sample sail and
- * on your ship), then select Finish. The first time, during Q0.2, Nell sends you on to Ezra. The stand
+ * Paint Your Sails (POC §4.4): the palette stand beside Nell's door, where the course's theme is your
+ * sails. Pick a palette (it previews on the stand's sample sail and on your ship), then select Finish.
+ * The first time (while the quest `puzzleQuest('palette')` names is at its `palette` step), Nell's
+ * `finished` script sends you on. The stand
  * stays open for repainting afterwards, and so does Settings → Your sails. Its scripts and words are
  * the course pack's (`puzzles/palette.json`).
  */
@@ -44,7 +46,9 @@ export function createPaintSails(
   let wasActive = false;
   let shown = '';
 
-  const active = () => host.quests()[QUEST] === 'palette';
+  const quest = puzzleQuest('palette');
+  const { palette } = puzzleSteps('palette');
+  const active = () => host.quests()[quest] === palette;
   const setHint = (on: boolean) => {
     hinted = on;
     stand.setHint(on);
@@ -83,7 +87,8 @@ export function createPaintSails(
       host.audio?.sfx.oneShot('chime_solve', undefined, 0.6);
       if (first) {
         setHint(false);
-        const late = !learn.getState().pages.includes('C0.3');
+        const page = content().latePage;
+        const late = !!page && !learn.getState().pages.includes(page);
         await host.beat(
           late
             ? [...content().scripts.newViewLate, ...content().scripts.finished]
@@ -124,7 +129,7 @@ export function createPaintSails(
     },
     debug: {
       state: () => ({
-        quest: host.quests()[QUEST] ?? null,
+        quest: host.quests()[quest] ?? null,
         running,
         hinted,
         shown,

@@ -6,67 +6,67 @@
     {
       "word": "Every",
       "start": 0,
-      "end": 0.42
+      "end": 0.38
     },
     {
       "word": "job",
-      "start": 0.42,
-      "end": 0.8
+      "start": 0.38,
+      "end": 0.587
     },
     {
       "word": "on",
-      "start": 0.8,
-      "end": 0.98
+      "start": 0.587,
+      "end": 0.66
     },
     {
       "word": "the",
-      "start": 0.98,
-      "end": 1.12
+      "start": 0.66,
+      "end": 0.787
     },
     {
       "word": "board",
-      "start": 1.12,
-      "end": 2.067
+      "start": 0.787,
+      "end": 1.333
     },
     {
       "word": "right-sized",
-      "start": 2.067,
-      "end": 3.14
+      "start": 1.333,
+      "end": 2.34
     },
     {
       "word": "You've",
-      "start": 3.14,
-      "end": 3.56
+      "start": 2.34,
+      "end": 2.76
     },
     {
       "word": "got",
-      "start": 3.56,
-      "end": 3.76
+      "start": 2.76,
+      "end": 2.907
     },
     {
       "word": "an",
-      "start": 3.76,
-      "end": 3.98
+      "start": 2.907,
+      "end": 3.02
     },
     {
       "word": "eye",
-      "start": 3.98,
-      "end": 4.2
+      "start": 3.02,
+      "end": 3.22
     },
     {
       "word": "for",
-      "start": 4.2,
-      "end": 4.411
+      "start": 3.22,
+      "end": 3.337
     },
     {
       "word": "models",
-      "start": 4.411,
-      "end": 5.365
+      "start": 3.337,
+      "end": 3.81
     },
     {
       "word": "Captain",
-      "start": 5.365,
-      "end": 5.615
+      "start": 3.81,
+      "end": 4.0600000000000005
     }
   ]
 }

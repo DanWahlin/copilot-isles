@@ -7,7 +7,6 @@ import {
   PlaneGeometry,
   Vector3,
 } from 'three/webgpu';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCove } from '../world/cove-scene';
 import { COVE } from '../world/layout';
 import {
@@ -18,7 +17,7 @@ import {
   type CharacterBody,
   type CharacterClip,
 } from '../world/characters';
-import { compileAndStart, createDevHarness, engineStats, orbitViews } from './harness';
+import { compileAndStart, createDevHarness, engineStats, orbitViews, seaOrbitControls } from './harness';
 
 const h = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = h;
@@ -41,9 +40,7 @@ else {
   scene.add(hemi, sun, ground);
 }
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.maxPolarAngle = Math.PI * 0.495;
+const controls = seaOrbitControls(camera, canvas);
 
 const library = await loadCharacterLibrary('/packs/testcove/characters');
 const characters: Character[] = [];

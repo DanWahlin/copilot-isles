@@ -8,6 +8,7 @@ import {
   type Destination,
 } from '../../game/puzzles/hall-letters';
 import { textOf } from '../../course/puzzles';
+import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './channel-routing.css';
 import './lost-letters.css';
@@ -41,20 +42,7 @@ export interface LostLettersStore {
 
 const T = (key: string, v?: Readonly<Record<string, string | number>>) => textOf(lettersContent(), key, v);
 
-/** `**bold**` spans in a line, the rest as text. */
-function Bold({ text }: { text: string }) {
-  return (
-    <>
-      {text
-        .split(/(\*\*[^*]+\*\*)/)
-        .map((part, i) =>
-          part.startsWith('**') ? <b key={i}>{part.slice(2, -2)}</b> : <span key={i}>{part}</span>,
-        )}
-    </>
-  );
-}
-
-/** The key for each destination: 1-9 for the first nine areas, 0 for Projects, N for the tray. */
+/** The key for each destination: 1-9 for the first nine areas, 0 for the tenth, N for the tray. */
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'N'];
 const STEP: Readonly<Record<string, number>> = {
   ArrowDown: 1,
@@ -171,7 +159,7 @@ function LostLetters({ store }: { store: LostLettersStore }) {
         <div className="ci-ll-choices">
           <ol className="ci-ll-alcoves" aria-label={T('bins')}>
             {ALCOVES.map((a, i) => (
-              <li key={a.id}>{button(a.id, i, a.name, a.id === 'projects' ? 'is-projects' : '')}</li>
+              <li key={a.id}>{button(a.id, i, a.name, a.apart ? 'is-apart' : '')}</li>
             ))}
           </ol>
           {button(TRAY.id, DESTINATIONS.length - 1, T('trayButton', { tray: TRAY.name }), 'ci-ll-tray')}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A course pack's quests for one island (courses/<id>/quests/<island>.json)",
-  "description": "The island's quests (story order), the compass's labels, the tracker's header, every named script its NPCs and puzzles play (src/game/script.ts), and its NPCs' barks. Which script an NPC offers when is the game's (src/game/*-quests.ts) until COURSE-PACKS.md step 2.",
+  "description": "The island's quests (story order), the compass's labels, the tracker's header, every named script its NPCs and puzzles play (src/game/script.ts), which script or line each NPC offers when (beats), the conditions and events the game asks the island's story for (story), and its NPCs' barks.",
   "type": "object",
   "additionalProperties": false,
   "required": ["island", "tracker", "quests", "targets", "scripts", "barks"],
@@ -30,6 +30,10 @@
         },
         "next": {
           "description": "What's next once every task's done.",
+          "$ref": "#/$defs/text"
+        },
+        "nextSail": {
+          "description": "Anchorage: what's next once the next island is open (it replaces next).",
           "$ref": "#/$defs/text"
         }
       }
@@ -160,28 +164,7 @@
             ]
           },
           "when": {
-            "type": "object",
-            "description": "Every condition must hold: quest id → its step (a step, null for not started, a list of either, or {\"not\": …}). A key starting with $ is a flag the island passes in (true or false).",
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/stepIs"
-                },
-                {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "required": ["not"],
-                  "properties": {
-                    "not": {
-                      "$ref": "#/$defs/stepIs"
-                    }
-                  }
-                },
-                {
-                  "type": "boolean"
-                }
-              ]
-            }
+            "$ref": "#/$defs/when"
           },
           "script": {
             "$ref": "#/$defs/id",
@@ -197,6 +180,47 @@
             "description": "Nothing to offer (the NPC barks)."
           }
         }
+      }
+    },
+    "story": {
+      "type": "object",
+      "description": "The game's quest skeleton on this island, in this course's quests (src/game/story.ts): the conditions and events the game asks for by name (STORY_CONDITIONS, STORY_EVENTS). A course that uses the island defines every name the game asks for there.",
+      "additionalProperties": false,
+      "required": ["conditions", "events"],
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "conditions": {
+          "description": "Name → when it holds (e.g. \"sealed\": {\"Q0.10\": \"done\"}).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/when"
+          }
+        },
+        "events": {
+          "description": "Name → rules applied in order when it happens, each read against the steps the rules before it set (e.g. \"setSail\": [{\"when\": {\"Q0.11\": \"sail\"}, \"set\": {\"Q0.11\": \"done\"}}]).",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][A-Za-z]*$"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/rule"
+            }
+          }
+        }
+      }
+    },
+    "signs": {
+      "type": "object",
+      "description": "The island's signs with course words, by the names the game asks for (ISLAND_SIGNS, src/course/pack.ts): Thousand-Bough's \"loft\", the board over the top deck's house.",
+      "additionalProperties": {
+        "$ref": "#/$defs/text"
       }
     }
   },
@@ -413,6 +437,49 @@
           }
         }
       ]
+    },
+    "when": {
+      "type": "object",
+      "description": "Every condition must hold: quest id → its step (a step, null for not started, a list of either, or {\"not\": …}). A key starting with $ is a flag the game passes in (true or false).",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/stepIs"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["not"],
+            "properties": {
+              "not": {
+                "$ref": "#/$defs/stepIs"
+              }
+            }
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["set"],
+      "properties": {
+        "when": {
+          "$ref": "#/$defs/when"
+        },
+        "set": {
+          "description": "Quest id → the step it goes to.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   }
 }

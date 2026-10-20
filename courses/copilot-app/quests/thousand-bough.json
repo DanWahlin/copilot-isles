@@ -365,6 +365,19 @@
       "script": "elder"
     }
   ],
+  "story": {
+    "conditions": {
+      "firstVisit": { "Q2.1": { "not": "done" } },
+      "gondolaOpen": { "Q2.4": "done" },
+      "secondBridge": { "Q2.5": "done" },
+      "practiceStarted": { "Q2.7": { "not": null } },
+      "basketOpen": { "Q2.9": { "not": [null, "start"] } },
+      "skipCrownView": { "Q2.9": ["exam", "done"] },
+      "sealed": { "Q2.9": "done" }
+    },
+    "events": {}
+  },
+  "signs": { "loft": "Chronicle Loft" },
   "scripts": {
     "tamsin": [
       {

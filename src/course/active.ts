@@ -13,10 +13,17 @@ import type { CoursePack, IslandQuests } from './pack';
 let active: CoursePack | null = null;
 const hooks: ((p: CoursePack) => void)[] = [];
 
-/** Runs `build` with the active pack now (if there is one) and on every activation after. */
-export function onCourse(build: (p: CoursePack) => void): void {
+/**
+ * Runs `build` with the active pack now (if there is one) and on every activation after. Returns a
+ * call that stops it (for something built in the world, which can be freed: its words repaint).
+ */
+export function onCourse(build: (p: CoursePack) => void): () => void {
   hooks.push(build);
   if (active) build(active);
+  return () => {
+    const i = hooks.indexOf(build);
+    if (i >= 0) hooks.splice(i, 1);
+  };
 }
 
 export function setActiveCourse(p: CoursePack): void {
@@ -53,6 +60,11 @@ export function courseScript(island: string, name: string): readonly ScriptStep[
   const s = islandQuests(island).scripts[name];
   if (!s) throw new Error(`The course "${coursePack().id}" has no script "${name}" on ${island}`);
   return s;
+}
+
+/** One of an island's signs (`quests/<island>.json` → `signs`), blank without a course or the sign. */
+export function islandSign(island: string, name: string): string {
+  return active?.quests[island]?.signs?.[name] ?? '';
 }
 
 /** What an NPC says when there's no script for them (unvoiced barks), from any island's quests. */

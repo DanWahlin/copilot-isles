@@ -1,4 +1,4 @@
-import { lerp, mulberry32, segmentDistance, smoothstep } from '../../../../util/math';
+import { lerp, mulberry32, segmentDistance, segmentDistance3, smoothstep } from '../../../../util/math';
 import { HELIX, THOUSAND_BOUGH as TB, TREE, atBearing, bearingOf } from '../layout';
 import { fernWalkAt, thousandBoughHeight } from '../height';
 import {
@@ -179,7 +179,7 @@ const LIMBS: readonly LimbSpec[] = [
   },
   // The crew houses' boughs and the fresh bough under the Three Landings' scaffold.
   {
-    id: 'bough-feature',
+    id: 'bough-blue',
     bearing: 315,
     path: [
       [3, 27],
@@ -193,7 +193,7 @@ const LIMBS: readonly LimbSpec[] = [
     canopy: false,
   },
   {
-    id: 'bough-bugfix',
+    id: 'bough-green',
     bearing: 350,
     path: [
       [3, 28.5],
@@ -207,7 +207,7 @@ const LIMBS: readonly LimbSpec[] = [
     canopy: false,
   },
   {
-    id: 'bough-docs',
+    id: 'bough-teal',
     bearing: 30,
     path: [
       [3, 30],
@@ -396,7 +396,7 @@ export function treeKeepouts(): Keepout[] {
   out.push({ x: basket.x, z: basket.z, r: 3.2, y0: TB.skyBasket.bottomY - 1, y1: TB.skyBasket.topY + 6 });
   const mast = TB.anchors.flagMast;
   out.push({ x: mast.x, z: mast.z, r: 3.5, y0: mast.y, y1: mast.y + 14 });
-  // The deck houses (the Practice Bough's and the Chronicle Loft) and the Crown Beacon.
+  // The deck houses (the Practice Bough's and the top deck's loft) and the Crown Beacon.
   for (const id of ['L2S', 'L3SE'] as const) {
     const d = DECKS[id];
     const hr = d.rect;
@@ -414,16 +414,7 @@ function inKeepout(k: readonly Keepout[], x: number, y: number, z: number, r: nu
 
 /** The gondola cable: from the Three Landings' corner to the Cloud Loft. */
 export function cableDistance(x: number, y: number, z: number): number {
-  const a = TB.gondola.station;
-  const b = TB.gondola.loft;
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const dz = b.z - a.z;
-  const t = Math.max(
-    0,
-    Math.min(1, ((x - a.x) * dx + (y - a.y) * dy + (z - a.z) * dz) / (dx * dx + dy * dy + dz * dz)),
-  );
-  return Math.hypot(x - a.x - dx * t, y - a.y - dy * t, z - a.z - dz * t);
+  return segmentDistance3(x, y, z, TB.gondola.station, TB.gondola.loft);
 }
 
 /** A point on a branch's centre line, with its radius there. */
@@ -514,18 +505,7 @@ function woodClear(
 function flightDistance(x: number, y: number, z: number): number {
   const k = THOUSAND_BOUGH_ARRIVAL.keys;
   let best = Infinity;
-  for (let i = 0; i < k.length - 1; i++) {
-    const a = k[i]!;
-    const b = k[i + 1]!;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const dz = b.z - a.z;
-    const t = Math.max(
-      0,
-      Math.min(1, ((x - a.x) * dx + (y - a.y) * dy + (z - a.z) * dz) / (dx * dx + dy * dy + dz * dz)),
-    );
-    best = Math.min(best, Math.hypot(x - a.x - dx * t, y - a.y - dy * t, z - a.z - dz * t));
-  }
+  for (let i = 0; i < k.length - 1; i++) best = Math.min(best, segmentDistance3(x, y, z, k[i]!, k[i + 1]!));
   return best;
 }
 

@@ -1,4 +1,4 @@
-import { coursePack } from './active';
+import { coursePack, onCourse } from './active';
 import { fill } from './fill';
 import type { PuzzleFile, PuzzleMechanic } from './pack';
 
@@ -50,6 +50,88 @@ export const PUZZLE_ISLANDS: Readonly<Record<string, string>> = {
   'practice-session': 'thousand-bough',
 };
 
+/**
+ * The quest steps each puzzle's mechanic sets or waits on (the game's words, docs/specs/COURSE-PACKS.md
+ * step 4). A pack names the quest the puzzle plays in (`"quest"` in its file), and that quest has
+ * each of these steps, under the same name or the one its file maps it to (`"steps"`, game step →
+ * quest step). Every quest also ends at `done`, the game's own step for a finished quest (the quest
+ * list, the tracker and the content check know it), so a puzzle reads `done` as it is: it isn't a
+ * mechanic step and can't be renamed. The gear rack sets none, but the crane reads its quest's `done`
+ * (so the gear rack needs a quest), and the mill race reads the crane's (`gate`, `crane`, `solved`).
+ */
+const STEPS = {
+  'gear-rack': [],
+  palette: ['palette'],
+  bard: ['start'],
+  christening: ['start', 'sail'],
+  sluice: ['sluice', 'solved'],
+  crane: ['gate', 'crane', 'solved'],
+  'first-words': ['pipes'],
+  'crate-yard': ['crates', 'solved'],
+  'three-helms': ['helms', 'solved'],
+  'lost-letters': ['letters', 'solved'],
+  market: ['start'],
+  'channel-routing': ['start', 'channels', 'twist', 'solved'],
+} as const;
+
+export const PUZZLE_STEPS: Readonly<Record<string, readonly string[]>> = STEPS;
+
+/** The puzzles whose mechanic sets or waits on quest steps. */
+export type StepPuzzle = keyof typeof STEPS;
+
+/** A puzzle's mechanic steps, each as the course's quest calls it. */
+export type PuzzleSteps<N extends StepPuzzle> = { readonly [S in (typeof STEPS)[N][number]]: string };
+
+/** Every puzzle's steps resolved through the active pack's `"steps"`, built once per activation. */
+let resolved: { readonly [N in StepPuzzle]: PuzzleSteps<N> } | null = null;
+
+onCourse((p) => {
+  resolved = Object.fromEntries(
+    Object.entries(STEPS).map(([name, steps]) => [
+      name,
+      Object.freeze(Object.fromEntries(steps.map((s: string) => [s, p.puzzles[name]?.steps?.[s] ?? s]))),
+    ]),
+  ) as unknown as typeof resolved;
+});
+
+/**
+ * A puzzle's mechanic steps as the active course's quest calls them (its file's `"steps"`, else the
+ * game's names): `puzzleSteps('crane').gate`. Resolved once per course, so a mechanic reads it once when
+ * it's made and compares strings after.
+ */
+export function puzzleSteps<N extends StepPuzzle>(name: N): PuzzleSteps<N> {
+  if (!resolved) throw new Error('No course pack is active yet (src/course/load.ts activates it)');
+  return resolved[name];
+}
+
+/** The quest a puzzle plays in (its file's `"quest"`), or '' when it plays in none. */
+export function puzzleQuest(name: string): string {
+  return coursePack().puzzles[name]?.quest ?? '';
+}
+
+/**
+ * A pack's entries keyed by the game ids they bind to (`"acts"`), each keeping its own id as `id`: a
+ * course names its modes, crews or places as it likes, and binds each to one the game acts out.
+ */
+export function byActs<T extends { acts: string }>(
+  r: Readonly<Record<string, T>>,
+): Record<T['acts'], T & { id: string }> {
+  return Object.fromEntries(Object.entries(r).map(([id, v]) => [v.acts, { ...v, id }])) as Record<
+    T['acts'],
+    T & { id: string }
+  >;
+}
+
+/** A record keyed by a pack's ids (`binds`' keys) re-keyed by the game ids those bind to. */
+export function rekey<A extends string, T>(
+  binds: Readonly<Record<string, { acts: A }>>,
+  r: Readonly<Record<string, T>>,
+): Record<A, T> {
+  return Object.fromEntries(
+    Object.entries(r).flatMap(([id, v]) => (binds[id] ? [[binds[id].acts, v]] : [])),
+  ) as Record<A, T>;
+}
+
 /** A puzzle's content (typed by the mechanic's module); throws if the course hasn't got it. */
 export function puzzleContent<T extends PuzzleFile = PuzzleFile>(name: string): T {
   const p = coursePack().puzzles[name];
@@ -82,6 +164,20 @@ export function textOf(
   if (t === undefined && p.disabled) return '';
   if (t === undefined) throw new Error(`puzzles: "${p.id}" has no text "${key}"`);
   return values ? fill(t, values) : t;
+}
+
+/** Every voice line a puzzle plays: its `lines`, and any `line` in its content (orders, answers). */
+export function voiceLinesOf(p: PuzzleFile): string[] {
+  const out: string[] = Object.values(p.lines ?? {});
+  const walk = (v: unknown, key: string): void => {
+    if (typeof v === 'string') {
+      if (key === 'line') out.push(v);
+    } else if (Array.isArray(v)) for (const x of v) walk(x, key);
+    else if (v && typeof v === 'object')
+      for (const [k, x] of Object.entries(v)) if (k !== 'lines' && k !== 'text') walk(x, k);
+  };
+  walk(p, '');
+  return out;
 }
 
 /** A puzzle's voiced line by what it's for. */

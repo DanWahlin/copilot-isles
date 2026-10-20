@@ -1,7 +1,15 @@
 import type { HeightField, Tier } from '../contracts';
 import type { PlantInstance, PlantSpecies } from '../vegetation/types';
 import { fbm2 } from '../terrain/cove-height';
-import { MERIDIAN, meridianHeight, meridianMasks, meridianQuayHeight, meridianWater } from './meridian';
+import { lowestOnRing } from '../vegetation/scatter';
+import {
+  MERIDIAN,
+  meridianHeight,
+  meridianMasks,
+  meridianNormalAt,
+  meridianQuayHeight,
+  meridianWater,
+} from './meridian';
 import { segmentDistance, sinHash, smoothstep } from '../../util/math';
 
 /**
@@ -40,16 +48,7 @@ export function meridianPlantExcluded(x: number, z: number): boolean {
 /** The island's own functions as a height field (for the game; the chart passes its baked grid). */
 export const MERIDIAN_HEIGHT_FIELD: HeightField = {
   heightAt: meridianHeight,
-  normalAt(x, z, out) {
-    const e = 1.5;
-    const nx = -(meridianHeight(x + e, z) - meridianHeight(x - e, z)) / (2 * e);
-    const nz = -(meridianHeight(x, z + e) - meridianHeight(x, z - e)) / (2 * e);
-    const len = Math.hypot(nx, 1, nz) || 1;
-    out[0] = nx / len;
-    out[1] = 1 / len;
-    out[2] = nz / len;
-    return out;
-  },
+  normalAt: meridianNormalAt,
   masksAt: meridianMasks,
 };
 
@@ -66,6 +65,7 @@ export function* meridianPlantsSliced(
 ): Generator<void, PlantInstance[], void> {
   const out: PlantInstance[] = [];
   const keep = KEEP[tier];
+  const heightAt = (x: number, z: number) => field.heightAt(x, z);
   const { minX, maxX, minZ, maxZ } = MERIDIAN.bounds;
   for (let cz = Math.ceil(minZ / CELL); cz * CELL < maxZ; cz++) {
     for (let cx = Math.ceil(minX / CELL); cx * CELL < maxX; cx++) {
@@ -97,11 +97,7 @@ export function* meridianPlantsSliced(
             : speciesFor(h, slopeDeg, m.rock, grove, thicket, sinHash(cx, cz, s + 4));
         if (!species) continue;
         // Sit the base on the lowest ground under it, a little sunk, as the island's scatter does.
-        let y = h;
-        for (let i = 0; i < 4; i++) {
-          const a = (i / 4) * Math.PI * 2;
-          y = Math.min(y, field.heightAt(x + Math.cos(a) * 0.7, z + Math.sin(a) * 0.7));
-        }
+        const y = lowestOnRing(heightAt, x, z, h, 0.7, 4);
         const palm = species.startsWith('palm');
         out.push({
           species,

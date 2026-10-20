@@ -215,13 +215,15 @@ export class ImpostorBatch {
     }));
     const geometry = new PlaneGeometry(1, 1, 1, 1);
     const capacity = Math.max(1, instances.length);
-    this.fade = new InstancedBufferAttribute(new Float32Array(capacity), 1);
+    this.fade = new InstancedBufferAttribute(new Float32Array(capacity * 2), 2);
     this.tint = new InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
     this.atlasUv = new InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
     geometry.setAttribute('fade', this.fade);
     geometry.setAttribute('tint', this.tint);
     geometry.setAttribute('atlasUv', this.atlasUv);
-    this.mesh = sharedInstancedMesh(geometry, createImpostorMaterial(bake.texture), capacity, { count: 0 });
+    this.mesh = sharedInstancedMesh(geometry, createImpostorMaterial(bake.texture, 1 / GRID), capacity, {
+      count: 0,
+    });
     this.mesh.name = 'vegetation-impostors';
     this.mesh.frustumCulled = false;
   }
@@ -245,13 +247,26 @@ export class ImpostorBatch {
       matrix.copy(tmp.matrix);
       this.mesh.setMatrixAt(this.visible, matrix);
       this.tint.setXYZ(this.visible, tint.r, tint.g, tint.b);
-      // The baked view whose yaw matches how the camera sees this instance's mesh rotation.
+      // The two baked views either side of how the camera sees this instance's mesh rotation, and how
+      // far it is from the first to the second: the card blends them, so walking past a tree turns it
+      // smoothly instead of snapping it from one view to the next.
       const turns = (instance.rotation - yaw) / (Math.PI * 2);
-      const view = Math.round((turns - Math.floor(turns)) * VIEWS) % VIEWS;
-      const k = tileIndex(prototype, view);
-      this.atlasUv.setXYZW(this.visible, (k % GRID) * tile, Math.floor(k / GRID) * tile, tile, tile);
-      const thin = 1 - smoothstep(far - 110, far, d) * (0.35 + instance.lodSeed * 0.45);
-      this.fade.setX(this.visible, clamp01(smoothstep(near - 10, near + 6, d) * thin));
+      const at = (turns - Math.floor(turns)) * VIEWS;
+      const view = Math.floor(at) % VIEWS;
+      const a = tileIndex(prototype, view);
+      const b = tileIndex(prototype, (view + 1) % VIEWS);
+      this.atlasUv.setXYZW(
+        this.visible,
+        (a % GRID) * tile,
+        Math.floor(a / GRID) * tile,
+        (b % GRID) * tile,
+        Math.floor(b / GRID) * tile,
+      );
+      // Thinned toward the far edge, and gone by it (no card drops out still drawn).
+      const thin =
+        (1 - smoothstep(far - 110, far, d) * (0.35 + instance.lodSeed * 0.45)) *
+        (1 - smoothstep(far - 30, far, d));
+      this.fade.setXY(this.visible, clamp01(smoothstep(near - 10, near + 6, d) * thin), at - Math.floor(at));
       this.visible += 1;
     }
     this.mesh.count = this.visible;

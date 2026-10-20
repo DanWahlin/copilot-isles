@@ -2,6 +2,10 @@
   "$schema": "../../schemas/puzzle-procedure.schema.json",
   "id": "P0.2",
   "mechanic": "procedure",
+  "quest": "Q0.7",
+  "steps": {
+    "gate": "actions"
+  },
   "$comment": "The Dry-Run Crane (Q0.7): a procedure with a dry run. It follows the course's setup script (.github/scripts/setup-training-scenarios.js): the dry run previews the repository a berth's ship stands for, and the run refuses one you don't own, stops outside a clone, and stops while your fork's workflows are off. The game owns the guards and the berths; this file says whose ship is where, what the script prints, and what Pim and Pol say. {yours} is the player's fork (or the placeholder).",
   "targets": {
     "berth2": {
@@ -32,21 +36,25 @@
   "cargo": [
     {
       "id": "labels",
+      "acts": "pennants",
       "title": "Labels",
       "count": 9
     },
     {
       "id": "issues",
+      "acts": "notices",
       "title": "Issues",
       "count": 5
     },
     {
       "id": "branches",
+      "acts": "hulls",
       "title": "Practice branches",
       "count": 7
     },
     {
       "id": "prs",
+      "acts": "seals",
       "title": "Pull requests",
       "count": 3
     }

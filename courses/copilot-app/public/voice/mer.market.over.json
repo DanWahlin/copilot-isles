@@ -6,67 +6,67 @@
     {
       "word": "That's",
       "start": 0,
-      "end": 0.36
+      "end": 0.28
     },
     {
       "word": "a",
-      "start": 0.36,
-      "end": 0.52
+      "start": 0.28,
+      "end": 0.34
     },
     {
       "word": "lot",
-      "start": 0.52,
-      "end": 0.907
+      "start": 0.34,
+      "end": 0.453
     },
     {
       "word": "of",
-      "start": 0.907,
-      "end": 1.04
+      "start": 0.453,
+      "end": 0.64
     },
     {
       "word": "starfish",
-      "start": 1.04,
-      "end": 1.64
+      "start": 0.64,
+      "end": 1.24
     },
     {
       "word": "for",
-      "start": 1.64,
-      "end": 1.8
+      "start": 1.24,
+      "end": 1.4
     },
     {
       "word": "a",
-      "start": 1.8,
-      "end": 1.88
+      "start": 1.4,
+      "end": 1.48
     },
     {
       "word": "quick",
-      "start": 1.88,
-      "end": 2.16
+      "start": 1.48,
+      "end": 1.76
     },
     {
       "word": "look",
-      "start": 2.16,
-      "end": 2.96
+      "start": 1.76,
+      "end": 2.368
     },
     {
       "word": "Auto",
-      "start": 2.96,
-      "end": 3.307
+      "start": 2.368,
+      "end": 3.213
     },
     {
       "word": "would've",
-      "start": 3.307,
-      "end": 3.568
+      "start": 3.213,
+      "end": 3.472
     },
     {
       "word": "done",
-      "start": 3.568,
-      "end": 3.84
+      "start": 3.472,
+      "end": 3.653
     },
     {
       "word": "it",
-      "start": 3.84,
-      "end": 4.09
+      "start": 3.653,
+      "end": 3.903
     }
   ]
 }

@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
+import { readCoursePack } from '../../../tools/course-pack/read';
+import { setActiveCourse } from '../../course/active';
+import { activateCourse } from '../../course/load';
+import type { CoursePack } from '../../course/pack';
 import {
   CRANE_FACINGS,
   CRANE_START,
@@ -11,6 +15,7 @@ import {
   craneHintTarget,
   dryRun,
   initialCrane,
+  jibLines,
   restoreCrane,
   saveCrane,
   lineTone,
@@ -110,7 +115,7 @@ describe('crane logic (P0.2)', () => {
     expect(preview.at(-1)).toBe('Dry run complete. No changes were made.');
     expect(terminalLines(d.state, d.event, yours, true)).not.toContain(actionsWarning(yours));
     const off = confirmYes(d.state, yours, false);
-    expect(off.event).toEqual({ kind: 'actions-off', repository: yours });
+    expect(off.event).toEqual({ kind: 'gate-shut', repository: yours });
     expect(off.state.complete).toBe(false);
     expect(terminalLines(off.state, off.event, yours, false).at(-1)).toBe(actionsFailure(yours));
     expect(signLines(off.state, off.event, yours)).toEqual([
@@ -213,5 +218,46 @@ describe('crane logic (P0.2)', () => {
     }
     expect(craneFacings('m-reyes/x')[CRANE_START]!.captain).toBe('J. Okafor');
     expect(craneFacings()).toBe(CRANE_FACINGS);
+  });
+
+  it('splits the repository line for the arm sign and leaves the default branch to the terminal', () => {
+    const s = dryRun(turnTo(initialCrane(), YOUR_FACING)).state;
+    expect(jibLines(signLines(s))).toEqual([
+      'Repository:',
+      `${YOUR_REPOSITORY.split('/')[0]}/`,
+      YOUR_REPOSITORY.split('/')[1],
+      ...signLines(s).slice(2),
+    ]);
+  });
+});
+
+/** The arm sign and the inks read the pack's words, not the Copilot app course's English. */
+describe('crane readouts in a course with other words', () => {
+  afterAll(async () => {
+    await activateCourse('copilot-app');
+  });
+
+  it('splits its repository line and drops its default-branch line', () => {
+    const app = readCoursePack('copilot-app');
+    const crane = app.puzzles.crane!;
+    setActiveCourse({
+      ...app,
+      puzzles: {
+        ...app.puzzles,
+        crane: {
+          ...crane,
+          text: { ...crane.text, repository: 'Dépôt « {repository} »', defaultBranch: 'Branche : main' },
+        },
+      },
+    } as CoursePack);
+    expect(jibLines(['Dépôt « m-reyes/notes »', 'Branche : main', 'Repository: a/b'])).toEqual([
+      'Dépôt «',
+      'm-reyes/',
+      'notes »',
+      'Repository: a/b',
+    ]);
+    expect(lineTone('Dépôt « m-reyes/notes »', 'you/fork')).toBe('other');
+    expect(lineTone('Dépôt « you/fork »', 'you/fork')).toBe('you');
+    expect(lineTone('Repository: a/b', 'you/fork')).toBeUndefined();
   });
 });

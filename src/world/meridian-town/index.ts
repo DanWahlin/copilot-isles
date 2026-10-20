@@ -73,6 +73,7 @@ import {
   dressHarbourWall,
   dressTerraceWall,
 } from './plaza-dressing';
+import { addBox, type Buckets } from './plaza-kit';
 import { addTiledRoof } from './plaza-roofs';
 import { addPlazaRim, plazaRimWalk } from './plaza-rim';
 import { MARKET_LAYOUT, MODEL_MARKET, addModelMarketStall, marketToWorld } from './model-market';
@@ -144,7 +145,6 @@ let liteTown = false;
 /** How much small dressing the plaza art pass adds: lite (Lite and Low), medium, or full (High up). */
 let townDetail: 'lite' | 'medium' | 'full' = 'full';
 
-type Buckets = Record<MaterialKey, BufferGeometry[]>;
 /** `camera`: camera-only blockers (see MeridianTownSystem.cameraBlockers). */
 type ColliderSet = { circles: CircleObstacle[]; boxes: VillageBoxCollider[]; camera?: VillageBoxCollider[] };
 
@@ -4369,23 +4369,6 @@ function addPlayerWall(
   height: number,
 ): void {
   colliders.boxes.push({ x, z, hx, hz, rot, height });
-}
-
-function addBox(
-  buckets: Buckets,
-  key: MaterialKey,
-  x: number,
-  y: number,
-  z: number,
-  w: number,
-  h: number,
-  d: number,
-  ry: number,
-  colour: number,
-  rx = 0,
-  rz = 0,
-): void {
-  buckets[key].push(geoBox(w, h, d, { x, y, z, ry, rx, rz }, key === 'paving' ? 0xffffff : colour, 1.8));
 }
 
 function addBoxTo(

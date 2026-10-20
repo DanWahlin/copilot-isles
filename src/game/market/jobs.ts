@@ -13,6 +13,7 @@ import {
 import { onCourse } from '../../course/active';
 import type { SourceRef } from '../../learn/types';
 import type { ModelCategory } from './catalog';
+import type { ModelTier } from '../../content/market';
 import type { PuzzleFile } from '../../course/pack';
 import { puzzleContent, textOf } from '../../course/puzzles';
 
@@ -45,7 +46,7 @@ export const marketText = (key: string, v?: Readonly<Record<string, string | num
   textOf(puzzleContent<PuzzleFile>('market'), key, v);
 const T = marketText;
 
-export let QUOTES = {} as Readonly<Record<QuoteKey, CourseQuote>>;
+export let QUOTES = {} as Readonly<Record<QuoteKey, CourseQuote> & Record<string, CourseQuote>>;
 
 export type JobId = string;
 export type JobSize = JobSizeId;
@@ -76,6 +77,11 @@ export let EFFORT_LABEL = {} as Readonly<Record<Effort, string>>;
 
 /** A hire: Auto (the app picks, and Effort is hidden), or a model of a category with an effort. */
 export type Hire = { auto: true } | { auto: false; category: ModelCategory; model: string; effort: Effort };
+
+/** Each category's size (the grading reads sizes, never a course's category names). */
+export let TIER_OF = {} as Readonly<Record<ModelCategory, ModelTier>>;
+/** The course's category for each size. */
+export let CATEGORY_OF = {} as Readonly<Record<ModelTier, ModelCategory>>;
 
 /** Starfish per hire (docs/specs/MODEL-MARKET.md §3): bigger models cost more. */
 export let AUTO_PRICE = 0;
@@ -110,24 +116,30 @@ export type Reason =
   | 'hard-short-effort';
 
 /**
- * Grades a hire for a job by the course's guidance (Models and Reasoning Effort):
- * - A quick look (a tour, a short explanation): Auto, or a Lightweight model on its default (or low)
- *   effort, is right-sized. A bigger model, or High effort, overspends. Nothing falls short.
- * - A hard job (a difficult bug, a change across several files): a Powerful model on Default or High,
- *   or a Versatile one on High, is right-sized. Auto (it hides Effort), a Lightweight model, a
- *   Versatile one below High or a Powerful one on Low falls short.
+ * Grades a hire for a job by its model's size and the effort (for the Copilot app course, Models and
+ * Reasoning Effort; Lightweight, Versatile and Powerful are small, medium and large):
+ * - A quick look (a tour, a short explanation): Auto, or a small model on its default (or low)
+ *   effort, is right-sized. A bigger model, or high effort, overspends. Nothing falls short.
+ * - A hard job (a difficult bug, a change across several files): a large model on default or high,
+ *   or a medium one on high, is right-sized. Auto (it hides the effort), a small model, a medium one
+ *   below high or a large one on low falls short.
  */
-export function grade(job: MarketJob, h: Hire): { outcome: Outcome; reason: Reason } {
+export function grade(
+  job: MarketJob,
+  h: Hire,
+  tiers: Readonly<Record<ModelCategory, ModelTier>> = TIER_OF,
+): { outcome: Outcome; reason: Reason } {
+  const tier = h.auto ? null : tiers[h.category];
   if (job.size === 'quick') {
     if (h.auto) return { outcome: 'right', reason: 'quick-right' };
-    if (h.category !== 'Lightweight') return { outcome: 'over', reason: 'quick-over-model' };
+    if (tier !== 'small') return { outcome: 'over', reason: 'quick-over-model' };
     return h.effort === 'high'
       ? { outcome: 'over', reason: 'quick-over-effort' }
       : { outcome: 'right', reason: 'quick-right' };
   }
   if (h.auto) return { outcome: 'short', reason: 'hard-short-auto' };
-  if (h.category === 'Lightweight') return { outcome: 'short', reason: 'hard-short-model' };
-  const enough = h.category === 'Powerful' ? h.effort !== 'low' : h.effort === 'high';
+  if (tier === 'small') return { outcome: 'short', reason: 'hard-short-model' };
+  const enough = tier === 'large' ? h.effort !== 'low' : h.effort === 'high';
   return enough
     ? { outcome: 'right', reason: 'hard-right' }
     : { outcome: 'short', reason: 'hard-short-effort' };
@@ -177,7 +189,8 @@ onCourse(() => {
   QUOTES = Object.fromEntries(Object.entries(m.quotes).map(([k, q]) => [k, quote(q)])) as Record<
     QuoteKey,
     CourseQuote
-  >;
+  > &
+    Record<string, CourseQuote>;
   JOBS = m.jobs.map((j) => ({
     id: j.id,
     title: j.title,
@@ -191,6 +204,11 @@ onCourse(() => {
     string
   >;
   AUTO_PRICE = m.autoPrice;
+  TIER_OF = Object.fromEntries(m.categories.map((c) => [c.id, c.acts])) as Record<ModelCategory, ModelTier>;
+  CATEGORY_OF = Object.fromEntries(m.categories.map((c) => [c.acts, c.id])) as Record<
+    ModelTier,
+    ModelCategory
+  >;
   CATEGORY_PRICE = Object.fromEntries(m.categories.map((c) => [c.id, c.price])) as Record<
     ModelCategory,
     number
@@ -281,26 +299,28 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
 
 /**
  * Where a Retry starts the hire (the player can still change it): "a different model" moves to a model
- * suited to complex coding (Powerful; Low becomes Default), and "more effort" keeps the model on High.
+ * suited to complex coding (large; low becomes default), and "more effort" keeps the model on high.
  */
 export function retryHire(
   h: Hire,
   kind: 'model' | 'effort',
   firstOf: (c: ModelCategory) => string,
 ): Exclude<Hire, { auto: true }> {
+  const large = CATEGORY_OF.large;
   if (h.auto) {
-    // Auto hides Effort: either way, turn it off and pick a model suited to complex coding.
+    // Auto hides the effort: either way, turn it off and pick a model suited to complex coding.
+    const medium = CATEGORY_OF.medium;
     return kind === 'model'
-      ? { auto: false, category: 'Powerful', model: firstOf('Powerful'), effort: 'default' }
-      : { auto: false, category: 'Versatile', model: firstOf('Versatile'), effort: 'high' };
+      ? { auto: false, category: large, model: firstOf(large), effort: 'default' }
+      : { auto: false, category: medium, model: firstOf(medium), effort: 'high' };
   }
-  // "Higher effort" for a hard job: straight to High.
+  // "Higher effort" for a hard job: straight to high.
   if (kind === 'effort') return { ...h, effort: 'high' };
   const effort = h.effort === 'low' ? 'default' : h.effort;
-  if (h.category === 'Powerful') {
-    // Already the biggest: another Powerful model.
-    const other = firstOf('Powerful') === h.model ? h.model : firstOf('Powerful');
+  if (h.category === large) {
+    // Already the biggest: another large model.
+    const other = firstOf(large) === h.model ? h.model : firstOf(large);
     return { ...h, model: other, effort };
   }
-  return { auto: false, category: 'Powerful', model: firstOf('Powerful'), effort };
+  return { auto: false, category: large, model: firstOf(large), effort };
 }

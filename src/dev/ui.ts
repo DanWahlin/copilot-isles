@@ -9,6 +9,7 @@ import {
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { mountUi } from '../ui/mount';
 import { activateCourse } from '../course/load';
+import { COURSE } from '../course/catalog';
 
 // The course pack the page's content comes from (a voyage loads it the same way).
 await activateCourse();
@@ -19,7 +20,7 @@ class MockBridge implements GameBridge {
     screen: 'title',
     returnTo: 'title',
     progress: { value: 0.58, message: 'Planting palms' },
-    course: 'copilot-app',
+    course: COURSE.id,
     hasSave: true,
     save: { location: 'Anchorage Cay', questsDone: 3 },
     learn: {

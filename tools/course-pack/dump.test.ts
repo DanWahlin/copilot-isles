@@ -269,6 +269,11 @@ test('dump the course data', async () => {
   const cove = (await tryImport('game/cove-quests'))!;
   const mer = (await tryImport('game/meridian-quests'))!;
   const tb = (await tryImport('game/thousand-bough-quests'))!;
+  // Step 4 moved the quest skeleton's conditions and old-save rules into the pack (game/story).
+  const story = await tryImport('game/story');
+  const boardingOpen = (q: Any): boolean =>
+    cove.boardingOpen ? cove.boardingOpen(q) : story!.storyHolds('anchorage', 'gangwayDown', q);
+  const migrateQuests = cove.migrateQuests ?? story!.migrateQuests;
   const islands: Any = {
     anchorage: {
       tracker: cove.questTracker,
@@ -304,7 +309,7 @@ test('dump the course data', async () => {
       log: keep(f.log(q)),
       target: f.target(q),
       current: f.current(q),
-      boarding: island === 'anchorage' ? cove.boardingOpen(q) : null,
+      boarding: island === 'anchorage' ? boardingOpen(q) : null,
       npcs: Object.fromEntries(NPCS[island]!.map((n) => [n, keep(f.npc(n, q))])),
     }));
     dump.quests[`${island}.sha256`] = sha(JSON.stringify(canon(rows)));
@@ -334,6 +339,74 @@ test('dump the course data', async () => {
     FEN_SOLVED: tb.FEN_SOLVED,
   };
   dump.scripts = scripts;
+
+  // The quest skeleton (COURSE-PACKS.md, step 4), through APIs both layouts have: old saves brought
+  // in line (with and without the mill's gate), old progress ids renamed or taught, and the sea
+  // battle waiting after each island's Seal.
+  dump.questMigrations = [undefined, false, true].map((workflowsOn) => {
+    const rows = questStates('anchorage').map((q) => {
+      const set: Record<string, string> = {};
+      migrateQuests(q, (id: string, step: string) => (set[id] = step), { workflowsOn });
+      return set;
+    });
+    return {
+      workflowsOn: workflowsOn ?? null,
+      sha256: sha(JSON.stringify(canon(rows))),
+      first: rows.slice(0, 40),
+    };
+  });
+  const progress = (await tryImport('learn/progress'))!;
+  const oldIds = ['local-repository', 'my-work', 'pg1.my-work', 'pg1.issues', 'pg0.setup'];
+  dump.progressMigrations = [undefined, 'start', 'done'].flatMap((a) =>
+    [undefined, 'start', 'done'].flatMap((b) =>
+      [undefined, 'start', 'done'].map((c) => {
+        const quests = Object.fromEntries(
+          Object.entries({ 'Q1.5': a, 'Q1.6': b, 'Q1.7': c }).filter(([, s]) => s),
+        );
+        const p = progress.parseProgress(JSON.stringify({ v: 1, pages: oldIds, glossary: oldIds, quests }));
+        return { quests, pages: p.pages, glossary: p.glossary };
+      }),
+    ),
+  );
+  // New in step 4: each island's story conditions over its quest states, and each puzzle's quest.
+  if (story) {
+    dump.story = Object.fromEntries(
+      Object.entries(story.STORY_CONDITIONS as Record<string, string[]>).map(([island, names]) => {
+        const rows = questStates(island).map((q) =>
+          Object.fromEntries(names.map((n) => [n, story.storyHolds(island, n, q)])),
+        );
+        return [island, { sha256: sha(JSON.stringify(canon(rows))), first: rows.slice(0, 40) }];
+      }),
+    );
+    const puzzles = (await tryImport('course/puzzles'))!;
+    dump.puzzleQuests = Object.fromEntries(
+      Object.keys(puzzles.GAME_PUZZLES).map((n) => [
+        n,
+        {
+          quest: puzzles.puzzleQuest(n),
+          steps:
+            puzzles.puzzleSteps && n in puzzles.PUZZLE_STEPS
+              ? puzzles.puzzleSteps(n)
+              : (puzzles.PUZZLE_STEPS[n] ?? null),
+        },
+      ]),
+    );
+  }
+  const battles = (await tryImport('game/battles'))!;
+  const berths = Object.fromEntries(
+    ['anchorage', 'meridian', 'thousand-bough'].map((id) => [
+      id,
+      { id, name: id, mooring: { x: 0, z: 0 }, contains: () => false },
+    ]),
+  );
+  dump.pendingBattles = Object.fromEntries(
+    ['anchorage', 'meridian'].map((from) => {
+      const rows = questStates(from).map(
+        (q) => battles.pendingBattle(from, q, new Set(), berths)?.id ?? null,
+      );
+      return [from, { sha256: sha(JSON.stringify(rows)), first: rows.slice(0, 40) }];
+    }),
+  );
 
   // The cast's barks (the NPCs' specs stay in the game; their barks may come from the course).
   const npcs = (await tryImport('game/npcs'))!;
@@ -460,7 +533,8 @@ test('dump the course data', async () => {
           yours,
           actionsOn,
           st,
-          event,
+          // Step 5 named the event for the game's gate (the course's Actions step).
+          event: event?.kind === 'gate-shut' ? { ...event, kind: 'actions-off' } : event,
           sign: crane.signLines(st, event, yours),
           term,
           tones: term.map((l: string) => crane.lineTone(l, yours)),
@@ -718,6 +792,63 @@ test('dump the course data', async () => {
         progress: saveKeys.courseKey('copilot-app', 'progress'),
       }
     : { save: 'copilot-isles.save.v1', progress: 'copilot-isles.progress.v1' };
+
+  // Step 5 (COURSE-PACKS.md, "Step 5 as built"): the game acts on its own mechanic ids, and a pack
+  // binds its ids to them (`acts`). Written back in the pack's ids, the derived data is the same as
+  // before; the bindings themselves (`acts`, the letters' `apart`) are the only new fields.
+  if (helms.HELM_MODES) {
+    const back = (v: unknown, ids: Readonly<Record<string, string>>): unknown => {
+      if (typeof v === 'string') return ids[v] ?? v;
+      if (Array.isArray(v)) return v.map((x) => back(x, ids));
+      if (v && typeof v === 'object')
+        return Object.fromEntries(Object.entries(v).map(([k, x]) => [ids[k] ?? k, back(x, ids)]));
+      return v;
+    };
+    const drop = (v: unknown, key: string): unknown =>
+      Array.isArray(v)
+        ? v.map((x) => drop(x, key))
+        : v && typeof v === 'object'
+          ? Object.fromEntries(Object.entries(v).flatMap(([k, x]) => (k === key ? [] : [[k, drop(x, key)]])))
+          : v;
+    const autoName = helms.MODE_INFO.auto.name as string;
+    const helmIds = {
+      steer: 'interactive',
+      review: 'plan',
+      auto: 'autopilot',
+      accept: 'approve',
+      takeOver: 'exit',
+      amend: 'suggest',
+    };
+    dump.puzzleHelms = Object.fromEntries(
+      Object.entries(dump.puzzleHelms as Any).map(([k, v]) => [
+        k,
+        back(JSON.parse(JSON.stringify(v).replaceAll('{auto}', autoName)), helmIds),
+      ]),
+    );
+    dump.puzzleChannels = drop(
+      back(dump.puzzleChannels, {
+        blue: 'feature',
+        green: 'bugfix',
+        teal: 'docs',
+        channel: 'worktree',
+        hall: 'checkout',
+        gondola: 'cloud',
+      }),
+      'acts',
+    );
+    dump.puzzleYard = back(dump.puzzleYard, {
+      tavernPlates: 'chatPlates',
+      slipwayPlates: 'projectPlates',
+      tavern: 'chat',
+      slipway: 'project',
+    });
+    dump.puzzleLetters = drop(dump.puzzleLetters, 'apart');
+    dump.market.data = drop(back(dump.market.data, { autoAside: 'autopilot' }), 'acts');
+    dump.jobs.QUOTES = back(dump.jobs.QUOTES, { autoAside: 'autopilot' });
+    delete dump.jobs.TIER_OF;
+    delete dump.jobs.CATEGORY_OF;
+    delete dump.questExports.COVE_ISLAND.nextSail;
+  }
 
   const text = `${JSON.stringify(canon(dump), null, 1)}\n`;
   writeFileSync(out, text);

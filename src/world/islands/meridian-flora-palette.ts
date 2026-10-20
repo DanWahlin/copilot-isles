@@ -1,0 +1,90 @@
+import type { FloraPalette } from '../flora/types';
+
+/**
+ * Port Meridian's flowers (Ch01, a sunlit Mediterranean port): long drifts of lavender and red
+ * poppies along the summer-gold hills, with grey-green rosemary between them, and round the town's
+ * walls magenta bougainvillea, pink oleander and scarlet geraniums. Its grass is dry and golden, with
+ * plenty of straw.
+ */
+export const MERIDIAN_FLORA_PALETTE: FloraPalette = {
+  id: 'meridian',
+  bounds: { minX: 440, maxX: 1370, minZ: -1230, maxZ: -540 },
+  grass: { ramp: [0x4d5a26, 0x7a7a2c, 0xb09a48, 0xd2b56c], straw: 0.09 },
+  sward: { lush: 0x6e6f2e, dry: 0x8f7e3c, moss: 0x4a5a2a, cover: 0.75 },
+  drifts: { coverage: 0.5, leadShare: 0.7, seed: 7.7 },
+  species: [
+    {
+      id: 'lavender',
+      form: 'spike',
+      colours: [0xb48ee0, 0x9b70cc],
+      eye: 0xd2c4f0,
+      cup: 0,
+      throat: 0,
+      size: [0.04, 0.055],
+      stem: [0.42, 0.6],
+      habitats: ['meadow', 'village'],
+      weight: 1.4,
+    },
+    {
+      id: 'poppy',
+      form: 'bloom',
+      colours: [0xd42a1c, 0xec4d24],
+      eye: 0x2a1b1b,
+      cup: 0.5,
+      throat: 0.05,
+      size: [0.06, 0.08],
+      stem: [0.38, 0.55],
+      habitats: ['meadow'],
+      weight: 0.8,
+    },
+    {
+      id: 'rosemary',
+      form: 'spike',
+      colours: [0x6f8a6a, 0x8ea082],
+      eye: 0x93a8dc,
+      cup: 0,
+      throat: 0,
+      size: [0.05, 0.065],
+      stem: [0.3, 0.45],
+      habitats: ['meadow'],
+      weight: 0.8,
+      drifts: false,
+    },
+    {
+      id: 'bougainvillea',
+      form: 'bloom',
+      colours: [0xc12576, 0xe24a9c],
+      eye: 0xf4eac8,
+      cup: 0.22,
+      throat: 0.1,
+      size: [0.07, 0.1],
+      stem: [0.35, 0.6],
+      habitats: ['village'],
+      weight: 1,
+    },
+    {
+      id: 'oleander',
+      form: 'bloom',
+      colours: [0xe889b0, 0xf6b8cf],
+      eye: 0xfbe3ea,
+      cup: 0.15,
+      throat: 0.35,
+      size: [0.06, 0.08],
+      stem: [0.55, 0.8],
+      habitats: ['village'],
+      weight: 0.7,
+    },
+    {
+      id: 'geranium',
+      form: 'bloom',
+      colours: [0xe0242c, 0xf0565a],
+      eye: 0xf6c8c0,
+      cup: 0.3,
+      throat: 0.08,
+      size: [0.05, 0.065],
+      stem: [0.22, 0.35],
+      habitats: ['village'],
+      weight: 0.8,
+    },
+  ],
+};

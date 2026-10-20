@@ -194,8 +194,8 @@ the work order while she says it (the HUD's caption steps aside for it). Phones:
 
 ## 8. Voice
 
-Gilda: ElevenLabs Voice Library "Caty – Calm & whimsical" (`5DTSWAtuA2BoWMSMFTRP`), English with an Italian accent
-(the town's Mediterranean cast). Lines `mer.market.*` in `courses/copilot-app/voice/lines.json`.
+Gilda: ElevenLabs Voice Library "Harriet – British Actress" (`aAsWcN5jdLdiYG7Hq0YL`), British English, an
+older woman with a refined, brisk shopkeeper's manner. Lines `mer.market.*` in `courses/copilot-app/voice/lines.json`.
 
 ## 9. Tests
 

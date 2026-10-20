@@ -18,13 +18,16 @@ import { villageWalkable } from './village/surfaces';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { fernWalkAt, thousandBoughHeight, thousandBoughWater } from './height';
 import { WalkClearance } from './village/clearance';
+import { thousandBoughStreamStones } from './stream-stones';
+import { ROCK_HEIGHTS, streamStoneKept } from '../stream-stones';
 import { SPIRE_LEDGE, SPIRE_TOP } from './village/surfaces';
 
 /**
  * Thousand-Bough's stone: mossy boulders round the Booth Pools (one carries a starfish), round the
- * falls' pools, at the cliffs' feet and through the jungle; the rock lintel that roofs the cave behind
- * Great Falls; and the Spire, a cluster of basalt columns with its flat top (Lookout 5173) and south
- * ledge (Lookout 5174). All in the shared rock material, instanced (no new shader).
+ * falls' pools, at the cliffs' feet and through the jungle; stones in and along the streams
+ * (`thousandBoughStreamStones`, the water foams round the ones in the beds); the rock lintel that roofs the cave behind
+ * Great Falls; and the Spire, a cluster of basalt columns with its flat top (the first lookout) and
+ * south ledge (the second). All in the shared rock material, instanced (no new shader).
  */
 
 export interface RockSpot {
@@ -39,6 +42,12 @@ export interface RockSpot {
   yaw: number;
   /** Sunk this share of its height into the ground. */
   sink: number;
+  /**
+   * A stone in or beside a stream (its index in `thousandBoughStreamStones`): low enough to step over
+   * or wade past (no fence, no camera blocker), thinned by `streamStoneKept` (the water foams round
+   * the ones a tier keeps in the bed).
+   */
+  stream?: number;
 }
 
 /** The starfish's mossy stone by the Booth Pools: its top is the starfish's height. */
@@ -52,13 +61,6 @@ export const CAVE_ROOF = (() => {
   const c = TB.cave;
   return { x: c.mouth.x, z: c.mouth.z - c.depth / 2 - 0.5, bottom: c.floor + c.height };
 })();
-
-/** Each rock asset's height at scale 1 (its base is at y 0). */
-export const ROCK_HEIGHTS: readonly number[] = ROCK_ASSETS.map((a) => {
-  let top = -Infinity;
-  for (let i = 1; i < a.positions.length; i += 3) top = Math.max(top, a.positions[i]!);
-  return top;
-});
 
 /** The world height of a rock's top. */
 export function rockTop(s: RockSpot): number {
@@ -156,6 +158,25 @@ export function thousandBoughRockSpots(clearance: WalkClearance = new WalkCleara
           sink: 0.35,
         });
       }
+  }
+  // Stones in the streams' beds (just breaking the surface) and along their banks.
+  for (const [index, st] of thousandBoughStreamStones().entries()) {
+    const asset = Math.floor(rand() * 3);
+    const ground = thousandBoughHeight(st.x, st.z);
+    const sink = 0.3;
+    const size = st.r * 2;
+    out.push({
+      asset,
+      x: st.x,
+      y: ground,
+      z: st.z,
+      sx: size * (0.9 + rand() * 0.25),
+      sy: Math.max(0.12, st.top - ground) / (ROCK_HEIGHTS[asset]! - sink),
+      sz: size * (0.75 + rand() * 0.3),
+      yaw: rand() * Math.PI * 2,
+      sink,
+      stream: index,
+    });
   }
   return out;
 }
@@ -329,6 +350,7 @@ export function createThousandBoughRocks(
   const material = createRockMaterial({ basalt: true });
   let small = 0;
   const spots = thousandBoughRockSpots(clearance).filter((s) => {
+    if (s.stream !== undefined) return streamStoneKept(s.stream, smallKept);
     if (Math.max(s.sx, s.sz) >= 2.2) return true;
     small += smallKept;
     if (small < 1) return false;
@@ -352,6 +374,7 @@ export function createThousandBoughRocks(
     mesh.name = `thousand-bough-rocks-${asset.key}`;
     mine.forEach((s, i) => {
       mesh.setMatrixAt(i, rockMatrix(s, M));
+      if (s.stream !== undefined) return;
       circles.push({
         x: s.x,
         z: s.z,

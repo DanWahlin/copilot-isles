@@ -6,13 +6,15 @@ import type { SourceRef } from '../learn/types';
  * The typed view of a course pack's `market.json` (docs/content-data.md): the Model Market's prices,
  * refunds, board numbers, stamps, course quotes, jobs and Gilda's lines. It's part of the build, so a
  * merged edit ships with the next deploy. `src/content/content.test.ts` validates the file against
- * `courses/schemas/market.schema.json` and checks the quotes, anchors and voice lines. The Model
- * Market teaches the Copilot app's models, so only that course has one (COURSE-PACKS.md §4); its
- * quote and line keys are typed from that pack's file.
+ * `courses/schemas/market.schema.json` and checks the quotes, anchors and voice lines. A course that
+ * teaches models has one (COURSE-PACKS.md §4); the keys below are the ones the game asks for.
  */
-type MarketFile = typeof import('../../courses/copilot-app/market.json');
 
-export type ModelCategoryId = 'Lightweight' | 'Versatile' | 'Powerful';
+/** A model category: the course's id for it (its models in models.json name it). */
+export type ModelCategoryId = string;
+/** The game's model sizes: what the grading reads (each category is bound to one, `acts`). */
+export const MODEL_TIERS = ['small', 'medium', 'large'] as const;
+export type ModelTier = (typeof MODEL_TIERS)[number];
 export type EffortId = 'low' | 'default' | 'high';
 export type JobSizeId = 'quick' | 'hard';
 export type OutcomeId = 'right' | 'over' | 'short';
@@ -29,8 +31,32 @@ export interface MarketQuoteData extends CourseCite {
   text: string;
 }
 
-export type QuoteKey = keyof MarketFile['quotes'];
-export type GildaKey = keyof MarketFile['gilda'];
+/** The course sentences the grading and the overlay show, by what they're for. */
+export const QUOTE_KEYS = [
+  'cost',
+  'effort',
+  'hard',
+  'noGuarantee',
+  'auto',
+  'autoAside',
+  'autoHidden',
+  'retry',
+] as const;
+export type QuoteKey = (typeof QUOTE_KEYS)[number];
+/** The stallholder's lines the game plays, by what they're for. */
+export const GILDA_KEYS = [
+  'hello',
+  'open',
+  'auto',
+  'right',
+  'over',
+  'overEffort',
+  'short',
+  'shortAuto',
+  'done',
+  'broke',
+] as const;
+export type GildaKey = (typeof GILDA_KEYS)[number];
 
 export interface MarketJobData {
   id: string;
@@ -39,7 +65,7 @@ export interface MarketJobData {
   size: JobSizeId;
   brief: string;
   /** A key of `quotes`: what the course says about a job like this. */
-  why: QuoteKey;
+  why: string;
 }
 
 export interface GildaLineData {
@@ -52,14 +78,21 @@ export interface GildaLineData {
 }
 
 export interface MarketData {
-  categories: readonly { id: ModelCategoryId; price: number; size: string; tagline: string }[];
+  categories: readonly {
+    id: ModelCategoryId;
+    acts: ModelTier;
+    price: number;
+    size: string;
+    tagline: string;
+  }[];
   efforts: readonly { id: EffortId; label: string; price: number }[];
   autoPrice: number;
   maxPrice: number;
   sizes: Readonly<Record<JobSizeId, { label: string; refund: number; doubloons: number }>>;
   board: { size: number; perFamily: number };
   stamps: Readonly<Record<OutcomeId, string>>;
-  quotes: Readonly<Record<QuoteKey, MarketQuoteData>>;
+  /** The keys the game asks for, and any a job's `why` names. */
+  quotes: Readonly<Record<QuoteKey, MarketQuoteData> & Record<string, MarketQuoteData>>;
   jobs: readonly MarketJobData[];
   gilda: Readonly<Record<GildaKey, GildaLineData>>;
 }

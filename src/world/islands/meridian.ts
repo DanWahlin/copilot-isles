@@ -1,12 +1,29 @@
 import { sharedInstancedMesh } from '../../engine/instancing';
-import { BufferAttribute, BufferGeometry, Euler, Group, Matrix4, Quaternion, Vector3 } from 'three/webgpu';
-import type { CircleObstacle, HeightField } from '../contracts';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  Euler,
+  Group,
+  Matrix4,
+  Quaternion,
+  Vector3,
+  type InstancedMesh,
+} from 'three/webgpu';
+import type { CircleObstacle, HeightField, Tier } from '../contracts';
 import { fbm2, ridged2 } from '../terrain/cove-height';
 import { ROCK_ASSETS } from '../terrain/rock-assets';
 import { meshSurfaceCameraBlockers, type CameraBlockerBox } from '../terrain/camera-blockers';
 import { createRockMaterial } from '../terrain/terrain-material';
 import { clamp01, segmentDistance, smoothstep } from '../../util/math';
 import { createMeridianWater, type MeridianWater } from './meridian-water';
+import type { NaturalWaterOptions } from './fresh-water-natural';
+import {
+  placeStreamStones,
+  ROCK_HEIGHTS,
+  SMALL_ROCKS,
+  streamStoneKept,
+  type StreamStone,
+} from './stream-stones';
 
 /**
  * Port Meridian (Chapter 01), layout v2: a compact harbour town that faces south-west into the
@@ -451,7 +468,34 @@ export function meridianHeight(x: number, z: number): number {
   return meridianWater().carve(x, z, meridianHeightDry(x, z));
 }
 
-function meridianNormalAt(
+let stones: StreamStone[] | null = null;
+
+/**
+ * The stones of the brook and the outflow (`placeStreamStones`): in their beds, where the water foams
+ * round them, and along their banks. Nothing else stands by them (no walk, cast or chest there).
+ */
+export function meridianStreamStones(): StreamStone[] {
+  return (stones ??= placeStreamStones(meridianWater(), 0x3e7b0c, meridianHeight));
+}
+
+/**
+ * Port Meridian's fresh water as natural water (`createMeridianWaterMesh`'s `natural`), over the
+ * tier's drawn ground: white water spreading where the cascade lands in the plunge pool, and round the
+ * stones the tier keeps in the brook's and the outflow's beds (`SMALL_ROCKS`).
+ */
+export function meridianNaturalWater(
+  ground: (x: number, z: number) => number,
+  stoneShare: number,
+): NaturalWaterOptions {
+  return {
+    ground,
+    plunges: [{ x: 1081, z: -988, r: 5.5 }],
+    stones: meridianStreamStones().filter((s, i) => s.inBed && streamStoneKept(i, stoneShare)),
+  };
+}
+
+/** The ground's normal at (x, z), from the height's central differences 1.5 m either side. */
+export function meridianNormalAt(
   x: number,
   z: number,
   out: Float32Array | number[] = [0, 0, 0],
@@ -701,25 +745,59 @@ export function meridianRockShipObstacles(heightField: HeightField): CircleObsta
   return out;
 }
 
-export function createMeridianRocks(heightField: HeightField): Group {
+/**
+ * A stream stone in the rock kit (asset `assetIndex`): its seeded shape, standing on the island's
+ * carved ground, its top where the stone says, sunk 0.3 of its height.
+ */
+function streamStoneMatrix(st: StreamStone, i: number, assetIndex: number, matrix: Matrix4): Matrix4 {
+  const ground = meridianHeight(st.x, st.z);
+  const sink = 0.3;
+  const size = st.r * 2;
+  const sy = Math.max(0.12, st.top - ground) / (ROCK_HEIGHTS[assetIndex]! - sink);
+  rockEuler.set(0, rand(1300 + i * 13) * Math.PI * 2, 0);
+  rockRotation.setFromEuler(rockEuler);
+  rockScale.set(size * (0.9 + rand(1301 + i * 13) * 0.25), sy, size * (0.75 + rand(1302 + i * 13) * 0.3));
+  rockPosition.set(st.x, ground - sy * sink, st.z);
+  return matrix.compose(rockPosition, rockRotation, rockScale);
+}
+
+/**
+ * The coastal rocks, and the stones of the brook and the outflow (thinned by the tier like
+ * Thousand-Bough's; low enough to wade past, so no colliders or camera blockers), in the island's
+ * rock material, instanced per kit asset (no new shader). The stones are instanced on their own, so
+ * they're culled away from the water (on Lite all of them bake into one draw, `coarserRocksOnLite`).
+ */
+export function createMeridianRocks(heightField: HeightField, _data?: unknown, tier: Tier = 'high'): Group {
   const group = new Group();
   group.name = 'meridian-coastal-rocks';
   const material = createRockMaterial();
   const matrix = new Matrix4();
-  for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
+  const stones = meridianStreamStones()
+    .map((st, i) => ({ st, i, asset: Math.floor(rand(1299 + i * 13) * 3) }))
+    .filter(({ i }) => streamStoneKept(i, SMALL_ROCKS[tier]));
+  const instanced = (assetIndex: number, count: number, name: string): InstancedMesh => {
     const asset = ROCK_ASSETS[assetIndex];
-    const instances = ROCK_COUNT;
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(asset.positions, 3));
     geometry.setAttribute('normal', new BufferAttribute(asset.normals, 3));
     geometry.setIndex(new BufferAttribute(asset.indices, 1));
-    const mesh = sharedInstancedMesh(geometry, material, instances);
-    mesh.name = `meridian-rocks-${asset.key}`;
-    for (let i = 0; i < instances; i++)
+    const mesh = sharedInstancedMesh(geometry, material, count);
+    mesh.name = `${name}-${asset.key}`;
+    group.add(mesh);
+    return mesh;
+  };
+  for (let assetIndex = 0; assetIndex < 3; assetIndex++) {
+    const mesh = instanced(assetIndex, ROCK_COUNT, 'meridian-rocks');
+    for (let i = 0; i < ROCK_COUNT; i++)
       mesh.setMatrixAt(i, meridianRockMatrix(assetIndex, i, heightField, matrix));
     mesh.instanceMatrix.needsUpdate = true;
     mesh.computeBoundingSphere();
-    group.add(mesh);
+    const mine = stones.filter((s) => s.asset === assetIndex);
+    if (mine.length === 0) continue;
+    const brook = instanced(assetIndex, mine.length, 'meridian-stream-rocks');
+    mine.forEach((s, k) => brook.setMatrixAt(k, streamStoneMatrix(s.st, s.i, assetIndex, matrix)));
+    brook.instanceMatrix.needsUpdate = true;
+    brook.computeBoundingSphere();
   }
   return group;
 }

@@ -1,11 +1,12 @@
 // Learning layer dev page: every quiz type, pages, spyglass, Logbook, and a Trial, without the 3D world.
 // ?q=H0.2 opens a quiz directly; ?debug outlines hotspot targets (green = correct) and masks (yellow).
-import { QUIZZES } from '../learn/content/index';
+import { CHESTS, GLOSSARY, IMAGES, PAGES, QUIZZES, TRIALS } from '../learn/content/index';
 import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import { mountLearn } from '../ui/learn/LearnLayer';
 import '../ui/ui.css';
 import { activateCourse } from '../course/load';
+import { islandQuests } from '../course/active';
 
 // The course pack the page's content comes from (a voyage loads it the same way).
 await activateCourse();
@@ -27,28 +28,27 @@ const button = (label: string, fn: () => void) => {
   b.onclick = fn;
   bar.append(b);
 };
-for (const id of QUIZZES.keys()) if (!id.startsWith('T0.')) button(id, () => void store.ask(id));
-button('Trial T0', () => void store.runTrial('T0'));
-button('Chest C0.1', () => void store.openChest('C0.1'));
-button('Page P0.S', () => void store.grantPage('P0.S'));
-button('Spyglass', () => store.showImage('ch00/app-sign-in', 'Select **Sign in to GitHub**.'));
+// The active course's own: every quiz but its Trials' questions, its first Trial, chest, page,
+// image and glossary terms, and its first two Anchorage quests in the Logbook.
+const first = <T>(m: Map<string, T>) => [...m.keys()][0];
+const trialItems = new Set([...TRIALS.values()].flatMap((t) => t.items));
+for (const id of QUIZZES.keys()) if (!trialItems.has(id)) button(id, () => void store.ask(id));
+const trial = first(TRIALS);
+if (trial) button(`Trial ${trial}`, () => void store.runTrial(trial));
+const chest = first(CHESTS);
+if (chest) button(`Chest ${chest}`, () => void store.openChest(chest));
+const page = first(PAGES);
+if (page) button(`Page ${page}`, () => void store.grantPage(page));
+const image = first(IMAGES);
+if (image) button('Spyglass', () => store.showImage(image, IMAGES.get(image)!.alt));
 button('Hide spyglass', () => store.hideImage());
 button('Logbook', () => {
-  for (const id of ['fork', 'worktree', 'dry-run']) store.learnTerm(id);
-  store.setQuests([
-    {
-      id: 'q0.2',
-      title: 'Captain’s Papers',
-      detail: 'Talk to Nell at the harbourmaster’s office.',
-      done: true,
-    },
-    {
-      id: 'q0.3',
-      title: 'Copy the Master Chart',
-      detail: 'Find Ezra in the chartmaker’s loft.',
-      done: false,
-    },
-  ]);
+  for (const id of [...GLOSSARY.keys()].slice(0, 3)) store.learnTerm(id);
+  store.setQuests(
+    islandQuests('anchorage')
+      .quests.slice(0, 2)
+      .map((d, i) => ({ id: d.id, title: d.title, detail: d.steps.start ?? '', done: i === 0 })),
+  );
   store.openLogbook();
 });
 

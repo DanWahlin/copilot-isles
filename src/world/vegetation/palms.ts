@@ -9,6 +9,7 @@ import {
   Uint32BufferAttribute,
   Vector3,
 } from 'three/webgpu';
+import { ICOSAHEDRON_FACES, ICOSAHEDRON_VERTICES } from '../../util/icosahedron';
 import { mulberry32, smoothstep } from '../../util/math';
 
 export const PALM_PART = { STEM: 0, FROND: 1, COCONUT: 5 } as const;
@@ -279,50 +280,13 @@ function addIcosphere(
   mat: number[],
   veg: number[],
 ): void {
-  const t = (1 + Math.sqrt(5)) / 2;
-  const verts = [
-    [-1, t, 0],
-    [1, t, 0],
-    [-1, -t, 0],
-    [1, -t, 0],
-    [0, -1, t],
-    [0, 1, t],
-    [0, -1, -t],
-    [0, 1, -t],
-    [t, 0, -1],
-    [t, 0, 1],
-    [-t, 0, -1],
-    [-t, 0, 1],
-  ] as const;
-  const faces = [
-    [0, 11, 5],
-    [0, 5, 1],
-    [0, 1, 7],
-    [0, 7, 10],
-    [0, 10, 11],
-    [1, 5, 9],
-    [5, 11, 4],
-    [11, 10, 2],
-    [10, 7, 6],
-    [7, 1, 8],
-    [3, 9, 4],
-    [3, 4, 2],
-    [3, 2, 6],
-    [3, 6, 8],
-    [3, 8, 9],
-    [4, 9, 5],
-    [2, 4, 11],
-    [6, 2, 10],
-    [8, 6, 7],
-    [9, 8, 1],
-  ] as const;
-  const ids = verts.map(([x, y, z]) => {
+  const ids = ICOSAHEDRON_VERTICES.map(([x, y, z]) => {
     v0.set(x, y, z).normalize();
     v1.copy(v0).multiply(radii).add(center);
     v2.copy(v0).divide(radii).normalize();
     return builder.vertex(v1, v2, 0.5, 0.5, veg, mat);
   });
-  for (const [a, b, c] of faces) builder.tri(ids[a]!, ids[b]!, ids[c]!);
+  for (const [a, b, c] of ICOSAHEDRON_FACES) builder.tri(ids[a]!, ids[b]!, ids[c]!);
 }
 
 const PALM_H = 10;

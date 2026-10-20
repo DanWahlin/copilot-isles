@@ -2,6 +2,7 @@
   "$schema": "../../schemas/puzzle-ceremony.schema.json",
   "id": "Q0.11.christen",
   "mechanic": "ceremony",
+  "quest": "Q0.11",
   "$comment": "The christening (Q0.11): Nell names the ship at your bow (the christen cue throws the coconut). Her talk is the island's christening script.",
   "text": {
     "hint1": "Every ship needs a name before her first voyage. Nell’s waiting by your bow.",

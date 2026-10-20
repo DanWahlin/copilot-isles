@@ -94,16 +94,16 @@ describe('Channel Routing in the session (on the recording stub)', () => {
     expect(p.debug.wrong()).toBeNull();
     store.actions.openGates();
     expect(store.get().message?.text).toMatch(/every crew/);
-    store.actions.pick('feature', 'checkout');
-    store.actions.pick('bugfix', 'cloud');
-    store.actions.pick('docs', 'checkout');
+    store.actions.pick('blue', 'hall');
+    store.actions.pick('green', 'gondola');
+    store.actions.pick('teal', 'hall');
     store.actions.openGates();
     await settle();
     expect(h.said).toContain('tb.fen.ws.worktree');
-    expect(store.get().verdicts?.feature.right).toBe(false);
-    expect(store.get().verdicts?.docs.right).toBe(true);
+    expect(store.get().verdicts?.blue.right).toBe(false);
+    expect(store.get().verdicts?.teal.right).toBe(true);
     expect(calls.some((c) => c.view === 'fx' && c.fn === 'gondolaSend')).toBe(true);
-    store.actions.pick('feature', 'worktree');
+    store.actions.pick('blue', 'channel');
     store.actions.openGates();
     await settle();
     expect(h.said).toContain('tb.fen.round3');
@@ -119,7 +119,7 @@ describe('Channel Routing in the session (on the recording stub)', () => {
     store.actions.choose('port5174');
     await settle();
     expect(calls.some((c) => c.view === 'spire' && c.fn === 'openSecondBridge')).toBe(true);
-    expect(calls.filter((c) => c.fn === 'preview').map((c) => c.args)).toContainEqual(['docs', 5174, true]);
+    expect(calls.filter((c) => c.fn === 'preview').map((c) => c.args)).toContainEqual(['teal', 2, true]);
     expect(h.said).toContain('wingman.tb.ports');
     expect(store.get().open).toBe(false);
     expect(h.modal.at(-1)).toBe(false);
@@ -138,11 +138,11 @@ describe('Channel Routing in the session (on the recording stub)', () => {
     // Every channel's dug already, and nothing replays (no new round set-piece on the terrace).
     expect(p.debug.wrong()).toBeNull();
     expect(h.said).toEqual([]);
-    h.store().actions.pick('docs', 'checkout');
+    h.store().actions.pick('teal', 'hall');
     h.store().actions.leave();
     expect(h.store().get().open).toBe(false);
     await p.open();
-    expect(h.store().get().picks.docs).toBe('checkout');
+    expect(h.store().get().picks.teal).toBe('hall');
   });
 
   it('gives Wingman’s three hint tiers, the third turning a tile', async () => {

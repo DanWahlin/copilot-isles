@@ -2,12 +2,19 @@
 // The memory gate (PLAN §12.7, §13.3): plays Anchorage → Port Meridian → Thousand-Bough → Anchorage by
 // chart travel, twice, on each tier and backend, and reads the GPU memory three tracks
 // (`renderer.info.memory`, made honest by engine/memory-ledger.ts) and the JS heap after a forced GC
-// at every stop. Fails if, back at Anchorage, memory is more than a small margin over the first visit,
+// at every stop. Fails if, back at Anchorage, memory is more than a small margin over the first visit
+// (the heap's is a share or an absolute floor, whichever is more: budgets.json `margin.heapFloorMB`),
 // if it keeps rising from one round trip to the next (a leak), if any stop is over its tier's ceiling
 // (tools/budgets.json `memory`), or on a page error, a WebGPU validation error or a hitch. Then it
 // sails to Port Meridian, waits for Anchorage to go dormant, quits to the title and starts a new
 // voyage: the title must have no Anchorage, the new voyage exactly one, and memory as the first's.
 // Also logs Chrome's DOM counters and `performance.measureUserAgentSpecificMemory()` where offered.
+// The render scale is held at the tier's own (the player's manual setting): screen-sized targets are
+// ~90 MB on High, and adaptive resolution under a loaded machine would resize them between stops.
+// The ledger counts every texture at its current size (engine/memory-ledger.ts), so a comparison is
+// only like for like at one scale. Before it did, three's first-seen sizes (an image still decoding
+// counted ~0, a target sized after first use kept its first size) moved a stop by 11-27 MB from run
+// to run, and the round-trip check failed on timing, not a leak (issue 261, budgets.json `leak`).
 //   node tools/memorytest.mjs [--base=http://127.0.0.1:5301] [--tiers=high,lite] [--backends=webgpu,webgl2]
 //                             [--trips=2] [--out=<dir>] [--no-gate]
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -99,6 +106,9 @@ async function run(tier, backend) {
     await page.goto(url, { waitUntil: 'load' });
     await page.evaluate(() => localStorage.clear());
     await until('title', 180_000);
+    await page.evaluate(() =>
+      window.__flow.updateSettings({ renderScale: window.__flow.o.engine.tier.renderScale }),
+    );
     await page.waitForTimeout(2000);
     await flow('chooseCaptain()');
     await page.waitForTimeout(700);
@@ -172,22 +182,28 @@ async function run(tier, backend) {
     for (const l of logs) fail(l);
     // Back at Anchorage, close to the first visit.
     const m = budgets.margin;
+    // The heap's allowance: a share of the first visit's, or an absolute floor (budgets.json says why).
+    const heapLimit = (mb) => +Math.max(mb * (1 + m.heapPct / 100), mb + m.heapFloorMB).toFixed(1);
     const b1 = back[0];
     if (b1) {
       if (b1.trackedMB > first.trackedMB * (1 + m.trackedPct / 100))
         fail(
           `back at Anchorage: tracked ${b1.trackedMB} MB > first ${first.trackedMB} MB + ${m.trackedPct} %`,
         );
-      if (b1.heapMB > first.heapMB * (1 + m.heapPct / 100))
-        fail(`back at Anchorage: heap ${b1.heapMB} MB > first ${first.heapMB} MB + ${m.heapPct} %`);
+      if (b1.heapMB > heapLimit(first.heapMB))
+        fail(
+          `back at Anchorage: heap ${b1.heapMB} MB > ${heapLimit(first.heapMB)} MB (first ${first.heapMB} MB)`,
+        );
     }
     // The next voyage starts where the first did.
     if (again.trackedMB > first.trackedMB * (1 + m.trackedPct / 100))
       fail(
         `new voyage: tracked ${again.trackedMB} MB > first voyage ${first.trackedMB} MB + ${m.trackedPct} %`,
       );
-    if (again.heapMB > first.heapMB * (1 + m.heapPct / 100))
-      fail(`new voyage: heap ${again.heapMB} MB > first voyage ${first.heapMB} MB + ${m.heapPct} %`);
+    if (again.heapMB > heapLimit(first.heapMB))
+      fail(
+        `new voyage: heap ${again.heapMB} MB > ${heapLimit(first.heapMB)} MB (first voyage ${first.heapMB} MB)`,
+      );
     // No growth from one round trip to the next.
     for (let i = 1; i < back.length; i++) {
       const a = back[i - 1],

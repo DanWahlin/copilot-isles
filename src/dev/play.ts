@@ -1,12 +1,13 @@
-import type { Object3D } from 'three/webgpu';
 import { AMBIENT_BEDS, createAudio } from '../audio';
 import { Input } from '../engine/input';
-import { compileProgressively } from '../engine/warm';
 import { createPost } from '../engine/post';
 import { createSession, type GameSession } from '../game/session';
+import { warmIsland, warmLate, warmWorld } from '../game/island-warm';
+import { installDebug } from '../engine/debug';
 import '../game/hud.css';
 import { loadCharacterLibrary, type PlayerBody } from '../world/characters';
 import { createCove } from '../world/cove-scene';
+import { skipSunShadowsWhereOff, type CachedSunShadowNode } from '../world/sky/cached-sun-shadow';
 import { QUIZZES } from '../learn/content/index';
 import type { Answer } from '../learn/grade';
 import { Progress } from '../learn/progress';
@@ -69,10 +70,18 @@ if (learn)
     get: () => !!session,
   });
 let session: GameSession | null = null;
+let starting = false;
 let body: PlayerBody = q.get('body') === 'woman' ? 'woman' : 'man';
+/** Warm-ups running (the world's, an island's, a late one's), for `__dev.settled()`. */
+let warms = 0;
+const counted = (warm: Promise<void>): Promise<void> => {
+  warms++;
+  return warm.finally(() => warms--);
+};
 
 async function begin(unlock: boolean): Promise<void> {
-  if (session) return;
+  if (session || starting) return;
+  starting = true;
   if (unlock) {
     const ok = await audio.unlock();
     if (ok) {
@@ -81,7 +90,7 @@ async function begin(unlock: boolean): Promise<void> {
         audio.sfx.setBed(bed as keyof typeof AMBIENT_BEDS, gain);
     }
   }
-  session = await createSession({
+  const s = await createSession({
     engine,
     cove,
     characters,
@@ -92,27 +101,23 @@ async function begin(unlock: boolean): Promise<void> {
     quiet: q.has('quiet'),
     learn,
   });
-  // The game's flow warms an island each time it streams in; here its cast and sites just precompile,
-  // for the post's scene pass like the game's warm (a bare precompile builds shaders no draw uses).
-  const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-  const precompile = (g: Object3D): Promise<void> =>
-    post
-      ? compileProgressively(g, (o) => post.compileObject(o), nextFrame).then(() => undefined)
-      : renderer.compileAsync(g, camera, scene).then(() => undefined);
-  // Each time an island's content goes on (a first visit, or again after it was freed).
-  const ready = ({ roots, reveal }: { roots: Object3D[]; reveal(): void }, reload: boolean) => {
-    reveal();
-    const built = Promise.all(roots.map(precompile)).then(nextFrame).then(nextFrame);
-    // An island back from being freed re-uploads what it gave back: a late addition, like the game's
-    // warm (which this page doesn't run).
-    if (reload) void engine.counters.excuse(built);
-  };
-  for (const { setup } of session.islandSetups()) ready(setup, false);
-  session.onIslandSetup((id, setup) => ready(setup, session!.islandSetupGen(id) > 1));
+  // Warmed like the game (game/island-warm.ts): the world before play, each island as it streams in
+  // (a first visit, or again after it was freed), and late additions (the leaps, a battle). So the
+  // page builds the game's shaders, and its hitch guard (`window.__isles`) sees what the game's would.
+  const live = () => true;
+  const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+  cove.setLateWarm((roots) => counted(warmLate({ engine, cove, roots, post, live })));
+  for (const { setup } of s.islandSetups()) setup.reveal();
+  s.onIslandSetup((id, setup) => void counted(warmIsland({ engine, cove, id, setup, post, live })));
+  await counted(warmWorld({ engine, cove, post, frame, terrains: [cove.terrain] }));
+  engine.counters.hitches.length = 0;
+  engine.counters.stalls.length = 0;
+  engine.counters.arm();
+  session = s;
   for (const fn of playingListeners) fn();
   document.getElementById('start')!.classList.add('hide');
   canvas.focus();
-  session.begin();
+  s.begin();
 }
 
 const startBtn = document.getElementById('go') as HTMLButtonElement;
@@ -140,7 +145,19 @@ engine.add({
   },
 });
 
+// One shader per look whether a mesh takes the sun's shadows or not, like the game's warms.
+if (cove.sky.sun.castShadow) skipSunShadowsWhereOff(scene);
 await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
+// The game's debug hooks (`window.__isles`): tests read its hitch guard, armed once the world's warm.
+engine.counters.stage = () => (session ? 'playing' : 'warming');
+installDebug(
+  engine.counters,
+  canvas,
+  () => engine.fps,
+  () => (session ? 'playing' : 'warming'),
+  { backend, reason: 'dev page', hdr: false, features: [] },
+  { getCpuMs: () => engine.cpuMs, getGpuMs: () => engine.gpuMs, getGpuRawMs: () => engine.gpuRawMs },
+);
 startBtn.disabled = false;
 startBtn.textContent = 'Set sail';
 if (q.has('auto')) await begin(false);
@@ -227,6 +244,33 @@ const key = (code: string, down: boolean) => {
     buildMs,
     state: session?.debug.state() ?? null,
   }),
+  /**
+   * Whether the world has settled (tools/budgettest.mjs measures only then): no warm-up running (each
+   * redraws the static sun shadow map and hidden parts every frame), and every island in or out of
+   * memory, none held by a warm. Read-only.
+   */
+  settled: () => {
+    const shadow = (cove.sky.sun.shadow as typeof cove.sky.sun.shadow & { shadowNode?: CachedSunShadowNode })
+      .shadowNode;
+    const streams = {
+      anchorage: cove.anchorage,
+      meridian: cove.meridian,
+      'thousand-bough': cove.thousandBough,
+    };
+    const out = {
+      warms,
+      warming: shadow?.warming ?? 0,
+      refreshes: shadow?.refreshes ?? 0,
+      lastReason: shadow?.lastReason ?? 'none',
+      streams: Object.fromEntries(
+        Object.entries(streams).map(([id, st]) => [id, { state: st.state, held: st.held }]),
+      ),
+    };
+    const still = Object.values(out.streams).every(
+      (st) => !st.held && (st.state === 'absent' || st.state === 'resident' || st.state === 'failed'),
+    );
+    return { ok: warms === 0 && out.warming === 0 && still, ...out };
+  },
   lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
   liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
   mooringLines: (on: boolean) => cove.meridian.town?.setMooringLines(on),

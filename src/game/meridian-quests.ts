@@ -2,8 +2,9 @@ import { courseScript, hasIslandQuests, islandQuests, onCourse } from '../course
 import { onCourseSelected, welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
-import type { QuestState, QuestTracker, TrackerStatus } from './cove-quests';
+import { firstOpenQuest, islandTasks, startedQuests, type QuestTracker } from './quest-list';
 import type { ScriptStep } from './script';
+import type { QuestState } from './story';
 
 /**
  * Port Meridian's quest line: the logic (which beat each NPC offers, the tracker, the compass). The
@@ -59,12 +60,9 @@ onCourse(() => {
   PELL_SOLVED = script('pell.solved');
 });
 
-const done = (q: QuestState, id: string) => q[id] === 'done';
-
 /** The Meridian step you're on: the first unfinished one in order (it starts once you land). */
 export function meridianCurrent(q: QuestState): { id: string; task: string; step: string } | null {
-  const d = MAIN.find((c) => q[c.id] !== 'done');
-  return d ? { id: d.id, task: d.task, step: q[d.id] ?? 'start' } : null;
+  return firstOpenQuest(MAIN, q);
 }
 
 export function meridianTarget(
@@ -83,28 +81,13 @@ export function meridianTracker(q: QuestState): QuestTracker {
     goal: MERIDIAN_ISLAND.goal,
     next: MERIDIAN_ISLAND.next,
     // The optional market shows once it's started (Gilda's hello).
-    tasks: MERIDIAN_QUESTS.filter((d) => !d.optional || q[d.id]).map((d) => {
-      const optionalStep = d.optional ? q[d.id] : undefined;
-      const status: TrackerStatus = done(q, d.id)
-        ? 'done'
-        : d.id === current?.id || optionalStep
-          ? 'active'
-          : 'upcoming';
-      const step = d.optional ? optionalStep : current?.step;
-      const detail = status === 'active' && step ? (d.steps[step] ?? '') : '';
-      return { id: d.id, title: d.title, task: d.task, detail, status, optional: !!d.optional };
-    }),
+    tasks: islandTasks(MERIDIAN_QUESTS, q, current),
   };
 }
 
 /** Meridian quests for the Logbook's quest tab, once started. */
 export function meridianLog(q: QuestState): { id: string; title: string; detail: string; done: boolean }[] {
-  return MERIDIAN_QUESTS.filter((d) => q[d.id]).map((d) => ({
-    id: d.id,
-    title: d.title,
-    detail: d.steps[q[d.id]!] ?? '',
-    done: q[d.id] === 'done',
-  }));
+  return startedQuests(MERIDIAN_QUESTS, q);
 }
 
 /** Wingman's lines on the first landfall, once the flyover lands behind the captain. */

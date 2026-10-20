@@ -10,6 +10,10 @@ import { THOUSAND_BOUGH } from './layout';
  * Each fall's water starts in a small spring pool on the shelf above its lip. The Veil and Silver
  * Thread run down their cliffs as carved streams (white water down the face); Great Falls leaps
  * clear of its cliff as a hanging curtain (`GREAT_FALLS_CURTAIN`), so its stream ends at the lip.
+ *
+ * The valley streams (Silver Run, Fernrun, Thunder Run) take natural courses (`course`): seeded
+ * meanders between their ends, narrow riffles and wide slow reaches, in a bed rounded across with
+ * banks that wander. Fernrun keeps its line under plank bridge B0 (a pin).
  */
 
 const P = THOUSAND_BOUGH.pools;
@@ -153,13 +157,22 @@ export const THOUSAND_BOUGH_WATER_SPEC: FreshWaterSpec<TbBasin> = {
         [1906, -1490],
         [1913, -1485],
       ],
-      halfWidth: 1.3,
-      depth: 0.35,
+      halfWidth: 1.8,
+      depth: 0.4,
       minFall: 0.02,
       // Banks standing half a metre over the water (it runs in its own bed, not on the ground).
       bank: 0.45,
       from: 'silver',
       to: 'boothA',
+      course: {
+        seed: 0x5117,
+        meander: 3.2,
+        wavelength: 36,
+        minHalf: 1.4,
+        maxHalf: 2.6,
+        // Narrowing into the little booth pool.
+        pins: [{ x: 1913, z: -1485, r: 14, half: 1.3 }],
+      },
     },
     {
       // Great Falls' head: from its spring to the lip (the curtain takes it from there).
@@ -197,6 +210,15 @@ export const THOUSAND_BOUGH_WATER_SPEC: FreshWaterSpec<TbBasin> = {
       bank: 0.45,
       from: 'fernSpring',
       to: 'boothC',
+      course: {
+        seed: 0xfe21,
+        meander: 1.4,
+        wavelength: 22,
+        minHalf: 1.5,
+        maxHalf: 2.3,
+        // Under the plank bridge: its line and width as the bridge was built for.
+        pins: [{ x: 1957, z: -1518, r: 9, half: 1.7 }],
+      },
     },
     {
       points: [
@@ -230,13 +252,14 @@ export const THOUSAND_BOUGH_WATER_SPEC: FreshWaterSpec<TbBasin> = {
         [1878, -1432],
         [1872, -1420],
       ],
-      halfWidth: 2.4,
+      halfWidth: 2.2,
       depth: 0.45,
       minFall: 0.02,
       // Banks standing half a metre over the water (it runs in its own bed, not on the ground).
       bank: 0.45,
       from: 'boothA',
       to: 'sea',
+      course: { seed: 0xfe23, meander: 2.4, wavelength: 30, minHalf: 1.7, maxHalf: 2.6 },
     },
     {
       // Thunder Run: from the Mirror Pool's south lip across the east valley to East Beach.
@@ -252,13 +275,14 @@ export const THOUSAND_BOUGH_WATER_SPEC: FreshWaterSpec<TbBasin> = {
         [2152, -1300],
         [2150, -1275],
       ],
-      halfWidth: 2.2,
+      halfWidth: 2.4,
       depth: 0.45,
       minFall: 0.02,
       // Banks standing half a metre over the water (it runs in its own bed, not on the ground).
       bank: 0.45,
       from: 'mirror',
       to: 'sea',
+      course: { seed: 0x7d01, meander: 4.5, wavelength: 48, minHalf: 1.8, maxHalf: 3.0 },
     },
   ],
 };

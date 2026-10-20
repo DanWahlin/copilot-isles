@@ -125,3 +125,60 @@ export function flyby({ keys, seconds, ashore, holdAfter = 1.2, ...meta }) {
     },
   };
 }
+
+/**
+ * A walking tour of an island's grass and flowers (issue 255): for each stop, off camera, the captain
+ * is placed and the view set; on camera, they walk at an easy pace (never running) along `walk`, then
+ * the camera eases round (`pan`: [yaw, pitch, ms] each) so the drifts on either side show. The HUD is
+ * hidden, and every stop is visited once off camera first, so nothing streams or warms on screen.
+ * `zoom` sets the follow camera's distance (closer shows the blades parting round the captain's feet).
+ * `hours` sets the time of day after arrival (an island's own sky replaces the page's `time`).
+ */
+export function floraTour({ stops, ashore, zoom, hours, ...meta }) {
+  const place = async (api, s) => {
+    await api.teleport(s.x, s.z, s.yaw);
+    await api.look(s.yaw, s.pitch ?? 0.14);
+    if (zoom)
+      await api.S((d) => {
+        const c = window.__dev.session().camera;
+        if ('distance' in c) c.distance = d;
+      }, zoom);
+  };
+  return {
+    ...meta,
+    async setup(page, api) {
+      await ashore?.(page, api);
+      await skipTalk(page, 20_000);
+      await labelsShown(api);
+      await hideUi(page);
+      if (hours !== undefined)
+        await api.S((h) => {
+          const { clock } = window.__dev.engine;
+          clock.set(h, clock.azimuth);
+        }, hours);
+      for (const s of stops) {
+        await place(api, s);
+        await api.pause(2500);
+      }
+      await place(api, stops[0]);
+      await api.pause(2500);
+    },
+    async play(page, api) {
+      for (const [i, s] of stops.entries()) {
+        if (i > 0)
+          await api.cut(async () => {
+            await place(api, s);
+            await api.pause(1800);
+          });
+        api.mark(s.label);
+        await api.pause(1200);
+        for (const [x, z] of s.walk ?? []) await api.walkTo(x, z, { run: 999, tol: 0.8 });
+        for (const [yaw, pitch, ms] of s.pan ?? []) {
+          await api.easeLook(yaw, pitch, ms);
+          await api.pause(900);
+        }
+        await api.pause(1500);
+      }
+    },
+  };
+}

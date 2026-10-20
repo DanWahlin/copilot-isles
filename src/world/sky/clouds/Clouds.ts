@@ -1319,6 +1319,23 @@ export class Clouds {
       return normalize(c.fwd.add(c.right.mul(ndc.x)).add(c.up.mul(ndc.y)));
     };
 
+    // this invocation's traced pixel (one in each 4x4 block, `slot`) and its view ray; past the
+    // trace's edge the invocation returns
+    const tracedRay = () => {
+      const tp = uvec2(globalId.xy);
+      If(
+        tp.x.greaterThanEqual(uint(this.traceSize.x)).or(tp.y.greaterThanEqual(uint(this.traceSize.y))),
+        () => {
+          Return();
+        },
+      );
+
+      const px = vec2(tp.mul(4).add(uvec2(this.slot)))
+        .add(0.5)
+        .add(this.subPixel);
+      return { tp, rd: viewDir(px.div(this.viewSize)).toVar() };
+    };
+
     // interleaved gradient noise (Jimenez 2014)
     const ign = (px) => fract(fract(dot(px, vec2(0.06711056, 0.00583715))).mul(52.9829189));
 
@@ -1331,18 +1348,7 @@ export class Clouds {
     };
 
     this.traceKernel = Fn(() => {
-      const tp = uvec2(globalId.xy);
-      If(
-        tp.x.greaterThanEqual(uint(this.traceSize.x)).or(tp.y.greaterThanEqual(uint(this.traceSize.y))),
-        () => {
-          Return();
-        },
-      );
-
-      const px = vec2(tp.mul(4).add(uvec2(this.slot)))
-        .add(0.5)
-        .add(this.subPixel);
-      const rd = viewDir(px.div(this.viewSize)).toVar();
+      const { tp, rd } = tracedRay();
       // well distributed per frame (interleaved gradient noise on the grid of traced pixels, the
       // offset changes every trace): the residual noise is high frequency, easy to average
       const jitter = ign(vec2(tp).add(this.frameNoise));
@@ -1356,18 +1362,7 @@ export class Clouds {
 
     // high layers for the same pixels (separate kernel: keeps the march kernel lean)
     this.highTraceKernel = Fn(() => {
-      const tp = uvec2(globalId.xy);
-      If(
-        tp.x.greaterThanEqual(uint(this.traceSize.x)).or(tp.y.greaterThanEqual(uint(this.traceSize.y))),
-        () => {
-          Return();
-        },
-      );
-
-      const px = vec2(tp.mul(4).add(uvec2(this.slot)))
-        .add(0.5)
-        .add(this.subPixel);
-      const rd = viewDir(px.div(this.viewSize)).toVar();
+      const { tp, rd } = tracedRay();
       const hi = vec4(0, 0, 0, 1).toVar();
       If(rd.y.greaterThan(-0.01), () => {
         hi.assign(this._high(rd, this.cam.tan.y.mul(2).div(this.viewSize.y)));

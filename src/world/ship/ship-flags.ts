@@ -33,6 +33,7 @@ import {
 import type { UniformNode } from 'three/webgpu';
 import { world } from '../uniforms';
 import { plainShadowColor } from '../../engine/shadow-color';
+import { mulberry32 } from '../../util/math';
 
 // three's TSL fluent node typings do not cover this mixed scalar/vector graph.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -230,17 +231,6 @@ export function createFlagGeometry(layout: FlagLayout = BRIGANTINE_FLAGS): Buffe
   return geometry;
 }
 
-function rng(seed: number): () => number {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 function drawBone(
   ctx: CanvasRenderingContext2D,
   ax: number,
@@ -295,7 +285,7 @@ function paintJollyRoger(): HTMLCanvasElement {
   canvas.width = 512;
   canvas.height = 360;
   const ctx = canvas.getContext('2d')!;
-  const rand = rng(1715);
+  const rand = mulberry32(1715);
 
   ctx.fillStyle = '#0f0f11';
   ctx.fillRect(0, 0, 512, 360);
@@ -364,7 +354,7 @@ function paintRaiderColours(): HTMLCanvasElement {
   canvas.width = 512;
   canvas.height = 360;
   const ctx = canvas.getContext('2d')!;
-  const rand = rng(2404);
+  const rand = mulberry32(2404);
   const field = ctx.createLinearGradient(0, 0, 512, 360);
   field.addColorStop(0, '#34414c');
   field.addColorStop(1, '#4a5864');

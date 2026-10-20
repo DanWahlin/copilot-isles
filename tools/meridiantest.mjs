@@ -737,10 +737,10 @@ if (opt.from === 'admiral') {
   let p = await prompt();
   if (!p?.includes('Hear Rhea’s order')) logs.push(`[meridiantest] no helm prompt (${p})`);
   await shot('helm-interactive-prompt');
-  // One wrong pick per order (its reason shows on the card), Autopilot on the reef passage stops
-  // short, Interactive gets a heading at each mark, and Plan's review is approved too soon, fixed,
-  // then approved.
-  const wrongFirst = { interactive: 'plan', plan: 'autopilot', autopilot: 'interactive' };
+  // One wrong pick per order (its reason shows on the card), \`auto\` (Autopilot) on the reef passage
+  // stops short, \`steer\` (Interactive) gets a heading at each mark, and the \`review\` (Plan) chart is
+  // accepted too soon, amended, then accepted.
+  const wrongFirst = { steer: 'review', review: 'auto', auto: 'steer' };
   const wrongTried = new Set();
   let approvedDraft = false;
   const phasesSeen = new Set();
@@ -760,7 +760,7 @@ if (opt.from === 'admiral') {
     if (s.dialogue) await tap('KeyE');
     else if (!h.run) {
       // Between helms: bring her up to the next buoy (the crew does it on Wingman's third hint).
-      const next = ['interactive', 'plan', 'autopilot'][h.done.length];
+      const next = ['steer', 'review', 'auto'][h.done.length];
       p = await prompt();
       if (p?.includes('Hear Rhea’s order')) await tap('KeyE');
       else if (next) {
@@ -802,7 +802,7 @@ if (opt.from === 'admiral') {
         const c = await card();
         if (h.run.tried.length && !c.message)
           logs.push(`[meridiantest] ${h.run.mode}: no reason for the wrong helm`);
-        if (h.run.mode === 'plan' && !c.message.includes('Chart it first'))
+        if (h.run.mode === 'review' && !c.message.includes('Chart it first'))
           logs.push(`[meridiantest] reef passage under Autopilot: "${c.message}"`);
         await shot(`helm-${h.run.mode}-wrong`);
         await pick(h.run.mode);
@@ -815,11 +815,11 @@ if (opt.from === 'admiral') {
       if (!h.run.revised && !approvedDraft) {
         approvedDraft = true;
         if (!t.includes('Shoal')) logs.push('[meridiantest] the plan doesn’t name the Shoal');
-        await pick('approve');
+        await pick('accept');
       } else if (!h.run.revised) {
         await shot('helm-plan-approved-too-soon');
-        await pick('suggest');
-      } else await pick('approve');
+        await pick('amend');
+      } else await pick('accept');
     }
     await page.waitForTimeout(400);
   }

@@ -2,13 +2,13 @@ import type { VillageAnchor } from '../../world/village/kit';
 import type { CameraShot } from '../follow-camera';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 import { sleep } from '../../util/math';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
+import { storyHolds } from '../story';
 
 /** Its words: the course pack's `puzzles/christening.json`. */
 const T = (key: string) => textOf(puzzleContent('christening'), key);
 
-const CHRISTENING_ID = 'Q0.11.christen';
-const QUEST = 'Q0.11';
+const CHRISTENING_ID = 'christening';
 
 /** What the christening needs from the brigantine. */
 interface ChristeningShip {
@@ -46,8 +46,9 @@ export interface ChristeningOptions {
 const HOLD_MS = 3200;
 
 /**
- * The Christening (POC §4.8, Q0.11): once your first prompt's sent, Nell waits at the pier head by
- * your bow with the Harbormaster's Trial (Q0.10). Passing it names the ship (the `christen` cue
+ * The Christening (POC §4.8): while its quest is at its `start` step, or the island's Trial is on
+ * (the story's `trialStarted`), Nell waits at the pier head by your bow. Passing the Trial names the
+ * ship (the `christen` cue
  * throws the coconut), Juno reports the crew's aboard, and Wingman runs the berth's sailing lesson.
  * The name board on the transom stays blank until then.
  */
@@ -62,10 +63,12 @@ export function createChristening(
   let atPier = false;
   let thrown = false;
 
-  const step = () => host.quests()[QUEST];
+  const quest = puzzleQuest('christening');
+  const S = puzzleSteps('christening');
+  const step = () => host.quests()[quest];
   const paintName = () => {
     const s = step();
-    const name = s === 'sail' || s === 'done' || thrown ? o.shipName() : null;
+    const name = s === S.sail || s === 'done' || thrown ? o.shipName() : null;
     if (name !== named) {
       named = name;
       o.ship.setName(name);
@@ -102,10 +105,10 @@ export function createChristening(
 
   return {
     id: CHRISTENING_ID,
-    engaged: () => step() === 'start' && Math.hypot(host.player.x - o.spot.x, host.player.z - o.spot.z) < 12,
+    engaged: () => step() === S.start && Math.hypot(host.player.x - o.spot.x, host.player.z - o.spot.z) < 12,
     hintKey: () => step() ?? '-',
     hint(tier: HintTier) {
-      if (step() !== 'start') return null;
+      if (step() !== S.start) return null;
       if (tier === 1) return T('hint1');
       return T('hint2');
     },
@@ -113,8 +116,8 @@ export function createChristening(
     update() {
       const s = step();
       // Nell waits at the pier head for the Trial and the ceremony, and goes home once you've sailed off.
-      const trial = host.quests()['Q0.10'] === 'start';
-      const want = trial || s === 'start' || ((s === 'sail' || s === 'done') && atPier && !far());
+      const trial = storyHolds('anchorage', 'trialStarted', host.quests());
+      const want = trial || s === S.start || ((s === S.sail || s === 'done') && atPier && !far());
       if (want !== atPier) {
         atPier = want;
         o.nell.moveTo(want ? o.spot : null);

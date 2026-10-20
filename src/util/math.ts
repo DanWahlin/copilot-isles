@@ -40,6 +40,23 @@ export function segmentDistance(
   return Math.hypot(x - (ax + dx * t), z - (az + dz * t));
 }
 
+/** Distance from (x, y, z) to the segment a → b. */
+export function segmentDistance3(
+  x: number,
+  y: number,
+  z: number,
+  a: { readonly x: number; readonly y: number; readonly z: number },
+  b: { readonly x: number; readonly y: number; readonly z: number },
+): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const dz = b.z - a.z;
+  const t = clamp01(
+    ((x - a.x) * dx + (y - a.y) * dy + (z - a.z) * dz) / Math.max(1e-6, dx * dx + dy * dy + dz * dz),
+  );
+  return Math.hypot(x - a.x - dx * t, y - a.y - dy * t, z - a.z - dz * t);
+}
+
 /** A small, fast seeded PRNG (Mulberry32): returns a function giving uniform values in [0, 1). */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -49,6 +66,19 @@ export function mulberry32(seed: number): () => number {
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * A small, fast seeded PRNG (Mulberry32's mix fed back on itself, without its counter): returns a
+ * function giving uniform values in [0, 1). A zero seed takes a fixed non-zero one.
+ */
+export function seededRandom(seed: number): () => number {
+  let s = seed >>> 0 || 0x9e3779b9;
+  return () => {
+    s = Math.imul(s ^ (s >>> 15), 1 | s);
+    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s);
+    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
   };
 }
 

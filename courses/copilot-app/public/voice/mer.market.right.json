@@ -6,42 +6,42 @@
     {
       "word": "Right-sized",
       "start": 0,
-      "end": 0.944
+      "end": 1.04
     },
     {
       "word": "Here's",
-      "start": 0.944,
-      "end": 1.312
+      "start": 1.04,
+      "end": 1.472
     },
     {
       "word": "some",
-      "start": 1.312,
-      "end": 1.52
+      "start": 1.472,
+      "end": 1.696
     },
     {
       "word": "starfish",
-      "start": 1.52,
-      "end": 2.16
+      "start": 1.696,
+      "end": 2.384
     },
     {
       "word": "back",
-      "start": 2.16,
-      "end": 2.52
+      "start": 2.384,
+      "end": 2.68
     },
     {
       "word": "for",
-      "start": 2.52,
-      "end": 2.709
+      "start": 2.68,
+      "end": 2.88
     },
     {
       "word": "hiring",
-      "start": 2.709,
-      "end": 3.227
+      "start": 2.88,
+      "end": 3.467
     },
     {
       "word": "smart",
-      "start": 3.227,
-      "end": 3.477
+      "start": 3.467,
+      "end": 3.717
     }
   ]
 }

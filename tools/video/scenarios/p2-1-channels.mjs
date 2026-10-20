@@ -81,12 +81,12 @@ export async function playPlaces(api) {
   api.mark('round 3');
   await api.pause(3500);
   const best = await tb(api, 'routing.best');
-  const crews = ['feature', 'bugfix', 'docs'];
-  const key = { worktree: 'Digit1', checkout: 'Digit2', cloud: 'Digit3' };
+  const crews = ['blue', 'green', 'teal'];
+  const key = { channel: 'Digit1', hall: 'Digit2', gondola: 'Digit3' };
   for (const [i, crew] of crews.entries()) {
     // Read the crew's order, then pick with the keys (Docs in the Cloud first: it isn't offloading).
     await api.pause(1400);
-    const w = crew === 'docs' ? 'cloud' : best[i];
+    const w = crew === 'teal' ? 'gondola' : best[i];
     if (i === 0) await api.click(`[data-crew="${crew}"] [data-ws="${w}"]`);
     else {
       await page.keyboard.press('ArrowDown');

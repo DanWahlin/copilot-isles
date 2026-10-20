@@ -1,40 +1,30 @@
 import { NoToneMapping, Raycaster, Vector2, Vector3 } from 'three/webgpu';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createPost } from '../engine/post';
-import { createCove } from '../world/cove-scene';
 import { CLOUD_PEDESTAL, SKY_KEYS, bakeAzimuthDeg } from '../world/sky/clouds/BakedPanorama';
 import { MERIDIAN } from '../world/islands/meridian';
 import { ANCHORAGE_SLUICE, flow, openings, solutionPath } from '../world/sites/sluice-logic';
 import {
   bindSkyPanel,
   compileAndStart,
-  createDevHarness,
   engineStats,
   orbitViews,
+  seaOrbitControls,
   showSkyReadouts,
 } from './harness';
 import { auditCoplanar, type CoplanarAuditOptions } from './coplanar-audit';
-import { activateCourse } from '../course/load';
-
-// The course pack the page's content comes from (a voyage loads it the same way).
-await activateCourse();
+import { createCovePage } from './cove-page';
 
 /** Test Cove dev page: every world module together under the shared sky (?webgl, ?tier=, ?tm=). */
-const h = await createDevHarness();
+const { h, cove, coveMs: buildMs } = await createCovePage();
 const { q, backend, tier, canvas, renderer, engine } = h;
 const { scene, camera, clock } = engine;
-const t0 = performance.now();
-const cove = await createCove(engine, { vegetation: !q.has('noveg') });
-const buildMs = performance.now() - t0;
 if (q.has('env')) scene.environmentIntensity = Number(q.get('env'));
 const post = q.has('nopost')
   ? null
   : await createPost(renderer, scene, camera, tier, { temporal: !q.has('notaa') });
 if (post) engine.renderFn = post.render;
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.maxPolarAngle = Math.PI * 0.495;
+const controls = seaOrbitControls(camera, canvas);
 
 // [camera, target]
 const VIEWS: Record<string, [number[], number[]]> = {

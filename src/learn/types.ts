@@ -33,7 +33,7 @@ export interface SourceRef {
   image?: { src: string; hash: string };
 }
 
-/** A screenshot or illustration from the course (MIT, github/copilot-app-for-beginners). */
+/** A screenshot or illustration from the course (its pack's snapshot, under the course's license). */
 export interface CourseImage {
   id: string;
   /** Path under public/, e.g. "course/ch00/app-sign-in.webp". */

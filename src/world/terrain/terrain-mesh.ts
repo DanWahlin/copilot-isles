@@ -13,6 +13,7 @@ import type { Tier, HeightField } from '../contracts';
 import { tierSettings, type TierSettings } from '../../engine/quality';
 import type { HeightGridData } from './cove-height';
 import type { TerrainBakeData } from './bake';
+import { TerrainWaterCaps, type TerrainFreshWater } from './water-caps';
 import { createTerrainMaterial } from './terrain-material';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { buildTerrainRocks } from './terrain-rocks';
@@ -69,6 +70,11 @@ export interface CreateTerrainOptions {
    * `shapeField` (the ground before the recess), so it doesn't follow the recess inland.
    */
   recessSteep?: { minX: number; maxX: number; minZ: number; maxZ: number } | null;
+  /**
+   * The island's fresh water: every level coarser than the finest keeps its vertices under it
+   * (`TerrainWaterCaps`), so a stream or a pool isn't hidden by a coarse level in the distance.
+   */
+  freshWater?: TerrainFreshWater | null;
 }
 
 type RecessBox = NonNullable<CreateTerrainOptions['recessSteep']>;
@@ -692,9 +698,11 @@ function pushVertex(
   recessBox: RecessBox | null,
   finest: FinestRecess | null,
   footprint: number,
+  caps: TerrainWaterCaps | null,
 ): number {
   const vertex = sampleVertex(data, x, z, footprint);
-  positions.push(x, meshVertexHeight(data, x, z, step, recessBox, finest), z);
+  const h = meshVertexHeight(data, x, z, step, recessBox, finest);
+  positions.push(x, caps ? caps.heightAt(x, z, step, h) : h, z);
   normals.push(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
   masks.push(vertex.mask[0], vertex.mask[1], vertex.mask[2], vertex.mask[3]);
   lights.push(vertex.light[0], vertex.light[1], vertex.light[2], vertex.light[3]);
@@ -714,8 +722,11 @@ function* buildChunkGeometry(
   coarsestStep = step,
   finestStep = step,
   finest: FinestRecess | null = null,
+  caps: TerrainWaterCaps | null = null,
 ): Generator<void, ChunkGeometrySet, void> {
   const vertexRecess = levelRecess(step, finestStep, recessBox);
+  // The finest level (the walked one) keeps the bake; coarser ones keep under the fresh water.
+  const levelCaps = step > finestStep ? caps : null;
   const finestRecess = step === finestStep ? finest : null;
   const positions: number[] = [];
   const normals: number[] = [];
@@ -747,6 +758,7 @@ function* buildChunkGeometry(
           vertexRecess,
           finestRecess,
           step > finestStep ? step : 0,
+          levelCaps,
         ),
       );
     }
@@ -793,6 +805,17 @@ function* buildChunkGeometry(
             Math.min(az, bz) - padZ,
             Math.max(az, bz) + padZ,
           ) - 0.3;
+        // A neighbour's coarse edge can be kept under fresh water near here (`TerrainWaterCaps`).
+        if (caps)
+          floor = Math.min(
+            floor,
+            caps.lowestIn(
+              Math.min(ax, bx) - padX - coarsestStep,
+              Math.max(ax, bx) + padX + coarsestStep,
+              Math.min(az, bz) - padZ - coarsestStep,
+              Math.max(az, bz) + padZ + coarsestStep,
+            ) - 0.3,
+          );
       }
       positions.push(ax, Math.min(ay + skirtDepth, floor), az, bx, Math.min(by + skirtDepth, floor), bz);
       normals.push(
@@ -836,10 +859,16 @@ export function buildTerrainLodGeometries(
   tier: Tier | TierSettings,
   lod = 0,
   recessSteep: RecessBox | null = null,
+  freshWater: TerrainFreshWater | null = null,
 ): BufferGeometry[] {
   const steps = stepsForTier(resolveTier(tier));
   const step = steps[lod]!;
   const finest = lod === 0 && recessSteep ? finestHeightField(data, step, recessSteep).recess : null;
+  const caps = freshWater ? new TerrainWaterCaps(data, freshWater) : null;
+  if (caps) {
+    const build = caps.build();
+    while (!build.next().done);
+  }
   const out: BufferGeometry[] = [];
   for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += TERRAIN_CHUNK_SIZE) {
     for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += TERRAIN_CHUNK_SIZE) {
@@ -854,6 +883,7 @@ export function buildTerrainLodGeometries(
         steps[steps.length - 1],
         steps[0],
         finest,
+        caps,
       );
       for (;;) {
         const r = build.next();
@@ -906,6 +936,8 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   const coarsest = steps[steps.length - 1]!;
   const heightField = finestHeightField(data, steps[0]!, options.recessSteep ?? null);
   yield;
+  const caps = options.freshWater ? new TerrainWaterCaps(data, options.freshWater) : null;
+  if (caps) yield* caps.build();
 
   for (let z0 = data.minZ; z0 < data.maxZ - 0.1; z0 += TERRAIN_CHUNK_SIZE) {
     for (let x0 = data.minX; x0 < data.maxX - 0.1; x0 += TERRAIN_CHUNK_SIZE) {
@@ -925,6 +957,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
             coarsest,
             steps[0],
             heightField.recess,
+            caps,
           ),
         );
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);

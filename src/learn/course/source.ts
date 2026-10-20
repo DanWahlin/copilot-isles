@@ -7,7 +7,7 @@ import {
   snapshotPath,
   type ChapterId,
 } from './chapters';
-import { courseAssetBase } from '../../course/catalog';
+import { COURSE, courseAssetBase } from '../../course/catalog';
 import { parseCatalog } from './lock';
 import { linkRefs } from './markdown';
 import { imageRefs, parseSections, type CourseSection } from './sections';
@@ -294,7 +294,7 @@ export function repoPathForSnapshot(bundled: string): string | null {
  * folder the file sits in ('' for the repo root, e.g. GLOSSARY.md) and `file` its name.
  */
 export function chapterResolvers(dir: ChapterId | '', origin: Origin, file = 'README.md') {
-  const blob = `https://github.com/${COURSE_REPO}/blob/main`;
+  const blob = `https://github.com/${COURSE_REPO}/blob/${COURSE.source.ref}`;
   return {
     link: (href: string): string | null => {
       if (href.startsWith('#')) return `${blob}/${dir ? `${dir}/` : ''}${file}${href}`;
@@ -303,7 +303,8 @@ export function chapterResolvers(dir: ChapterId | '', origin: Origin, file = 'RE
       const full = repoPath(dir, path);
       if (full === null) return null;
       const kind = /\.[a-z0-9]+$/i.test(full) ? 'blob' : 'tree';
-      return `https://github.com/${COURSE_REPO}/${kind}/main/${full}${hash ? `#${hash}` : ''}`;
+      const ref = COURSE.source.ref;
+      return `https://github.com/${COURSE_REPO}/${kind}/${ref}/${full}${hash ? `#${hash}` : ''}`;
     },
     image: (src: string): string | null => {
       if (/^https:\/\//i.test(src)) return src;

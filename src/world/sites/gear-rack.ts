@@ -35,8 +35,8 @@ export interface GearRackSite {
 }
 
 /**
- * Bo's gear rack, as scenery beside him on the quay (Q0.4): one piece of gear per tool the course
- * checks in Terminal, each over a plaque with the tool's name and its version command, under a header
+ * Bo's gear rack, as scenery beside him on the quay: one piece of gear per tool the course's
+ * checklist checks, each over a plaque with the tool's name and its version command, under a header
  * saying where the checks run.
  */
 export function createGearRack(o: {
@@ -46,7 +46,7 @@ export function createGearRack(o: {
 }): GearRackSite {
   const detail = detailForTier(o.tier);
   const group = new Group();
-  group.name = 'gear rack (Q0.4)';
+  group.name = 'gear rack';
 
   const atlas = createTextAtlas();
   const signMesh = new Mesh(createTextGeometry(atlas.rects, groundAt), atlas.material);

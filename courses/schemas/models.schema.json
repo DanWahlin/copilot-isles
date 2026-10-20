@@ -28,7 +28,11 @@
           "name": { "type": "string", "minLength": 1 },
           "provider": { "enum": ["anthropic", "openai", "microsoft"] },
           "family": { "enum": ["Claude", "GPT", "MAI"] },
-          "category": { "enum": ["Lightweight", "Versatile", "Powerful"] },
+          "category": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A category of the pack's market.json."
+          },
           "taskArea": { "type": "string" },
           "excelsAt": { "type": "string" },
           "ga": { "type": "boolean" }

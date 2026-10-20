@@ -12,8 +12,13 @@ import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
 import { puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
 
-export type FlagSymbol = '@' | '#' | '/' | '&';
-export type HoistSection = 'context-syntax' | 'slash-commands' | 'attaching-files';
+/** The puzzle's id (its chart label is `puzzle:<id>`). */
+export const HOIST_ID = 'P2.3';
+
+/** A flag's symbol: the course's id for the bin (it's painted on the flag, and keys its reasons). */
+export type FlagSymbol = string;
+/** A section anchor of the file's chapter. */
+export type HoistSection = string;
 
 export interface HoistReason {
   id: string;
@@ -29,8 +34,11 @@ export interface Flag {
   brings: string;
 }
 
-/** In the order they hang on the mast (keys 1-4). */
+/** In the order they hang on the mast's halyards (keys 1-4). */
 export let FLAGS: readonly Flag[] = [];
+
+/** The halyard a flag hangs on (its place in `FLAGS`). */
+export const halyardOf = (symbol: FlagSymbol): number => FLAGS.findIndex((f) => f.symbol === symbol);
 
 /** An order you answer with a flag: Ines says the need, not the symbol. */
 export interface FlagOrder {

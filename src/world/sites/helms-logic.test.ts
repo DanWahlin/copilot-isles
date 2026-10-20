@@ -11,7 +11,7 @@ import {
   SHOAL,
   helmCourse,
   helmsCourseArea,
-  interactiveLeg,
+  steerLeg,
   nextHelm,
   TAKE_RANGE,
   sampleCourse,
@@ -36,10 +36,12 @@ function shallowest(x: number, z: number, r = 6): number {
 
 describe('the Three Helms', () => {
   it('sails the modes in the course’s order', () => {
-    expect(HELM_ORDER).toEqual(['interactive', 'plan', 'autopilot']);
-    expect(nextHelm([])).toBe('interactive');
-    expect(nextHelm(['interactive'])).toBe('plan');
-    expect(nextHelm(['interactive', 'plan', 'autopilot'])).toBeNull();
+    expect(HELM_ORDER).toEqual(['steer', 'review', 'auto']);
+    expect(nextHelm([])).toBe('steer');
+    expect(nextHelm(['steer'])).toBe('review');
+    expect(nextHelm(['steer', 'review', 'auto'])).toBeNull();
+    // The Copilot app course's modes, bound to the helms they act out.
+    expect(Object.values(MODE_INFO).map((m) => m.name)).toEqual(['Interactive', 'Plan', 'Autopilot']);
   });
 
   it('hands you an order from the course’s use cases at each buoy, with a reason for every wrong helm', () => {
@@ -54,50 +56,48 @@ describe('the Three Helms', () => {
         ).toBe(true);
     }
     // Autopilot on the reef passage stops with the spec's line (POC §6.5).
-    const balk = VOICE.lines.find((l) => l.id === HELM_ORDERS.plan.wrong.autopilot)!;
+    const balk = VOICE.lines.find((l) => l.id === HELM_ORDERS.review.wrong.auto)!;
     expect(balk.text).toContain('This passage is one where the approach matters. Chart it first.');
   });
 
-  it('names the modes and the Plan review’s options as the course does', () => {
+  it('names the modes and the review’s options as the course does', () => {
     const ch01 = COURSE('ch01');
     for (const m of HELM_ORDER) expect(ch01, m).toContain(`"${MODE_INFO[m].says}"`);
     const ch02 = COURSE('ch02');
     for (const o of REVIEW_OPTIONS) expect(ch02, o.id).toContain(o.label);
   });
 
-  it('charts Plan’s first route straight across the Shoal, and the fixed one well clear of it', () => {
-    const { plan } = MERIDIAN_HELMS;
+  it('charts the review helm’s first route straight across the Shoal, and the fixed one well clear of it', () => {
+    const { review } = MERIDIAN_HELMS;
     const near = (pts: { x: number; z: number }[]) =>
       Math.min(...pts.map((p) => Math.hypot(p.x - SHOAL.x, p.z - SHOAL.z)));
-    expect(near(sampleCourse([plan.buoy, ...plan.draft!.route]))).toBeLessThan(4);
-    expect(near(sampleCourse([plan.buoy, ...plan.route]))).toBeGreaterThan(20);
-    expect(plan.draft!.plan).toHaveLength(plan.draft!.route.length);
-    expect(plan.draft!.plan.some((l) => l.includes('Shoal'))).toBe(true);
-    expect(plan.plan!.some((l) => l.includes('Shoal'))).toBe(true);
+    expect(near(sampleCourse([review.buoy, ...review.draft!.route]))).toBeLessThan(4);
+    expect(near(sampleCourse([review.buoy, ...review.route]))).toBeGreaterThan(20);
+    expect(review.draft!.plan).toHaveLength(review.draft!.route.length);
+    expect(review.draft!.plan.some((l) => l.includes('Shoal'))).toBe(true);
+    expect(review.plan!.some((l) => l.includes('Shoal'))).toBe(true);
   });
 
   it('gives you two headings at every Interactive mark, each ending at the mark', () => {
-    const { interactive } = MERIDIAN_HELMS;
-    expect(interactive.headings).toHaveLength(interactive.route.length);
-    interactive.headings!.forEach((pair, leg) => {
+    const { steer } = MERIDIAN_HELMS;
+    expect(steer.headings).toHaveLength(steer.route.length);
+    steer.headings!.forEach((pair, leg) => {
       expect(new Set(pair.map((h) => h.id)).size).toBe(2);
-      for (const h of pair) expect(interactiveLeg(leg, h).at(-1)).toEqual(interactive.route[leg]);
+      for (const h of pair) expect(steerLeg(leg, h).at(-1)).toEqual(steer.route[leg]);
     });
   });
 
   it('keeps every course in deep water under the whole hull', () => {
-    const { interactive } = MERIDIAN_HELMS;
-    const legs = interactive.headings!.flatMap((pair, leg) =>
-      pair.map((h) =>
-        sampleCourse([leg === 0 ? interactive.buoy : interactive.route[leg - 1]!, ...interactiveLeg(leg, h)]),
-      ),
+    const { steer } = MERIDIAN_HELMS;
+    const legs = steer.headings!.flatMap((pair, leg) =>
+      pair.map((h) => sampleCourse([leg === 0 ? steer.buoy : steer.route[leg - 1]!, ...steerLeg(leg, h)])),
     );
     for (const course of legs)
-      for (const p of course) expect(shallowest(p.x, p.z), `interactive ${p.x},${p.z}`).toBeLessThan(-3.5);
+      for (const p of course) expect(shallowest(p.x, p.z), `steer ${p.x},${p.z}`).toBeLessThan(-3.5);
     for (const run of Object.values(MERIDIAN_HELMS)) {
       const course = sampleCourse(helmCourse(run));
       // The Autopilot run's last stretch runs up beside the east arm into the berth's dredged water.
-      const open = run.mode === 'autopilot' ? course.filter((p) => p.z > -650) : course;
+      const open = run.mode === 'auto' ? course.filter((p) => p.z > -650) : course;
       for (const p of open)
         expect(shallowest(p.x, p.z), `${run.mode} ${p.x.toFixed(0)},${p.z.toFixed(0)}`).toBeLessThan(-3.5);
       for (const p of course) expect(meridianHeight(p.x, p.z), `${run.mode} centre`).toBeLessThan(-3.5);
@@ -105,40 +105,39 @@ describe('the Three Helms', () => {
   });
 
   it('chains the buoys: each run finishes in reach of the next helm but clear of it, and Autopilot ends at the berth approach', () => {
-    const { interactive, plan, autopilot } = MERIDIAN_HELMS;
-    const end = (r: typeof interactive) => r.route[r.route.length - 1]!;
+    const { steer, review, auto } = MERIDIAN_HELMS;
+    const end = (r: typeof steer) => r.route[r.route.length - 1]!;
     for (const [from, to] of [
-      [interactive, plan],
-      [plan, autopilot],
+      [steer, review],
+      [review, auto],
     ] as const) {
       const d = Math.hypot(end(from).x - to.buoy.x, end(from).z - to.buoy.z);
       expect(d).toBeLessThan(TAKE_RANGE - 4);
       expect(d).toBeGreaterThan(18);
     }
-    expect(end(autopilot)).toEqual({ x: BERTH_APPROACH.x, z: BERTH_APPROACH.z });
+    expect(end(auto)).toEqual({ x: BERTH_APPROACH.x, z: BERTH_APPROACH.z });
     // The approach lines up with the berth, clear of the arm's face.
     expect(Math.abs(BERTH_APPROACH.x - MERIDIAN.harbor.berth.x)).toBeLessThan(1);
-    expect(plan.plan).toHaveLength(plan.route.length);
+    expect(review.plan).toHaveLength(review.route.length);
   });
 
   it('never sails a hull over a buoy', () => {
-    const { interactive, plan, autopilot } = MERIDIAN_HELMS;
-    const end = (r: typeof interactive) => r.route[r.route.length - 1]!;
+    const { steer, review, auto } = MERIDIAN_HELMS;
+    const end = (r: typeof steer) => r.route[r.route.length - 1]!;
     const buoys = [...Object.values(MERIDIAN_HELMS).map((r) => r.buoy), SHOAL];
     // Each run as she really sails it: Plan and Autopilot start where the last run stopped, and each
     // Interactive leg goes the way you choose.
-    const legs = interactive.headings!.flatMap((pair, leg) =>
+    const legs = steer.headings!.flatMap((pair, leg) =>
       pair.map((h) =>
-        sampleCourse([
-          leg === 0 ? interactive.buoy : interactive.route[leg - 1]!,
-          ...interactiveLeg(leg, h),
-        ]).filter((p) => Math.hypot(p.x - interactive.buoy.x, p.z - interactive.buoy.z) > 20),
+        sampleCourse([leg === 0 ? steer.buoy : steer.route[leg - 1]!, ...steerLeg(leg, h)]).filter(
+          (p) => Math.hypot(p.x - steer.buoy.x, p.z - steer.buoy.z) > 20,
+        ),
       ),
     );
     const runs = [
       ...legs,
-      sampleCourse([end(interactive), ...plan.route]),
-      sampleCourse([end(plan), ...autopilot.route]),
+      sampleCourse([end(steer), ...review.route]),
+      sampleCourse([end(review), ...auto.route]),
     ];
     for (const course of runs)
       for (const p of course)

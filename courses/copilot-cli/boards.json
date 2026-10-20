@@ -22,7 +22,7 @@
     }
   ],
   "skip": {
-    "anchors": ["-youre-ready"],
+    "anchors": ["-youre-ready", "-learning-objectives", "-key-takeaways"],
     "titlePrefixes": []
   }
 }

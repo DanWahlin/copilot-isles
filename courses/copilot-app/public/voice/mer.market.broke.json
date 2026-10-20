@@ -11,67 +11,67 @@
     {
       "word": "starfish",
       "start": 0.24,
-      "end": 1.168
+      "end": 1.44
     },
     {
       "word": "They",
-      "start": 1.168,
-      "end": 1.744
+      "start": 1.44,
+      "end": 1.824
     },
     {
       "word": "hide",
-      "start": 1.744,
-      "end": 2.14
+      "start": 1.824,
+      "end": 2.12
     },
     {
       "word": "all",
-      "start": 2.14,
-      "end": 2.624
+      "start": 2.12,
+      "end": 2.288
     },
     {
       "word": "over",
-      "start": 2.624,
-      "end": 2.9
+      "start": 2.288,
+      "end": 2.52
     },
     {
       "word": "the",
-      "start": 2.9,
-      "end": 3.04
+      "start": 2.52,
+      "end": 2.74
     },
     {
       "word": "islands",
-      "start": 3.04,
-      "end": 3.776
+      "start": 2.74,
+      "end": 3.584
     },
     {
       "word": "Come",
-      "start": 3.776,
-      "end": 4.224
+      "start": 3.584,
+      "end": 3.712
     },
     {
       "word": "back",
-      "start": 4.224,
-      "end": 4.512
+      "start": 3.712,
+      "end": 3.872
     },
     {
       "word": "when",
-      "start": 4.512,
-      "end": 4.66
+      "start": 3.872,
+      "end": 4.02
     },
     {
       "word": "you've",
-      "start": 4.66,
-      "end": 4.933
+      "start": 4.02,
+      "end": 4.213
     },
     {
       "word": "found",
-      "start": 4.933,
-      "end": 5.28
+      "start": 4.213,
+      "end": 4.56
     },
     {
       "word": "some",
-      "start": 5.28,
-      "end": 5.53
+      "start": 4.56,
+      "end": 4.81
     }
   ]
 }

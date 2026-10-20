@@ -1,11 +1,10 @@
 import type { HintTier, Puzzle, PuzzleHost } from './types';
-import { puzzleContent, textOf } from '../../course/puzzles';
+import { puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 
 /** Its words: the course pack's `puzzles/bard.json`. */
 const T = (key: string) => textOf(puzzleContent('bard'), key);
 
-const BARD_ID = 'Q0.9.bard';
-const QUEST = 'Q0.9';
+const BARD_ID = 'bard';
 
 /** Where Lyra sits and where you stand to talk to her (the hammock site's anchors). */
 export interface BardSite {
@@ -19,12 +18,14 @@ const STRUM_MIN = 7;
 const STRUM_SPREAD = 6;
 
 /**
- * Lyra's soundcheck (POC §4.4, Q0.9, optional): once your first prompt's gone to the crew, lute
- * music drifts up from the lagoon. The conversation itself is Lyra's script in cove-quests.ts; this
- * plays her strums, announces the quest when it starts, and gives Wingman something to say.
+ * Lyra's soundcheck (POC §4.4, a ceremony): lute music drifts up from the lagoon. The conversation
+ * itself is Lyra's script in the course pack; this plays her strums, announces the quest
+ * `puzzleQuest('bard')` names when it reaches its `start` step, and gives Wingman something to say.
  */
 export function createBard(host: PuzzleHost, site: BardSite, talking: () => boolean): Puzzle {
-  const step = () => host.quests()[QUEST];
+  const quest = puzzleQuest('bard');
+  const S = puzzleSteps('bard');
+  const step = () => host.quests()[quest];
   let seen = step();
   let announce = false;
   let strumIn = 2;
@@ -33,17 +34,17 @@ export function createBard(host: PuzzleHost, site: BardSite, talking: () => bool
 
   return {
     id: BARD_ID,
-    engaged: () => step() === 'start' && near(16),
+    engaged: () => step() === S.start && near(16),
     hintKey: () => step() ?? '-',
     hint(tier: HintTier) {
-      if (step() !== 'start') return null;
+      if (step() !== S.start) return null;
       if (tier === 1) return T('hint1');
       return T('hint2');
     },
     update(dt: number) {
       const s = step();
       if (s !== seen) {
-        if (s === 'start' && !seen) announce = true;
+        if (s === S.start && !seen) announce = true;
         seen = s;
       }
       if (announce && host.canAct()) {

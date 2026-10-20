@@ -2,6 +2,7 @@
   "$schema": "../../schemas/puzzle-checklist.schema.json",
   "id": "gear.rack",
   "mechanic": "checklist",
+  "quest": "Q0.4",
   "$comment": "Bo's gear rack (Q0.4): the course's \"Check your tools in Terminal\" version checks, one per piece of gear on the rack (the game's compass, lantern, rope and spyglass), and what Terminal prints. Every check passes.",
   "checks": [
     {

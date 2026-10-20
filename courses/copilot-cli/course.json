@@ -2,6 +2,7 @@
   "$schema": "../schemas/course.schema.json",
   "id": "copilot-cli",
   "version": 1,
+  "listed": false,
   "title": "GitHub Copilot CLI for Beginners",
   "tagline": "Learn GitHub Copilot CLI, one island at a time",
   "description": "Learn to supercharge your development workflow with AI-powered command-line assistance from your terminal.",

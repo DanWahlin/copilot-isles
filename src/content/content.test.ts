@@ -228,6 +228,101 @@ describe('the content checks report broken edits by entry', () => {
     ]);
   });
 
+  it('a story without a name the game asks for, or whose quests and steps don’t resolve', () => {
+    type Story = { conditions: Record<string, unknown>; events: Record<string, unknown> };
+    const q = json<{ story?: Story }>(`${PACK}/quests/anchorage.json`);
+    const story = q.story!;
+    delete story.conditions.sealed;
+    story.conditions.gangwayDown = { 'Q9.9': 'done' };
+    story.conditions.dancing = { 'Q0.2': 'done' };
+    story.events.setSail = [{ when: { 'Q0.11': 'nope' }, set: { 'Q0.11': 'gone' } }];
+    expect(paths(issuesWith('quests/anchorage.json', q))).toEqual([
+      'story.conditions',
+      'story.conditions.dancing',
+      'story.conditions.gangwayDown["Q9.9"]',
+      'story.events.setSail[0].when["Q0.11"]',
+      'story.events.setSail[0].set["Q0.11"]',
+    ]);
+    delete q.story;
+    expect(paths(issuesWith('quests/anchorage.json', q))).toEqual(['story']);
+  });
+
+  it('a puzzle without its quest, or whose quest lacks a step its mechanic sets', () => {
+    const crane = json<Record<string, unknown>>(`${PACK}/puzzles/crane.json`);
+    expect(paths(issuesWith('puzzles/crane.json', { ...crane, quest: 'Q0.4' }))).toEqual([
+      'quest',
+      'quest',
+      'quest',
+    ]);
+    expect(paths(issuesWith('puzzles/crane.json', { ...crane, quest: 'Q9.9' }))).toEqual(['quest']);
+    const noQuest = { ...crane };
+    delete noQuest.quest;
+    expect(paths(issuesWith('puzzles/crane.json', noQuest))).toEqual(['quest']);
+    expect(issuesWith('puzzles/crane.json', { ...noQuest, disabled: true })).toEqual([]);
+    // `steps` maps the mechanic's steps to the quest's; `done` is every quest's own and isn't one.
+    const steps = (s: Record<string, string>) =>
+      paths(issuesWith('puzzles/crane.json', { ...crane, steps: { gate: 'actions', ...s } }));
+    expect(steps({ crane: 'lifting' })).toEqual(['quest']);
+    expect(steps({ done: 'finished' })).toEqual(['steps.done']);
+    expect(steps({ hoist: 'crane' })).toEqual(['steps.hoist']);
+    const palette = json<Record<string, unknown>>(`${PACK}/puzzles/palette.json`);
+    expect(paths(issuesWith('puzzles/palette.json', { ...palette, latePage: 'pg.nope' }))).toEqual([
+      'latePage',
+    ]);
+  });
+
+  it('migrations that move a save to a quest, step, page or term the course hasn’t got', () => {
+    const c = meta();
+    c.migrations = {
+      // A migration's `when` may name quests the course no longer has (that's what it's for).
+      quests: [{ when: { 'Q0.5': 'done' }, set: { 'Q0.4': 'gone', 'Q9.9': 'start' } }],
+      renamed: { old: ['pg.nope'] },
+      taught: { 'Q9.9': ['nope'] },
+    };
+    expect(paths(issuesWith('course.json', c))).toEqual([
+      'migrations.quests[0].set["Q0.4"]',
+      'migrations.quests[0].set["Q9.9"]',
+      'migrations.renamed.old[0]',
+      'migrations.taught["Q9.9"]',
+      'migrations.taught["Q9.9"][0]',
+    ]);
+  });
+
+  it('a puzzle that binds a game id twice or not at all, or names an id it hasn’t got', () => {
+    const helms = json<{ modes: Record<string, { acts: string }> }>(`${PACK}/puzzles/three-helms.json`);
+    helms.modes.plan!.acts = 'steer';
+    expect(paths(issuesWith('puzzles/three-helms.json', helms))).toEqual(['modes', 'modes']);
+    const ws = json<{ orders: Record<string, { best: string }> }>(`${PACK}/puzzles/workspaces.json`);
+    ws.orders.feature!.best = 'attic';
+    expect(paths(issuesWith('puzzles/workspaces.json', ws))).toEqual(['orders.feature.best']);
+    const routing = json<{ twist: { choices: { acts: string; right: boolean }[] } }>(
+      `${PACK}/puzzles/channel-routing.json`,
+    );
+    routing.twist.choices[1]!.acts = 'jam';
+    expect(paths(issuesWith('puzzles/channel-routing.json', routing))).toEqual(['twist.choices[1].acts']);
+    const yard = json<{ items: { kind: string }[] }>(`${PACK}/puzzles/crate-yard.json`);
+    yard.items[0]!.kind = 'barn';
+    expect(paths(issuesWith('puzzles/crate-yard.json', yard))).toEqual(['items[0].kind']);
+    const flags = json<{ bins: { symbol: string }[] }>(`${PACK}/puzzles/flag-hoist.json`);
+    flags.bins.push({ ...flags.bins[0]!, symbol: '!' });
+    expect(paths(issuesWith('puzzles/flag-hoist.json', flags))).toEqual(['bins']);
+    const m = market();
+    (m.categories[0] as { acts: string }).acts = 'large';
+    expect(paths(issuesWith('market.json', m))).toContain('categories');
+  });
+
+  it('an island sign the game asks for that’s missing, or one it doesn’t ask for', () => {
+    const q = json<{ signs?: Record<string, string> }>(`${PACK}/quests/thousand-bough.json`);
+    q.signs = { porch: 'Hello' };
+    expect(paths(issuesWith('quests/thousand-bough.json', q))).toEqual(['signs', 'signs.porch']);
+  });
+
+  it('a chest or bottle the game places that no chapter fills', () => {
+    const ch = json<{ chests: { id: string }[] }>(`${PACK}/chapters/00-setup.json`);
+    ch.chests = ch.chests.filter((c) => c.id !== 'B0.3');
+    expect(paths(issuesWith('chapters/00-setup.json', ch))).toEqual(['islands[0].island']);
+  });
+
   it('a board whose chapter has too few topics', () => {
     const b = boards();
     b.skip.titlePrefixes = [...b.skip.titlePrefixes, 'Learning', 'Key', 'Trouble', 'Tour', 'Why', 'Chats'];

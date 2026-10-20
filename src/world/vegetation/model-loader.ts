@@ -2,12 +2,10 @@ import {
   Box3,
   BufferGeometry,
   Color,
-  DoubleSide,
   Float32BufferAttribute,
   Group,
   Matrix4,
   Mesh,
-  MeshStandardMaterial,
   Vector3,
   type Material,
   type Object3D,
@@ -16,7 +14,12 @@ import {
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { packs } from '../../engine/packs';
-import { createPalmMaterial, createRecoloredLeafMaterial, createVegetationMaterial } from './materials';
+import {
+  createMappedVegetationMaterial,
+  createPalmMaterial,
+  createRecoloredLeafMaterial,
+  createVegetationMaterial,
+} from './materials';
 import { buildCypress, buildMaquisBush, buildPricklyPear } from './cactus';
 import { buildPalmFar, buildPalmNear, buildYoungPalm } from './palms';
 import type { PlantSpecies } from './types';
@@ -116,19 +119,13 @@ function toVegetationMaterials(
     if (mat.map && species === 'shrub')
       return createRecoloredLeafMaterial(mat.map, `vegetation-${mat.name || 'shrub'}`);
     if (mat.map) {
-      const out = new MeshStandardMaterial({
+      return createMappedVegetationMaterial({
         name: `vegetation-${mat.name || 'mapped'}`,
         map: mat.map,
         color: mat.color ?? new Color(0xffffff),
         normalMap: (mat as SourceMaterial & { normalMap?: Texture | null }).normalMap ?? null,
         roughness: (mat as SourceMaterial & { roughness?: number }).roughness ?? 0.82,
-        metalness: 0,
-        side: DoubleSide,
-        // Cut out on the map's own alpha; blending foliage cards would need sorting.
-        alphaTest: 0.5,
-        vertexColors: true,
       });
-      return out;
     }
     return createVegetationMaterial({
       color: mat.color ?? new Color(0xffffff),

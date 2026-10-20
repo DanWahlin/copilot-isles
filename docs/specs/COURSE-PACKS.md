@@ -1,9 +1,13 @@
 # Course packs: one game, many courses
 
-**Status:** steps 1, 2 and 3 built. Step 1: the Copilot app course is `courses/copilot-app/`. Step 2:
+**Status:** steps 1 to 5 built. Step 1: the Copilot app course is `courses/copilot-app/`. Step 2:
 puzzles, beats, hooks, cast and signs are pack data. Step 3: a second pack (`courses/copilot-cli/`), the
-course picker and per-course saves. Each step's dump of derived data is byte-identical before and after,
-except the diffs §9 documents. Decisions D1-D5 (§10) are approved as recommended.
+course picker and per-course saves. Step 4: the quest skeleton (which quest the game waits on, old-save
+migrations, the legacy saves' course) is pack data, so no game code names a quest id. Step 5: the
+game acts on its own mechanic ids, each pack binds its ids to them (`acts`), and the last course words
+left the code, so a scan of `src/` finds no course id or word. Each step's dump
+of derived data is byte-identical before and after, except the diffs §9 documents. Decisions D1-D5
+(§10) are approved as recommended.
 
 Dan's ask: put everything course-related in data, so the same game can teach other courses, and players
 can (eventually) pick a topic. The game stays neutral; a **course pack** supplies every course word, the
@@ -14,6 +18,8 @@ course's audio, and its snapshot.
 | **1 (this spec)** | Extract today's course into `courses/copilot-app/` | Same game, same behaviour; course data lives in one pack folder |
 | 2 | Puzzles become **mechanics** that read content from the pack (§4); hooks for game-asked lines; Copilot words swept out of game code | Any pack can fill the puzzles |
 | 3 | A tiny second course and a course picker; saves keyed by course (§6, §8) | Players choose a course |
+| 4 | The quest skeleton as data: each island's `story`, puzzles' quests, migrations | A course picks its own quest ids |
+| 5 | Neutral mechanic ids the pack binds to (`acts`); the last course words out of code | No course id or word in game code |
 
 ## 1. The goal and the boundary
 
@@ -224,15 +230,20 @@ Step 1 changes no save key.
 
 ## 8. Course selection (step 3: done, see "Step 3 as built")
 
-- The title's **New Voyage** opens a course list when there's more than one (from the eager catalog:
-  title, tagline, language, chapters, minutes, license). **Continue** resumes the last course.
+- The title's **New Voyage** opens a course list when players can choose more than one (from the eager
+  catalog: title, tagline, language, chapters, minutes, license); with one, it goes straight to captain
+  select on that course. **Continue** resumes the last course played, if it's still listed.
+- A course still being written has `"listed": false` in `course.json` (copilot-cli, for now): it's in
+  the build, but the course list and Continue leave it out (`PLAYABLE_COURSES` in
+  `src/course/catalog.ts`). Credits still names it: its snapshot ships in the build, so its license
+  needs the credit. `?courses=all` lists it, and `play.html?pack=<id>` plays it.
 - Chart, Logbook, credits and boards read the active pack. Islands with no chapter in the pack stay as
   silhouettes (not visitable) or show as uncharted.
 - **A minimal second course needs:** `course.json` (with `source` or `null`); one chapter file with at
   least a page, a quiz, a glossary term and a Trial (for the seal); `quests/anchorage.json` with a script
   for each quest-giving NPC and barks; `labels.json`; voice lines or `"voice": false`; content for each
   Anchorage puzzle it keeps, or `"disabled": true` (the site stays scenery); `hooks` for the opening and
-  welcome lines.
+  welcome lines; each island's `story` (step 4).
 
 ## 9. Migration plan for step 1
 
@@ -341,15 +352,22 @@ islands, NPCs and battle quizzes; and gives every line a voice.
 
 ### Still course-specific in code after step 2
 
+(Steps 4 and 5 took everything here but the game chrome: see "Still course-specific in code after
+step 5".)
+
 - Quest wiring in puzzle modules: quest ids and steps (`Q0.7`, `Q1.7: 'letters'`), puzzle save keys
-  (`P1.3`, `market`), label ids, cue names. They're saved, so they stay (step 3 keys saves by course).
+  (`P1.3`, `market`), label ids, cue names. Step 4 moved the quest ids to the pack (each puzzle's
+  `"quest"`); the steps a mechanic sets are the game's words (`PUZZLE_STEPS`), and the save keys,
+  label ids and cue names are the game's, named once in their module.
 - Ids the mechanics' rules know: crate kinds `chat`/`project`, letters' `tray`, flag symbols
   `@ # / &`, helm modes, workspaces `worktree`/`checkout`/`cloud`, the twist's answer ids, the crane's
   guards (a fork you own, Actions on), the market's categories and efforts (`Lightweight`… `high`).
+  Step 5: the game's own ids, bound by the pack.
 - English grammar helpers: the crews' possessive (`whose`), lower-casing a flag's meaning.
 - Island dressing that shows course words: Thousand-Bough's house signs (`feature`, `bug-fix`,
   `docs`, `Base branch: main`, `main`, the Lookouts `5173`/`5174`, `Chronicle Loft`), the battle plans'
-  titles, the helm buoys' `ORDER n` and `SHOAL`.
+  titles, the helm buoys' `ORDER n` and `SHOAL`. Step 5 moved the course's words; the place names,
+  battle titles (island to island) and buoy marks are the game's.
 - Game chrome around puzzles: key help (`Press 1–9…`), generic buttons (`Undo`, `Reset`, `Leave`,
   `Hint`), the setup forms' buttons and privacy line, tile labels.
 - `modelLabel`'s fallbacks and the setup parsers' error messages (`src/learn/setup.ts`).
@@ -367,8 +385,9 @@ has the prerequisites, Codespaces or a local clone, the four ways to install, tr
 `node tools/course/sync.mjs --course=copilot-cli --chapters=00` (commit `802c19e`). Every quiz, page,
 caption and Trial question cites its Chapter 00 section; the drift report finds every cited section and
 bolded UI name. The pack is text-only (`"voice": false`), has no `market.json`, `models.json` or
-`voice/cast.json`, and keeps the copilot-app quest skeleton's ids (`Q0.2`…`Q0.11`, `C0.1`, `B0.1`–`B0.4`,
-`T0.1`…) because game code still waits on them. Puzzles: `first-words` (choose-tool: the prompt or the
+`voice/cast.json`, and kept the copilot-app quest skeleton's ids (`Q0.2`…`Q0.11`, `C0.1`, `B0.1`–`B0.4`,
+`T0.1`…) because game code waited on them (since step 4 its quest ids are its own choice; the chests'
+and bottles' ids are the game's spots). Puzzles: `first-words` (choose-tool: the prompt or the
 shell) and the christening's hints are on; the gear rack, palette, bard, sluice and crane are
 `"disabled": true` (the course doesn't teach what they act out), so they stay scenery with blank boards.
 The other islands aren't in the pack: the chart shows them uncharted, Port Meridian and Thousand-Bough
@@ -390,10 +409,10 @@ the interact key or the gamepad's A moves on sooner. Reduced motion turns the ca
 cabin briefing shows each line's whole text.
 
 **Course picker.** **New Voyage** opens **Choose a course** (`src/ui/screens/CourseSelect.tsx`) when
-the catalog has more than one course: title, tagline, chapters charted of the course's chapters,
+players can choose more than one course (unlisted ones only with `?courses=all`; see §8): title, tagline, chapters charted of the course's chapters,
 minutes, voiced or captions, description, license and source link; arrow keys, the gamepad and taps
 choose. **Continue** resumes the last course played (`copilot-isles.course`). The chart, Logbook,
-credits (every course, its license and link) and boards read the active pack.
+credits (every listed course, its license and link) and boards read the active pack.
 
 **Saves (§6).** `src/game/save-keys.ts`: `copilot-isles.<course>.save.v1` and
 `copilot-isles.<course>.progress.v1`. At boot, if the old keys exist and copilot-app's don't, they're
@@ -411,24 +430,170 @@ the packs, and a test checks it.
 **Proof.** The step-2 dump runs on `92c6a04` and on this tree for copilot-app. Two sections differ, both
 on purpose: `credits` (both courses are attributed) and `saveKeys` (new; the old commit records the
 legacy keys). Every other section is byte-identical. `src/course/copilot-cli.test.ts`, the content check
-(`--course=copilot-cli`), `tests/e2e/courses.spec.ts` (each course from the picker to Anchorage) and
+(`--course=copilot-cli`), `tests/e2e/courses.spec.ts` (New Voyage straight to the Copilot app course, and the CLI course from the picker with `?courses=all`) and
 `tools/clitest.mjs` (the CLI quests end to end) cover the new pack.
 
 ### Still course-specific in code after step 3
 
-- The quest skeleton: ids and steps the game waits on (`Q0.2` starts on landing, `Q0.8`'s `pipes` and
-  `done` in First Words, `Q0.10`'s lighthouse and battle, `Q0.11` sailing, chest `C0.1`, bottles
-  `B0.1`–`B0.4`, the Trial's seal). A course with another shape needs these as hooks.
-- `migrateQuests` (copilot-app's renamed quests) and the legacy save keys are copilot-app's.
-- Everything in "after step 2" that isn't listed above: mechanics' rule ids, island dressing, battle
-  titles, puzzle chrome, `index.html`, `boot/fallback.ts` and the game's name.
-- Defaults before a course is active: the title ship's rail plates and berth flags use copilot-app's words.
+Step 4 took the first two items (the quest skeleton, `migrateQuests` and the legacy save keys); see
+"Step 4 as built" and what's left after it.
+
+### Step 4 as built
+
+**The story.** Game code asks for named conditions and events, never a quest id
+(`src/game/story.ts`). Each island's `quests/<island>.json` → `story` maps them to the course's quests:
+`conditions` (name → a `When`, the beats' condition format) and `events` (name → rules
+`{ "when"?, "set": { quest: step } }`, applied in order, each read against the steps the rules before
+it set). The game declares what it asks each island (`STORY_CONDITIONS`, `STORY_EVENTS`); a course that
+uses the island defines every one, and a course without the island has no story (a condition is
+false, an event does nothing).
+
+| Island | Conditions | Events | Copilot app course |
+| --- | --- | --- | --- |
+| Anchorage | `firstVisit`, `trialStarted`, `sealed`, `gangwayDown` | `landed`, `setSail` | `Q0.2` start; `Q0.10` start, done; `Q0.11` sail or done; `landed` starts `Q0.2`, `setSail` finishes `Q0.11` |
+| Port Meridian | `firstVisit`, `sealed` | — | `Q1.1` not done; `Q1.8` done |
+| Thousand-Bough | `firstVisit`, `gondolaOpen`, `secondBridge`, `practiceStarted`, `basketOpen`, `skipCrownView`, `sealed` | — | `Q2.1` not done; `Q2.4`, `Q2.5` done; `Q2.7` started; `Q2.9` past start, exam or done, done |
+
+```json
+"story": {
+  "conditions": { "sealed": { "Q0.10": "done" }, "gangwayDown": { "Q0.11": ["sail", "done"] } },
+  "events": { "setSail": [{ "when": { "Q0.11": "sail" }, "set": { "Q0.11": "done" } }] }
+}
+```
+
+`whenHolds` reads each `When` once and then allocates nothing, so per-frame checks (the gondola's bell,
+the Sky Basket, Nell at the pier head) call `storyHolds` directly. Beats share the engine. A sea battle
+waits on its `from` island's `sealed` (`src/game/battles.ts`); the session's lighthouses, Wingman's
+first welcomes, the gangway, the compass on to Thousand-Bough and the Meridian Seal read the story too.
+
+**Puzzles' quests.** A puzzle file names the quest it plays in, `"quest": "Q0.7"`, read with
+`puzzleQuest(name)` (`src/course/puzzles.ts`). The steps a mechanic sets and waits on are the game's
+words, `PUZZLE_STEPS` (the crane's `gate`, `crane`, `solved`; the letters' `letters`, `solved`…), and
+that quest must have them, under the same names or the ones the puzzle's file maps them to
+(`"steps"`: the Copilot app course's crane calls `gate` `actions`). Mechanics read them through
+`puzzleSteps(name)`, resolved once per course activation, so every one can be renamed
+(`src/game/puzzles/steps.test.ts` renames them all). Every quest ends at `done`, the game's own step for
+a finished quest: it isn't a mechanic step and can't be mapped. The crane reads the gear rack's quest,
+the mill race the crane's. Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
+its module (`SLUICE_ID`, `LETTERS_ID`, `HOIST_ID`); Channel Routing keeps its rounds under its own key
+in the quests. The palette's late page (`latePage`) and the market's page (`page`) moved to their files.
+
+**Chests and bottles.** Their ids are the game's spots (`COVE_CHESTS`, `MERIDIAN_CHESTS`, the cove's
+bottles, Thousand-Bough's layout); what's in each is the course's (a chapter's `chests`), and the content
+check requires a chest for every spot on the course's islands. The layout's copies of pages and
+doubloons are gone. The `nell-chest` cue opens the chest beside Nell, and `tb-chest:<id>` any of
+Thousand-Bough's.
+
+**Migrations.** `course.json` → `migrations`: `quests` (rules in the story's format, run when a session
+starts; `$workflowsOn` is whether the mill's gate lever was pulled, left out without a save so a rule
+that asks for it doesn't fire), `renamed` (old Logbook ids → today's) and `taught` (quest → glossary
+terms older saves never got), read by `src/learn/progress.ts` for that course. A migration's `when` may
+name quests the course no longer has; what it sets must exist. `"legacySaves": true` marks the course
+saves from before course packs belong to (`LEGACY_COURSE`, at most one); the default course is the
+catalog's first (`DEFAULT_COURSE_ID`).
+
+**Checks and proof.** The content check: every story name the game asks for, no other, and every quest
+and step a story, a beat or a rule names; each enabled puzzle's quest has its mechanic's steps;
+migrations' targets, renamed ids and taught terms exist; chests fill the game's spots.
+`src/game/story.test.ts` tests the engine, each pack's names, every copilot-app condition against the
+quest-id expressions it replaced, the migrations against the old `migrateQuests` (4,000 random saves),
+and a renamed copy of the CLI pack (`Z0.10`…) driving the story, a puzzle's quest and the sea battle with
+no code change. The dump gains `questMigrations`, `progressMigrations` and `pendingBattles` (identical
+before and after) and the new `story` and `puzzleQuests`; every other section is byte-identical.
+
+### Still course-specific in code after step 4
+
+Step 5 took all of it: see "Step 5 as built".
+
+### Step 5 as built
+
+**Neutral mechanic ids.** Where a puzzle acts a course concept out, the game has its own ids for what
+it does, and the pack binds each of its ids to one with `"acts"` (each game id once; the content check
+holds it). The pack keeps its ids (they're in its other entries and players' saves); the game re-keys
+by the bindings when the pack activates (`byActs`, `rekey` in `src/course/puzzles.ts`).
+
+| Puzzle | Game ids (what the game does) | Copilot app course binds |
+| --- | --- | --- |
+| Three Helms `modes` | `steer` (you choose each leg), `review` (a chart to accept, take over or amend), `auto` (handed over end to end) | `interactive`, `plan`, `autopilot` |
+| Three Helms `review` | `accept`, `takeOver`, `amend` | `approve`, `exit`, `suggest` |
+| Channel Routing `crews` | `blue`, `green`, `teal` (their water's colour) | `feature`, `bugfix`, `docs` |
+| Channel Routing `twist.choices` | `reroute`, `close`, `jam`, `none` (what the Spire does; a right answer reroutes or closes) | `port5174`, `closeOne`, `share`, `redig` |
+| Workspaces `places` | `channel` (its own channel), `hall` (through the Great Hall), `gondola` (off the deck) | `worktree`, `checkout`, `cloud` |
+| Crate Yard `bins` | `tavern`, `slipway` (the plates) | `chat`, `project` |
+| Crane `cargo` | `pennants`, `notices`, `hulls`, `seals` (the crates' props) | `labels`, `issues`, `branches`, `prs` |
+| Market `categories` (market.json) | `small`, `medium`, `large` (what the grading reads), smallest first | `Lightweight`, `Versatile`, `Powerful` |
+
+```json
+"modes": { "interactive": { "acts": "steer", "name": "Interactive", "says": "Step-by-step collaboration" } }
+```
+
+Other mechanics name no concept: the Lost Letters' bins are the pack's ids (one may be `"apart":
+true`: its plate is brown and its button stands apart), and its `tray` has an id of the pack's that
+the game reads as Pell's tray (`tray`, the decoy); the Flag Hoist's flags hang on the mast's
+halyards in the file's order, and the mast paints the pack's symbols. A mechanic step the pack's quest
+calls something else is mapped in the puzzle's `"steps"`: the crane's `gate` (the step the mill's gate
+lever ends) is the Copilot app course's `actions`. Keys the game asks for are game words too: the
+helms' lines `take.steer`… and text `sessionSteer`…, the workspaces' `best.channel`…, the market's
+quote `autoAside` (was `autopilot`). Puzzle ids that carried quest ids are the puzzles' names
+(`palette`, `first-words`, `bard`, `christening`); the `P…` ids stay (save keys and chart labels).
+
+**Saves.** Nothing saved changed meaning: the market saves a hire's category by the pack's name and
+grades it through the binding (`TIER_OF`); the helms, letters, crates and channels save counts,
+positions and rounds; the twist's answer isn't saved; quest steps stay the pack's (`"steps"` maps the
+crane's).
+
+**Course words out of code.** Thousand-Bough's crew house signs (`crews.<id>.sign`), the Great Hall's
+arch, the scaffold's board and the Spire's lookouts (`text.hallSign`, `scaffoldSign`, `lookout1`,
+`lookout2` in `puzzles/channel-routing.json`), the top deck's house board (`quests/thousand-bough.json` →
+`signs.loft`: the game asks each island for its signs by name, `ISLAND_SIGNS`, and the content check
+requires them), the mast's flags (`puzzles/flag-hoist.json`), Anchorage's
+tracker line while Port Meridian is open (`quests/anchorage.json` → `tracker.nextSail`), a saved hire's
+name (`text.savedCategory`, `savedModel`), the review chart's `auto` buoy (the mode's name). The title
+ship's rail plates and the berth and sloop flags are blank before a course is active and repaint when
+one activates (`onCourse` returns a call that stops it). `index.html` describes the game, not a course;
+`boot/fallback.ts` links the catalog's first course, loaded on demand. The dev Learn page shows the
+active pack's own quizzes, Trial, chest, page, image, terms and quests. `src/content/market.ts` declares
+its keys (`QUOTE_KEYS`, `GILDA_KEYS`). The GitHub Docs model sync's helpers (Claude, GPT and MAI) moved to
+`tools/models/catalog.ts`. The fork check and the course's links read the course's owner and ref.
+Thousand-Bough's voice lines for the tests come from the pack (`voiceLinesOf`).
+
+**Checks and proof.** The content check binds each game id once (helms, review, crews, places, crate
+bins, cargo props, market sizes in order), resolves the pack's own ids (orders, wrong picks, hints,
+letters' answers, flags' answers and choices, items' bins, models' categories), the twist's right
+answers, the mast's halyards and the puzzles' `"steps"`. `src/course/bindings.test.ts` renames every
+id of the Copilot app pack (modes, review options, crews, places, twist answers, bins, tray, flags,
+categories) and plays the same, and `src/game/puzzles/steps.test.ts` renames every puzzle's mechanic
+step and checks each mechanic reads and writes the new names. `src/course/neutral.test.ts` scans `src/`
+(less tests and dev pages) for the courses' ids and words with TypeScript's parser: comments are
+skipped, strings, templates and regular expressions stay code, and each JSX text's words are checked
+too. The dump reads back in the pack's ids and is identical,
+less the new bindings (`acts`, `apart`, `TIER_OF`, `CATEGORY_OF`, `nextSail`), the crane's step named
+`gate` in `puzzleQuests`, and the order of `THOUSAND_BOUGH_LINES` (the same set).
+
+### Still course-specific in code after step 5
+
+Nothing course-specific; what's left is the game's own, by decision:
+
+- The game's name, "Copilot Isles", the chart's cartouche and the credits' disclaimer (decision D4).
+- Chests' and bottles' spot ids (`C0.1`, `B0.1`…): where the game places them; what's in each is the
+  course's, and the content check requires one per spot.
+- Puzzle save keys and chart label ids (`P0.1`…, `market`), and the catalog's line per pack
+  (`src/course/catalog.ts`).
+- Game chrome: key help, generic buttons, the setup forms' fields and their validation messages
+  (`src/learn/setup.ts`, `src/learn/fork.ts`), `modelLabel`'s fallbacks, the effort dial (`low`,
+  `default`, `high`), the fork links' places on GitHub, English grammar helpers (`whose`).
+- Place and character names, battle titles (island to island), Rhea's chart lines, the helm buoys'
+  `ORDER n` and `SHOAL`, and the art (the crate yard's bubble and folder emblems, the treehouses'
+  star, beetle and scroll).
+- The crane's text keys and fields keep their first course's names (`actionsWarning`, `actionsUrl`):
+  any course fills them with its own words.
 
 ### What a third course still needs
 
 - `courses/<id>/` with the files of §8 (copy `copilot-cli` for a text-only start) and one line in
   `COURSES` (`src/course/catalog.ts`) and `tools/budgets.json` (`course-<id>` ≤ 80 KB gz).
-- To use islands past Anchorage: their quests, beats, puzzles and battle hooks, in the same shapes.
+- To use islands past Anchorage: their quests, beats, story, puzzles (with their quests), chests and
+  battle hooks, in the same shapes.
 - A voiced course: `voice/cast.json` and the generate/lipsync run (secrets; not in CI by default).
 - With a third course the picker still fits; past about five it needs scrolling or pages.
 

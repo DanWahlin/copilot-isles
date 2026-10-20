@@ -1,5 +1,4 @@
-import { Group, Vector3, type Mesh, type Object3D, type PerspectiveCamera, type Scene } from 'three/webgpu';
-import type { Node } from 'three/webgpu';
+import { Group, Vector3, type Mesh, type Object3D, type PerspectiveCamera } from 'three/webgpu';
 import type { TierSettings } from '../../../engine/quality';
 import type { CircleObstacle } from '../../contracts';
 import { loadLodSimplifier } from '../../characters/character-lod';
@@ -7,28 +6,36 @@ import { FarCull } from '../../far-cull';
 import { skipSunShadows } from '../../sky/cached-sun-shadow';
 import { createCoastFoam } from '../../terrain/coast-foam';
 import { loadTerrainPack } from '../../terrain/bake';
-import type { CompositeHeightField } from '../../terrain/composite-height-field';
 import { createTerrainAsync, type CreatedTerrain } from '../../terrain/terrain-mesh';
-import type { VegetationSystem } from '../../vegetation';
 import { LITE_ROCK_ERROR, simplifyInPlace } from '../../village/chunks';
 import { loadVillageKit } from '../../village/kit';
-import { createBirds, type BirdsSystem } from '../../life/birds';
+import type { BirdsSystem } from '../../life/birds';
 import { createThousandBoughAsync, type ThousandBoughWorld } from './index';
 import { createThousandBoughRocks, type ThousandBoughRocks } from './rocks';
+import { thousandBoughWater } from './height';
+import { SMALL_ROCKS } from '../stream-stones';
 import { THOUSAND_BOUGH as TB } from './layout';
+import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
 import { footprintDistance, type IslandFootprint } from '../footprint';
-import { disposeTree } from '../../island-parts';
+import { SilhouetteSwap } from '../silhouette-swap';
+import {
+  addIslandBirds,
+  addIslandGround,
+  addIslandPlants,
+  disposeTree,
+  removeIslandGround,
+  type IslandStreamContext,
+} from '../../island-parts';
 import { freeInSlices, StreamLifecycle, type StreamState } from '../../stream-lifecycle';
 import type { VegetationPatch } from '../../vegetation/types';
 
-/** The share of the island's small stones each tier keeps. */
-const SMALL_ROCKS = { lite: 0.1, low: 0.4, medium: 1, high: 1, ultra: 1 } as const;
 /** The boulders cast the sun's shadow on High and Ultra (Low and Medium spend those triangles elsewhere). */
 const ROCK_SHADOWS = (tier: TierSettings['tier']) => tier === 'high' || tier === 'ultra';
 
 /**
- * Distances (m): it streams in within `load`, is drawn (not the silhouette) within `show`, and may be
+ * Distances (m): it streams in within `load`, is drawn (not the silhouette) within `show` (resident or
+ * not; a band either side, `SWAP_HYSTERESIS`, keeps it from flickering there), and may be
  * freed past `unload` (game/residency.ts), all by `footprintDistance` (from its centre as if its shore
  * were round); its small detail within `detail` of its centre.
  */
@@ -89,22 +96,9 @@ export interface ThousandBoughStream {
   dispose(): void;
 }
 
-export interface ThousandBoughStreamContext {
-  scene: Scene;
-  tier: TierSettings;
-  packBase: string;
-  cloudShadowNode?: Node<'float'> | null;
-  breathe: () => Promise<void>;
-  heightField: CompositeHeightField;
-  /** The ship's obstacles (the wharf's piles join them). */
-  shipObstacles: CircleObstacle[];
-  vegetation: () => VegetationSystem | null;
+export interface ThousandBoughStreamContext extends IslandStreamContext {
   /** The sky, whose mood (haze) the island sets as you near it. */
   sky: { mood: { fogScale: number; hazeTint: [number, number, number]; fill: number; exposure: number } };
-  birds: boolean;
-  /** Where the tier has sun shadows but the islands don't take them (cove-scene's `skipIslandShadows`). */
-  skipShadows: boolean;
-  disabled: boolean;
 }
 
 /**
@@ -121,6 +115,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
   scene.add(silhouette);
   let disposed = false;
   let held = false;
+  const swap = new SilhouetteSwap(THOUSAND_BOUGH_RANGE.show);
   let plants: VegetationPatch | null = null;
   let birds: BirdsSystem | null = null;
   let obstacles: CircleObstacle[] = [];
@@ -138,6 +133,8 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
         data,
         name: 'thousand-bough-terrain',
         cloudShadowNode: ctx.cloudShadowNode,
+        // Its far levels keep under the streams and the pools (no stream hidden in the distance).
+        freshWater: thousandBoughWater(),
         createRocks: (hf) =>
           (rocks = createThousandBoughRocks(hf, undefined, SMALL_ROCKS[tier.tier], ROCK_SHADOWS(tier.tier)))
             .group,
@@ -156,15 +153,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     if (ctx.skipShadows) skipSunShadows(terrain.group);
     const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
     self.foam = foam;
-    terrain.group.visible = false;
-    foam.visible = false;
-    scene.add(terrain.group, foam);
-    ctx.heightField.add(
-      { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
-      terrain.heightField,
-    );
-    self.terrain = terrain;
-    self.foam = foam;
+    addIslandGround(ctx, data, terrain, foam);
     self.ready = true;
     const kit = await loadVillageKit();
     if (disposed) return null;
@@ -186,20 +175,16 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     if (vegetation) {
       const flora = await system.plants(ctx.breathe);
       if (disposed) return null;
-      plants = await vegetation.addPlants(flora, 'thousand-bough-plants');
-      if (ctx.skipShadows) skipSunShadows(plants.group);
+      plants = await addIslandPlants(
+        ctx,
+        vegetation,
+        flora,
+        'thousand-bough-plants',
+        THOUSAND_BOUGH_FLORA,
+        terrain,
+      );
     }
-    if (ctx.birds && tier.birds > 0) {
-      birds = createBirds({
-        tier,
-        perches: [],
-        center: new Vector3(TB.tree.x - 30, 0, TB.tree.z + 60),
-        radius: 200,
-        seed: 0x7b0b9,
-      });
-      birds.group.visible = false;
-      scene.add(birds.group);
-    }
+    birds = addIslandBirds(ctx, new Vector3(TB.tree.x - 30, 0, TB.tree.z + 60), 200, 0x7b0b9);
     return system;
   };
 
@@ -213,11 +198,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     self.system = null;
     plants = null;
     birds = null;
-    if (terrain) ctx.heightField.remove(terrain.heightField);
-    for (const o of obstacles) {
-      const i = ctx.shipObstacles.indexOf(o);
-      if (i >= 0) ctx.shipObstacles.splice(i, 1);
-    }
+    removeIslandGround(ctx, terrain, obstacles);
     obstacles = [];
     // Its air goes back to the open sea's.
     resetMood();
@@ -308,7 +289,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
       mood.exposure = 1 + (TB.mood.exposure - 1) * k;
       const reach = footprintDistance(THOUSAND_BOUGH_FOOTPRINT, camera.position.x, camera.position.z);
       if (reach < THOUSAND_BOUGH_RANGE.load) void self.load();
-      const near = reach < THOUSAND_BOUGH_RANGE.show;
+      const near = !swap.update(reach);
       const show = near || held;
       if (self.ready && self.terrain && self.foam && !held) {
         self.terrain.group.visible = show;

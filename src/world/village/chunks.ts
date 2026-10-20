@@ -1,7 +1,13 @@
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BufferAttribute, Vector3, type BufferGeometry, type Camera, type Mesh } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
-import { chooseLodLevel, lodRanges, type LodRanges, type LodSimplifier } from '../characters/character-lod';
+import {
+  chooseLodLevel,
+  lodRanges,
+  setLodIndex,
+  simplifierInput,
+  type LodSimplifier,
+} from '../characters/character-lod';
 
 /**
  * Spatial chunks for a town's merged static meshes (PLAN §12.2, §12.4). One merged mesh per material
@@ -147,20 +153,11 @@ export function buildChunkLodIndex(
   simplify: LodSimplifier,
   errors: readonly [number, number] = CHUNK_LOD_ERRORS,
 ): boolean {
-  const index = geometry.index;
-  const position = geometry.getAttribute('position');
-  if (!index || !position || geometry.groups.length > 0 || lodRanges(geometry)) return false;
-  const full = index.count - (index.count % 3);
-  if (full / 3 < CHUNK_LOD_MIN_TRIANGLES) return false;
-  const vertices = position.count;
-  const indices = new Uint32Array(full);
-  for (let i = 0; i < full; i++) indices[i] = index.getX(i);
-  const positions = new Float32Array(vertices * 3);
-  for (let i = 0; i < vertices; i++) {
-    positions[i * 3] = position.getX(i);
-    positions[i * 3 + 1] = position.getY(i);
-    positions[i * 3 + 2] = position.getZ(i);
-  }
+  const input = simplifierInput(geometry, CHUNK_LOD_MIN_TRIANGLES);
+  if (!input) return false;
+  const { indices, positions } = input;
+  const full = indices.length;
+  const vertices = positions.length / 3;
   const normal = geometry.getAttribute('normal');
   const color = geometry.getAttribute('color');
   const stride = (normal ? 3 : 0) + (color ? 3 : 0) || 1;
@@ -206,15 +203,7 @@ export function buildChunkLodIndex(
     ['ErrorAbsolute', 'Prune'],
   )[0];
   if (lod2.length >= full * 0.9) return false;
-  const total = full + lod1.length + lod2.length;
-  const combined = vertices <= 65535 ? new Uint16Array(total) : new Uint32Array(total);
-  combined.set(indices, 0);
-  combined.set(lod1, full);
-  combined.set(lod2, full + lod1.length);
-  geometry.setIndex(new BufferAttribute(combined, 1));
-  geometry.setDrawRange(0, full);
-  const ranges: LodRanges = [0, full, full, lod1.length, full + lod1.length, lod2.length];
-  geometry.userData.lodRanges = ranges;
+  setLodIndex(geometry, indices, lod1, lod2);
   return true;
 }
 
@@ -240,6 +229,14 @@ export function chunkLodEdges(
 export function chunkLodFloor(tier: TierSettings): number {
   return tier.tier === 'lite' ? 1 : 0;
 }
+
+/** Puts a LOD geometry's draw range back on its full level after each draw. */
+const drawFullLevel: Mesh['onAfterRender'] = (_renderer, _scene, _camera, g) => {
+  const r = lodRanges(g);
+  if (!r) return;
+  g.drawRange.start = r[0];
+  g.drawRange.count = r[1];
+};
 
 /**
  * Picks each chunk's level as it's drawn, from the camera position given to `update` (so the shadow
@@ -276,12 +273,7 @@ export class ChunkLods {
       g.drawRange.start = r[drawn * 2]!;
       g.drawRange.count = r[drawn * 2 + 1]!;
     };
-    mesh.onAfterRender = (_renderer, _scene, _camera, g) => {
-      const r = lodRanges(g);
-      if (!r) return;
-      g.drawRange.start = r[0];
-      g.drawRange.count = r[1];
-    };
+    mesh.onAfterRender = drawFullLevel;
     return true;
   }
 
@@ -316,12 +308,7 @@ export function attachMovingLod(mesh: Mesh, edges: readonly [number, number]): b
     g.drawRange.start = r[level * 2]!;
     g.drawRange.count = r[level * 2 + 1]!;
   };
-  mesh.onAfterRender = (_renderer, _scene, _camera, g) => {
-    const r = lodRanges(g);
-    if (!r) return;
-    g.drawRange.start = r[0];
-    g.drawRange.count = r[1];
-  };
+  mesh.onAfterRender = drawFullLevel;
   return true;
 }
 
@@ -337,22 +324,15 @@ export const LITE_ROCK_ERROR = 0.03;
  * instanced shapes (Lite's loose rocks). Returns the triangles saved.
  */
 export function simplifyInPlace(geometry: BufferGeometry, simplify: LodSimplifier, error: number): number {
-  const index = geometry.index;
-  const position = geometry.getAttribute('position');
-  if (!index || !position || geometry.groups.length > 0 || lodRanges(geometry)) return 0;
-  const full = index.count - (index.count % 3);
-  const indices = new Uint32Array(full);
-  for (let i = 0; i < full; i++) indices[i] = index.getX(i);
-  const positions = new Float32Array(position.count * 3);
-  for (let i = 0; i < position.count; i++) {
-    positions[i * 3] = position.getX(i);
-    positions[i * 3 + 1] = position.getY(i);
-    positions[i * 3 + 2] = position.getZ(i);
-  }
+  const input = simplifierInput(geometry);
+  if (!input) return 0;
+  const { indices, positions } = input;
+  const full = indices.length;
+  const vertices = positions.length / 3;
   const normal = geometry.getAttribute('normal');
-  const data = new Float32Array(position.count * 3);
+  const data = new Float32Array(vertices * 3);
   if (normal)
-    for (let i = 0; i < position.count; i++) {
+    for (let i = 0; i < vertices; i++) {
       data[i * 3] = normal.getX(i);
       data[i * 3 + 1] = normal.getY(i);
       data[i * 3 + 2] = normal.getZ(i);
@@ -370,6 +350,6 @@ export function simplifyInPlace(geometry: BufferGeometry, simplify: LodSimplifie
     ['ErrorAbsolute'],
   )[0];
   if (out.length >= full) return 0;
-  geometry.setIndex(new BufferAttribute(position.count <= 65535 ? new Uint16Array(out) : out, 1));
+  geometry.setIndex(new BufferAttribute(vertices <= 65535 ? new Uint16Array(out) : out, 1));
   return (full - out.length) / 3;
 }

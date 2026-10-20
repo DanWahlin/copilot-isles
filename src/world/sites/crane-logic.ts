@@ -54,7 +54,7 @@ export interface CraneFile extends PuzzleFile {
   /** Stand-ins for the other berths if the player's own fork happens to share an owner with one. */
   spares: Readonly<Record<'captain' | 'guild', Spare>>;
   /** What the script stocks your repository with, one crate per kind. */
-  cargo: readonly { id: CargoId; title: string; count: number }[];
+  cargo: readonly { id: string; acts: CargoProp; title: string; count: number }[];
   /** The command line the terminal shows (its flags are text). */
   command: string;
   /** Your fork's Actions tab, `{repository}` filled in. */
@@ -101,14 +101,15 @@ export function craneFacings(yours: string = YOUR_REPOSITORY): readonly CraneFac
 export const CRANE_START = 0;
 export let YOUR_FACING = 2;
 
-/** The cargo's crates: which prop stands for each kind (the game's). */
-const CARGO_PROPS = { labels: 'pennants', issues: 'notices', branches: 'hulls', prs: 'seals' } as const;
-type CargoId = keyof typeof CARGO_PROPS;
+/** The crates' props the yard can land (the game's art): a course binds each of its kinds to one. */
+export const CARGO_PROPS = ['pennants', 'notices', 'hulls', 'seals'] as const;
+export type CargoProp = (typeof CARGO_PROPS)[number];
 export interface CraneCargo {
-  id: CargoId;
+  /** The course's id for the kind. */
+  id: string;
   title: string;
   count: number;
-  prop: (typeof CARGO_PROPS)[CargoId];
+  prop: CargoProp;
 }
 
 /** What the script stocks your repository with, one crate per kind (counts match the script). */
@@ -136,7 +137,7 @@ onCourse(() => {
   });
   DECOY_SPARES = c.spares;
   YOUR_FACING = CRANE_FACINGS.findIndex((f) => f.owner === 'you');
-  CRANE_CARGO = c.cargo.map((k) => ({ id: k.id, title: k.title, count: k.count, prop: CARGO_PROPS[k.id] }));
+  CRANE_CARGO = c.cargo.map((k) => ({ id: k.id, title: k.title, count: k.count, prop: k.acts }));
   SETUP_COMMAND = c.command;
 });
 
@@ -155,7 +156,7 @@ export type CraneEvent =
   | { kind: 'preview-first' }
   | { kind: 'refused'; owner: Exclude<Owner, 'you'>; repository: string }
   /** `--yes` on your fork while its workflows are off. */
-  | { kind: 'actions-off'; repository: string }
+  | { kind: 'gate-shut'; repository: string }
   | { kind: 'complete'; repository: string }
   | { kind: 'already' };
 
@@ -213,7 +214,7 @@ export function confirmYes(s: CraneState, yours: string = YOUR_REPOSITORY, actio
   if (s.preview !== s.facing) return { state: s, event: { kind: 'preview-first' } };
   if (f.owner !== 'you')
     return { state: s, event: { kind: 'refused', owner: f.owner, repository: f.repository } };
-  if (!actionsOn) return { state: s, event: { kind: 'actions-off', repository: f.repository } };
+  if (!actionsOn) return { state: s, event: { kind: 'gate-shut', repository: f.repository } };
   return { state: { ...s, complete: true }, event: { kind: 'complete', repository: f.repository } };
 }
 
@@ -240,7 +241,7 @@ export function signLines(
       return [T('failed'), T('notARepoSign')];
     case 'refused':
       return [T('refusedSign'), event.repository];
-    case 'actions-off':
+    case 'gate-shut':
       return [T('failed'), T('actionsOffSign')];
     default:
       break;
@@ -287,7 +288,7 @@ export function terminalLines(
         T('refused1'),
         T('refused2'),
       ];
-    case 'actions-off':
+    case 'gate-shut':
       return [
         cmd('yesFlag'),
         T('repository', { repository: event.repository }),
@@ -317,18 +318,47 @@ export type LineTone = 'cmd' | 'you' | 'other' | 'ok';
 export function lineTone(line: string, yours: string = YOUR_REPOSITORY): LineTone | undefined {
   const yourOwner = `${yours.split('/')[0]}/`;
   if (line.startsWith('$')) return 'cmd';
-  if (line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
+  const repo = repositoryIn(line);
+  if (repo === yours || line.endsWith(` ${yours}`) || line === yours || line === yourOwner) return 'you';
   const c = craneContent();
-  const repo = T('repository');
-  const repoPrefix = repo.slice(0, repo.indexOf('{repository}'));
-  if (
-    (line.startsWith(repoPrefix) && line.length > repoPrefix.length) ||
-    /^[\w-]+\/$/.test(line) ||
-    c.tones.other.some((p) => line.startsWith(p))
-  )
+  if (repo !== null || /^[\w-]+\/$/.test(line) || c.tones.other.some((p) => line.startsWith(p)))
     return 'other';
   if (c.tones.ok.includes(line) || c.tones.okPrefix.some((p) => line.startsWith(p))) return 'ok';
   return undefined;
+}
+
+/** The pack's `repository` line around its `{repository}`: the words before it and after it. */
+function repositoryWords(): { before: string; after: string } | null {
+  const t = T('repository');
+  const at = t.indexOf('{repository}');
+  return at < 0 ? null : { before: t.slice(0, at), after: t.slice(at + '{repository}'.length) };
+}
+
+/** The repository a readout line names, if it's the pack's `repository` line; else null. */
+export function repositoryIn(line: string): string | null {
+  const w = repositoryWords();
+  if (!w || line.length <= w.before.length + w.after.length) return null;
+  if (!line.startsWith(w.before) || !line.endsWith(w.after)) return null;
+  return line.slice(w.before.length, line.length - w.after.length);
+}
+
+/**
+ * The arm sign's lettering: the pack's `repository` line splits so the owner gets a line of its own,
+ * big enough to read from the levers, and its `defaultBranch` line stays in the terminal.
+ */
+export function jibLines(lines: readonly string[]): string[] {
+  const branch = T('defaultBranch');
+  return lines.flatMap((l) => {
+    if (l === branch) return [];
+    const repo = repositoryIn(l);
+    const slash = repo?.indexOf('/') ?? -1;
+    if (!repo || slash <= 0) return [l];
+    const w = repositoryWords()!;
+    const label = w.before.trim();
+    const owner = repo.slice(0, slash + 1);
+    const name = repo.slice(slash + 1) + w.after;
+    return label ? [label, owner, name] : [owner, name];
+  });
 }
 
 /** Which berth to point at for hint tier 3, and whether you're already there. */

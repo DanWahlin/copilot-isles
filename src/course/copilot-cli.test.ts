@@ -1,12 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { activateCourse } from './load';
-import { COURSE, COURSES, courseVoiced } from './catalog';
+import { COURSE, COURSES, DEFAULT_COURSE_ID, PLAYABLE_IDS, courseVoiced } from './catalog';
 import { coursePack } from './active';
 import { puzzleOn } from './puzzles';
 import { meridianOpen } from '../game/meridian-open';
 import { thousandBoughOpen } from '../game/thousand-bough-open';
 import { openIslands } from '../game/islands';
-import { npcScript, questTracker, migrateQuests } from '../game/cove-quests';
+import { npcScript, questTracker } from '../game/cove-quests';
+import { migrateQuests } from '../game/story';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { CRANE_CARGO, CRANE_FACINGS } from '../world/sites/crane-logic';
 import { GEAR_IDS, gearDef } from '../world/sites/gear-logic';
@@ -24,6 +25,14 @@ import type { ScriptStep } from '../game/script';
  * text only. Activating it swaps every course-derived value the game keeps; activating the Copilot app
  * course again puts them back.
  */
+describe('the course list', () => {
+  it('lists only the Copilot app course (the CLI course is unlisted while it is written)', () => {
+    expect(COURSES.map((c) => c.id)).toContain('copilot-cli');
+    expect(PLAYABLE_IDS).toEqual(['copilot-app']);
+    expect(DEFAULT_COURSE_ID).toBe('copilot-app');
+  });
+});
+
 describe('the Copilot CLI course pack', () => {
   beforeAll(async () => {
     await activateCourse('copilot-cli');
@@ -104,7 +113,8 @@ describe('the Copilot CLI course pack', () => {
     expect(chartLabel('puzzle:P0.1')).toBeNull();
     const board = islandCourseBoard('anchorage');
     expect(board?.chapter).toBe('00-quick-start');
-    expect(board?.topics.map((t) => t.title)).toContain('Learning Objectives');
+    expect(board?.topics.map((t) => t.title)).not.toContain('Learning Objectives');
+    expect(board?.topics.map((t) => t.title)).not.toContain('Key Takeaways');
     expect(BRIEFING[0]).toBe('cli.juno.cabin.01');
   });
 });

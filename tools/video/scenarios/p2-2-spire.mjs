@@ -44,7 +44,7 @@ export default {
       // Round 3: every channel's dug; each crew goes where its order fits.
       if (round === 3) {
         const best = await tb(api, 'routing.best');
-        for (const [i, crew] of ['feature', 'bugfix', 'docs'].entries())
+        for (const [i, crew] of ['blue', 'green', 'teal'].entries())
           await tb(api, 'routing.pick', crew, best[i]);
       }
       if (round < 3) {

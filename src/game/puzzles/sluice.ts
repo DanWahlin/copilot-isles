@@ -12,26 +12,24 @@ import {
 } from '../../world/sites/sluice-logic';
 import { SURI_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
-import { lineOf, puzzleContent, textOf } from '../../course/puzzles';
+import { lineOf, puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 
 /** The mill race's words and lines (`puzzles/sluice.json`). */
 const T = (key: string) => textOf(puzzleContent('sluice'), key);
 const L = (key: string) => lineOf(puzzleContent('sluice'), key);
 
-const SLUICE_ID = 'P0.1';
-const QUEST = 'Q0.6';
-/** Pim and Pol's crane job: its `actions` step is this lever (Actions first, before the script). */
-const CRANE_QUEST = 'Q0.7';
+/** Its save key and id: the gate lever's flag (`gate`) is read when old saves are brought in line. */
+export const SLUICE_ID = 'P0.1';
 
 /**
- * P0.1 Sluice & Waterwheel (POC §4.5), in two parts, as Chapter 00 · Add the Course Practice Items
- * orders them:
- * - **Actions first** (required, Q0.7's `actions` step): pull the lever under the "Workflows aren't
- *   being run" sign to lift the gate, before the crane's setup script will run with `--yes`.
- * - **The practice checks** (optional, Q0.6, once the crane's stocked your fork): turn channel tiles
- *   (E clockwise, Shift+E back) until the water reaches both outlets: the wheel turns (the checks
- *   run) and the check gate stays jammed (the practice check that fails on purpose). The lanterns
- *   light and Suri closes Q0.6.
+ * P0.1 Sluice & Waterwheel (POC §4.5), in two parts:
+ * - **The gate lever** (required): pull the lever under the gate's sign (the course's words,
+ *   `puzzles/sluice.json`) to lift the gate. It moves the crane's quest from its `gate` step on to
+ *   `crane`, so the crane's confirm lever can run.
+ * - **The channels** (optional, once the quest `puzzleQuest('sluice')` names reaches its `sluice`
+ *   step): turn channel tiles (E clockwise, Shift+E back) until the water reaches both outlets: the
+ *   wheel turns and the check gate stays jammed (the check that fails on purpose). The lanterns light,
+ *   the quest moves on to its `solved` step, and Suri closes it.
  * Tile turns, the lever, and solved are saved.
  */
 export function createSluice(
@@ -39,6 +37,11 @@ export function createSluice(
   site: MillSite,
   layout: SluiceLayout = ANCHORAGE_SLUICE,
 ): Puzzle {
+  const quest = puzzleQuest('sluice');
+  /** Pim and Pol's crane job: its `gate` step is this lever. */
+  const craneQuest = puzzleQuest('crane');
+  const S = puzzleSteps('sluice');
+  const C = puzzleSteps('crane');
   const path = solutionPath(layout);
   const saved = host.learn?.progress.data.puzzles[SLUICE_ID];
   const rots = layout.tiles.map((t, i) => {
@@ -49,15 +52,15 @@ export function createSluice(
   let solved = saved?.solved ?? false;
   let hintCell = -1;
 
-  /** Q0.6 is under way: the channels can turn. */
+  /** The mill race's quest is under way: the channels can turn. */
   const started = () => {
-    const q = host.quests()[QUEST];
-    return q === 'sluice' || q === 'solved' || q === 'done';
+    const q = host.quests()[quest];
+    return q === S.sluice || q === S.solved || q === 'done';
   };
-  /** The crane job is waiting on Actions (or an older save never pulled it). */
+  /** The crane job is waiting on the gate (or an older save never pulled it). */
   const actionsStep = () => {
-    const q = host.quests()[CRANE_QUEST];
-    return q === 'actions' || q === 'crane';
+    const q = host.quests()[craneQuest];
+    return q === C.gate || q === C.crane;
   };
   const leverOpen = () => !gate && (actionsStep() || started());
   const tilesOpen = () => gate && started() && !solved;
@@ -80,18 +83,18 @@ export function createSluice(
   };
 
   /**
-   * Keeps the gate and the crane job in step: a finished crane means workflows are on (older saves
-   * finished it before the lever was part of it; Pim and Pol had them turn workflows on in the
-   * brief), and a lever pulled before the crane job asked for it moves that job on to the crane.
+   * Keeps the gate and the crane job in step: a finished crane means the gate is up (older saves
+   * finished it before the lever was part of it), and a lever pulled before the crane job asked for
+   * it moves that job on to the crane.
    */
   const syncGate = (): void => {
-    const q = host.quests()[CRANE_QUEST];
-    if (!gate && (q === 'solved' || q === 'done')) {
+    const q = host.quests()[craneQuest];
+    if (!gate && (q === C.solved || q === 'done')) {
       gate = true;
       site.setLever(true, true);
       save();
       refresh();
-    } else if (gate && q === 'actions') host.setQuest(CRANE_QUEST, 'crane');
+    } else if (gate && q === C.gate) host.setQuest(craneQuest, C.crane);
   };
 
   rots.forEach((r, i) => site.setRotation(i, r, true));
@@ -102,7 +105,7 @@ export function createSluice(
   refresh();
   syncGate();
   // Solved but the closing beat never ran (quit mid-way): Suri finishes it when you talk to her.
-  if (solved && host.quests()[QUEST] === 'sluice') host.setQuest(QUEST, 'solved');
+  if (solved && host.quests()[quest] === S.sluice) host.setQuest(quest, S.solved);
 
   const pos = (x: number, y: number, z: number) => ({ x, y, z });
   const spoutAt = site.anchors.millGate!;
@@ -161,8 +164,8 @@ export function createSluice(
     save();
     refresh();
     if (actionsStep()) {
-      // Actions first: the crane's setup script can run with --yes now.
-      host.setQuest(CRANE_QUEST, 'crane');
+      // That was the crane job's `gate` step: its confirm lever can run now.
+      host.setQuest(craneQuest, C.crane);
       host.hud.toast(T('enabledCrane'), 4.5);
       if (!quiet) void host.beat([{ say: L('workflowsOn') }], 'Suri');
     } else host.hud.toast(T('enabledTurn'), 5);
@@ -186,7 +189,7 @@ export function createSluice(
   async function onSolved(): Promise<void> {
     solved = true;
     save();
-    host.setQuest(QUEST, 'solved');
+    host.setQuest(quest, S.solved);
     hintCell = -1;
     site.setHint(-1);
     // Let the water reach the wheel before anyone talks.

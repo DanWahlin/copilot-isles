@@ -5,6 +5,7 @@ import type { PlantInstance } from '../../vegetation/types';
 import type { VillageAnchor, VillageKit } from '../../village/kit';
 import type { TbAnchorName, ThousandBoughSystem } from './contract';
 import { thousandBoughWater } from './height';
+import { naturalWaterAt } from '../fresh-water-natural';
 import { THOUSAND_BOUGH } from './layout';
 import { BEACON_Y } from './set-pieces';
 import { createThousandBoughWaterMesh } from './water-mesh';
@@ -13,6 +14,7 @@ import { branchCameraBoxes, createBanyanAsync } from './tree';
 import { thousandBoughPlantsSliced } from './vegetation';
 import { createMist, type Mist } from './mist';
 import type { ThousandBoughRocks } from './rocks';
+import { SMALL_ROCKS } from '../stream-stones';
 import { createGlows, type Glow, type Glows } from '../../life/fireflies';
 import { mulberry32 } from '../../../util/math';
 import { thousandBoughHeight } from './height';
@@ -47,7 +49,7 @@ export function createThousandBoughStub(): ThousandBoughSystem {
     colliders: () => [],
     circles: () => [],
     cameraBoxes: () => [],
-    inland: () => null,
+    inland: () => false,
     flume: {
       setRound: done,
       setBoard: none,
@@ -190,7 +192,10 @@ export async function createThousandBoughAsync(
 ): Promise<ThousandBoughWorld> {
   const base = createThousandBoughStub();
   const group = base.group;
-  const water = createThousandBoughWaterMesh();
+  const water = createThousandBoughWaterMesh(
+    (x, z) => o.heightField.heightAt(x, z),
+    SMALL_ROCKS[o.tier.tier],
+  );
   group.add(water.mesh);
   await breathe();
   const clearance = new WalkClearance();
@@ -229,13 +234,13 @@ export async function createThousandBoughAsync(
     colliders: () => village.out.colliders,
     circles: () => circles,
     cameraBoxes: () => camBoxes,
-    inland: (x, z) => thousandBoughWater().levelAt(x, z),
+    inland: (x, z, ground, out) => naturalWaterAt(thousandBoughWater(), x, z, ground, out),
     flume: village.flume,
     spire: {
       ...base.spire,
       playJam: () => village.pieces.spireJam(),
       preview(crew, lookout, on) {
-        if (crew !== 'bugfix') village.pieces.spireLantern(crew, lookout, on);
+        if (crew !== 'green') village.pieces.spireLantern(crew, lookout, on);
       },
       async openSecondBridge() {
         village.r3.visible = true;

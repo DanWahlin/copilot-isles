@@ -373,6 +373,10 @@
       "script": "admiral"
     }
   ],
+  "story": {
+    "conditions": { "firstVisit": { "Q1.1": { "not": "done" } }, "sealed": { "Q1.8": "done" } },
+    "events": {}
+  },
   "scripts": {
     "tobias": [
       {

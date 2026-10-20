@@ -2,7 +2,7 @@
 /**
  * Weekly model sync for the Model Market (docs/specs/MODEL-MARKET.md §4). Reads GitHub Docs' Copilot
  * model tables at the head of `main` from raw.githubusercontent.com (no token, no REST API: the
- * commit comes from `git ls-remote`), keeps the Claude, GPT and MAI models (src/game/market/catalog.ts),
+ * commit comes from `git ls-remote`), keeps the Claude, GPT and MAI models (tools/models/catalog.ts),
  * and writes the course pack's models.json (courses/<id>/models.json). The file only changes when the models do: a new docs commit with
  * the same models leaves it alone, so a re-run writes the same bytes.
  *
@@ -23,6 +23,7 @@ import { tsImport } from 'tsx/esm/api';
 
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL('../..', import.meta.url));
+const catalog = await tsImport('./catalog.ts', import.meta.url);
 const {
   DOCS_REPO,
   DOCS_DIR,
@@ -32,7 +33,7 @@ const {
   formatModelsFile,
   sameModels,
   useCourse,
-} = await tsImport('./catalog.ts', import.meta.url);
+} = catalog;
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -78,12 +79,11 @@ async function output(changed) {
 
 const { commit, pricing, comparison } = await readTables();
 const models = catalogFromTables(pricing, comparison);
-const counts = ['Lightweight', 'Versatile', 'Powerful'].map(
-  (c) => `${c} ${models.filter((m) => m.category === c).length}`,
-);
+// The pack's categories (market.json), read once the course is active.
+const counts = catalog.CATEGORIES.map((c) => `${c} ${models.filter((m) => m.category === c).length}`);
 if (models.length === 0)
   throw new Error('No Claude, GPT or MAI models found: did the docs tables change shape?');
-for (const c of ['Lightweight', 'Versatile', 'Powerful'])
+for (const c of catalog.CATEGORIES)
   if (!models.some((m) => m.category === c && m.ga)) throw new Error(`No GA ${c} models found`);
 
 const previous = await readFile(OUT, 'utf8')
