@@ -6,9 +6,14 @@ import { expect, test, type Page } from '@playwright/test';
 // CI's Chromium has no WebGPU, so it forces the WebGL2 backend on SwiftShader (slow: a whole voyage).
 const CI = Boolean(process.env.CI);
 const query = CI ? '/?debug&webgl&forceGpu&tier=lite' : '/?debug';
+// Software rendering's cost grows with pixels: on CI the whole voyage warms at a quarter of the area.
+if (CI) test.use({ viewport: { width: 800, height: 450 } });
+// A whole voyage builds and warms on CI's software renderer (minutes on a shared runner): give it
+// room, and no retry, so a stuck voyage fails once with its progress instead of twice.
+if (CI) test.describe.configure({ retries: 0 });
 
 type Flow = {
-  getState(): { screen: string; course: string };
+  getState(): { screen: string; course: string; progress: { value: number; message: string } };
   skipOpening(): void;
   debugOpening: { prompting: boolean; time: number } | null;
   learn: { getState(): { tracker: { chapter: string } | null }; progress: { course: string } };
@@ -45,13 +50,14 @@ async function voyage(page: Page, course: string, chapter: string, all = false) 
   await page.evaluate(() => (window as unknown as { __flow: Flow }).__flow.skipOpening());
   // As a player would, skip again if the cabin still waits on the chest (CI's software renderer is
   // too slow for the chest to open by itself). On a timeout, say where the opening stood.
-  const deadline = Date.now() + (CI ? 300_000 : 120_000);
+  const deadline = Date.now() + (CI ? 900_000 : 120_000);
   for (;;) {
     const at = await page.evaluate(() => {
       const f = (window as unknown as { __flow: Flow }).__flow;
       const o = f.debugOpening;
       if (o?.prompting) f.skipOpening();
-      return { screen: f.getState().screen, opening: o ? { time: o.time, prompting: o.prompting } : null };
+      const { screen, progress } = f.getState();
+      return { screen, progress, opening: o ? { time: o.time, prompting: o.prompting } : null };
     });
     if (at.screen === 'playing') break;
     if (Date.now() > deadline) throw new Error(`The voyage never reached Anchorage: ${JSON.stringify(at)}`);
@@ -71,13 +77,13 @@ async function voyage(page: Page, course: string, chapter: string, all = false) 
 }
 
 test('New Voyage: the Copilot app course (the only listed one) reaches Anchorage Cay', async ({ page }) => {
-  test.setTimeout(CI ? 480_000 : 180_000);
+  test.setTimeout(CI ? 1_200_000 : 180_000);
   await voyage(page, 'copilot-app', 'Chapter 00 · Setup');
 });
 
 test('course list (?courses=all): the unlisted Copilot CLI course reaches Anchorage Cay', async ({
   page,
 }) => {
-  test.setTimeout(CI ? 480_000 : 180_000);
+  test.setTimeout(CI ? 1_200_000 : 180_000);
   await voyage(page, 'copilot-cli', 'Chapter 00 · Quick Start', true);
 });
