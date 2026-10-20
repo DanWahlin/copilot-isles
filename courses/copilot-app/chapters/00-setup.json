@@ -62,41 +62,41 @@
         {
           "id": "projects-plus",
           "rect": [0.175, 0.34074074074074073, 0.017708333333333333, 0.03148148148148148],
-          "label": "+ next to Projects",
+          "label": "+ next to Sessions",
           "correct": true
         },
         {
           "id": "prompt-plus",
           "rect": [0.33229166666666665, 0.49166666666666664, 0.016666666666666666, 0.02962962962962963],
           "label": "+ in the prompt box",
-          "feedback": "That **+** belongs to the prompt box. Projects have their own **+** in the sidebar."
+          "feedback": "That **+** belongs to the prompt box. The **Sessions** heading has its own **+** in the sidebar."
         },
         {
           "id": "new",
           "rect": [0.005208333333333333, 0.07037037037037037, 0.19166666666666668, 0.03888888888888889],
           "label": "New",
-          "feedback": "**New** starts new work. Adding a project happens under **Projects**."
+          "feedback": "**New** starts new work. Adding a project starts from the **Sessions** heading."
         },
         {
           "id": "customize",
           "rect": [0.005208333333333333, 0.23425925925925925, 0.19166666666666668, 0.03888888888888889],
           "label": "Customize",
-          "feedback": "**Customize** is where you extend the app. Look beside the **Projects** heading."
+          "feedback": "**Customize** is where you extend the app. Look beside the **Sessions** heading."
         }
       ],
       "explain": {
-        "correct": "Right! The **+** next to **Projects** opens the menu for adding a project.",
-        "wrong": "Close! Look for the **+** beside the **Projects** heading in the sidebar."
+        "correct": "Right! The **+** next to **Sessions** opens the menu for adding a project.",
+        "wrong": "Close! Look for the **+** beside the **Sessions** heading in the sidebar."
       },
       "hints": [
-        "Projects live in the sidebar.",
-        "Find the **Projects** heading. There’s a small button beside it.",
-        "Select the **+** to the right of **Projects**."
+        "Your projects live in the sidebar.",
+        "Find the **Sessions** heading. There’s a small button beside it.",
+        "Select the **+** to the right of **Sessions**."
       ],
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "365638d573db",
+        "hash": "fda261a1fa97",
         "image": {
           "src": "course/shared/app-github-copilot-app.webp",
           "hash": "371d5ae374bc"
@@ -126,13 +126,13 @@
       ],
       "answer": "fork",
       "explain": {
-        "correct": "Right. Pick your fork, the result that starts with your GitHub username. The app clones it and adds it under **Projects**.",
+        "correct": "Right. Pick your fork, the result that starts with your GitHub username. The app clones it and adds it to the sidebar.",
         "wrong": "Your practice work belongs in your own copy of the course."
       },
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "365638d573db"
+        "hash": "fda261a1fa97"
       }
     },
     {
@@ -180,7 +180,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b",
+        "hash": "a098a1855e14",
         "image": {
           "src": "course/ch00/app-current-checkout-workspace-selector.webp",
           "hash": "9685f68887a9"
@@ -221,7 +221,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b"
+        "hash": "a098a1855e14"
       }
     },
     {
@@ -262,7 +262,7 @@
         },
         {
           "id": "add",
-          "text": "Add your fork: **+** by **Projects** → **Add GitHub repository**"
+          "text": "Add your fork: **+** by **Sessions** → **Add GitHub repository**"
         },
         {
           "id": "local",
@@ -284,7 +284,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "365638d573db"
+        "hash": "fda261a1fa97"
       }
     },
     {
@@ -340,7 +340,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b"
+        "hash": "a098a1855e14"
       }
     },
     {
@@ -550,7 +550,7 @@
     {
       "id": "T0.10",
       "type": "mc",
-      "prompt": "Your fork shows under **Projects**. How do you start the session you’ll run setup in?",
+      "prompt": "Your fork shows under **Sessions**. How do you start the session you’ll run setup in?",
       "options": [
         {
           "id": "project-plus",
@@ -558,24 +558,24 @@
         },
         {
           "id": "projects-plus",
-          "text": "Select **+** next to the **Projects** heading",
+          "text": "Select **+** next to the **Sessions** heading",
           "feedback": "That **+** adds another project. Each project has its own **+** for a new session."
         },
         {
           "id": "chat",
-          "text": "Pick **Chat** from the **Projects** menu",
+          "text": "Select **+** next to **Sessions**, then **Chat**",
           "feedback": "A chat isn’t tied to your repository. Setup runs in a project session."
         }
       ],
       "answer": "project-plus",
       "explain": {
         "correct": "Right. The **+** beside the project starts a project session in it.",
-        "wrong": "Look beside the project itself, not the **Projects** heading."
+        "wrong": "Look beside the project itself, not the **Sessions** heading."
       },
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b"
+        "hash": "a098a1855e14"
       }
     },
     {
@@ -650,18 +650,18 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "365638d573db"
+        "hash": "fda261a1fa97"
       }
     },
     {
       "id": "C0.4",
       "title": "Add your fork",
       "image": "ch00/app-add-project",
-      "caption": "**+** next to **Projects** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have the URL? **Clone repository**. If the app says Git is missing, install Git and try again.",
+      "caption": "**+** next to **Sessions** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have the URL? **Clone repository**. If the app says Git is missing, install Git and try again.",
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "365638d573db"
+        "hash": "fda261a1fa97"
       }
     },
     {
@@ -673,7 +673,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b"
+        "hash": "a098a1855e14"
       }
     },
     {
@@ -685,7 +685,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "cf4e4b176d0b"
+        "hash": "a098a1855e14"
       }
     },
     {
@@ -896,62 +896,62 @@
     "nell.papers.06": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "ezra.fork.01": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "ezra.fork.02": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "ezra.fork.03": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "ezra.fork.careful": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "bo.deck.01": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "bo.deck.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "bo.deck.03": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "bo.gear.brief.01": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "bo.gear.brief.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "bo.gear.brief.03": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "bo.gear.checked.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "cf4e4b176d0b"
+      "hash": "a098a1855e14"
     },
     "pim.brief.01": {
       "chapter": "00-setup",
@@ -1036,7 +1036,7 @@
     "pim.solved.fork": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "365638d573db"
+      "hash": "fda261a1fa97"
     },
     "pol.refuse.actions.01": {
       "chapter": "00-setup",

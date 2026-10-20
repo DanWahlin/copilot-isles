@@ -248,7 +248,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "chat-sessions",
-        "hash": "98f6ea579753",
+        "hash": "9d8ea69782bc",
         "image": {
           "src": "course/ch01/app-new-page.webp",
           "hash": "37be111c3c45"
@@ -401,7 +401,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "settings",
-        "hash": "5b95eb5b50e3",
+        "hash": "49fadf6d109a",
         "image": {
           "src": "course/ch01/app-settings.webp",
           "hash": "5bfe69fa74d5"
@@ -437,7 +437,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "key-takeaways",
-        "hash": "c91fe4b46114"
+        "hash": "863dccd1b579"
       }
     },
     {
@@ -528,13 +528,13 @@
         }
       ],
       "explain": {
-        "correct": "Right. New, Pull requests, Issues, Automations and Customize, with Projects for your chats and sessions, are the app’s work surfaces.",
+        "correct": "Right. New, Pull requests, Issues, Automations and Customize, with Sessions for your projects and chats, are the app’s work surfaces.",
         "wrong": "Picture Mina’s tour: the Voyage Office, the Bounty Board, the Clock Tower and the Outfitter."
       },
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "tour-the-app",
-        "hash": "a583ed20b8e9"
+        "hash": "324629c85fee"
       }
     },
     {
@@ -565,8 +565,8 @@
       },
       "source": {
         "chapter": "01-tour-the-app",
-        "anchor": "projects-and-chats",
-        "hash": "2e0d39688597"
+        "anchor": "chat-sessions",
+        "hash": "9d8ea69782bc"
       }
     },
     {
@@ -1061,23 +1061,23 @@
       }
     },
     {
-      "id": "pg1.more",
-      "title": "More",
-      "caption": "Select **More**, then **Edit sidebar...** to choose which views appear in the sidebar. The course uses all of them, so keep them visible.",
+      "id": "pg1.sessions-chats",
+      "title": "Sessions and chats",
+      "caption": "The **Sessions** area of the sidebar lists every project you’ve connected. Start your first chat, and a **Chats** row shows up there too.",
       "source": {
         "chapter": "01-tour-the-app",
-        "anchor": "more",
-        "hash": "16538ba2b64e"
+        "anchor": "sessions-and-chats",
+        "hash": "9bbe8aab627f"
       }
     },
     {
       "id": "pg1.projects-chats",
       "title": "Chats and project sessions",
-      "caption": "The **Projects** area of the sidebar lists each connected project, and a **Chats** row appears there once you’ve started your first chat. A **chat session** is for asking, brainstorming, summarizing and getting your bearings, and it doesn’t create a branch or worktree. A **project session** is for planning, inspecting, editing, testing or making PR-ready work, and usually creates one, depending on session settings.",
+      "caption": "A **chat session** is for asking, brainstorming, summarizing and getting your bearings, and it doesn’t create a branch or worktree. A **project session** is for planning, inspecting, editing, testing or making PR-ready work, and usually creates one, depending on session settings.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "chats-project-sessions-and-modes",
-        "hash": "b86c511bd0da"
+        "hash": "5721ac27d3ca"
       }
     },
     {
@@ -1095,12 +1095,12 @@
       "id": "pg1.chat",
       "title": "Start a chat",
       "image": "ch01/app-quick-chat",
-      "caption": "Select **+** next to **Projects**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat.",
+      "caption": "Select **+** next to **Sessions**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat.",
       "code": "In the GitHub Copilot app, explain when I should use a chat and when I should use a project session. Do not create or change files.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "chat-sessions",
-        "hash": "98f6ea579753"
+        "hash": "9d8ea69782bc"
       }
     },
     {
@@ -1176,17 +1176,17 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "settings",
-        "hash": "5b95eb5b50e3"
+        "hash": "49fadf6d109a"
       }
     },
     {
       "id": "pg1.voice",
       "title": "Voice dictation (optional)",
-      "caption": "Voice dictation turns speech into editable prompt text, and it’s on by default. In **Settings**, select **Voice dictation** to set up your input device, and change the microphone or transcription model if you need to. Under **Microphone privacy**, select **Open preferences** to allow the microphone in your operating system, then select **Test mic** and note the shortcut. Then start a new chat (**+** next to **Projects**, then **Chat**) and try the shortcut.",
+      "caption": "Voice dictation turns speech into editable prompt text, and it’s on by default. In **Settings**, select **Voice dictation** to set up your input device, and change the microphone or transcription model if you need to. Under **Microphone privacy**, select **Open preferences** to allow the microphone in your operating system, then select **Test mic** and note the shortcut. Then start a new chat (**+** next to **Sessions**, then **Chat**) and try the shortcut.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "settings",
-        "hash": "5b95eb5b50e3"
+        "hash": "49fadf6d109a"
       }
     },
     {
@@ -1344,7 +1344,7 @@
     "mer.mina.01": {
       "chapter": "01-tour-the-app",
       "anchor": "tour-the-app",
-      "hash": "a583ed20b8e9"
+      "hash": "324629c85fee"
     },
     "mer.mina.new": {
       "chapter": "01-tour-the-app",
@@ -1371,15 +1371,10 @@
       "anchor": "customize",
       "hash": "40d6c4c7a5bf"
     },
-    "mer.mina.more": {
-      "chapter": "01-tour-the-app",
-      "anchor": "more",
-      "hash": "16538ba2b64e"
-    },
     "mer.mina.projects": {
       "chapter": "01-tour-the-app",
-      "anchor": "projects-and-chats",
-      "hash": "2e0d39688597"
+      "anchor": "sessions-and-chats",
+      "hash": "9bbe8aab627f"
     },
     "mer.lyra.02": {
       "chapter": "01-tour-the-app",
@@ -1389,22 +1384,22 @@
     "mer.lyra.03": {
       "chapter": "01-tour-the-app",
       "anchor": "chat-sessions",
-      "hash": "98f6ea579753"
+      "hash": "9d8ea69782bc"
     },
     "mer.lyra.04": {
       "chapter": "01-tour-the-app",
       "anchor": "chat-sessions",
-      "hash": "98f6ea579753"
+      "hash": "9d8ea69782bc"
     },
     "mer.lyra.05": {
       "chapter": "01-tour-the-app",
       "anchor": "chat-sessions",
-      "hash": "98f6ea579753"
+      "hash": "9d8ea69782bc"
     },
     "mer.lyra.06": {
       "chapter": "01-tour-the-app",
       "anchor": "chat-sessions",
-      "hash": "98f6ea579753"
+      "hash": "9d8ea69782bc"
     },
     "mer.anders.01": {
       "chapter": "01-tour-the-app",
@@ -1444,7 +1439,7 @@
     "mer.anders.solved.02": {
       "chapter": "01-tour-the-app",
       "anchor": "chat-sessions",
-      "hash": "98f6ea579753"
+      "hash": "9d8ea69782bc"
     },
     "mer.anders.done": {
       "chapter": "01-tour-the-app",
@@ -1624,32 +1619,32 @@
     "mer.pell.01": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.04": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.05": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.letters": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.letters.02": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.letter.customize": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.letter.decoy": {
       "chapter": "01-tour-the-app",
@@ -1659,12 +1654,12 @@
     "mer.pell.letters.solved": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.letters.debrief": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "5b95eb5b50e3"
+      "hash": "49fadf6d109a"
     },
     "mer.pell.done": {
       "chapter": "01-tour-the-app",
@@ -1745,7 +1740,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "chat-sessions",
-        "hash": "98f6ea579753"
+        "hash": "9d8ea69782bc"
       }
     },
     "P1.1.pr": {

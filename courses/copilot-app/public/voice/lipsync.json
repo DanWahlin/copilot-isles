@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T08:07:33.694Z",
+  "generatedAt": "2026-10-20T16:35:01.040Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -362,14 +362,13 @@
       "v": "XCBCEBCBCXBEFBABCBABCBCBX"
     },
     "bo.deck.01": {
-      "h": "68384aa337d80ff8",
+      "h": "c9256d387b4938a2",
       "e": "neutral",
       "t": [
-        0, 1, 7, 11, 7, 7, 7, 7, 21, 7, 14, 7, 14, 7, 16, 5, 11, 7, 7, 35, 17, 12, 28, 35, 12, 6, 6, 21, 24,
-        7, 14, 7, 7, 7, 7, 7, 15, 8, 14, 14, 7, 8, 27, 19, 5, 25, 28, 21, 7, 14, 7, 7, 13, 5, 12, 7, 7, 21, 7,
-        14, 14, 14
+        0, 3, 4, 4, 10, 7, 6, 7, 7, 21, 7, 14, 14, 28, 7, 7, 21, 14, 27, 14, 21, 14, 37, 12, 7, 6, 28, 35, 7,
+        7, 7, 7, 8, 19, 7, 21, 8, 35, 14, 21, 29, 14, 7, 14, 7, 7, 12, 7, 6, 7, 7, 14, 7, 14, 7, 18
       ],
-      "v": "XCABDBCBEFBCBABDBCBXBFBAEBFBCBCHCBCAHCBCABCEFBFBDBCABDBCBCBCX"
+      "v": "XCEABDBCBEFCBCBCBXBFBXAEBFBCHCBAHCBABCFBFBDBCABDBCBCBCX"
     },
     "bo.deck.02": {
       "h": "11b4edeefb72a26d",
@@ -828,23 +827,14 @@
       ],
       "v": "XCBCBGBCBACBXBCABABCBXBCBCBXFACBEFBCBHBCABEBX"
     },
-    "mer.mina.more": {
-      "h": "a44e24f586fba895",
-      "e": "neutral",
-      "t": [
-        0, 9, 20, 21, 8, 21, 23, 8, 15, 49, 8, 11, 28, 49, 42, 42, 74, 24, 12, 5, 5, 8, 8, 28, 86, 5, 26, 49,
-        7, 7, 14, 7, 35, 78
-      ],
-      "v": "XCBAECADBADFBFBXBABCAEHXBFBCGBFCX"
-    },
     "mer.mina.projects": {
-      "h": "6d9105655f07a988",
+      "h": "3a8ac57019c3f554",
       "e": "neutral",
       "t": [
-        0, 8, 10, 7, 14, 14, 38, 13, 6, 5, 7, 7, 77, 21, 28, 10, 17, 14, 21, 89, 4, 11, 21, 14, 14, 14, 7, 14,
-        14, 39, 8, 7, 7, 21, 14, 7, 14, 7, 7, 7, 10, 6, 5, 42, 79
+        0, 9, 6, 5, 7, 14, 14, 28, 14, 8, 14, 21, 14, 7, 42, 28, 28, 9, 17, 14, 21, 89, 5, 11, 21, 14, 14, 14,
+        7, 14, 7, 45, 4, 11, 7, 21, 14, 21, 7, 7, 7, 9, 5, 4, 42, 81
       ],
-      "v": "XBCBCBABCBCBCBABCBXFCFBDBCBCBCBCBEFBEBCABCFX"
+      "v": "XBHCBCBXBCBHCBCBABCBXFCFBDBCBCBCBCBEBEBCABCFX"
     },
     "mer.mina.logbook": {
       "h": "8dd2e56c035ae753",
@@ -909,13 +899,13 @@
       "v": "XCBCABFBFCBCBXBCBCGCBDBCBXBCBCBCBX"
     },
     "mer.lyra.04": {
-      "h": "9d2cd325ba511248",
+      "h": "0ff777bd8e841c03",
       "e": "neutral",
       "t": [
-        0, 5, 21, 21, 14, 7, 35, 25, 12, 14, 7, 14, 14, 11, 7, 14, 21, 7, 14, 9, 7, 6, 7, 14, 28, 19, 5, 18,
-        14, 7, 28, 89
+        0, 5, 20, 19, 5, 18, 35, 26, 13, 7, 14, 14, 13, 9, 7, 14, 19, 5, 25, 7, 7, 14, 21, 14, 16, 5, 19, 14,
+        7, 28, 87
       ],
-      "v": "XFDBFCXBHCBAHCBCBFABCBCBXBCBCBX"
+      "v": "XFDCBCXBHCBAHCBCEFBCBCBXBCBCBX"
     },
     "mer.lyra.05": {
       "h": "5e3b142e9ac4efff",
@@ -2320,13 +2310,13 @@
       "v": "CBCABEFECGEBDBDCXACFBCBCBCABCABABFCFABCBCBABCX"
     },
     "pim.solved.fork": {
-      "h": "422f28e0b7c02791",
+      "h": "6c9c7f5c741971a8",
       "e": "neutral",
       "t": [
         0, 8, 8, 7, 7, 8, 14, 14, 7, 14, 7, 28, 7, 7, 28, 7, 21, 27, 5, 5, 7, 7, 7, 6, 16, 7, 35, 7, 14, 14,
-        7, 83, 21, 14, 7, 14, 9, 20, 7, 28, 14, 21, 74
+        7, 83, 21, 14, 7, 7, 7, 7, 7, 10, 19, 14, 21, 7, 14, 35, 14, 21, 74
       ],
-      "v": "XBGCADBEBHCGEBCEBFABACABCBEBCHXFGEBABCBCBX"
+      "v": "XBGCADBEBHCGEBCEBFABACABCBEBCHXFGECBABABCFBCBCBX"
     },
     "pol.refuse.actions.01": {
       "h": "2714a0a93a334561",
@@ -2398,14 +2388,14 @@
       "v": "XHCBFCXCHCBEFBABEBCDBCADBCEBXCBFBCBX"
     },
     "mer.anders.solved.02": {
-      "h": "28f7c35b3ec9e8f5",
+      "h": "a4f4493e73867bf7",
       "e": "neutral",
       "t": [
-        0, 12, 25, 7, 34, 6, 12, 7, 35, 21, 14, 7, 7, 12, 28, 14, 21, 9, 7, 6, 7, 7, 28, 25, 6, 12, 42, 102,
-        7, 13, 7, 49, 7, 7, 7, 8, 14, 14, 14, 14, 19, 5, 18, 8, 7, 12, 28, 14, 21, 7, 14, 10, 6, 5, 14, 7, 21,
-        88
+        0, 12, 24, 7, 29, 9, 7, 7, 7, 35, 21, 14, 7, 7, 12, 25, 14, 28, 14, 7, 57, 20, 7, 7, 28, 101, 7, 13,
+        7, 7, 7, 35, 7, 7, 7, 8, 14, 14, 14, 14, 19, 5, 18, 8, 7, 13, 27, 14, 21, 7, 14, 11, 5, 5, 14, 7, 21,
+        89
       ],
-      "v": "XBCACBCBDBFBABCFABCBCBXBCBXFECBCEBADBEBDCBABABCFCEABDBCBX"
+      "v": "XBCACBFCBDBFBABCFBCBCBCBXFECBCBCEBADBEBDCBABABCFCEABDBCBX"
     },
     "mer.helm.order.interactive": {
       "h": "f1f9c8cb788e8023",

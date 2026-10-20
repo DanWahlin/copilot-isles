@@ -1,26 +1,26 @@
 {
   "id": "mer.mina.projects",
   "speaker": "Mina",
-  "text": "Below those, Projects lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
+  "text": "Below those, Sessions lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
   "words": [
     {
       "word": "Below",
       "start": 0.0471659,
-      "end": 0.377375
+      "end": 0.389166
     },
     {
       "word": "those",
-      "start": 0.377375,
+      "start": 0.389166,
       "end": 0.978791
     },
     {
-      "word": "Projects",
+      "word": "Sessions",
       "start": 0.978791,
-      "end": 1.474041
+      "end": 1.450458
     },
     {
       "word": "lists",
-      "start": 1.474041,
+      "start": 1.450458,
       "end": 1.851416
     },
     {
@@ -31,72 +31,72 @@
     {
       "word": "connected",
       "start": 2.099041,
-      "end": 2.606125
+      "end": 2.629708
     },
     {
       "word": "project",
-      "start": 2.606125,
-      "end": 4.009416
+      "start": 2.629708,
+      "end": 4.033
     },
     {
       "word": "Once",
-      "start": 4.009416,
-      "end": 4.316041
+      "start": 4.033,
+      "end": 4.339625
     },
     {
       "word": "you’ve",
-      "start": 4.316041,
-      "end": 4.492916
+      "start": 4.339625,
+      "end": 4.5165
     },
     {
       "word": "started",
-      "start": 4.492916,
-      "end": 4.893875
+      "start": 4.5165,
+      "end": 4.917458
     },
     {
       "word": "a",
-      "start": 4.893875,
-      "end": 4.964625
+      "start": 4.917458,
+      "end": 4.988208
     },
     {
       "word": "chat",
-      "start": 4.964625,
-      "end": 5.589625
+      "start": 4.988208,
+      "end": 5.613208
     },
     {
       "word": "a",
-      "start": 5.589625,
-      "end": 5.660375
+      "start": 5.613208,
+      "end": 5.683958
     },
     {
       "word": "Chats",
-      "start": 5.660375,
-      "end": 5.990583
+      "start": 5.683958,
+      "end": 6.014166
     },
     {
       "word": "row",
-      "start": 5.990583,
-      "end": 6.202833
+      "start": 6.014166,
+      "end": 6.226416
     },
     {
       "word": "shows",
-      "start": 6.202833,
-      "end": 6.544791
+      "start": 6.226416,
+      "end": 6.568416
     },
     {
       "word": "up",
-      "start": 6.544791,
-      "end": 6.698125
+      "start": 6.568416,
+      "end": 6.721708
     },
     {
       "word": "there",
-      "start": 6.698125,
-      "end": 6.827833
+      "start": 6.721708,
+      "end": 6.851416
     },
     {
       "word": "too",
-      "start": 6.827833,
-      "end": 7.077833
+      "start": 6.851416,
+      "end": 7.101416
     }
   ]
 }

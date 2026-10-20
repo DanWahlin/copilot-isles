@@ -1,7 +1,7 @@
 {
   "id": "mer.anders.solved.02",
   "speaker": "Anders",
-  "text": "In the app, a question starts with + next to Projects, then Chat. Work that needs your repository starts from the + next to your project.",
+  "text": "In the app, a question starts with + next to Sessions, then Chat. Work that needs your repository starts from the + next to your project.",
   "words": [
     {
       "word": "In",
@@ -16,31 +16,31 @@
     {
       "word": "app",
       "start": 0.359041,
-      "end": 0.771291
+      "end": 0.757958
     },
     {
       "word": "a",
-      "start": 0.771291,
-      "end": 0.83775
+      "start": 0.757958,
+      "end": 0.811166
     },
     {
       "word": "question",
-      "start": 0.83775,
-      "end": 1.3165
+      "start": 0.811166,
+      "end": 1.289875
     },
     {
       "word": "starts",
-      "start": 1.3165,
-      "end": 1.728708
+      "start": 1.289875,
+      "end": 1.715416
     },
     {
       "word": "with",
-      "start": 1.728708,
-      "end": 1.914875
+      "start": 1.715416,
+      "end": 1.901583
     },
     {
       "word": "plus",
-      "start": 1.914875,
+      "start": 1.901583,
       "end": 2.247333
     },
     {
@@ -54,84 +54,84 @@
       "end": 2.646291
     },
     {
-      "word": "Projects",
+      "word": "Sessions",
       "start": 2.646291,
-      "end": 3.444166
+      "end": 3.377666
     },
     {
       "word": "then",
-      "start": 3.444166,
-      "end": 3.6835
+      "start": 3.377666,
+      "end": 3.630333
     },
     {
       "word": "Chat",
-      "start": 3.6835,
-      "end": 5.053208
+      "start": 3.630333,
+      "end": 4.986708
     },
     {
       "word": "Work",
-      "start": 5.053208,
-      "end": 5.398916
+      "start": 4.986708,
+      "end": 5.332458
     },
     {
       "word": "that",
-      "start": 5.398916,
-      "end": 5.625
+      "start": 5.332458,
+      "end": 5.5585
     },
     {
       "word": "needs",
-      "start": 5.625,
-      "end": 5.90425
+      "start": 5.5585,
+      "end": 5.83775
     },
     {
       "word": "your",
-      "start": 5.90425,
-      "end": 6.063833
+      "start": 5.83775,
+      "end": 5.997333
     },
     {
       "word": "repository",
-      "start": 6.063833,
-      "end": 6.688833
+      "start": 5.997333,
+      "end": 6.622333
     },
     {
       "word": "starts",
-      "start": 6.688833,
-      "end": 7.08775
+      "start": 6.622333,
+      "end": 7.021291
     },
     {
       "word": "from",
-      "start": 7.08775,
-      "end": 7.247333
+      "start": 7.021291,
+      "end": 7.180833
     },
     {
       "word": "the",
-      "start": 7.247333,
-      "end": 7.353708
+      "start": 7.180833,
+      "end": 7.28725
     },
     {
       "word": "plus",
-      "start": 7.353708,
-      "end": 7.672875
+      "start": 7.28725,
+      "end": 7.606375
     },
     {
       "word": "next",
-      "start": 7.672875,
-      "end": 7.978708
+      "start": 7.606375,
+      "end": 7.91225
     },
     {
       "word": "to",
-      "start": 7.978708,
-      "end": 8.071791
+      "start": 7.91225,
+      "end": 8.005333
     },
     {
       "word": "your",
-      "start": 8.071791,
-      "end": 8.284583
+      "start": 8.005333,
+      "end": 8.218083
     },
     {
       "word": "project",
-      "start": 8.284583,
-      "end": 8.534583
+      "start": 8.218083,
+      "end": 8.468083
     }
   ]
 }

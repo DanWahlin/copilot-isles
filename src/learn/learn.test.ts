@@ -129,10 +129,16 @@ describe('progress', () => {
         quests: { 'Q1.5': 'done', 'Q1.6': 'start' },
       }),
     );
-    expect(old.pages).toEqual(['C0.6', 'pg1.pull-requests', 'pg1.issues', 'pg1.more', 'pg1.new']);
+    expect(old.pages).toEqual(['C0.6', 'pg1.pull-requests', 'pg1.issues', 'pg1.sessions-chats', 'pg1.new']);
     expect(old.glossary).toEqual(['current-checkout', 'pull-requests', 'issues', 'tool-permissions']);
     for (const id of old.pages) expect(PAGES.has(id), id).toBe(true);
     for (const id of old.glossary) expect(GLOSSARY.has(id), id).toBe(true);
+  });
+
+  it('moves a save’s More page (gone in app 1.1.30) to Sessions and chats', () => {
+    const old = parseProgress(JSON.stringify({ v: 1, pages: ['pg1.customize', 'pg1.more'] }));
+    expect(old.pages).toEqual(['pg1.customize', 'pg1.sessions-chats']);
+    for (const id of old.pages) expect(PAGES.has(id), id).toBe(true);
   });
 
   it('gives saves that finished Pell before his Lost Letters (P1.3) the Settings term', () => {

@@ -319,7 +319,7 @@
   },
   "legacySaves": true,
   "migrations": {
-    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; the crane follows Bo, and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues. taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
+    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; the crane follows Bo, and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues; app 1.1.30 dropped More (Edit sidebar...) and named Projects Sessions, so the More page became Sessions and chats. taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
     "quests": [
       { "when": { "Q0.2": "chest" }, "set": { "Q0.2": "palette" } },
       { "when": { "Q0.5": "done", "Q0.4": { "not": "done" } }, "set": { "Q0.4": "done" } },
@@ -336,7 +336,8 @@
     "renamed": {
       "local-repository": ["current-checkout"],
       "my-work": ["pull-requests", "issues"],
-      "pg1.my-work": ["pg1.pull-requests", "pg1.issues", "pg1.more"]
+      "pg1.my-work": ["pg1.pull-requests", "pg1.issues", "pg1.sessions-chats"],
+      "pg1.more": ["pg1.sessions-chats"]
     },
     "taught": { "Q1.5": ["tool-permissions"], "Q1.6": ["context-window"], "Q1.7": ["settings"] }
   }
