@@ -86,6 +86,7 @@ function code(src: string, tsx = true): string[] {
 }
 
 describe('the game is course-neutral', () => {
+  // It parses every source file (~1.3 s idle), so a busy runner needs more than the default 5 s.
   it('names no course id or course word in its code', () => {
     const found: string[] = [];
     for (const path of files(join(ROOT, 'src'))) {
@@ -98,7 +99,7 @@ describe('the game is course-neutral', () => {
       });
     }
     expect(found).toEqual([]);
-  });
+  }, 30_000);
 
   it('finds the words it looks for, in code and not in comments', () => {
     const denied = (src: string, tsx = false) =>
