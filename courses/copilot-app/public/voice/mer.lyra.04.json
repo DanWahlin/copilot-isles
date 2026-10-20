@@ -1,7 +1,7 @@
 {
   "id": "mer.lyra.04",
   "speaker": "Lyra",
-  "text": "To start one, select the + next to Projects, then Chat.",
+  "text": "To start one, select the + next to Sessions, then Chat.",
   "words": [
     {
       "word": "To",
@@ -39,19 +39,19 @@
       "end": 2.631583
     },
     {
-      "word": "Projects",
+      "word": "Sessions",
       "start": 2.631583,
-      "end": 3.434208
+      "end": 3.381583
     },
     {
       "word": "then",
-      "start": 3.434208,
-      "end": 3.710541
+      "start": 3.381583,
+      "end": 3.64475
     },
     {
       "word": "Chat",
-      "start": 3.710541,
-      "end": 3.960541
+      "start": 3.64475,
+      "end": 3.89475
     }
   ]
 }

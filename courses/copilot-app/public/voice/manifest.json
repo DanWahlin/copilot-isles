@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T08:05:52.555Z",
+  "generatedAt": "2026-10-20T16:33:54.290Z",
   "set": "testcove",
   "lines": [
     {
@@ -4598,13 +4598,13 @@
     {
       "id": "bo.deck.01",
       "speaker": "Bo",
-      "text": "Your project shows under Projects? Good. Point to it, and select the + that appears next to it to start a project session.",
-      "duration": 7.608,
+      "text": "Your project shows under Sessions? Good. Point to it, and select the + that appears next to it to start a project session.",
+      "duration": 7.208,
       "files": {
         "webm": "bo.deck.01.webm",
         "m4a": "bo.deck.01.m4a"
       },
-      "hash": "68384aa337d80ff8",
+      "hash": "c9256d387b4938a2",
       "words": [
         {
           "word": "Your",
@@ -4624,97 +4624,102 @@
         {
           "word": "under",
           "start": 0.99,
-          "end": 1.27
+          "end": 1.23
         },
         {
-          "word": "Projects",
-          "start": 1.27,
-          "end": 2.27
+          "word": "Sessions",
+          "start": 1.23,
+          "end": 2.19
         },
         {
           "word": "Good",
-          "start": 2.27,
-          "end": 2.949
+          "start": 2.19,
+          "end": 2.989
         },
         {
           "word": "Point",
-          "start": 2.949,
-          "end": 3.27
+          "start": 2.989,
+          "end": 3.349
         },
         {
           "word": "to",
-          "start": 3.27,
-          "end": 3.429
+          "start": 3.349,
+          "end": 3.51
         },
         {
           "word": "it",
-          "start": 3.429,
+          "start": 3.51,
           "end": 3.63
         },
         {
           "word": "and",
           "start": 3.63,
-          "end": 3.789
+          "end": 3.829
         },
         {
           "word": "select",
-          "start": 3.789,
-          "end": 4.07
+          "start": 3.829,
+          "end": 4.11
         },
         {
           "word": "the",
-          "start": 4.07,
-          "end": 4.31
+          "start": 4.11,
+          "end": 4.23
+        },
+        {
+          "word": "plus",
+          "start": 4.23,
+          "end": 4.55
         },
         {
           "word": "that",
-          "start": 4.31,
-          "end": 4.79
+          "start": 4.55,
+          "end": 4.71
         },
         {
           "word": "appears",
-          "start": 4.79,
-          "end": 5.15
+          "start": 4.71,
+          "end": 5.11
         },
         {
           "word": "next",
-          "start": 5.15,
-          "end": 5.47
+          "start": 5.11,
+          "end": 5.39
         },
         {
           "word": "to",
-          "start": 5.47,
-          "end": 5.63
+          "start": 5.39,
+          "end": 5.51
         },
         {
           "word": "it",
-          "start": 5.63,
-          "end": 5.91
+          "start": 5.51,
+          "end": 5.79
         },
         {
           "word": "to",
-          "start": 5.91,
-          "end": 6.07
+          "start": 5.79,
+          "end": 5.91
         },
         {
           "word": "start",
-          "start": 6.07,
-          "end": 6.43
+          "start": 5.91,
+          "end": 6.23
         },
         {
           "word": "a",
-          "start": 6.43,
-          "end": 6.51
+          "start": 6.23,
+          "end": 6.31
         },
         {
           "word": "project",
-          "start": 6.51,
-          "end": 7.03
+          "start": 6.31,
+          "end": 6.71
         },
         {
           "word": "session",
-          "start": 7.03,
-          "end": 7.28
+          "start": 6.71,
+          "end": 6.96
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -10586,143 +10591,34 @@
       "voice": "en-GB-HollieNeural"
     },
     {
-      "id": "mer.mina.more",
-      "speaker": "Mina",
-      "text": "Then there’s More, where Edit sidebar chooses which views you see. Keep them all. The course uses every one.",
-      "duration": 8.407,
-      "files": {
-        "webm": "mer.mina.more.webm",
-        "m4a": "mer.mina.more.m4a"
-      },
-      "hash": "a44e24f586fba895",
-      "words": [
-        {
-          "word": "Then",
-          "start": 0.0471659,
-          "end": 0.294791
-        },
-        {
-          "word": "there’s",
-          "start": 0.294791,
-          "end": 0.507083
-        },
-        {
-          "word": "More",
-          "start": 0.507083,
-          "end": 1.03775
-        },
-        {
-          "word": "where",
-          "start": 1.03775,
-          "end": 1.226416
-        },
-        {
-          "word": "Edit",
-          "start": 1.226416,
-          "end": 1.521208
-        },
-        {
-          "word": "sidebar",
-          "start": 1.521208,
-          "end": 2.004708
-        },
-        {
-          "word": "chooses",
-          "start": 2.004708,
-          "end": 2.464625
-        },
-        {
-          "word": "which",
-          "start": 2.464625,
-          "end": 2.688666
-        },
-        {
-          "word": "views",
-          "start": 2.688666,
-          "end": 3.018875
-        },
-        {
-          "word": "you",
-          "start": 3.018875,
-          "end": 3.136791
-        },
-        {
-          "word": "see",
-          "start": 3.136791,
-          "end": 4.375
-        },
-        {
-          "word": "Keep",
-          "start": 4.375,
-          "end": 4.658
-        },
-        {
-          "word": "them",
-          "start": 4.658,
-          "end": 4.823125
-        },
-        {
-          "word": "all",
-          "start": 4.823125,
-          "end": 6.014166
-        },
-        {
-          "word": "The",
-          "start": 6.014166,
-          "end": 6.155666
-        },
-        {
-          "word": "course",
-          "start": 6.155666,
-          "end": 6.485833
-        },
-        {
-          "word": "uses",
-          "start": 6.485833,
-          "end": 6.851416
-        },
-        {
-          "word": "every",
-          "start": 6.851416,
-          "end": 7.134416
-        },
-        {
-          "word": "one",
-          "start": 7.134416,
-          "end": 7.384416
-        }
-      ],
-      "voice": "en-GB-HollieNeural"
-    },
-    {
       "id": "mer.mina.projects",
       "speaker": "Mina",
-      "text": "Below those, Projects lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
-      "duration": 8.007,
+      "text": "Below those, Sessions lists each connected project. Once you’ve started a chat, a Chats row shows up there too.",
+      "duration": 8.107,
       "files": {
         "webm": "mer.mina.projects.webm",
         "m4a": "mer.mina.projects.m4a"
       },
-      "hash": "6d9105655f07a988",
+      "hash": "3a8ac57019c3f554",
       "words": [
         {
           "word": "Below",
           "start": 0.0471659,
-          "end": 0.377375
+          "end": 0.389166
         },
         {
           "word": "those",
-          "start": 0.377375,
+          "start": 0.389166,
           "end": 0.978791
         },
         {
-          "word": "Projects",
+          "word": "Sessions",
           "start": 0.978791,
-          "end": 1.474041
+          "end": 1.450458
         },
         {
           "word": "lists",
-          "start": 1.474041,
+          "start": 1.450458,
           "end": 1.851416
         },
         {
@@ -10733,72 +10629,72 @@
         {
           "word": "connected",
           "start": 2.099041,
-          "end": 2.606125
+          "end": 2.629708
         },
         {
           "word": "project",
-          "start": 2.606125,
-          "end": 4.009416
+          "start": 2.629708,
+          "end": 4.033
         },
         {
           "word": "Once",
-          "start": 4.009416,
-          "end": 4.316041
+          "start": 4.033,
+          "end": 4.339625
         },
         {
           "word": "you’ve",
-          "start": 4.316041,
-          "end": 4.492916
+          "start": 4.339625,
+          "end": 4.5165
         },
         {
           "word": "started",
-          "start": 4.492916,
-          "end": 4.893875
+          "start": 4.5165,
+          "end": 4.917458
         },
         {
           "word": "a",
-          "start": 4.893875,
-          "end": 4.964625
+          "start": 4.917458,
+          "end": 4.988208
         },
         {
           "word": "chat",
-          "start": 4.964625,
-          "end": 5.589625
+          "start": 4.988208,
+          "end": 5.613208
         },
         {
           "word": "a",
-          "start": 5.589625,
-          "end": 5.660375
+          "start": 5.613208,
+          "end": 5.683958
         },
         {
           "word": "Chats",
-          "start": 5.660375,
-          "end": 5.990583
+          "start": 5.683958,
+          "end": 6.014166
         },
         {
           "word": "row",
-          "start": 5.990583,
-          "end": 6.202833
+          "start": 6.014166,
+          "end": 6.226416
         },
         {
           "word": "shows",
-          "start": 6.202833,
-          "end": 6.544791
+          "start": 6.226416,
+          "end": 6.568416
         },
         {
           "word": "up",
-          "start": 6.544791,
-          "end": 6.698125
+          "start": 6.568416,
+          "end": 6.721708
         },
         {
           "word": "there",
-          "start": 6.698125,
-          "end": 6.827833
+          "start": 6.721708,
+          "end": 6.851416
         },
         {
           "word": "too",
-          "start": 6.827833,
-          "end": 7.077833
+          "start": 6.851416,
+          "end": 7.101416
         }
       ],
       "voice": "en-GB-HollieNeural"
@@ -11364,13 +11260,13 @@
     {
       "id": "mer.lyra.04",
       "speaker": "Lyra",
-      "text": "To start one, select the + next to Projects, then Chat.",
-      "duration": 5.207,
+      "text": "To start one, select the + next to Sessions, then Chat.",
+      "duration": 5.107,
       "files": {
         "webm": "mer.lyra.04.webm",
         "m4a": "mer.lyra.04.m4a"
       },
-      "hash": "9d2cd325ba511248",
+      "hash": "0ff777bd8e841c03",
       "words": [
         {
           "word": "To",
@@ -11408,19 +11304,19 @@
           "end": 2.631583
         },
         {
-          "word": "Projects",
+          "word": "Sessions",
           "start": 2.631583,
-          "end": 3.434208
+          "end": 3.381583
         },
         {
           "word": "then",
-          "start": 3.434208,
-          "end": 3.710541
+          "start": 3.381583,
+          "end": 3.64475
         },
         {
           "word": "Chat",
-          "start": 3.710541,
-          "end": 3.960541
+          "start": 3.64475,
+          "end": 3.89475
         }
       ],
       "voice": "en-GB-LibbyNeural"
@@ -27377,13 +27273,13 @@
     {
       "id": "pim.solved.fork",
       "speaker": "Pim",
-      "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork to Projects instead.",
-      "duration": 6.707,
+      "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork from the + next to Sessions instead.",
+      "duration": 7.407,
       "files": {
         "webm": "pim.solved.fork.webm",
         "m4a": "pim.solved.fork.m4a"
       },
-      "hash": "422f28e0b7c02791",
+      "hash": "6c9c7f5c741971a8",
       "words": [
         {
           "word": "If",
@@ -27458,22 +27354,42 @@
         {
           "word": "fork",
           "start": 4.609375,
-          "end": 4.921875
+          "end": 4.899541
+        },
+        {
+          "word": "from",
+          "start": 4.899541,
+          "end": 5.044625
+        },
+        {
+          "word": "the",
+          "start": 5.044625,
+          "end": 5.15625
+        },
+        {
+          "word": "plus",
+          "start": 5.15625,
+          "end": 5.412958
+        },
+        {
+          "word": "next",
+          "start": 5.412958,
+          "end": 5.647333
         },
         {
           "word": "to",
-          "start": 4.921875,
-          "end": 4.977666
+          "start": 5.647333,
+          "end": 5.736625
         },
         {
-          "word": "Projects",
-          "start": 4.977666,
-          "end": 5.43525
+          "word": "Sessions",
+          "start": 5.736625,
+          "end": 6.12725
         },
         {
           "word": "instead",
-          "start": 5.43525,
-          "end": 5.68525
+          "start": 6.12725,
+          "end": 6.37725
         }
       ],
       "voice": "en-IE-ConnorNeural"
@@ -28338,13 +28254,13 @@
     {
       "id": "mer.anders.solved.02",
       "speaker": "Anders",
-      "text": "In the app, a question starts with + next to Projects, then Chat. Work that needs your repository starts from the + next to your project.",
+      "text": "In the app, a question starts with + next to Sessions, then Chat. Work that needs your repository starts from the + next to your project.",
       "duration": 9.807,
       "files": {
         "webm": "mer.anders.solved.02.webm",
         "m4a": "mer.anders.solved.02.m4a"
       },
-      "hash": "28f7c35b3ec9e8f5",
+      "hash": "a4f4493e73867bf7",
       "words": [
         {
           "word": "In",
@@ -28359,31 +28275,31 @@
         {
           "word": "app",
           "start": 0.359041,
-          "end": 0.771291
+          "end": 0.757958
         },
         {
           "word": "a",
-          "start": 0.771291,
-          "end": 0.83775
+          "start": 0.757958,
+          "end": 0.811166
         },
         {
           "word": "question",
-          "start": 0.83775,
-          "end": 1.3165
+          "start": 0.811166,
+          "end": 1.289875
         },
         {
           "word": "starts",
-          "start": 1.3165,
-          "end": 1.728708
+          "start": 1.289875,
+          "end": 1.715416
         },
         {
           "word": "with",
-          "start": 1.728708,
-          "end": 1.914875
+          "start": 1.715416,
+          "end": 1.901583
         },
         {
           "word": "plus",
-          "start": 1.914875,
+          "start": 1.901583,
           "end": 2.247333
         },
         {
@@ -28397,84 +28313,84 @@
           "end": 2.646291
         },
         {
-          "word": "Projects",
+          "word": "Sessions",
           "start": 2.646291,
-          "end": 3.444166
+          "end": 3.377666
         },
         {
           "word": "then",
-          "start": 3.444166,
-          "end": 3.6835
+          "start": 3.377666,
+          "end": 3.630333
         },
         {
           "word": "Chat",
-          "start": 3.6835,
-          "end": 5.053208
+          "start": 3.630333,
+          "end": 4.986708
         },
         {
           "word": "Work",
-          "start": 5.053208,
-          "end": 5.398916
+          "start": 4.986708,
+          "end": 5.332458
         },
         {
           "word": "that",
-          "start": 5.398916,
-          "end": 5.625
+          "start": 5.332458,
+          "end": 5.5585
         },
         {
           "word": "needs",
-          "start": 5.625,
-          "end": 5.90425
+          "start": 5.5585,
+          "end": 5.83775
         },
         {
           "word": "your",
-          "start": 5.90425,
-          "end": 6.063833
+          "start": 5.83775,
+          "end": 5.997333
         },
         {
           "word": "repository",
-          "start": 6.063833,
-          "end": 6.688833
+          "start": 5.997333,
+          "end": 6.622333
         },
         {
           "word": "starts",
-          "start": 6.688833,
-          "end": 7.08775
+          "start": 6.622333,
+          "end": 7.021291
         },
         {
           "word": "from",
-          "start": 7.08775,
-          "end": 7.247333
+          "start": 7.021291,
+          "end": 7.180833
         },
         {
           "word": "the",
-          "start": 7.247333,
-          "end": 7.353708
+          "start": 7.180833,
+          "end": 7.28725
         },
         {
           "word": "plus",
-          "start": 7.353708,
-          "end": 7.672875
+          "start": 7.28725,
+          "end": 7.606375
         },
         {
           "word": "next",
-          "start": 7.672875,
-          "end": 7.978708
+          "start": 7.606375,
+          "end": 7.91225
         },
         {
           "word": "to",
-          "start": 7.978708,
-          "end": 8.071791
+          "start": 7.91225,
+          "end": 8.005333
         },
         {
           "word": "your",
-          "start": 8.071791,
-          "end": 8.284583
+          "start": 8.005333,
+          "end": 8.218083
         },
         {
           "word": "project",
-          "start": 8.284583,
-          "end": 8.534583
+          "start": 8.218083,
+          "end": 8.468083
         }
       ],
       "voice": "en-GB-EthanNeural"

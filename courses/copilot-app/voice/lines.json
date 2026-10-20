@@ -213,7 +213,10 @@
     {
       "id": "pim.solved.fork",
       "speaker": "Pim",
-      "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork to Projects instead."
+      "sub": {
+        "+": "plus"
+      },
+      "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork from the + next to Sessions instead."
     },
     {
       "id": "pol.refuse.guild.01",
@@ -313,7 +316,10 @@
     {
       "id": "bo.deck.01",
       "speaker": "Bo",
-      "text": "Your project shows under Projects? Good. Point to it, and select the + that appears next to it to start a project session."
+      "sub": {
+        "+": "plus"
+      },
+      "text": "Your project shows under Sessions? Good. Point to it, and select the + that appears next to it to start a project session."
     },
     {
       "id": "bo.deck.02",
@@ -639,17 +645,9 @@
       }
     },
     {
-      "id": "mer.mina.more",
-      "speaker": "Mina",
-      "sub": {
-        "MCP": "M C P"
-      },
-      "text": "Then there’s More, where Edit sidebar chooses which views you see. Keep them all. The course uses every one."
-    },
-    {
       "id": "mer.mina.projects",
       "speaker": "Mina",
-      "text": "Below those, Projects lists each connected project. Once you’ve started a chat, a Chats row shows up there too."
+      "text": "Below those, Sessions lists each connected project. Once you’ve started a chat, a Chats row shows up there too."
     },
     {
       "id": "mer.mina.logbook",
@@ -689,7 +687,7 @@
     {
       "id": "mer.lyra.04",
       "speaker": "Lyra",
-      "text": "To start one, select the + next to Projects, then Chat."
+      "text": "To start one, select the + next to Sessions, then Chat."
     },
     {
       "id": "mer.lyra.05",
@@ -759,7 +757,7 @@
     {
       "id": "mer.anders.solved.02",
       "speaker": "Anders",
-      "text": "In the app, a question starts with + next to Projects, then Chat. Work that needs your repository starts from the + next to your project.",
+      "text": "In the app, a question starts with + next to Sessions, then Chat. Work that needs your repository starts from the + next to your project.",
       "sub": {
         "+": "plus"
       }

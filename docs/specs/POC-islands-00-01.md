@@ -31,7 +31,7 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 | Prerequisites (GitHub account, Copilot plan *or* own model provider, Business/Enterprise **GitHub Copilot app** policy, Git, Node LTS, `gh`) | Nell (Q0.2), chest C0.1 → pg.prereqs | Gear Check (Q0.4) | T0 #6 |
 | Download & install → **Sign in to GitHub** → leave every repository unselected at **Connect your repositories** → **Continue** → **New** view (the theme lives in **Settings → Themes**) | Nell (Q0.2), pg.install, C0.3 | Paint Your Sails | *(shown, not quizzed: one obvious button)* |
 | Fork = your own copy; pick **your fork**, not the original, in search | Ezra (Q0.3), pg.fork | Copy the Master Chart | S0.3, T0 #1 |
-| **+** next to **Projects** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, T0 #1 |
+| **+** next to **Sessions** → **Add GitHub repository**; alternatives **Open folder** / **Clone repository** | Ezra (Q0.3), C0.4 | Moor Your Ship | H0.2, T0 #1 |
 | Start a project session with the **+ next to the project** (not the **Projects +**); workspace selector → **Current checkout** (not **New worktree**) for setup, then a short prompt creates the session | Bo (Q0.4), C0.6 | Your Own Deck | H0.4, T0 #1, #2, #7 |
 | **View → Toggle Review Panel** → **Terminal** tab (or **+ → Terminal**); version checks; install only what's missing | Bo (Q0.4), pg.terminal | Gear Rack (scenery) | T0 #2 |
 | `gh auth status` / `gh auth login` (GitHub.com → Login with a web browser) | Bo (Q0.4), pg.terminal | | S0.1, T0 #2 |
@@ -47,7 +47,7 @@ Every course objective is **taught** (by an NPC or a Logbook page), **practiced*
 |---|---|---|---|
 | Why the app: 5 challenges (canvases for progress buried in chat) → what the app adds; it doesn't replace your editor | Tobias (Q1.2) | Scattered Evidence | M1.1 |
 | Keep your editor; open in VS Code any time ("Use both") | Gideon (Q1.3), C1.6 | | S1.1 |
-| Sidebar: **New**, **Pull requests**, **Issues**, **Automations**, **Customize**, **More** (**Edit sidebar...**), **Projects** (a **Chats** row once you've started a chat) | Districts (Q1.4), C1.1-C1.3 | Harbor Passport | H1.1 (×4), H1.2 |
+| Sidebar: **New**, **Pull requests**, **Issues**, **Automations**, **Customize**, **Sessions** (a **Chats** row once you've started a chat; app 1.1.30 renamed **Projects** and dropped **More**) | Districts (Q1.4), C1.1-C1.3 | Harbor Passport | H1.1 (×4), H1.2 |
 | Chat session vs Project session (branch/worktree?) | Marisol & Anders (Q1.5) | **P1.1 Tavern or Shipyard** | H1.3, H1.4, A1 #5 |
 | Most project sessions use **New worktree**; the Ch 00 session on **Current checkout** was the exception (the app remembers it until Ch 02) | Anders (Q1.5) | | A1 #4 |
 | Modes: **Interactive / Plan / Autopilot** ("options, not levels to unlock"); **Tool permissions** (Always ask, Approve all, Assisted) | Rhea (Q1.6), C1.7 | **P1.2 Three Helms** | S1.2, A1 #9 |
@@ -163,7 +163,7 @@ targets:
   - { id: new,           rect: [0.008,0.089,0.240,0.050] }
   - { id: customize,     rect: [0.008,0.244,0.240,0.050] }
 explain:
-  correct: "Right: the + next to Projects opens the menu for adding a project."
+  correct: "Right: the + next to Sessions opens the menu for adding a project."
   wrong:   "Close! Look for the + beside the Projects heading in the sidebar."
 source: { chapter: 00-setup, anchor: connect-to-your-repository }
 ```
@@ -258,7 +258,7 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 
 **Q0.3 · Copy the Master Chart** *(00 · Connect to your repository)*
 - Ezra waits at his chart table on the quay by the pier foot. He explains that a **fork** is *your own copy* of the course repository on GitHub, and grants **[P] "Fork the course"** (pg.fork, with the fork URL).
-- **Moor Your Ship:** on the unopened New view, **H0.2** asks you to find the **+** next to **Projects**. Then the spyglass shows the menu it opens (`app-add-project`): **Add GitHub repository** is told, not quizzed, along with **Open folder** / **Clone repository**.
+- **Moor Your Ship:** on the unopened New view, **H0.2** asks you to find the **+** next to **Sessions**. Then the spyglass shows the menu it opens (`app-add-project`): **Add GitHub repository** is told, not quizzed, along with **Open folder** / **Clone repository**.
 - Ezra warns that search can show the original too. **S0.3:** `github/…` or `your-handle/…`? → **your fork**. The app clones it and adds the project to the sidebar. **[C0.4]**
 
 **Q0.4 · Your Own Deck** *(00 · Check your tools in Terminal)*
@@ -326,7 +326,7 @@ The stops run along the harbour in the chapter's order, so there's no doubling b
 |---|---|---|---|
 | C0.1 | Nell's chest (beside her door) | *(page pg.prereqs, no image)* | What you need: account, plan or own provider, app policy, Git, Node LTS, `gh`, with links. |
 | C0.3 | Nell, after sign-in | `assets/app-github-copilot-app.webp` | Select **Continue** and the **New** view opens, where new work starts. You can close the tip it may show. |
-| C0.4 | Chartmaker's loft | `00-setup/assets/app-add-project.webp` | **+** next to **Projects** → **Add GitHub repository** (or Clone repository / Open folder). |
+| C0.4 | Chartmaker's loft | `00-setup/assets/app-add-project.webp` | **+** next to **Sessions** → **Add GitHub repository** (or Clone repository / Open folder). |
 | C0.5 | Bard's hammock | `00-setup/assets/studio-setup-soundcheck.webp` | Setting up the app is like prepping a studio before the first take. |
 | C0.6 | Bo, after H0.4 | `00-setup/assets/app-current-checkout-workspace-selector.webp` | **Current checkout** works in the clone already on your machine. A short prompt creates the session. |
 | P0.S | From Pol, after the crane | *(Logbook page: code block, no image)* | The two setup commands, run in **Terminal** from the repo root: `--dry-run` first, check `Repository:`, then `--yes`. |
@@ -438,13 +438,13 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 - **Voyage Office = New:** the landing view. Start a chat without a project, pick a connected project, choose mode & model, or use a sample idea. The posters match the screenshot you're shown: *"Create a reusable technical design doc template for feature proposals"*, *"Compare monorepo vs multi-repo and when to use each"*, and *"Create an accessibility audit checklist for web interfaces"*. Mina notes that the ideas shown can vary. **[C1.1]** `app-new-page`.
 - **Bounty Board = Pull requests & Issues** (My work split in two in app 1.1.26): each view lists the items that involve you, with tabs to filter them. **The notices are the practice items you loaded on Anchorage Cay**: the practice pull requests on **Authored by me** (`app-pull-requests-page`, where *Failing stats check practice* shows **Failed**) and the practice issues on **Assigned to me** (`app-issues-page`, like *Make search case-insensitive*). Rourke: *"Numbers on your own fork may differ. Go by the title."* **[C1.2]** Keelhaven teaches opening and fixing the check.
 - **Clock Tower = Automations:** recurring agent tasks. Templates run manually or daily/weekly, events can trigger them, and you choose local or cloud. *"Tidewheel Caldera's clockmakers will teach you properly."* **[C1.3]** `app-automations-page`.
-- **Outfitter = Customize:** skills, MCP servers, plugins, extensions, and canvases. **More → Edit sidebar...** chooses which views show; keep them all. *"You don't need any of it yet. Guildcrest, Sunspire Sands, and Inkwell Bluffs will kit you out."*
+- **Outfitter = Customize:** skills, MCP servers, plugins, extensions, and canvases. *"You don't need any of it yet. Guildcrest, Sunspire Sands, and Inkwell Bluffs will kit you out."*
 - **Tavern & Shipyard = Projects and chats:** covered in Q1.5.
 - **Passport review, H1.1** (on `app-new-page`, no masking needed): "Where do you find the practice issues assigned to you?" → **Issues** (the sidebar rows are 40 px apart from y 68: New, Pull requests, Issues, Automations, Customize, More).
 
 **Q1.5 · A Word at the Tavern, Work at the Shipyard** *(01 · Projects and chats, Chat sessions, Project sessions)*
 - Marisol: *"A chat is like asking a musician a quick question."* Chats are for learning and brainstorming, and they don't create a branch or worktree.
-  - The spyglass shows `app-quick-chat`: start a chat with **+** next to **Projects**, then **Chat** (in 1.1.26 the **Chats** row only appears once a chat exists).
+  - The spyglass shows `app-quick-chat`: start a chat with **+** next to **Sessions**, then **Chat** (in 1.1.26 the **Chats** row only appears once a chat exists).
   - **H1.2:** "Where do you check whether your prompt goes to a chat or a project?" → **the project picker below the prompt**. **[C1.4]**
 - Anders at the Shipyard: use a **project session** when the agent needs repository context, has to change code, or must create an artifact such as a PR. Most project sessions should use **New worktree**. *"Your Anchorage setup used Current checkout on purpose. That was the exception, and the app remembers it, so you'll switch back in Chapter 02."*
 - Then **P1.1**.
@@ -541,7 +541,7 @@ Nell breaks a coconut on the bow of your **brigantine**, a two-masted, square-ri
 | C1.1 | Voyage Office | `01-tour-the-app/assets/app-new-page.webp` | **New** is the landing view: start a chat, pick a project, choose a mode & model. |
 | C1.2 | Bounty Board | `01-tour-the-app/assets/app-pull-requests-page.webp`, `app-issues-page.webp` | **Pull requests** and **Issues** list the items that involve you, with tabs to filter them. |
 | C1.3 | Clock Tower | `01-tour-the-app/assets/app-automations-page.webp` | **Automations** saves agent tasks to run manually, on a schedule, or from events. |
-| C1.4 | Tavern cellar | `01-tour-the-app/assets/app-quick-chat.webp` | Start a chat with **+** next to **Projects**, then **Chat**. The project picker shows **Chat**. |
+| C1.4 | Tavern cellar | `01-tour-the-app/assets/app-quick-chat.webp` | Start a chat with **+** next to **Sessions**, then **Chat**. The project picker shows **Chat**. |
 | C1.5 | Archive vault *(not built: P1.3's debrief shows this image instead)* | `01-tour-the-app/assets/app-settings.webp` | **Settings** holds General, Accounts, Sessions, Themes, Accessibility and more. |
 | C1.6 | Workshop | `01-tour-the-app/assets/editor-vs-app.webp` | Use both. Switch when the job changes. |
 | C1.7 | Academy | `01-tour-the-app/assets/session-mode-decision-ladder.webp` | Interactive, Plan, Autopilot, with more autonomy from left to right: pick the mode that fits the task. |

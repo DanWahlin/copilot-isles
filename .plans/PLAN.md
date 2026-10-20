@@ -160,7 +160,7 @@ The **Open Sea** between islands has sailing, dolphins, gulls, whales, sea stack
 ### Island 00: Anchorage Cay (Setup), first-pass beats
 1. **Captain's Papers:** the Harbormaster covers sign-in (screenshot `app-sign-in`) and the **New** view. The app's theme lives in **Settings → Themes** (app 1.1.25 dropped the first-run theme step), and here you choose it by painting your sails at the palette stand.
 2. **Copy the Master Chart:** the Chartmaker explains what a fork is (your own copy).
-3. **Moor Your Ship:** Connect the repo. A hotspot quiz on `app-add-project` asks you to find **+ next to Projects → Add GitHub repository**. Other ways in, **Open folder** and **Clone repository**, show up as alternate berths.
+3. **Moor Your Ship:** Connect the repo. A hotspot quiz on `app-add-project` asks you to find **+ next to Sessions → Add GitHub repository**. Other ways in, **Open folder** and **Clone repository**, show up as alternate berths.
 4. **Your Own Deck:** choose **Current checkout** rather than **New worktree** for setup, then send a short prompt to create the session. A hotspot quiz uses `app-current-checkout-workspace-selector`. The islanders say "you'll learn about treehouses later."
 5. **Gear Check:** find the compass (`git`), lantern (`node`), rope (`npm`), and spyglass (`gh`) around the village. Then check them in the **Terminal** tab. You'll learn **View → Toggle Review Panel** along the way.
 6. **Right Signature:** `gh auth status` means signing the ledger with the correct account.

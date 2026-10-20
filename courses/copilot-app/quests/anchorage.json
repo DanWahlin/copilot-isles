@@ -25,14 +25,14 @@
     {
       "id": "Q0.3",
       "title": "Copy the Master Chart",
-      "task": "Fork the course and add it to Projects",
+      "task": "Fork the course and add it under Sessions",
       "link": {
         "label": "Fork the course repository",
         "url": "https://github.com/github/copilot-app-for-beginners/fork"
       },
       "steps": {
         "start": "Find Ezra Quill at his chart table by the pier.",
-        "done": "Your fork is added under Projects."
+        "done": "Your fork is added under Sessions."
       }
     },
     {
@@ -712,7 +712,7 @@
       },
       {
         "show": "ch00/app-add-project",
-        "caption": "**+** next to **Projects** → **Add GitHub repository**, then pick your fork, `{fork}`."
+        "caption": "**+** next to **Sessions** → **Add GitHub repository**, then pick your fork, `{fork}`."
       },
       {
         "say": "ezra.fork.03"
@@ -847,7 +847,7 @@
   "barks": {
     "merchant": [
       "A fork is your own copy of the master chart. Mark it up all you like.",
-      "Add a project with the plus next to Projects. Then pick Add GitHub repository."
+      "Add a project with the plus next to Sessions. Then pick Add GitHub repository."
     ],
     "dockhand_b": [
       "For setup, choose Current checkout, Captain. New worktrees come later.",

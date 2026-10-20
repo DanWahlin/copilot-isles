@@ -1,7 +1,7 @@
 {
   "id": "pim.solved.fork",
   "speaker": "Pim",
-  "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork to Projects instead.",
+  "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork from the + next to Sessions instead.",
   "words": [
     {
       "word": "If",
@@ -76,22 +76,42 @@
     {
       "word": "fork",
       "start": 4.609375,
-      "end": 4.921875
+      "end": 4.899541
+    },
+    {
+      "word": "from",
+      "start": 4.899541,
+      "end": 5.044625
+    },
+    {
+      "word": "the",
+      "start": 5.044625,
+      "end": 5.15625
+    },
+    {
+      "word": "plus",
+      "start": 5.15625,
+      "end": 5.412958
+    },
+    {
+      "word": "next",
+      "start": 5.412958,
+      "end": 5.647333
     },
     {
       "word": "to",
-      "start": 4.921875,
-      "end": 4.977666
+      "start": 5.647333,
+      "end": 5.736625
     },
     {
-      "word": "Projects",
-      "start": 4.977666,
-      "end": 5.43525
+      "word": "Sessions",
+      "start": 5.736625,
+      "end": 6.12725
     },
     {
       "word": "instead",
-      "start": 5.43525,
-      "end": 5.68525
+      "start": 6.12725,
+      "end": 6.37725
     }
   ]
 }

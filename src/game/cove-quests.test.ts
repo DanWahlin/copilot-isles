@@ -149,7 +149,7 @@ describe('Anchorage guidance', () => {
     const q = { 'Q0.2': 'done' };
     expect(currentQuest(q)).toEqual({
       id: 'Q0.3',
-      task: 'Fork the course and add it to Projects',
+      task: 'Fork the course and add it under Sessions',
       step: null,
     });
     const fork = questTracker(q).tasks.find((t) => t.id === 'Q0.3')!;

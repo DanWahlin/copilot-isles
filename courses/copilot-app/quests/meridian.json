@@ -481,13 +481,6 @@
         "say": "mer.mina.customize"
       },
       {
-        "show": "ch01/app-new-page",
-        "caption": "**More** → **Edit sidebar...** chooses which views appear in the sidebar. Keep them all."
-      },
-      {
-        "say": "mer.mina.more"
-      },
-      {
         "cue": "tour:end"
       },
       {
@@ -527,7 +520,7 @@
         "file": "pg1.customize"
       },
       {
-        "file": "pg1.more"
+        "file": "pg1.sessions-chats"
       },
       {
         "say": "mer.mina.logbook"
@@ -560,7 +553,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "① Select **+** next to **Projects** · ② then select **Chat**."
+        "caption": "① Select **+** next to **Sessions** · ② then select **Chat**."
       },
       {
         "say": "mer.lyra.04"
@@ -650,7 +643,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "A question: **+** next to **Projects**, then **Chat**. Work that needs your repository: the **+** next to your project."
+        "caption": "A question: **+** next to **Sessions**, then **Chat**. Work that needs your repository: the **+** next to your project."
       },
       {
         "say": "mer.anders.solved.02"
