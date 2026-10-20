@@ -33,8 +33,8 @@
       "heapFloorMB": 12
     },
     "leak": {
-      "$trackedMB": "Growth allowed from one round trip's Anchorage to the next (MB). It's only a leak signal if the reading doesn't depend on timing: three counted a texture once, at its size when first seen, so an image still decoding (5.3 MB per 1024\u00b2 kit or terrain WebP) or TRAA's history target sized after its first use (11 MB at 1600 \u00d7 900) counted ~0 or in full by the luck of the frame, and the same stop read 453-484 MB on one tree (issue 261). The ledger now recounts a texture whose size changed (engine/memory-ledger.ts) and the test holds the render scale at the tier's (adaptive resolution would resize ~90 MB of screen targets on High): the same stop now reads within 0.6 MB under 4\u00d7 CPU throttling. What's left is a real ~0.6-1.3 MB per round trip on High (issue 262), so the 8 MB isn't loosened.",
-      "trackedMB": 8,
+      "$trackedMB": "Growth allowed from one round trip's Anchorage to the next (MB). It's only a leak signal if the reading doesn't depend on timing: three counted a texture once, at its size when first seen, so an image still decoding (5.3 MB per 1024\u00b2 kit or terrain WebP) or TRAA's history target sized after its first use (11 MB at 1600 \u00d7 900) counted ~0 or in full by the luck of the frame, and the same stop read 453-484 MB on one tree (issue 261). The ledger now recounts a texture whose size changed (engine/memory-ledger.ts) and the test holds the render scale at the tier's (adaptive resolution would resize ~90 MB of screen targets on High). With issue 262 fixed (instanced meshes free the instance buffers three made for them), every round trip reads the same to 0.1 MB on High and Lite, WebGPU and WebGL2, and its resources match one for one; before it, High WebGPU grew 0.6 MB a round trip. 1 MB is ten times the jitter seen and still catches one leaked 512\u00b2 texture with mips (1.3 MB) or ~8 instanced meshes' matrices a trip (128 KB each).",
+      "trackedMB": 1,
       "heapMB": 6
     },
     "ceilings": {

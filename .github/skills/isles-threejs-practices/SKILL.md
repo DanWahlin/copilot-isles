@@ -269,10 +269,23 @@ hook (release it when the site is freed).
   moves between runs of the same tree, it's timing, not a leak: record every live resource (wrap the
   info's create/destroy, or catch its `memoryMap` writes in a scratch init script), diff the stops by
   name, size and owner, and compare each one's counted size with its current one.
-- An instanced mesh on the attribute path (`sharedInstancedMesh`, past 1024) gets its matrices (now
-  and last frame) as interleaved buffers three makes itself, and three frees them only with the
-  geometry, for the first render object that drew it. An island's instanced meshes over a geometry
-  that stays (a shared rock, the crates) leave ~128 KB each per visit (issue 262, open).
+- Buffers three makes for an object (node attributes) are freed only with its **geometry**, and only
+  the first render object's: an instanced mesh's matrices on the attribute path (`sharedInstancedMesh`,
+  past 1024; now and last frame's, interleaved) and colours, and what a material reads with
+  `instancedBufferAttribute`. Every mesh or sprite over a geometry that outlives it (a shared rock, the
+  crates, the banyan's cached parts, the sprite quad) left its buffers for good: ~0.6 MB a round trip on
+  High and a voyage's worth after quitting (issue 262). Don't free them by disposing the shared
+  geometry (its vertex buffers go too, and an interleaved one can't come back: issue 251). Free them
+  with the object (engine/instance-buffers.ts): the renderer's public `info.createAttribute` notes
+  each instance attribute by the array it views, and the backend's and info's public
+  `destroyAttribute` free one mesh's, skipping a buffer when three frees it again with the geometry
+  (WebGPU's backend throws on a plain attribute it's already forgotten). `sharedInstancedMesh` frees
+  on the mesh's `dispose`; a material's own per-instance attributes over a shared quad go in its
+  owner's dispose (`releaseInstanceAttributes`: the mist, fireflies, battle fog and smoke). So send
+  `dispose` only at the end of an object's life: drawn again, it submits the destroyed buffers
+  (Anchorage's dormancy parks its parts and never sends it). Trace a leak like this by
+  attribute-view counts per stop (they matched to the view after the fix), not by MB: on WebGL2 the
+  leftover views counted 0 bytes.
 - What paid (High, Anchorage, honest MB): the sun's shadow map colour target as R8 (three always
   makes an RGBA8 one; −48 MB at 4096²), NPC palettes as 32 × 32 nearest textures (the kit atlas is
   flat 32 px swatches; 1.3 MB → 4 KB each), sign atlases painted by board size and shelf-packed, Lite

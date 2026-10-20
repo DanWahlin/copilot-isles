@@ -12,7 +12,8 @@ import {
   uv,
 } from 'three/tsl';
 import type { TierSettings } from '../../engine/quality';
-import { useSpriteQuad } from '../../engine/sprite-quad';
+import { releaseInstanceAttributes } from '../../engine/instance-buffers';
+import { releaseSpriteQuad, useSpriteQuad } from '../../engine/sprite-quad';
 import { world } from '../uniforms';
 
 // TSL fluent typings do not cover this mixed scalar/vector graph.
@@ -58,6 +59,12 @@ export class FogBank {
     this.mesh.visible = false;
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 3;
+  }
+
+  /** The battle's over: the quad and the puffs' buffers go (issue 262). Never drawn again. */
+  release(): void {
+    releaseSpriteQuad(this.mesh);
+    releaseInstanceAttributes([this.posAttr, this.dataAttr]);
   }
 
   /**

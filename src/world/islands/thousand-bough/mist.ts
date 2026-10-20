@@ -16,6 +16,7 @@ import {
   vec3,
 } from 'three/tsl';
 import type { TierSettings } from '../../../engine/quality';
+import { releaseInstanceAttributes } from '../../../engine/instance-buffers';
 import { releaseSpriteQuad, useSpriteQuad } from '../../../engine/sprite-quad';
 import { mulberry32 } from '../../../util/math';
 import { world } from '../../uniforms';
@@ -223,6 +224,7 @@ export function createMist(tier: TierSettings, clearance: WalkClearance): Mist |
     dispose() {
       material.dispose();
       releaseSpriteQuad(sprite);
+      releaseInstanceAttributes([attr]);
     },
   };
 }
