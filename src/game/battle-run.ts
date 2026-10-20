@@ -118,6 +118,9 @@ export class BattleRun {
   }
 
   private async warm(): Promise<void> {
+    // The raiders' figureheads first: added after the warm, their first draws uploaded them
+    // mid-battle (High draws a lighter one for them than for your ship, so it loads then).
+    await this.battle.shipsReady();
     const restore = this.battle.stageWarm();
     try {
       await this.o.cove.warmLate([this.battle.group]);

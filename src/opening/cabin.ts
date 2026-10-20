@@ -50,6 +50,7 @@ import { noiseAt, releaseNoiseTexture } from './noise';
 import { billboardGeometry, billboardMesh, camRight, camUp } from './particles';
 import { mulberry32 } from '../util/math';
 import { disposeLightShadow, disposeMaterialWithTextures } from '../util/dispose-three';
+import { ownMap } from '../engine/own-map';
 
 /**
  * The captain's cabin (docs/specs/OPENING-living-chart.md): one small, lamp-lit room at golden hour,
@@ -820,7 +821,9 @@ function nameplate(name: string): { mesh: Mesh; set(name: string): void } {
   const tex = new CanvasTexture(c);
   tex.colorSpace = SRGBColorSpace;
   // Mostly diffuse: there's no environment map in the cabin, so a true metal would read black.
-  const m = new MeshStandardNodeMaterial({ map: tex, roughness: 0.42, metalness: 0.15 });
+  // Not as `map` (`ownMap`, issue 264): the world warms behind the cabin, and a look built while the
+  // cabin drew kept the nameplate in its binding, uploading it again after the opening had freed it.
+  const m = ownMap(new MeshStandardNodeMaterial({ roughness: 0.42, metalness: 0.15 }), tex);
   const mesh = new Mesh(new PlaneGeometry(0.26, 0.065), m);
   mesh.name = 'nameplate';
   return {

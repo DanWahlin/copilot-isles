@@ -9,11 +9,26 @@ import {
 } from 'three/webgpu';
 import { context, lights } from 'three/tsl';
 
+/** three's node builder for a mesh, as the helpers here drive it (the typings leave this out). */
+export interface MeshNodeBuilder {
+  build(): void;
+  buildAsync(): Promise<unknown>;
+  material: unknown;
+  camera: unknown;
+  scene: unknown;
+  lightsNode: unknown;
+  vertexShader: string;
+  fragmentShader: string;
+  /** Nodes a draw updates (each frame, render or object), as three's renderer does after a build. */
+  updateNodes: unknown[];
+  getBindings(): { bindings: { isSampledTexture?: boolean; texture?: unknown }[] }[];
+}
+
 /**
- * Builds a mesh's WGSL with three's own node builder and a stand-in renderer (no GPU, no lights): enough
- * to see how the material's graph turns into shader code.
+ * three's own WGSL node builder for a mesh with a stand-in renderer (no GPU, one directional light),
+ * not yet built.
  */
-export function buildWgsl(mesh: Object3D, material: Material): { vertex: string; fragment: string } {
+export function meshNodeBuilder(mesh: Object3D, material: Material): MeshNodeBuilder {
   const renderer = {
     backend: {
       isWebGPUBackend: true,
@@ -33,20 +48,20 @@ export function buildWgsl(mesh: Object3D, material: Material): { vertex: string;
     lighting: { enabled: true },
     highPrecision: false,
   };
-  // The builder's typings leave out what a renderer sets on it before a build.
-  const builder = new WGSLNodeBuilder(mesh, renderer as never) as unknown as {
-    build(): void;
-    material: unknown;
-    camera: unknown;
-    scene: unknown;
-    lightsNode: unknown;
-    vertexShader: string;
-    fragmentShader: string;
-  };
+  const builder = new WGSLNodeBuilder(mesh, renderer as never) as unknown as MeshNodeBuilder;
   builder.material = material;
   builder.camera = new PerspectiveCamera();
   builder.scene = new Scene();
   builder.lightsNode = lights([new DirectionalLight()]);
+  return builder;
+}
+
+/**
+ * Builds a mesh's WGSL with three's own node builder and a stand-in renderer (no GPU, no lights): enough
+ * to see how the material's graph turns into shader code.
+ */
+export function buildWgsl(mesh: Object3D, material: Material): { vertex: string; fragment: string } {
+  const builder = meshNodeBuilder(mesh, material);
   builder.build();
   return { vertex: builder.vertexShader, fragment: builder.fragmentShader };
 }

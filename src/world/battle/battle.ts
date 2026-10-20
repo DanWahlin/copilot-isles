@@ -490,6 +490,11 @@ export class Battle {
     this.spawnWave(t);
   }
 
+  /** Settles once every raider's figurehead is aboard (it loads after the ship is made). */
+  shipsReady(): Promise<void> {
+    return Promise.all(this.combatants.map((c) => c.ship.figurehead)).then(() => undefined);
+  }
+
   /**
    * For the warm-up before a battle (the game's late warm): every raider (both rigs), the fog, the
    * arcs and each pool drawn once, so the battle's first real frames build nothing. Returns the
