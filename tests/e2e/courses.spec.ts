@@ -10,6 +10,7 @@ const query = CI ? '/?debug&webgl&forceGpu&tier=lite' : '/?debug';
 type Flow = {
   getState(): { screen: string; course: string };
   skipOpening(): void;
+  debugOpening: { prompting: boolean; time: number } | null;
   learn: { getState(): { tracker: { chapter: string } | null }; progress: { course: string } };
 };
 
@@ -42,11 +43,20 @@ async function voyage(page: Page, course: string, chapter: string, all = false) 
   );
   await page.waitForTimeout(1500);
   await page.evaluate(() => (window as unknown as { __flow: Flow }).__flow.skipOpening());
-  await page.waitForFunction(
-    () => (window as unknown as { __flow: Flow }).__flow.getState().screen === 'playing',
-    null,
-    { timeout: CI ? 300_000 : 120_000 },
-  );
+  // As a player would, skip again if the cabin still waits on the chest (CI's software renderer is
+  // too slow for the chest to open by itself). On a timeout, say where the opening stood.
+  const deadline = Date.now() + (CI ? 300_000 : 120_000);
+  for (;;) {
+    const at = await page.evaluate(() => {
+      const f = (window as unknown as { __flow: Flow }).__flow;
+      const o = f.debugOpening;
+      if (o?.prompting) f.skipOpening();
+      return { screen: f.getState().screen, opening: o ? { time: o.time, prompting: o.prompting } : null };
+    });
+    if (at.screen === 'playing') break;
+    if (Date.now() > deadline) throw new Error(`The voyage never reached Anchorage: ${JSON.stringify(at)}`);
+    await page.waitForTimeout(2000);
+  }
   // Anchorage's tasks are this course's chapter, and the voyage is saved under this course's keys.
   await page.waitForFunction(
     (ch) => (window as unknown as { __flow: Flow }).__flow.learn.getState().tracker?.chapter.includes(ch),

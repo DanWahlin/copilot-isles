@@ -774,7 +774,6 @@ export class GameFlow implements GameBridge {
         ),
       ]);
       opening = ready;
-      this.opening = opening;
       this.openingHold = (holding) => this.set({ progress: { ...progressNow, holding } });
       this.title?.dispose();
       this.title = null;
@@ -793,6 +792,8 @@ export class GameFlow implements GameBridge {
         captainName: this.learn.progress.data.captainName ?? '',
         sails: this.learn.getState().sails,
       });
+      // Only now can a skip reach it: start() resets the beat, so an earlier skip waits for play.
+      this.opening = opening;
       await opening.veil(true, 0);
       setSailVeil.remove();
       // A steady resolution for the whole opening and arrival (no adaptive changes mid-beat), at most
