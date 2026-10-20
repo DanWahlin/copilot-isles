@@ -97,6 +97,9 @@ hook (release it when the site is freed).
   a top-level precompile doesn't match the scene pass, so the first draw builds the shader anyway.
   So does what's hidden for the world's warm and shown later by code, not by `userData.prewarm`
   (Anchorage's silhouette, shown when it goes dormant, uploaded its geometry mid-play: issue 254).
+  A part that loads after its owner is made needs a promise its warm waits for: the battle's raiders
+  draw a lighter figurehead than your ship on High, which arrived after the battle's warm and
+  uploaded mid-battle (`Brigantine.figurehead`, `Battle.shipsReady`; issue 266).
 - Don't rebuild a geometry during play (a pickup, a state change): change its buffer instead. The
   message bottles merged a new mesh per material at each pickup (4 geometries, a hitch); now each
   is built once and a read bottle's vertices collapse (`bottles.ts`).
@@ -195,6 +198,18 @@ hook (release it when the site is freed).
   row and fails on any WebGPU validation error.
 - Shared texture caches count their users: the baked cloud keys free their GPU copy with the last
   dome that used them (the voyage's dawn and dusk keys stayed at the title).
+- A freed texture can come back through another material's look (issue 264). three r186 reads every
+  material's `map` (`normalMap`, `emissiveMap`…) through one shared node, and a build keeps the
+  texture that node holds at its generate stage in its binding: every new render object of that look
+  uploads it, then swaps in its own. compileAsync's builds yield between stages, so a frame drawn
+  mid-build leaves its `map` there: the world's chest-glow look, built behind the cabin, kept the
+  nameplate and uploaded it again after the opening had freed it, for good (1-2 runs in 15). A
+  texture freed while other `map` looks still build (the opening's) goes in through a texture node of
+  its own (`ownMap`, engine/own-map.ts), not `map`. The first look built keeps its texture the same
+  way: Thousand-Bough's signs upload Anchorage's freed atlas while it's dormant (issue 265). Find
+  them with a scratch probe: wrap the renderer's bindings update and list textures uploaded for a
+  render object that none of its bindings hold afterwards. To make the race show every run, make
+  three's build yields (`scheduler.yield`) wait for a frame.
 - Nothing new may draw through the island's post: back at the title, nothing's drawn until the
   title's post is ready (`restoreTitlePost`). One frame of the title through the island's TRAA scene
   pass built a second set of the title's shaders on Medium.

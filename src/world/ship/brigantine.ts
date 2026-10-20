@@ -153,6 +153,8 @@ export interface Brigantine {
   bowStemWorld(outWorld: Float32Array | number[]): Float32Array | number[];
   /** Writes [x, z] for the current stern waterline point. */
   sternWorld(outWorld: Float32Array | number[]): Float32Array | number[];
+  /** Settles once the figurehead (it loads after the ship is made) is aboard, or failed to load. */
+  readonly figurehead: Promise<void>;
   dispose(): void;
 }
 
@@ -676,9 +678,13 @@ export function createBrigantine({
     blockPivot.rotation.z = MathUtils.clamp(blockZ, -0.32, 0.32);
   };
 
+  let figurehead = Promise.resolve();
   const api: Brigantine = {
     group,
     dynamics,
+    get figurehead() {
+      return figurehead;
+    },
     uniforms,
     anchors,
     pipes: pipeSystem,
@@ -834,7 +840,7 @@ export function createBrigantine({
   api.triangleCount = triangleCount(group);
   api.drawCallCount = drawCallCount(group);
   if (typeof window !== 'undefined') {
-    void loadLionHeadFigurehead(tier, shipMaterial)
+    figurehead = loadLionHeadFigurehead(tier, shipMaterial)
       .then((mesh) => {
         if (disposed) {
           mesh.geometry.dispose();
