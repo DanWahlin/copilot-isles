@@ -151,6 +151,8 @@ export class GameFlow implements GameBridge {
   private titleAudio: Promise<void> | null = null;
   /** After Apply's reload into the game: reopen Graphics settings once you've landed. */
   private settingsOnLand: QualityNotice = null;
+  /** A skip asked for while the voyage loads, before its opening exists (a slow machine's Esc). */
+  private skipWhenReady = false;
   /** The opening (the Captain's Chest and the living chart) while it plays over the load. */
   private opening: Opening | null = null;
   /** The next opening, building in the background on the title and captain screens. */
@@ -557,7 +559,8 @@ export class GameFlow implements GameBridge {
   }
 
   skipOpening(): void {
-    this.opening?.skip();
+    if (this.opening) this.opening.skip();
+    else if (this.loading) this.skipWhenReady = true;
   }
 
   pressOpening(): void {
@@ -804,8 +807,9 @@ export class GameFlow implements GameBridge {
         early.sky = createSky(engine.renderer, engine.scene, engine.tier, engine.backend);
         await early.sky.prefetch([]);
       });
-      // Back from Apply's reload: skip the cabin scene, straight to the chart and the dive.
-      if (this.settingsOnLand) opening.skip();
+      // Back from Apply's reload, or a skip asked for before the opening was ready.
+      if (this.settingsOnLand || this.skipWhenReady) opening.skip();
+      this.skipWhenReady = false;
       const [{ createCove }, { createSession, ISLANDS, islandAt }] = await islandCode;
       const base = this.o.packBase ?? '/packs';
       await packs.loadManifest();
@@ -995,6 +999,7 @@ export class GameFlow implements GameBridge {
       this.set({ progress: { value: 1, message: 'The voyage hit a squall. Please reload.', destination } });
     } finally {
       this.loading = false;
+      this.skipWhenReady = false;
     }
   }
 
