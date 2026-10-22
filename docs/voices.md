@@ -61,6 +61,8 @@ another language) in its own `voice/cast.json`.
 | Pip       | ElevenLabs      | [Daniel – Bright, Warm and Commanding](https://elevenlabs.io/voices/gwU7DXdLrTvWCiUTPZG8) (`gwU7DXdLrTvWCiUTPZG8`)     | Warm, male voice. Voice Library, 730-day notice period.                                          |
 | Maren     | ElevenLabs      | [Eleanor – Gracious and Authoritative](https://elevenlabs.io/voices/2qQJWjw5XdG80GreshqG) (`2qQJWjw5XdG80GreshqG`)     | British, female. Voice Library, 730-day notice period.                                           |
 | Gilda | ElevenLabs | [Harriet – British Actress](https://elevenlabs.io/voices/aAsWcN5jdLdiYG7Hq0YL) (`aAsWcN5jdLdiYG7Hq0YL`) | British English, female, older; refined and a little bossy. Voice Library, 730-day notice period. The Model Market (Port Meridian). |
+| Desmond | ElevenLabs | [Donovan Wilson](https://elevenlabs.io/voices/GLpuYaUYNnusyOVvP3PM) (`GLpuYaUYNnusyOVvP3PM`) | Jamaican English, male, middle-aged; warm and calm, natural rather than exaggerated. Voice Library, 730-day notice period. The Model Market's stall on Anchorage Cay (his hello and goodbye). |
+| Lani | ElevenLabs | [Kalala – Calm & Friendly Pacific](https://elevenlabs.io/voices/sxEoZ67pB0EMoWOZZ37G) (`sxEoZ67pB0EMoWOZZ37G`) | Pacific English, female, middle-aged; warm and calm. Voice Library, 730-day notice period. The Model Market's stall on Thousand-Bough Isle (her hello and goodbye). |
 
 ElevenLabs Voice Library voices can be removed by their owners. With a notice period, you can use the voice until
 the period ends. Audio that you already made continues to work.

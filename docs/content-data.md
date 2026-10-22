@@ -19,7 +19,7 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 | `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic` and the `quest` it plays in, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
-| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on Gilda's board, and Gilda's lines | You, by hand | `src/content/market.ts` |
+| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' hello and goodbye | You, by hand | `src/content/market.ts` |
 | `models.json` (optional) | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
 | `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
@@ -164,8 +164,9 @@ so VS Code and other editors check your edit as you type and show each field's d
   small one; a hard job a large one, or a medium one on high effort.
 - **Prices** are starfish. `categories[].price` must go up from the smallest to the largest. A hire costs
   its category's price plus its effort's price, up to `maxPrice` (at most 4). Auto costs `autoPrice`.
-- **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund
-  can't be more than the cheapest right-sized hire for that size, so a hire never makes starfish.
+- **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund must be
+  less than the cheapest right-sized hire for that size, so a right-sized job always costs at least 1
+  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price.
 - **Doubloons** (`sizes.*.doubloons`) are paid the first time a job is done right-sized.
 - **`board`**: how many model names each signboard shows, and how many of one family it takes before
   it fills up (docs/specs/MODEL-MARKET.md §4.2).
@@ -177,7 +178,12 @@ so VS Code and other editors check your edit as you type and show each field's d
   saved in players' progress, so don't rename it.
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
   `text` shown as her caption, and, for a teaching line, the course `source` it paraphrases (the drift
-  report checks it).
+  report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none.
+- **The other keepers** (`keepers.<island>.hello`, `.bye`): each stall but Gilda's (the game's
+  `src/game/market/stalls.ts`: Desmond on `anchorage`, Lani on `thousand-bough`) has its keeper's own
+  voiced hello and goodbye, in the same form as Gilda's lines; the line's `speaker` in `voice/lines.json` is
+  the keeper's name. A course needs one for every such stall on its islands. At those stalls Gilda's other
+  lines are captions on the work order (not voiced).
 
 ### `boards.json`
 
@@ -195,7 +201,7 @@ In a text-only pack (`"voice": false`), change the line's `text` in `voice/lines
 `npx tsx tools/voice/generate.ts --course <id>`: it writes the captions without calling a service.
 
 A caption and its voice line must say the same words. If you change a voiced line's text (in a
-script's line, or Gilda's `text` in `market.json`):
+script's line, or Gilda's or a keeper's `text` in `market.json`):
 
 1. Change the same line's `text` in the pack's `voice/lines.json` (and, for a puzzle's or a hook's
    line, nothing else: they name the line by id).
@@ -241,10 +247,11 @@ change. The checks (tools/content/check.ts):
 - every voice line a script, a chapter, a beat, a hook, a puzzle or the market plays is in
   `voice/lines.json`, and its audio (or, in a text-only pack, its caption) in
   `public/voice/manifest.json` says the same words; Gilda's lines
-  are hers; every line has a voice (its own, or its speaker's in `voice/cast.json`), and every speaker
+  are hers and each keeper's their own, and every other stall on the course's islands has a keeper's lines; every line has a voice (its own, or its speaker's in `voice/cast.json`), and every speaker
   in the cast has a line;
-- the economy: every hire costs 1 to `maxPrice` (≤ 4), bigger models cost more, a refund is never more
-  than the hire, and every job can be done right-sized with the starfish on Anchorage and Meridian;
+- the economy: every hire costs 1 to `maxPrice` (≤ 4), bigger models cost more, a refund is always less
+  than the cheapest right-sized hire, and every job can be done right-sized with the starfish on the
+  course's first island (spending what comes back, in the best order);
 - every board's chapter is in the snapshot with at least 5 topics, and every board stands on its island
   (in its waters, on the ground or a deck up to 1 m above it);
 - every category has a model in `models.json`, and no model is listed twice.

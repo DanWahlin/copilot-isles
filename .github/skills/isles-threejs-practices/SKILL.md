@@ -374,6 +374,21 @@ hook (release it when the site is freed).
   toward their eye). It's one branch: off the open ground nothing runs, past 48 m only the wash.
   Blades fill a disc (a sunflower spiral): a ring of blades read as circles on a sparse sward.
 
+- **A few hundred triangles can cost a draw:** the village merges each material's bucket into chunks of
+  24k triangles (48k on Lite, `chunkOptions`). Anchorage's ironwork stood at 23.6k, so a market booth's
+  lanterns and chains (+490) split it into two draws. Before adding to an island's town, print each
+  bucket's total (a scratch test over `createVillage`), and keep a new look out of an island that has none
+  of it (a tiled roof on Anchorage would have been a new draw and a new pipeline there: its canopy is the
+  cloth it already draws).
+- **Shade reads blue at golden hour:** shaded ground is lit by the sky dome alone (PMREM and the
+  hemisphere's sky), which is deep blue when the sun is low, so a pale plaza floor under sunlit sandstone
+  read cool blue. Real shade gets warm light bounced off sunlit walls and ground: the paving's one material
+  adds a share of `world.sunColor` × its own colour (`withSunBounce`, village/materials.ts). Fix the light
+  a surface is missing, not its albedo, and measure the pixels (shade sampled before and after) rather
+  than eyeballing.
+- **Check a new prop against what grows near it:** generated trees (the banyan's little sister) reach
+  their limbs out metres from the trunk; a booth first placed beside it had limbs through its roof. Look
+  from above and from each side before settling a spot.
 - **Masks decide the look more than the palette:** brown hills came from slope and height mask rules
   calling grassy hillsides rock and cliff. Fix the masks (`coveMasks`) before re-tinting colours.
 - **Splashes from nowhere:** a splash reads as an event, so its cause must be visible at the distance
