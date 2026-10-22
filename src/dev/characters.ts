@@ -18,6 +18,10 @@ import {
   type CharacterClip,
 } from '../world/characters';
 import { compileAndStart, createDevHarness, engineStats, orbitViews, seaOrbitControls } from './harness';
+import { activateCourse } from '../course/load';
+
+// The cove reads course content (its signs, cast and sites), so a pack is active first, as a voyage does.
+await activateCourse();
 
 const h = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = h;

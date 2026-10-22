@@ -631,7 +631,7 @@ path), `npm run test:e2e`, `tools/flowtest.mjs`, and `npm run check:memory` (hea
 
 | Risk | Mitigation |
 | --- | --- |
-| Content read before the pack loads (module top-level `QUIZZES.get(…)`, dev pages, the opening's voice preload) | Top-level reads became `onCourse` hooks; the voyage awaits the pack before the session; dev pages that show course content activate it first; Vitest setup loads the pack |
+| Content read before the pack loads (module top-level `QUIZZES.get(…)`, dev pages, the opening's voice preload) | Top-level reads became `onCourse` hooks; the voyage awaits the pack before the session; dev pages that show course content (any that builds the cove or a session) activate it first (`createCovePage`, or `await activateCourse()`; `src/dev/course-pack.test.ts`); Vitest setup loads the pack |
 | Bundle and boot | Boot gets only `course.json` (≈ 2 KB gz); `course-copilot-app` ≤ 80 KB gz; check `INEFFECTIVE_DYNAMIC_IMPORT` warnings; the JSON parse (~300 KB) runs under the loading screen |
 | Lost compile-time checks (`ChapterId` union, ids in TS) | Schemas plus the content check's resolution rules (§3) |
 | Hardcoded paths: `voice/testcove` in 27 files (tests, `audio/index.ts`, `audiotest.mjs`, `build-manifest.mjs`, workflows), course/lock/content paths in 33 (tests, tools, video reels, `copilot-instructions.md`, `.vscode`) | One `coursePaths(id)` helper for tools and tests; grep for the old paths must return nothing |
