@@ -818,6 +818,7 @@ export function createBrigantine({
           oceanStern[0]!,
           oceanStern[1]!,
           t,
+          dynamics.pose.pitch,
         );
       updateSecondary(dt);
       pipeSystem.update(dt, t);

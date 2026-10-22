@@ -4,6 +4,7 @@ import { BANK, type LoopName, type SliceName, type SoundName } from './bank';
 import { chooseAudioFormat } from './format';
 import { VoiceLimiter, type LimitedVoice } from './voice-limiter';
 import { clamp } from '../../util/math';
+import { seaState } from '../../world/ocean/sea-state';
 
 export type SurfKind = 'crash' | 'wash' | 'backwash';
 export type FootstepSurface = 'sand' | 'wetsand' | 'wood' | 'rock' | 'grass' | 'water';
@@ -364,6 +365,9 @@ export class IslesSoundScape {
   private dayNightBedGain(name: BedName, base: number): number {
     if (name === 'birds_dawn' || name === 'gulls_far') return base * (1 - this.night);
     if (name === 'crickets') return base * this.night;
+    // The sea state's wind and sea (Breeze × 1): a Calm's hush, a Gale's roar.
+    if (name === 'wind') return Math.min(1, base * seaState.live.windBed);
+    if (name === 'surf_far') return Math.min(1, base * seaState.live.surfBed);
     return base;
   }
 
