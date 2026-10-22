@@ -163,7 +163,12 @@ installDebug(
   () => engine.fps,
   () => (session ? 'playing' : 'warming'),
   { backend, reason: 'dev page', hdr: false, features: [] },
-  { getCpuMs: () => engine.cpuMs, getGpuMs: () => engine.gpuMs, getGpuRawMs: () => engine.gpuRawMs },
+  {
+    getCpuMs: () => engine.cpuMs,
+    getGpuMs: () => engine.gpuMs,
+    getGpuBusyMs: () => engine.gpuBusyMs,
+    getGpuRawMs: () => engine.gpuRawMs,
+  },
 );
 startBtn.disabled = false;
 startBtn.textContent = 'Set sail';
@@ -244,6 +249,7 @@ const key = (code: string, down: boolean) => {
     ...engine.counters.last,
     fps: engine.fps,
     gpuMs: engine.gpuMs,
+    gpuBusyMs: engine.gpuBusyMs,
     gpuRawMs: engine.gpuRawMs,
     cpuMs: engine.cpuMs,
     backend,

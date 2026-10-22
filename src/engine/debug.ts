@@ -14,6 +14,7 @@ interface IslesDebug {
     fps: number;
     cpuMs: number;
     gpuMs: number;
+    gpuBusyMs: number;
     gpuRawMs: number;
   } & BackendInfo;
   shot?(id: string): void;
@@ -59,7 +60,9 @@ export function installDebug(
     getCpuMs?: () => number;
     /** GPU ms limited to the frame time (`Engine.gpuMs`). */
     getGpuMs?: () => number;
-    /** The raw timestamp reading (`Engine.gpuRawMs`), for debugging only. */
+    /** The time the GPU was busy with the frame (`Engine.gpuBusyMs`). */
+    getGpuBusyMs?: () => number;
+    /** The passes' summed durations (`Engine.gpuRawMs`), for debugging only. */
     getGpuRawMs?: () => number;
     shot?: (id: string) => void;
     still?: StillShot;
@@ -74,6 +77,7 @@ export function installDebug(
       fps: getFps(),
       cpuMs: options.getCpuMs?.() ?? 0,
       gpuMs: options.getGpuMs?.() ?? 0,
+      gpuBusyMs: options.getGpuBusyMs?.() ?? 0,
       gpuRawMs: options.getGpuRawMs?.() ?? 0,
       ...backend,
     }),

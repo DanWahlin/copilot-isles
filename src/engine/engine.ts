@@ -6,8 +6,12 @@ import { AdaptiveResolution } from './adaptive-res';
 import { DayClock } from './day-clock';
 import { FixedStep } from './fixed-step';
 import { FrameCounters, limitGpuMs } from './frame-counters';
+import { installBusyTimestamps, type BusyTimestampPool } from './gpu-timestamps';
 import { trackInstanceBuffers, type InstanceBufferRenderer } from './instance-buffers';
 import type { TierSettings } from './quality';
+
+/** Frames between GPU timestamp resolves. */
+const RESOLVE_EVERY = 4;
 
 /** Anything the engine ticks. `fixed` runs at 60 Hz (physics); `frame` once per rendered frame. */
 export interface System {
@@ -38,9 +42,18 @@ export class Engine {
   readonly tier: TierSettings;
   backend: Backend;
   fps = 60;
-  /** GPU ms per frame, limited to the frame's wall time (`limitGpuMs`); 0 without timestamps. Show this one. */
+  /**
+   * GPU ms per frame (`gpuBusyMs`), limited to the frame's wall time (`limitGpuMs`); 0 without
+   * timestamps. Show this one.
+   */
   gpuMs = 0;
-  /** The raw timestamp reading (summed render passes); too high on Apple GPUs (issues.md #11). Debug only. */
+  /**
+   * The time the GPU was busy with the frame's passes (ms): on WebGPU the union of their timestamp
+   * intervals (`BusyTimestampPool`, issues.md #11), on WebGL2 the sum of their timer queries (which
+   * can't overlap there).
+   */
+  gpuBusyMs = 0;
+  /** The passes' durations summed, as three reports them; far too high on Apple's WebGPU (issues.md #11). Debug only. */
   gpuRawMs = 0;
   cpuMs = 0;
   /** Overrides the default scene render (e.g. the post-processing pipeline). */
@@ -60,8 +73,13 @@ export class Engine {
   private running = false;
   private timestamps = false;
   private resolving = false;
-  /** The latest resolved timestamp reading; copied to `gpuRawMs` at the tick so it pairs with `gpuMs`. */
+  /** Frames until the next timestamp resolve (`RESOLVE_EVERY`). */
+  private resolveIn = 0;
+  /** The WebGPU pool that reads the passes' union (null on WebGL2). */
+  private busyPool: BusyTimestampPool | null = null;
+  /** The latest resolved readings; copied at the tick so they pair with `gpuMs`. */
   private gpuReading = 0;
+  private busyReading = 0;
   private resizeObs: ResizeObserver | null = null;
 
   private constructor(renderer: WebGPURenderer, o: EngineOptions) {
@@ -96,6 +114,7 @@ export class Engine {
     renderer.toneMapping = ACESFilmicToneMapping;
     const backend = (renderer.backend as { trackTimestamp?: boolean }) ?? {};
     e.timestamps = backend.trackTimestamp === true;
+    e.busyPool = installBusyTimestamps(renderer);
     e.resize();
     e.resizeObs = new ResizeObserver(() => e.resize());
     e.resizeObs.observe(o.canvas.parentElement ?? document.body);
@@ -212,6 +231,16 @@ export class Engine {
     this.renderNow();
   }
 
+  private readonly onTimestamps = (ms: number | undefined): void => {
+    if (typeof ms !== 'number' || !(ms > 0)) return;
+    this.busyReading = ms;
+    this.gpuReading = this.busyPool ? this.busyPool.lastSum : ms;
+  };
+
+  private readonly onResolved = (): void => {
+    this.resolving = false;
+  };
+
   private readonly onVisibility = () => {
     // PLAN §12.8: nothing renders while hidden; resume without a time jump.
     if (document.hidden) {
@@ -254,21 +283,20 @@ export class Engine {
     // frame-time signal (see .plans/issues.md: raising relies on backoff probes without GPU time).
     let signal = raw;
     if (this.timestamps) {
-      if (!this.resolving) {
+      // Read every few frames: the reading is the latest frame's either way, adaptive resolution
+      // averages 60 frames, and each resolve is a readback with its own main-thread cost.
+      if (!this.resolving && --this.resolveIn <= 0) {
+        this.resolveIn = RESOLVE_EVERY;
         this.resolving = true;
-        // three returns the GPU duration of the most recent resolved frame (ms).
-        void this.renderer
-          .resolveTimestampsAsync('render')
-          .then((ms) => {
-            if (typeof ms === 'number' && ms > 0) this.gpuReading = ms;
-          })
-          .finally(() => (this.resolving = false));
+        // The GPU time of the most recent resolved frame (ms): the passes' union on WebGPU.
+        void this.renderer.resolveTimestampsAsync('render').then(this.onTimestamps).finally(this.onResolved);
       }
-      // A pipelined GPU can't sustain more work than the frame interval, so clamp implausible
-      // readings (tile GPUs report pass wall time; issues.md #11) to the wall frame time.
+      // A pipelined GPU can't sustain more work than the frame interval, so a reading over it is
+      // limited to the wall frame time (the union keeps under it; the sum didn't, issues.md #11).
       this.gpuRawMs = this.gpuReading;
-      this.gpuMs = limitGpuMs(this.gpuRawMs, raw * 1000);
-      if (this.gpuRawMs > 0) signal = this.gpuMs / 1000;
+      this.gpuBusyMs = this.busyReading;
+      this.gpuMs = limitGpuMs(this.gpuBusyMs, raw * 1000);
+      if (this.gpuBusyMs > 0) signal = this.gpuMs / 1000;
     } else {
       const T = 1 / this.tier.targetFps;
       if (Math.abs(raw - T) < T * 0.08) signal = raw * 0.8;
