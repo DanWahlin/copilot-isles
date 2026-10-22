@@ -13,7 +13,6 @@ import {
   dot,
   float,
   materialEmissive,
-  materialReference,
   max,
   normalView,
   positionViewDirection,
@@ -22,6 +21,7 @@ import {
   vec3,
   vec4,
 } from 'three/tsl';
+import { materialTexture } from '../../engine/texture-stand-in';
 import { world } from '../uniforms';
 
 // three's TSL fluent node typings do not cover this mixed scalar/vector graph.
@@ -96,7 +96,9 @@ class CharacterNodeMaterial extends MeshStandardNodeMaterial {
   override setupDiffuseColor(builder: NodeBuilder): void {
     super.setupDiffuseColor(builder);
     if (this.paletteMap) {
-      const palette = materialReference('paletteMap', 'texture') as AnyNode;
+      // Not three's `materialReference`: its build would bind the first material's palette, and every
+      // later object of the look uploaded it, freed or not (issue 265).
+      const palette = materialTexture('paletteMap') as AnyNode;
       const d = diffuseColor as AnyNode;
       d.assign(this.paletteAlpha ? d.mul(palette) : vec4(d.rgb.mul(palette.rgb), d.a));
     }

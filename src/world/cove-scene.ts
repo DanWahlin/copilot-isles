@@ -7,6 +7,7 @@ import { releaseRemovedObjects } from '../util/dispose-three';
 import { HarborMirror } from './ocean/harbor-mirror';
 import { createOcean, type Ocean } from './ocean/ocean';
 import { releaseWaterDepthTexture } from './ocean/water-depth-texture';
+import { releaseTextureStandIns } from '../engine/texture-stand-in';
 import { skipSunShadows } from './sky/cached-sun-shadow';
 import { createSky, type SkySystem } from './sky/sky-system';
 import { createCoastFoam } from './terrain/coast-foam';
@@ -570,12 +571,13 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       terrain.dispose();
       ocean.dispose();
       sky.dispose();
-      // The shared terrain, kit and sea-floor textures' GPU copies (their data stays cached for the
-      // next voyage).
+      // The shared terrain, kit, sea-floor and stand-in textures' GPU copies (their data stays cached
+      // for the next voyage).
       releaseTerrainTextures();
       releaseTerrainNoiseTexture();
       releaseVillageKitTextures();
       releaseWaterDepthTexture();
+      releaseTextureStandIns();
       releaseRemovedObjects(parked, scene);
     },
   };

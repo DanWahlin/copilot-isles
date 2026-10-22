@@ -15,6 +15,7 @@ import {
 } from 'three/webgpu';
 import { Fn, attribute, cos, positionLocal, sin, uniform, vec3 } from 'three/tsl';
 import type { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { ownMap } from '../../engine/own-map';
 import { world } from '../uniforms';
 
 export interface DockGull {
@@ -92,7 +93,10 @@ export function createDockGull(o: {
       map?: Texture | null;
     };
     map = srcMat.map ?? null;
-    material = new MeshStandardNodeMaterial({ map, roughness: 0.85, metalness: 0 });
+    material = new MeshStandardNodeMaterial({ roughness: 0.85, metalness: 0 });
+    // Not as `map` (`ownMap`): its texture is freed with Anchorage's dormancy while other looks with
+    // a `map` still build (issues 264, 265).
+    if (map) ownMap(material, map);
     material.positionNode = Fn(() => {
       const p = positionLocal;
       const hw = attribute('headW', 'float');
