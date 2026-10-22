@@ -15,8 +15,9 @@ import { releaseRemovedObjects } from '../util/dispose-three';
 import type { IslesAudio } from '../audio';
 import type { FootstepSurface } from '../audio/soundscape/soundscape';
 import type { Engine } from '../engine/engine';
-import type { Input } from '../engine/input';
+import type { Input, InputState } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
+import type { CharacterGrounding } from '../world/characters/types';
 import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
 import { clearCharacterLodView, setCharacterLodView } from '../world/characters/character-lod';
 import type { CoveScene } from '../world/cove-scene';
@@ -2701,6 +2702,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       hud.toast(`${total} starfish hide on ${name}. Can you find them all? Your count's by the purse.`, 6);
   };
 
+  // Reused each frame by the walk step (hot loops don't allocate).
+  const stepInput = {} as InputState;
+  const grounding: CharacterGrounding = {
+    mode: player.mode,
+    verticalSpeed: 0,
+    landed: false,
+    groundAt: (x, z) => world.groundAt(x, z),
+  };
   const listenerPos = { x: 0, y: 0, z: 0 };
   const listenerFwd = { x: 0, y: 0, z: -1 };
 
@@ -2786,16 +2795,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (mode === 'walk') {
           const n = Math.max(1, Math.ceil(dt / (1 / 60)));
           const h = dt / n;
-          for (let i = 0; i < n; i++) player.step(h, { ...s, jump: s.jump && i === 0 }, cam.yaw, world, t);
+          // One input copy a frame, reused (a jump only on the first sub-step).
+          Object.assign(stepInput, s);
+          for (let i = 0; i < n; i++) {
+            stepInput.jump = s.jump && i === 0;
+            player.step(h, stepInput, cam.yaw, world, t);
+          }
           hero.group.position.set(player.x, player.y, player.z);
           hero.group.rotation.y = player.heading;
           const sp = player.speed;
-          hero.setGrounding({
-            mode: player.mode,
-            verticalSpeed: player.vy,
-            landed: player.landed,
-            groundAt: (x, z) => world.groundAt(x, z),
-          });
+          grounding.mode = player.mode;
+          grounding.verticalSpeed = player.vy;
+          grounding.landed = player.landed;
+          hero.setGrounding(grounding);
           const wading = player.mode === 'wade' && sp > 0.15;
           if (wading && anim !== 'wade') hero.play('wade');
           else if (!wading && anim === 'wade') hero.play('idle');

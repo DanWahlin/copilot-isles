@@ -152,6 +152,8 @@ export function shoreBatteryWalkable(
   x: number,
   z: number,
 ): number | null {
+  const box = batteryReach(batteries);
+  if (x < box.minX || x > box.maxX || z < box.minZ || z > box.maxZ) return null;
   let best: number | null = null;
   for (const b of batteries) {
     if (b.decks)
@@ -166,6 +168,39 @@ export function shoreBatteryWalkable(
       }
   }
   return best;
+}
+
+const reaches = new WeakMap<
+  readonly ShoreBattery[],
+  { minX: number; maxX: number; minZ: number; maxZ: number }
+>();
+
+/**
+ * A box round every deck and stair of `batteries` (each within its half-diagonal of its centre, a
+ * stair within its half-width and run of its foot), worked out once per list: a walk query outside it
+ * can skip them all.
+ */
+function batteryReach(batteries: readonly ShoreBattery[]): {
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+} {
+  let box = reaches.get(batteries);
+  if (box) return box;
+  box = { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity };
+  const grow = (x: number, z: number, r: number) => {
+    box!.minX = Math.min(box!.minX, x - r);
+    box!.maxX = Math.max(box!.maxX, x + r);
+    box!.minZ = Math.min(box!.minZ, z - r);
+    box!.maxZ = Math.max(box!.maxZ, z + r);
+  };
+  for (const b of batteries) {
+    for (const d of b.decks ?? []) grow(d.x, d.z, Math.hypot(d.width / 2, d.depth / 2) + 0.01);
+    for (const st of b.stairs ?? []) grow(st.x, st.z, Math.hypot(st.width / 2, st.run) + 0.01);
+  }
+  reaches.set(batteries, box);
+  return box;
 }
 
 /** What a gun or a prop stands on: its battery's deck there, else the given ground. */

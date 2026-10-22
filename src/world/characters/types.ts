@@ -90,7 +90,7 @@ export interface CharacterCreateOptions {
   /** Player palette 0-3; NPCs use role defaults plus this optional tint offset. */
   variant?: number;
   /** Pass the runtime tier so NPC mixers can be throttled on Low/Lite. */
-  tier?: Pick<TierSettings, 'npcAnimRate' | 'tier'>;
+  tier?: Pick<TierSettings, 'npcAnimRate' | 'tier'> & Partial<Pick<TierSettings, 'shadowMoverMap'>>;
   /** Optional camera/player object for distance-based NPC mixer throttling. */
   updateTarget?: Object3D;
   /** Scales the body's size for one staging (e.g. the opening's cabin); 1 keeps its normal size. */

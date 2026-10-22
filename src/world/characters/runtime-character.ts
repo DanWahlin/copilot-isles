@@ -6,13 +6,17 @@ import {
   AnimationClip,
   AnimationMixer,
   Bone,
+  Frustum,
   LoopRepeat,
   MathUtils,
+  Matrix4,
   Mesh,
   Object3D,
   Quaternion,
+  Sphere,
   Vector3,
   type EventDispatcher,
+  type PerspectiveCamera,
   type Group,
   type Material,
 } from 'three/webgpu';
@@ -38,6 +42,36 @@ import {
   type LookTarget,
   type PlayerBody,
 } from './types';
+
+/** The head's spring steps at most this long (s), and catches up on at most `LOOK_CATCH_UP` of missed time. */
+const LOOK_STEP = 0.05;
+const LOOK_CATCH_UP = 1;
+/** A character's bounds for the view test: a sphere this wide (m) round its middle, props and gestures in. */
+const OFFSCREEN_RADIUS = 2.5;
+const OFFSCREEN_SPHERE = new Sphere();
+/** Within this of the camera (m) an NPC always animates where movers cast sun shadows (the movers' map is 40 m round the focus). */
+const MOVER_SHADOW_SQ = 75 * 75;
+const VIEW_FRUSTUM = new Frustum();
+const VIEW_MATRIX = new Matrix4();
+const VIEW_SEEN = new Float64Array(32).fill(Number.NaN);
+
+/** The camera's frustum as it is now (refreshed when its matrices change; NPCs test against it each frame). */
+function viewFrustum(camera: PerspectiveCamera): Frustum {
+  camera.updateMatrixWorld();
+  const w = camera.matrixWorldInverse.elements;
+  const p = camera.projectionMatrix.elements;
+  let same = true;
+  for (let i = 0; i < 16; i++) {
+    if (VIEW_SEEN[i] !== w[i] || VIEW_SEEN[16 + i] !== p[i]) same = false;
+    VIEW_SEEN[i] = w[i]!;
+    VIEW_SEEN[16 + i] = p[i]!;
+  }
+  if (!same) {
+    VIEW_MATRIX.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    VIEW_FRUSTUM.setFromProjectionMatrix(VIEW_MATRIX, camera.coordinateSystem, camera.reversedDepth);
+  }
+  return VIEW_FRUSTUM;
+}
 
 const WALK_STRIDE_METERS = 1.15;
 const JOG_STRIDE_METERS = 1.62;
@@ -145,6 +179,10 @@ export class RuntimeCharacter implements Character {
   private readonly footPlantL: PlantState = { active: false, blend: 0, x: 0, y: 0, z: 0 };
   private readonly footPlantR: PlantState = { active: false, blend: 0, x: 0, y: 0, z: 0 };
   private throttledDt = 0;
+  /** Time spent out of view (`offscreen`), not yet animated. */
+  private hiddenFor = 0;
+  /** Whether this tier draws movers into a sun shadow map (an NPC off screen could cast onto it). */
+  private readonly moverShadows: boolean;
   private targetSpeed = 0;
   private visualSpeed = 0;
   private previousVisualSpeed = 0;
@@ -192,6 +230,7 @@ export class RuntimeCharacter implements Character {
     this.npc = !PLAYER_BODIES.includes(body as PlayerBody);
     this.npcAnimRate = Math.max(0.1, options.tier?.npcAnimRate ?? 1);
     this.updateTarget = options.updateTarget ?? null;
+    this.moverShadows = (options.tier?.shadowMoverMap ?? 1) > 0;
     // A hand that carries a prop (a ledger, a spyglass) never gestures: the other one talks.
     const holds = (group.userData.holds ?? []) as number[];
     const left = holds.includes(1);
@@ -395,6 +434,14 @@ export class RuntimeCharacter implements Character {
   }
 
   update(dt: number): void {
+    // An NPC no one can see doesn't animate (PLAN §12.3): its time is kept and spent when it's back in view.
+    if (this.offscreen()) {
+      this.hiddenFor += dt;
+      this.throttledDt += dt;
+      return;
+    }
+    const late = this.hiddenFor;
+    this.hiddenFor = 0;
     const step = this.animationStep(dt);
     if (step > 0) {
       this.restoreProceduralBones();
@@ -406,10 +453,13 @@ export class RuntimeCharacter implements Character {
       this.applyProceduralPolish(step);
       this.applyHands();
     }
-    this.applyLookAt(dt);
+    // Back in view: the head's spring catches up on the time it missed before it aims.
+    for (let t = Math.min(late, LOOK_CATCH_UP); t > 0; t -= LOOK_STEP)
+      this.advanceAim(Math.min(LOOK_STEP, t));
+    this.applyLookAt(dt + late);
     this.applyLookNod();
-    this.updateFace(dt, step);
-    const ks = 1 - Math.exp(-dt * 2.5);
+    this.updateFace(dt + late, step);
+    const ks = 1 - Math.exp(-(dt + late) * 2.5);
     this.stage.key += ((this.spotlit ? 0.18 : STAGE_REST.key) - this.stage.key) * ks;
     this.stage.rim += ((this.spotlit ? 0.4 : STAGE_REST.rim) - this.stage.rim) * ks;
     this.lastVerticalSpeed = this.verticalSpeed;
@@ -532,14 +582,8 @@ export class RuntimeCharacter implements Character {
       if (!this.lookTarget) this.aimReady = false;
       return;
     }
-    const step = Math.min(0.05, Math.max(0, dt));
     if (this.lookTarget) {
-      const omega = 9;
-      // a = ω²(target − aim) − 2ω·v (critical damping), integrated semi-implicitly.
-      LOOK_D.subVectors(this.lookWorld, this.aimWorld).multiplyScalar(omega * omega);
-      LOOK_D.addScaledVector(this.aimVelocity, -2 * omega);
-      this.aimVelocity.addScaledVector(LOOK_D, step);
-      this.aimWorld.addScaledVector(this.aimVelocity, step);
+      this.advanceAim(Math.min(LOOK_STEP, Math.max(0, dt)));
       this.blinkCooldown = Math.max(0, this.blinkCooldown - dt);
       if (this.head && this.blinkCooldown <= 0) {
         this.head.getWorldPosition(LOOK_H);
@@ -553,6 +597,35 @@ export class RuntimeCharacter implements Character {
     }
     this.aimBone(this.neck);
     this.aimBone(this.head);
+  }
+
+  /** Moves the head's aim toward the look target on its spring (critical damping), `step` seconds. */
+  private advanceAim(step: number): void {
+    if (!this.lookTarget || !this.aimReady) return;
+    const omega = 9;
+    // a = ω²(target − aim) − 2ω·v, integrated semi-implicitly.
+    LOOK_D.subVectors(this.lookWorld, this.aimWorld).multiplyScalar(omega * omega);
+    LOOK_D.addScaledVector(this.aimVelocity, -2 * omega);
+    this.aimVelocity.addScaledVector(LOOK_D, step);
+    this.aimWorld.addScaledVector(this.aimVelocity, step);
+  }
+
+  /**
+   * Whether this NPC is out of the camera's view and can't be seen any other way: no sun shadow of it
+   * can reach the screen (Lite and Low have no shadow map for movers; above them, it's beyond the
+   * movers' map), and characters stay out of the harbour mirror. The player is never skipped.
+   */
+  private offscreen(): boolean {
+    const camera = this.updateTarget as PerspectiveCamera | null;
+    if (!this.npc || this.talking || !camera?.isPerspectiveCamera) return false;
+    camera.getWorldPosition(this.targetWorld);
+    if (this.moverShadows && this.group.position.distanceToSquared(this.targetWorld) < MOVER_SHADOW_SQ)
+      return false;
+    const frustum = viewFrustum(camera);
+    OFFSCREEN_SPHERE.center.copy(this.group.position);
+    OFFSCREEN_SPHERE.center.y += 0.9 * this.group.scale.y;
+    OFFSCREEN_SPHERE.radius = OFFSCREEN_RADIUS * Math.max(1, this.group.scale.y);
+    return !frustum.intersectsSphere(OFFSCREEN_SPHERE);
   }
 
   private aimBone(bone: Bone | null): void {
