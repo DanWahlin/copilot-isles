@@ -98,8 +98,24 @@ export function priceIn(m: MarketData, h: Hire): number {
   return Math.min(m.maxPrice, model + (effortData(m, h.effort)?.price ?? 0));
 }
 
-/** Starfish back for a right-sized hire: one for a quick look, two for a hard job done right. */
+/** Starfish back for a right-sized hire, by job size (none for a quick look, two for a hard job). */
 export let REFUND = {} as Readonly<Record<JobSize, number>>;
+
+/**
+ * What a right-sized hire gets back: its size's refund, but always less than the hire cost, so a
+ * right-sized job costs at least one starfish (docs/specs/MODEL-MARKET.md §3).
+ */
+export const refundFor = (job: Pick<MarketJob, 'size'>, h: Hire): number => refundIn(REFUND, job, h, price);
+
+/** `refundFor` with a market file's refunds and prices (the content check reads the file on disk). */
+export function refundIn(
+  refunds: Readonly<Record<JobSize, number>>,
+  job: Pick<MarketJob, 'size'>,
+  h: Hire,
+  priceOf: (h: Hire) => number,
+): number {
+  return Math.max(0, Math.min(refunds[job.size], priceOf(h) - 1));
+}
 /** Doubloons the first time each job's done right-sized. */
 export let JOB_DOUBLOONS = {} as Readonly<Record<JobSize, number>>;
 /** "Quick look", "Hard job". */
@@ -239,6 +255,8 @@ export function hireName(h: Hire): string {
 
 export function feedback(job: MarketJob, h: Hire): Feedback {
   const { outcome, reason } = grade(job, h);
+  // Right-sized: some starfish back, or (when the hire was already the fair price) a fair price.
+  const right = refundFor(job, h) > 0 ? GILDA.right : GILDA.fair;
   const paid = price(h);
   const who = hireName(h);
   const fair = fairPrice(job);
@@ -248,7 +266,7 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
     case 'quick-right':
       return {
         ...base,
-        line: GILDA.right,
+        line: right,
         summary,
         quotes: [job.why, ...(h.auto ? [QUOTES.auto] : [])],
       };
@@ -269,7 +287,7 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
     case 'hard-right':
       return {
         ...base,
-        line: GILDA.right,
+        line: right,
         summary,
         quotes: [QUOTES.hard, QUOTES.noGuarantee],
       };
@@ -298,29 +316,41 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
 }
 
 /**
- * Where a Retry starts the hire (the player can still change it): "a different model" moves to a model
- * suited to complex coding (large; low becomes default), and "more effort" keeps the model on high.
+ * A Retry (only after Fell short; the course's "retry it with a different model or reasoning effort
+ * without re-typing your prompt"): the same job, and the work order opens with the picker it's about
+ * live and nothing chosen in it, so you choose the different model or the effort yourself.
  */
-export function retryHire(
-  h: Hire,
-  kind: 'model' | 'effort',
-  firstOf: (c: ModelCategory) => string,
-): Exclude<Hire, { auto: true }> {
-  const large = CATEGORY_OF.large;
-  if (h.auto) {
-    // Auto hides the effort: either way, turn it off and pick a model suited to complex coding.
-    const medium = CATEGORY_OF.medium;
-    return kind === 'model'
-      ? { auto: false, category: large, model: firstOf(large), effort: 'default' }
-      : { auto: false, category: medium, model: firstOf(medium), effort: 'high' };
-  }
-  // "Higher effort" for a hard job: straight to high.
-  if (kind === 'effort') return { ...h, effort: 'high' };
-  const effort = h.effort === 'low' ? 'default' : h.effort;
-  if (h.category === large) {
-    // Already the biggest: another large model.
-    const other = firstOf(large) === h.model ? h.model : firstOf(large);
-    return { ...h, model: other, effort };
-  }
-  return { auto: false, category: large, model: firstOf(large), effort };
+export interface RetryPlan {
+  kind: 'model' | 'effort';
+  /** The hire that fell short (shown as last time's). */
+  last: Hire;
+  /**
+   * The picker that's live, nothing chosen in it: the models' for "a different model", the effort
+   * dial's for "more effort". After Auto it's always the models' (Auto's off: it hides the effort).
+   */
+  live: 'model' | 'effort';
+}
+
+export function retryPlan(last: Hire, kind: 'model' | 'effort'): RetryPlan {
+  return { kind, last, live: last.auto ? 'model' : kind };
+}
+
+/** A pick a Retry won't take again: Auto after Auto, or the model you just used. */
+export function usedLastTime(plan: RetryPlan, pick: 'auto' | ModelCategory, model?: string): boolean {
+  if (plan.live !== 'model') return false;
+  if (plan.last.auto) return pick === 'auto';
+  return pick !== 'auto' && model !== undefined && model === plan.last.model;
+}
+
+/** An effort a Retry won't take again: the effort you just used, on the same model. */
+export function effortLastTime(plan: RetryPlan, model: string, effort: Effort): boolean {
+  return (
+    plan.live === 'effort' && !plan.last.auto && plan.last.model === model && plan.last.effort === effort
+  );
+}
+
+/** Whether a hire is a Retry's: it changes what the Retry is about (a different model, or the effort). */
+export function retryChanges(plan: RetryPlan, h: Hire): boolean {
+  if (h.auto) return !usedLastTime(plan, 'auto');
+  return !usedLastTime(plan, h.category, h.model) && !effortLastTime(plan, h.model, h.effort);
 }

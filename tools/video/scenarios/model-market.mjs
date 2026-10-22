@@ -1,8 +1,9 @@
 // The Model Market (Gilda's stall on Port Meridian's plaza, docs/specs/MODEL-MARKET.md): walk across
 // the plaza from the fountain as Gilda calls out, open the work order at her counter, then three jobs
-// with the keys: a repo tour with Auto (right-sized, a starfish back), filterBooks with a Powerful
+// with the keys: a repo tour with Auto (right-sized, at the fair price), filterBooks with a Powerful
 // model on High (overspent), and a difficult bug with a Lightweight model (fell short), retried with
-// a different model (right-sized). Ends back at the board.
+// a different model: the work order opens with nothing chosen, and you pick Powerful (right-sized).
+// Ends back at the board.
 import { meridianAshore } from '../game.mjs';
 
 const market = (api) => api.S(() => window.__dev.session().debug.puzzle('market')?.state() ?? null);
@@ -86,9 +87,11 @@ export default {
     await api.press('KeyE');
     await settle(api);
 
-    api.mark('Retry with a different model');
+    api.mark('Retry: choose a different model');
     await api.press('KeyR');
-    await api.pause(2600);
+    await api.pause(3000);
+    await api.press('Digit4');
+    await api.pause(1800);
     await api.press('KeyE');
     await settle(api, 4200);
     await api.press('KeyE');

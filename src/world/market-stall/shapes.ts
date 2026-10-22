@@ -3,7 +3,7 @@ import { MeshBuilder, paint, withIndex, worldUv } from '../sites/geo';
 import { extrudeX, lathe } from '../village/shore-cannon';
 
 /**
- * Shapes for Gilda's Model Market (model-market.ts): round arches with their voussoirs and spandrels,
+ * Shapes for the Model Market's stalls (src/world/market-stall/): round arches with their voussoirs and spandrels,
  * shaped signboard backings and their carved frames, and lathe-turned pots and rims. Each comes
  * back placed, vertex-coloured, world-UV'd and indexed, ready for the town's material buckets (no new
  * material or shader). Built by hand: three's ExtrudeGeometry/LatheGeometry would grow vendor-three.

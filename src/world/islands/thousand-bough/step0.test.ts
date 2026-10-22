@@ -47,6 +47,6 @@ describe('Thousand-Bough step 0', () => {
   it('gives the stub every anchor', () => {
     const s = createThousandBoughStub();
     expect(Object.keys(s.anchors).sort()).toEqual(Object.keys(thousandBoughAnchors()).sort());
-    expect(Object.keys(s.anchors)).toHaveLength(25);
+    expect(Object.keys(s.anchors)).toHaveLength(27);
   });
 });

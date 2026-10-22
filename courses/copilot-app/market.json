@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/market.schema.json",
-  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs and Gilda's lines. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's `text` must match her line in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines and the other stalls' keepers' hello and goodbye (`keepers`, by island). The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
   "categories": [
     {
       "id": "Lightweight",
@@ -46,7 +46,7 @@
   "sizes": {
     "quick": {
       "label": "Quick look",
-      "refund": 1,
+      "refund": 0,
       "doubloons": 5
     },
     "hard": {
@@ -193,6 +193,10 @@
       "voice": "mer.market.right",
       "text": "Right-sized! Here's some starfish back for hiring smart."
     },
+    "fair": {
+      "voice": "mer.market.fair",
+      "text": "Right-sized! That's a fair price for this job."
+    },
     "over": {
       "voice": "mer.market.over",
       "text": "That's a lot of starfish for a quick look. Auto would've done it.",
@@ -236,6 +240,38 @@
     "done": {
       "voice": "mer.market.done",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    }
+  },
+  "keepers": {
+    "anchorage": {
+      "hello": {
+        "voice": "desmond.market.hello",
+        "text": "Welcome, Captain! This is Desmond's Model Market. Hire a model that fits the job, and pay in starfish. Bigger models cost more.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "bye": {
+        "voice": "desmond.market.bye",
+        "text": "Safe sailing, Captain! A job done here counts at every market stall."
+      }
+    },
+    "thousand-bough": {
+      "hello": {
+        "voice": "tb.lani.market.hello",
+        "text": "Hello, Captain! Lani's Model Market, right here on the landing. Hire a model that fits the job. Bigger models cost more starfish.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "bye": {
+        "voice": "tb.lani.market.bye",
+        "text": "Off up the tree? Good luck, Captain. Your starfish and your jobs go with you."
+      }
     }
   }
 }

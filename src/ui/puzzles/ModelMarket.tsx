@@ -14,14 +14,17 @@ import {
   QUOTES,
   TIER_OF,
   SIZE_LABEL,
+  effortLastTime,
   jobById,
   marketText as T,
   price,
+  usedLastTime,
   type CourseQuote,
   type Effort,
   type Feedback,
   type Hire,
   type JobId,
+  type RetryPlan,
 } from '../../game/market/jobs';
 import { boardOf, modelsIn } from '../../game/market/models';
 import { MARKET } from '../../content/market';
@@ -35,6 +38,11 @@ export interface MarketDraft {
   category: ModelCategory;
   model: string;
   effort: Effort;
+  /**
+   * A Retry's picker with nothing chosen in it yet (the models', or the effort dial's): you choose
+   * before you can sign. Null once chosen (or on a new work order).
+   */
+  pending: 'model' | 'effort' | null;
 }
 
 export interface MarketResult {
@@ -49,6 +57,8 @@ export interface MarketResult {
 /** What the Model Market overlay shows (docs/specs/MODEL-MARKET.md §6). */
 export interface MarketView {
   open: boolean;
+  /** Who keeps this stall (the work order's name, and who "says"). */
+  keeper: string;
   screen: 'board' | 'hire' | 'result';
   /** Starfish to spend. */
   purse: number;
@@ -56,8 +66,8 @@ export interface MarketView {
   jobs: readonly { id: JobId; done: boolean; last: string | null }[];
   job: JobId | null;
   draft: MarketDraft;
-  /** This hire is a Retry of the last one (same job, no new prompt). */
-  retry: boolean;
+  /** This hire is a Retry of the last one (same job, no new prompt), and what it's about. */
+  retry: RetryPlan | null;
   result: MarketResult | null;
   /** The board's job the keys and the pad are on. */
   focus: number;
@@ -67,7 +77,7 @@ export interface MarketView {
   hint: { pick: 'auto' | ModelCategory; effort: Effort | null } | null;
   /** A short line under the work order (not enough starfish, a Retry). */
   notice: string | null;
-  /** Gilda's last line, written on the work order while she says it (the HUD captions step aside). */
+  /** The keeper's last line, written on the work order while they say it (the HUD captions step aside). */
   says: string | null;
   reduced: boolean;
 }
@@ -137,11 +147,11 @@ function SizeStars({ c }: { c: ModelCategory }) {
   );
 }
 
-function Says({ text }: { text: string | null }) {
+function Says({ text, keeper }: { text: string | null; keeper: string }) {
   if (!text) return null;
   return (
     <p className="ci-mm-gilda">
-      <b>{T('speaker')}</b> {T('says', { text })}
+      <b>{T('speaker', { keeper })}</b> {T('says', { text })}
     </p>
   );
 }
@@ -176,7 +186,7 @@ function Header({
 function Board({ v, a }: { v: MarketView; a: MarketActions }) {
   return (
     <>
-      <Header v={v} title={T('title')} sub={T('sub')} onClose={a.close} />
+      <Header v={v} title={T('title', { keeper: v.keeper })} sub={T('sub')} onClose={a.close} />
       <p className="ci-mm-special">
         <b>{T('special')}</b> · <Star n={AUTO_PRICE} /> · {T('specialText')}
       </p>
@@ -240,7 +250,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
           })}
         </ol>
       </section>
-      <Says text={v.says} />
+      <Says text={v.says} keeper={v.keeper} />
       {v.purse === 0 && v.says !== GILDA_TEXT[GILDA.broke] && (
         <p className="ci-mm-notice">{GILDA_TEXT[GILDA.broke]}</p>
       )}
@@ -256,6 +266,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
 
 /** The effort dial: a gauge whose needle points at the level (the buttons beside it set it). */
 function Dial({ effort, off }: { effort: Effort; off: boolean }) {
+  // Off (Auto, or a Retry's dial with nothing chosen): the needle rests upright, the gauge greyed.
   const angle = off ? 0 : [-55, 0, 55][EFFORTS.indexOf(effort)]!;
   return (
     <svg className={`ci-mm-dial${off ? ' is-off' : ''}`} viewBox="-60 -56 120 66" aria-hidden="true">
@@ -273,12 +284,16 @@ function Dial({ effort, off }: { effort: Effort; off: boolean }) {
 function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
   const job = jobById(v.job ?? '')!;
   const d = v.draft;
+  const plan = v.retry;
+  const noModel = d.pending === 'model';
+  const noEffort = d.pending === 'effort';
   const hire = draftHire(d);
-  const cost = price(hire);
-  const short = cost > v.purse;
-  const models = modelsIn(d.category);
+  const cost = d.pending ? 0 : price(hire);
+  const short = !d.pending && cost > v.purse;
+  const models = noModel ? [] : modelsIn(d.category);
   const pickPrice = (p: 'auto' | ModelCategory) => (p === 'auto' ? AUTO_PRICE : CATEGORY_PRICE[p]);
   const isHint = (p: 'auto' | ModelCategory) => v.hint?.pick === p;
+  const lastModel = plan && !plan.last.auto ? plan.last.model : null;
   return (
     <>
       <Header v={v} title={T('hireTitle')} onClose={a.close} />
@@ -287,7 +302,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
           <article className="ci-mm-ticket">
             <p className="ci-mm-eyebrow">
               {T('workOrder', { size: SIZE_LABEL[job.size] })}
-              {v.retry && T('retryTag')}
+              {plan && T('retryTag')}
             </p>
             <p className="ci-mm-ticket-title">{job.title}</p>
             <p className="ci-mm-ticket-brief">{job.brief}</p>
@@ -295,48 +310,71 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
           <h3 className="ci-mm-step">{T('courseSays')}</h3>
           <Quote q={job.why} />
           <dl className="ci-mm-tally">
-            <dt>{d.auto ? T('auto') : d.model}</dt>
+            <dt>{d.auto ? T('auto') : noModel ? T('chooseModel') : d.model}</dt>
+            <dd>{noModel ? '—' : <Star n={d.auto ? AUTO_PRICE : CATEGORY_PRICE[d.category]} />}</dd>
+            <dt>
+              {d.auto
+                ? T('effortHidden')
+                : noEffort
+                  ? T('chooseEffort')
+                  : T('effort', { effort: EFFORT_LABEL[d.effort] })}
+            </dt>
             <dd>
-              <Star n={d.auto ? AUTO_PRICE : CATEGORY_PRICE[d.category]} />
-            </dd>
-            <dt>{d.auto ? T('effortHidden') : T('effort', { effort: EFFORT_LABEL[d.effort] })}</dt>
-            <dd>
-              {d.auto ? '+0' : `+${Math.min(EFFORT_PRICE[d.effort], cost - CATEGORY_PRICE[d.category])}`}
+              {d.auto
+                ? '+0'
+                : d.pending
+                  ? '—'
+                  : `+${Math.min(EFFORT_PRICE[d.effort], cost - CATEGORY_PRICE[d.category])}`}
             </dd>
             <dt className="total">{T('total')}</dt>
-            <dd className="total">
-              <Star n={cost} />
-            </dd>
+            <dd className="total">{d.pending ? '—' : <Star n={cost} />}</dd>
           </dl>
           <p className="ci-mm-left">
-            {T('left', { n: v.purse, rest: short ? T('notEnough') : T('leftOver', { n: v.purse - cost }) })}
+            {d.pending
+              ? T('leftPending', { n: v.purse })
+              : T('left', {
+                  n: v.purse,
+                  rest: short ? T('notEnough') : T('leftOver', { n: v.purse - cost }),
+                })}
           </p>
           {v.notice && <p className="ci-mm-notice">{v.notice}</p>}
-          <Says text={v.says} />
+          <Says text={v.says} keeper={v.keeper} />
         </div>
         <div className="ci-mm-controls">
           <h3 className="ci-mm-step">{T('step1')}</h3>
-          <div className="ci-mm-picks" role="radiogroup" aria-label={T('modelGroup')}>
+          <div
+            className={`ci-mm-picks${noModel ? ' is-live' : ''}`}
+            role="radiogroup"
+            aria-label={T('modelGroup')}
+            data-live={noModel || undefined}
+          >
             {PICKS.map((p, i) => {
-              const on = p === 'auto' ? d.auto : !d.auto && d.category === p;
+              const on = !noModel && (p === 'auto' ? d.auto : !d.auto && d.category === p);
+              const used = !!plan && p === 'auto' && usedLastTime(plan, 'auto');
               return (
                 <button
                   key={p}
                   type="button"
                   role="radio"
                   aria-checked={on}
+                  aria-disabled={used || undefined}
+                  aria-label={used ? T('usedLabel', { name: T('auto') }) : undefined}
                   data-pick={p}
-                  className={`ci-mm-pick is-${p === 'auto' ? 'auto' : TIER_OF[p]}${on ? ' is-on' : ''}${isHint(p) ? ' is-hint' : ''}`}
+                  className={`ci-mm-pick is-${p === 'auto' ? 'auto' : TIER_OF[p]}${on ? ' is-on' : ''}${isHint(p) ? ' is-hint' : ''}${used ? ' is-used' : ''}`}
                   onClick={() => a.pick(p)}
                 >
                   <kbd aria-hidden="true">{i + 1}</kbd>
                   <span>{p === 'auto' ? T('auto') : p}</span>
-                  <Star n={pickPrice(p)} />
+                  {used ? <span className="ci-mm-last">{T('lastTime')}</span> : <Star n={pickPrice(p)} />}
                 </button>
               );
             })}
           </div>
-          {d.auto ? (
+          {noModel ? (
+            <p className="ci-mm-choose">
+              {lastModel ? T('retryPickModel', { model: lastModel }) : T('retryPickAfterAuto')}
+            </p>
+          ) : d.auto ? (
             <div className="ci-mm-auto">
               <Quote q={QUOTES.auto} />
               <Quote q={QUOTES.autoAside} />
@@ -347,44 +385,64 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               role="radiogroup"
               aria-label={T('categoryModels', { category: d.category })}
             >
-              {models.map((m) => (
-                <li key={m.name}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={m.name === d.model}
-                    className={m.name === d.model ? 'is-on' : ''}
-                    onClick={() => a.model(m.name)}
-                  >
-                    <span className="name">
-                      {m.name}
-                      {!m.ga && T('preview')}
-                    </span>
-                    {m.taskArea && <span className="area">{m.taskArea}</span>}
-                  </button>
-                </li>
-              ))}
+              {models.map((m) => {
+                const used = !!plan && usedLastTime(plan, d.category, m.name);
+                return (
+                  <li key={m.name}>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={m.name === d.model}
+                      aria-disabled={used || undefined}
+                      aria-label={used ? T('usedLabel', { name: m.name }) : undefined}
+                      className={`${m.name === d.model ? 'is-on' : ''}${used ? ' is-used' : ''}`}
+                      onClick={() => a.model(m.name)}
+                    >
+                      <span className="name">
+                        {m.name}
+                        {!m.ga && T('preview')}
+                      </span>
+                      {used ? (
+                        <span className="area">{T('lastTime')}</span>
+                      ) : (
+                        m.taskArea && <span className="area">{m.taskArea}</span>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <h3 className="ci-mm-step">{T('step2')}</h3>
-          <div className="ci-mm-effort">
-            <Dial effort={d.effort} off={d.auto} />
-            <div className="ci-mm-levels" role="radiogroup" aria-label={T('effortGroup')}>
-              {EFFORTS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  role="radio"
-                  aria-checked={!d.auto && d.effort === e}
-                  disabled={d.auto}
-                  data-effort={e}
-                  className={`${!d.auto && d.effort === e ? 'is-on' : ''}${v.hint?.effort === e ? ' is-hint' : ''}`}
-                  onClick={() => a.effort(e)}
-                >
-                  <span>{EFFORT_LABEL[e]}</span>
-                  <span className="cost">+{EFFORT_PRICE[e]} ★</span>
-                </button>
-              ))}
+          <div className={`ci-mm-effort${noEffort ? ' is-live' : ''}`}>
+            <Dial effort={d.effort} off={d.auto || noEffort} />
+            <div
+              className="ci-mm-levels"
+              role="radiogroup"
+              aria-label={T('effortGroup')}
+              data-live={noEffort || undefined}
+            >
+              {EFFORTS.map((e) => {
+                const on = !d.auto && !noEffort && d.effort === e;
+                const used = !!plan && !d.auto && effortLastTime(plan, d.model, e);
+                return (
+                  <button
+                    key={e}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    aria-disabled={used || undefined}
+                    aria-label={used ? T('usedLabel', { name: EFFORT_LABEL[e] }) : undefined}
+                    disabled={d.auto}
+                    data-effort={e}
+                    className={`${on ? 'is-on' : ''}${v.hint?.effort === e ? ' is-hint' : ''}${used ? ' is-used' : ''}`}
+                    onClick={() => a.effort(e)}
+                  >
+                    <span>{EFFORT_LABEL[e]}</span>
+                    <span className="cost">{used ? T('lastTime') : `+${EFFORT_PRICE[e]} ★`}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <Quote q={d.auto ? QUOTES.autoHidden : QUOTES.effort} />
@@ -396,10 +454,16 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               type="button"
               className="ci-mm-btn primary"
               data-primary
-              aria-disabled={short}
+              aria-disabled={short || !!d.pending}
               onClick={a.pay}
             >
-              {short ? T('need', { n: cost }) : T('pay', { n: cost })}
+              {noModel
+                ? T('chooseModelFirst')
+                : noEffort
+                  ? T('chooseEffortFirst')
+                  : short
+                    ? T('need', { n: cost })
+                    : T('pay', { n: cost })}
             </button>
           </div>
           {short && <p className="ci-mm-notice">{T('short', { n: v.purse, price: AUTO_PRICE })}</p>}
@@ -437,7 +501,7 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
           {T('hired', { who })} <Star n={r.paid} />
         </p>
         <p className="ci-mm-summary">{f.summary}</p>
-        <h3 className="ci-mm-step">{T('gildaSays')}</h3>
+        <h3 className="ci-mm-step">{T('keeperSays', { keeper: v.keeper })}</h3>
         <p className="ci-mm-says">{T('says', { text: v.says ?? GILDA_TEXT[f.line] ?? '' })}</p>
         {f.quotes.map((q) => (
           <Quote key={q.text} q={q} />
@@ -445,9 +509,11 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
         <p className="ci-mm-reward">
           {r.refund > 0
             ? T('refund', { n: r.refund, doubloons: r.doubloons ? T('doubloons', { n: r.doubloons }) : '' })
-            : f.outcome === 'over'
-              ? T('noRefundOver')
-              : T('noRefundShort')}
+            : f.outcome === 'right'
+              ? T('fair', { doubloons: r.doubloons ? T('fairDoubloons', { n: r.doubloons }) : '' })
+              : f.outcome === 'over'
+                ? T('noRefundOver')
+                : T('noRefundShort')}
         </p>
         <div className="ci-mm-actions">
           {f.outcome === 'short' ? (
@@ -483,17 +549,22 @@ function announce(v: MarketView): string {
     return T('announceResult', {
       stamp: plain(f.stamp.replace(/^\W+\s*/, '')),
       summary: f.summary,
+      keeper: v.keeper,
       says: v.says ?? GILDA_TEXT[f.line] ?? '',
     });
   }
   if (v.screen === 'hire' && v.job) {
+    if (v.draft.pending) {
+      const title = jobById(v.job)!.title;
+      return `${v.notice ? `${v.notice} ` : ''}${T(v.draft.pending === 'model' ? 'announceRetryModel' : 'announceRetryEffort', { title, purse: v.purse })}`;
+    }
     const cost = price(draftHire(v.draft));
     const pick = v.draft.auto
       ? T('auto')
       : T('announcePick', { model: v.draft.model, effort: EFFORT_LABEL[v.draft.effort] });
     return `${v.notice ? `${v.notice} ` : ''}${T('announceHire', { title: jobById(v.job)!.title, pick, n: cost, purse: v.purse })}`;
   }
-  return `${T('announceBoard', { n: v.purse })}${v.says ? T('announceSays', { says: v.says }) : ''}`;
+  return `${T('announceBoard', { n: v.purse, keeper: v.keeper })}${v.says ? T('announceSays', { says: v.says, keeper: v.keeper }) : ''}`;
 }
 
 const UP = new Set(['ArrowUp', 'KeyW']);
@@ -570,10 +641,17 @@ function Market({ store }: { store: MarketStore }) {
   // Keyboard and pad focus follow each other: the board's job, or the screen's main button.
   useEffect(() => {
     if (!v.open || !panel.current) return;
+    // A Retry's live picker has the focus until you've chosen (its first pick you can take).
+    const live =
+      v.screen === 'hire' && v.draft.pending
+        ? panel.current.querySelector<HTMLButtonElement>(
+            '[data-live] button:not([aria-disabled="true"]):not([disabled])',
+          )
+        : null;
     const el =
       v.screen === 'board'
         ? panel.current.querySelector<HTMLButtonElement>(`[data-job="${JOBS[v.focus]?.id}"]`)
-        : panel.current.querySelector<HTMLButtonElement>('[data-primary]');
+        : (live ?? panel.current.querySelector<HTMLButtonElement>('[data-primary]'));
     if (el && document.activeElement !== el) el.focus({ preventScroll: true });
   }, [v.open, v.screen, v.focus, v.draft, v.result]);
   if (!v.open) return null;

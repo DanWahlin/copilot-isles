@@ -1,0 +1,117 @@
+{
+  "id": "tb.lani.market.hello",
+  "speaker": "Lani",
+  "text": "Hello, Captain! Lani's Model Market, right here on the landing. Hire a model that fits the job. Bigger models cost more starfish.",
+  "words": [
+    {
+      "word": "Hello",
+      "start": 0,
+      "end": 0.48
+    },
+    {
+      "word": "Captain",
+      "start": 0.48,
+      "end": 1.28
+    },
+    {
+      "word": "Lani's",
+      "start": 1.28,
+      "end": 2.053
+    },
+    {
+      "word": "Model",
+      "start": 2.053,
+      "end": 2.423
+    },
+    {
+      "word": "Market",
+      "start": 2.423,
+      "end": 3.267
+    },
+    {
+      "word": "right",
+      "start": 3.267,
+      "end": 3.648
+    },
+    {
+      "word": "here",
+      "start": 3.648,
+      "end": 3.893
+    },
+    {
+      "word": "on",
+      "start": 3.893,
+      "end": 4.02
+    },
+    {
+      "word": "the",
+      "start": 4.02,
+      "end": 4.15
+    },
+    {
+      "word": "landing",
+      "start": 4.15,
+      "end": 4.864
+    },
+    {
+      "word": "Hire",
+      "start": 4.864,
+      "end": 5.52
+    },
+    {
+      "word": "a",
+      "start": 5.52,
+      "end": 5.667
+    },
+    {
+      "word": "model",
+      "start": 5.667,
+      "end": 6.032
+    },
+    {
+      "word": "that",
+      "start": 6.032,
+      "end": 6.256
+    },
+    {
+      "word": "fits",
+      "start": 6.256,
+      "end": 6.68
+    },
+    {
+      "word": "the",
+      "start": 6.68,
+      "end": 6.9
+    },
+    {
+      "word": "job",
+      "start": 6.9,
+      "end": 7.52
+    },
+    {
+      "word": "Bigger",
+      "start": 7.52,
+      "end": 8.091
+    },
+    {
+      "word": "models",
+      "start": 8.091,
+      "end": 8.752
+    },
+    {
+      "word": "cost",
+      "start": 8.752,
+      "end": 9.28
+    },
+    {
+      "word": "more",
+      "start": 9.28,
+      "end": 9.696
+    },
+    {
+      "word": "starfish",
+      "start": 9.696,
+      "end": 9.946
+    }
+  ]
+}

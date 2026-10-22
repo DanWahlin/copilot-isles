@@ -2,7 +2,7 @@ import { Group, Vector3 } from 'three/webgpu';
 import { MARKET } from '../../content/market';
 import { unreflected } from '../reflection';
 import { anchorFrame, type VillageAnchor } from '../village/kit';
-import { MARKET_LAYOUT } from '../meridian-town/model-market';
+import type { MarketStallLayout } from '../market-stall/layout';
 import { SignSet, type PaintedSign } from './sign';
 import { marketText as T } from '../../game/market/jobs';
 
@@ -57,25 +57,28 @@ const MORE_ON = ['#3d4f2c', '#e9d9b6', '#e9d9b6'] as const;
 /**
  * The Model Market's lettering (docs/specs/MODEL-MARKET.md §2): the three hanging boards, the small
  * name plaque, the House special plaque on the counter and the notes on the jobs board, as one sign atlas
- * (one draw, the painted-sign material: no new shader). The stall itself is part of the town
- * (src/world/meridian-town/model-market.ts); this only letters it.
+ * (one draw, the painted-sign material: no new shader). The stall itself is part of its island's
+ * town (src/world/market-stall/, built by each island's package); this only letters it.
  */
 export function createModelMarketSigns(o: {
-  /** The stall's origin (the town's `modelMarket` anchor). */
+  /** The stall's origin (its island's `modelMarket` anchor) and where its parts are. */
   origin: VillageAnchor;
+  layout: MarketStallLayout;
+  /** Who keeps it (the name plaque). */
+  keeper: string;
   boards: readonly MarketBoardText[];
   jobs: readonly MarketJobNote[];
   done: readonly string[];
 }): ModelMarketSite {
   const group = new Group();
   group.name = 'model market signs';
-  // A Meridian site, so never in the Anchorage harbour mirror (PLAN §15.4).
+  // Small lettering, never in the Anchorage harbour mirror (PLAN §15.4).
   unreflected.add(group);
   const root = anchorFrame(o.origin);
   group.add(root);
 
   const signs = new SignSet('model market signs');
-  const L = MARKET_LAYOUT;
+  const L = o.layout;
   o.boards.forEach((b, i) => {
     const spot = L.boards[i];
     if (!spot) return;
@@ -114,7 +117,7 @@ export function createModelMarketSigns(o: {
   );
   plaque.object.position.set(L.plaque.x, L.plaque.y, L.plaque.z);
   root.add(plaque.object);
-  const name = signs.add([T('nameTop'), T('nameBottom')], L.name.w, L.name.h, {
+  const name = signs.add([T('nameTop', { keeper: o.keeper }), T('nameBottom')], L.name.w, L.name.h, {
     size: 0.17,
     colors: [GOLD, CREAM],
     scales: [1, 0.86],
@@ -150,10 +153,9 @@ export function createModelMarketSigns(o: {
     new Vector3(lx, ly, lz).applyMatrix4(root.matrixWorld);
   const standAt = world(L.stand.x, 0, L.stand.z);
   const counterAt = world(L.counter.x, 0, L.counter.z);
-  // Square on from the plaza at a standing eye height, like concept B's close-up: the three boards
-  // across the top, Gilda at the counter in the middle, the jar, the bell and the jobs board.
-  const eye = world(-0.4, 2.8, 6.6);
-  const at = world(0.1, 2.85, -2.0);
+  // The counter camera (the stall's layout): the boards across the top, the keeper in the middle.
+  const eye = world(...L.shot.eye);
+  const at = world(...L.shot.at);
 
   return {
     group,

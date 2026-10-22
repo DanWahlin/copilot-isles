@@ -124,6 +124,14 @@
     "Maren": {
       "tts": "elevenlabs",
       "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    "Desmond": {
+      "tts": "elevenlabs",
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    "Lani": {
+      "tts": "elevenlabs",
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
     }
   }
 }

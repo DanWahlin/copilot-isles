@@ -79,8 +79,13 @@ import { createLostLetters, LETTERS_ID, type LettersHost } from './puzzles/lost-
 import { ALCOVES, LETTERS, lettersContent } from './puzzles/hall-letters';
 import { puzzleOn, puzzleQuest, puzzleSteps, textOf } from '../course/puzzles';
 import { createRecordsAlcoves } from '../world/sites/records-alcoves';
-import { createModelMarketSigns } from '../world/sites/model-market';
+import { createModelMarketSigns, type ModelMarketSite } from '../world/sites/model-market';
+import { BOOTH_LAYOUT } from '../world/market-stall/booth';
+import type { VillageAnchor } from '../world/village/kit';
+import type { MarketStallLayout } from '../world/market-stall/layout';
+import { MARKET_LAYOUT } from '../world/meridian-town/model-market';
 import { createModelMarket, type MarketHost } from './puzzles/model-market';
+import { MARKET_PUZZLE, marketStall } from './market/stalls';
 import { CATEGORY_PRICE, JOBS as MARKET_JOBS } from './market/jobs';
 import { BOARDS as MARKET_BOARDS } from './market/models';
 import { createHelmBuoys } from '../world/sites/helm-buoys';
@@ -521,9 +526,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
 
   // A character a slice (the whole cast at once held a frame for ~30 ms behind the cabin).
   await buildSlice();
+  // Anchorage's market keeper keeps a stall only for a course with the market (else it's scenery).
+  const anchorageKeeper = marketStall('anchorage').keeper.npc;
   const npcs = await NpcCrowd.createAsync(
     o.characters,
-    COVE_NPCS,
+    COVE_NPCS.filter((n) => n.id !== anchorageKeeper || puzzleOn(MARKET_PUZZLE)),
     { ...village.anchors, ...sites.anchors, juno: COVE.firstMate, lyra: sites.hammock.seat },
     world,
     tier,
@@ -997,6 +1004,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     filePage: (id) => {
       if (learn?.filePage(id)) hud.toast('New Logbook page: The Model Market. Press J to read it.', 3.5);
     },
+    spotlight: (id, on) => {
+      const n = [...npcs.list, ...(meridianNpcs?.list ?? []), ...(tb?.npcs ?? [])].find(
+        (v) => v.spec.id === id,
+      );
+      n?.character.setSpotlight(on);
+    },
   };
   // P1.2 The Three Helms: the crew takes the wheel for each mode, and Rhea comes aboard to teach it.
   const helmsHost: HelmsHost = {
@@ -1093,6 +1106,40 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ...(christening ? [christening] : []),
   ];
   const hintPresses = new Map<string, { key: string; n: number }>();
+
+  /**
+   * A Model Market stall's lettering (its boards, plaques and job notes) at its island's anchor; the
+   * stall itself is part of the island's town (docs/specs/MODEL-MARKET.md §2).
+   */
+  function marketSigns(origin: VillageAnchor, layout: MarketStallLayout, island: IslandId): ModelMarketSite {
+    return createModelMarketSigns({
+      origin,
+      layout,
+      keeper: marketStall(island).keeper.name,
+      boards: MARKET_BOARDS.map((b) => ({
+        category: b.category,
+        price: CATEGORY_PRICE[b.category],
+        names: b.shown.map((m) => m.name),
+        more: b.more.length,
+      })),
+      jobs: MARKET_JOBS.map((j) => ({ id: j.id, note: j.note, size: j.size })),
+      done: [],
+    });
+  }
+  // Anchorage's stall on the quay (built with the world, so its market is the session's from the start;
+  // it sleeps with the island's cast).
+  const anchorageMarket =
+    village.anchors.modelMarket && puzzleOn(MARKET_PUZZLE)
+      ? marketSigns(village.anchors.modelMarket, BOOTH_LAYOUT, 'anchorage')
+      : null;
+  /** The market stalls' lettering besides Port Meridian's (freed with the session, or with their island). */
+  const marketSites: ModelMarketSite[] = [];
+  if (anchorageMarket) {
+    marketSites.push(anchorageMarket);
+    engine.scene.add(anchorageMarket.group);
+    cove.detail.anchorage.add(anchorageMarket.group);
+    puzzles.push(createModelMarket(marketHost, anchorageMarket, marketStall('anchorage')));
+  }
 
   // ---- Port Meridian (Chapter 01): its cast, sites and set pieces arrive with the town ----
   let meridianNpcs: NpcCrowd | null = null;
@@ -1498,26 +1545,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     // The Model Market (optional): the boards' lettering on Gilda's stall (the stall's part of the
     // town), and her counter. What's been hired lives in the save, so a reload shows the same notes.
     const marketAt = town.anchors.modelMarket;
-    if (marketAt) {
-      const site = createModelMarketSigns({
-        origin: marketAt,
-        boards: MARKET_BOARDS.map((b) => ({
-          category: b.category,
-          price: CATEGORY_PRICE[b.category],
-          names: b.shown.map((m) => m.name),
-          more: b.more.length,
-        })),
-        jobs: MARKET_JOBS.map((j) => ({ id: j.id, note: j.note, size: j.size })),
-        done: [],
-      });
+    if (marketAt && puzzleOn(MARKET_PUZZLE)) {
+      const site = marketSigns(marketAt, MARKET_LAYOUT, 'meridian');
       site.group.visible = false;
       engine.scene.add(site.group);
       meridianSites.push(site);
-      if (puzzleOn('market')) {
-        const p = createModelMarket(marketHost, site);
-        puzzles.push(p);
-        scope.puzzles.push(p);
-      }
+      const p = createModelMarket(marketHost, site, marketStall('meridian'));
+      puzzles.push(p);
+      scope.puzzles.push(p);
     }
     await buildSlice();
     if (disposed || cove.meridian.town !== town) return noMeridian;
@@ -1574,9 +1609,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     if (paused || scriptRunning || dialogue.active || learn?.busy || hud.label.mode) return;
     if ((mode !== 'walk' && mode !== 'sail') || (arrival && arrival.phase !== 'done')) return;
     for (const p of puzzles) {
-      if (labelDone.has(p.id) || !p.engaged()) continue;
-      labelDone.add(p.id);
-      puzzleLabel(`puzzle:${p.id}`);
+      const label = p.label ?? p.id;
+      if (labelDone.has(label) || !p.engaged()) continue;
+      labelDone.add(label);
+      puzzleLabel(`puzzle:${label}`);
       return;
     }
   }
@@ -1650,6 +1686,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   let anchorageParked: { object: Object3D; visible: boolean }[] = [];
   const anchorageContent = (): Object3D[] => [
     ...npcs.list.map((n) => n.character.group),
+    ...(anchorageMarket ? [anchorageMarket.group] : []),
     ...chests.filter((c) => COVE_CHESTS.some((k) => k.id === c.id)).map((c) => c.chest.group),
   ];
   /** Anchorage wakes: its cast and chests go back in (hidden until the warm-up shows them). */
@@ -1686,12 +1723,46 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const inCourse = (id: IslandId) => !!courseIsland(id, COURSE);
   const onMeridianTown = (town: NonNullable<CoveScene['meridian']['town']>) =>
     runSetup('meridian', async () => (inCourse('meridian') ? setupMeridian(town) : noMeridian));
+  /** Thousand-Bough's stall on Bough Landing: its lettering and market, while the island's in. */
+  let tbMarket: { site: ModelMarketSite; puzzle: Puzzle } | null = null;
+  const addThousandBoughMarket = (sys: ThousandBoughSystem): Object3D | null => {
+    const at = sys.anchors.modelMarket;
+    if (tbMarket || !at || !puzzleOn(MARKET_PUZZLE)) return null;
+    const site = marketSigns(at, BOOTH_LAYOUT, 'thousand-bough');
+    site.group.visible = false;
+    engine.scene.add(site.group);
+    cove.detail['thousand-bough'].add(site.group);
+    marketSites.push(site);
+    const puzzle = createModelMarket(marketHost, site, marketStall('thousand-bough'));
+    puzzles.push(puzzle);
+    tbMarket = { site, puzzle };
+    return site.group;
+  };
+  const removeThousandBoughMarket = () => {
+    if (!tbMarket) return;
+    const { site, puzzle } = tbMarket;
+    tbMarket = null;
+    puzzles.splice(puzzles.indexOf(puzzle), 1);
+    puzzle.dispose();
+    marketSites.splice(marketSites.indexOf(site), 1);
+    site.group.removeFromParent();
+    site.dispose();
+  };
   const onThousandBough = (sys: ThousandBoughSystem) =>
     runSetup('thousand-bough', async () => {
       if (!tb || disposed || !inCourse('thousand-bough')) return noMeridian;
       const setup = await tb.setup(sys);
-      if (!disposed && cove.thousandBough.system === sys) addCourseBoard('thousand-bough');
-      return setup;
+      if (disposed || cove.thousandBough.system !== sys) return setup;
+      addCourseBoard('thousand-bough');
+      const market = addThousandBoughMarket(sys);
+      if (!market) return setup;
+      return {
+        roots: [...setup.roots, market],
+        reveal() {
+          setup.reveal();
+          market.visible = true;
+        },
+      };
     });
   const unsubscribeStreams = [
     cove.anchorage.onReady(() => runSetup('anchorage', setupAnchorage)),
@@ -1720,6 +1791,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           if (id === 'meridian') teardownMeridian();
           else if (id === 'thousand-bough') {
             tb?.teardown();
+            removeThousandBoughMarket();
             interactions.remove('course-board:thousand-bough');
           } else {
             // Anchorage sleeps with its cast and chests (they stay as they are, out of the scene).
@@ -3150,7 +3222,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       npcs.dispose();
       meridianNpcs?.dispose();
       tb?.dispose();
-      for (const site of meridianSites) {
+      for (const site of [...meridianSites, ...marketSites]) {
         site.group.removeFromParent();
         site.dispose();
       }

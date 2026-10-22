@@ -1,3 +1,5 @@
+import { BOOTH_LAYOUT } from '../../market-stall/booth';
+import { stallToWorld } from '../../market-stall/layout';
 import { describe, expect, it } from 'vitest';
 import { CollisionWorld, type WalkSurface } from '../../../game/collision';
 import type { HeightField } from '../../contracts';
@@ -117,8 +119,18 @@ describe('Thousand-Bough layout', () => {
     for (const [name, a] of Object.entries(TB.anchors)) {
       if (cams.has(name)) continue;
       const g = groundAt(a.x, a.z, a.y);
-      expect(Math.abs(g - a.y), name).toBeLessThan(name.startsWith('extra') || name === 'lyra' ? 0.35 : 0.05);
+      // The market's keeper stands on the step behind the booth's counter.
+      const step = name === 'marketKeeper' ? BOOTH_LAYOUT.vendor.y : 0;
+      expect(Math.abs(g + step - a.y), name).toBeLessThan(
+        name.startsWith('extra') || name === 'lyra' ? 0.35 : 0.05,
+      );
     }
+    // Lani's spot is the booth's own (the booth builds from `modelMarket`).
+    const m = TB.anchors.modelMarket;
+    const v = stallToWorld(m, BOOTH_LAYOUT.vendor.x, BOOTH_LAYOUT.vendor.z);
+    expect(TB.anchors.marketKeeper.x).toBeCloseTo(v.x, 2);
+    expect(TB.anchors.marketKeeper.z).toBeCloseTo(v.z, 2);
+    expect(TB.anchors.marketKeeper.y).toBeCloseTo(m.y + BOOTH_LAYOUT.vendor.y, 2);
     for (const s of TB.starfish) {
       const g = groundAt(s.x, s.z, s.y);
       expect(Math.abs(g - s.y), s.id).toBeLessThan(0.05);

@@ -53,7 +53,7 @@ export function StarfishPurse({ count }: { count: number }) {
   return (
     <span
       className="ci-starfish-purse"
-      title="Starfish to spend at Gilda’s Model Market"
+      title="Starfish to spend at a Model Market stall"
       aria-label={`${count} starfish to spend`}
     >
       <svg className="ci-starfish-jar" viewBox="-10 -12 20 22" aria-hidden>
@@ -80,8 +80,8 @@ export function StarfishLog({ found, here }: { found: readonly string[]; here: S
     <div className="ci-starfish-log">
       <p className="ci-starfish-intro">
         Starfish hide all over the islands. Walk into one to pick it up: each is worth 5 doubloons, and
-        finding every one on an island earns 20 more. Each is also one to spend at Gilda’s Model Market on
-        Port Meridian. You've found {total} of {STARFISH.length}.
+        finding every one on an island earns 20 more. Each is also one to spend at the Model Market: there’s a
+        stall on every island. You've found {total} of {STARFISH.length}.
       </p>
       {islands.map((id) => {
         const all = starfishOn(id);

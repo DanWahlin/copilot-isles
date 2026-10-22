@@ -3,6 +3,7 @@ import {
   abs,
   attribute,
   color,
+  diffuseColor,
   float,
   fract,
   mix,
@@ -53,6 +54,20 @@ export function createStoneMaterial(): MeshStandardNodeMaterial {
   return plainShadowColor(material);
 }
 
+/**
+ * The light sunlit walls and ground bounce into a street's shade. Without it, paving in shade was lit by
+ * the sky dome alone (PMREM and the hemisphere's sky colour): a cool blue at golden hour, under warm
+ * sandstone walls lit by the same low sun (Port Meridian's plaza). A share of the sun's colour, times
+ * the paving's own colour, in its emissive: one uniform, no new shader per material.
+ */
+const PAVING_BOUNCE = 0.05;
+export function withSunBounce<M extends MeshStandardNodeMaterial>(material: M): M {
+  material.emissiveNode = (diffuseColor as AnyNode).rgb
+    .mul(world.sunColor)
+    .mul(float(PAVING_BOUNCE).mul(float(1).sub(world.night)));
+  return material;
+}
+
 export function createPavingMaterial(): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({ roughness: 0.98, metalness: 0, vertexColors: true });
   const p = positionWorld as AnyNode;
@@ -74,7 +89,7 @@ export function createPavingMaterial(): MeshStandardNodeMaterial {
     .sub(color(0x3f3628).mul(damp.mul(0.14)));
   material.roughnessNode = float(0.96).add(damp.mul(0.03));
   material.aoNode = float(1).sub(seams.mul(0.24)).sub(lowWorldDirt(0.05));
-  return plainShadowColor(material);
+  return plainShadowColor(withSunBounce(material));
 }
 
 export function createPlasterMaterial(): MeshStandardNodeMaterial {

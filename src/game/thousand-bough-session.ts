@@ -35,6 +35,7 @@ import { createPracticeSession } from './puzzles/practice-session';
 import type { Puzzle, PuzzleHost } from './puzzles/types';
 import type { ScriptStep } from './script';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
+import { MARKET_PUZZLE, marketStall } from './market/stalls';
 import { FEN_SOLVED, thousandBoughNpcScript } from './thousand-bough-quests';
 import { createViewStore } from './puzzles/channel-routing/view';
 import type { FlagHoistView } from '../ui/puzzles/FlagHoist';
@@ -434,7 +435,9 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
     const anchors = s.anchors as unknown as Record<string, typeof s.anchors.tamsin>;
     const cast = [
       ...THOUSAND_BOUGH_NPCS.map((n) => ({ ...n, keepY: true })),
-      ...thousandBoughExtras(anchors, story('secondBridge')),
+      ...thousandBoughExtras(anchors, story('secondBridge')).filter(
+        (n) => n.id !== marketStall('thousand-bough').keeper.npc || puzzleOn(MARKET_PUZZLE),
+      ),
     ];
     // A character a slice: the whole cast at once stalled a frame for ~190 ms while you sailed.
     const made = await NpcCrowd.createAsync(

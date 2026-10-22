@@ -20,6 +20,9 @@ const NPC_IDS = [
   'pol',
   'juno',
   'lyra',
+  // The Model Market's keepers on Anchorage Cay and Thousand-Bough Isle (Gilda is mer_market).
+  'an_market',
+  'tb_market',
   'tobias',
   'mina',
   'anders',

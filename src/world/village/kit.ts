@@ -9,6 +9,7 @@ import {
   Group,
   Matrix4,
   Mesh,
+  MeshStandardNodeMaterial,
   Object3D,
   Quaternion,
   RepeatWrapping,
@@ -28,6 +29,7 @@ import {
   createHaloMaterial,
   createMetalMaterial,
   createPavingMaterial,
+  withSunBounce,
   createPlasterMaterial,
   createRoofTileMaterial,
   createRopeMaterial,
@@ -259,6 +261,8 @@ function createVillageKitFromGltf(gltf: GLTF): VillageKit {
   // Their textures as palettes: the same look, and their shadows share one plain shader (PLAN §15.4).
   for (const key of Object.keys(materials) as MaterialKey[])
     materials[key] = palettedMaterial(materials[key]!);
+  // Paving in shade takes the sun's bounce (materials.ts), like the fallback kit's.
+  if (materials.paving instanceof MeshStandardNodeMaterial) withSunBounce(materials.paving);
 
   for (const scene of gltf.scenes) {
     scene.updateWorldMatrix(true, true);

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-20T16:35:01.040Z",
+  "generatedAt": "2026-10-22T07:53:59.779Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -2600,6 +2600,50 @@
         8, 7, 21, 5
       ],
       "v": "XCGBAECAEBXBCBDBXFDBDBCADBCABCX"
+    },
+    "mer.market.fair": {
+      "h": "7b51f464b80b39a1",
+      "e": "happy",
+      "t": [0, 3, 16, 7, 28, 19, 5, 32, 47, 5, 25, 14, 7, 7, 10, 8, 7, 21, 7, 35, 7, 14, 4],
+      "v": "XBCBDCBXHBGCBABCBEBEAX"
+    },
+    "desmond.market.hello": {
+      "h": "691865aecad37a82",
+      "e": "happy",
+      "t": [
+        0, 3, 9, 28, 8, 22, 12, 6, 19, 40, 11, 7, 7, 7, 21, 7, 9, 4, 18, 10, 5, 4, 14, 8, 5, 33, 63, 19, 7,
+        14, 12, 6, 19, 14, 35, 7, 28, 14, 7, 7, 11, 50, 8, 7, 8, 31, 35, 14, 14, 7, 61, 12, 15, 21, 8, 7, 14,
+        7, 21, 26, 14, 9, 28, 27
+      ],
+      "v": "XFCAFXBCXBGFBCBADBAEBEADBXCBEADCHBGBCBEAXCBACBDBGBABEABCHBEBAEX"
+    },
+    "desmond.market.bye": {
+      "h": "78a0cce41c7711d2",
+      "e": "happy",
+      "t": [
+        0, 4, 15, 7, 7, 7, 7, 7, 21, 21, 11, 6, 33, 28, 14, 14, 7, 11, 7, 48, 7, 28, 14, 7, 7, 21, 7, 14, 9,
+        8, 35, 28, 12
+      ],
+      "v": "XBCBGBCBCABCBCBDABCBEBCBCGBADBEX"
+    },
+    "tb.lani.market.hello": {
+      "h": "97cb29d80cdd48bf",
+      "e": "happy",
+      "t": [
+        0, 33, 26, 8, 72, 11, 7, 49, 8, 7, 13, 7, 8, 12, 56, 24, 9, 7, 35, 14, 7, 7, 14, 42, 12, 27, 26, 5,
+        18, 8, 7, 6, 14, 14, 14, 14, 42, 7, 7, 14, 25, 33, 12, 6, 20, 9, 4, 4, 14, 21, 14, 35, 21, 9, 38, 7,
+        21, 7, 7, 42, 4
+      ],
+      "v": "XCABCDBADCHADBXBCBDBHCBXBDCBADBCHBGBCBEAXABEADBCHBEBAEBDBGBX"
+    },
+    "tb.lani.market.bye": {
+      "h": "e5c70a64e290ee1e",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 7, 7, 11, 60, 30, 23, 14, 28, 10, 5, 39, 42, 9, 14, 7, 21, 7, 56, 18, 7, 7, 7, 14, 21, 14,
+        14, 15, 4, 11, 14, 14, 28, 7, 4
+      ],
+      "v": "XEGCABXBHCABCXCEBDCBCBCEBECBXBCFBCBX"
     }
   }
 }

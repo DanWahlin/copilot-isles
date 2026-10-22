@@ -55,7 +55,8 @@ import { HALYARDS } from '../../src/world/islands/thousand-bough/set-pieces';
 import { COVE_CHESTS, MERIDIAN_CHESTS } from '../../src/game/cove-quests';
 import { islandAt, type IslandId } from '../../src/game/islands';
 import { MERIDIAN_NPCS, meridianExtras } from '../../src/game/meridian-npcs';
-import { EFFORTS, grade, priceIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
+import { EFFORTS, grade, priceIn, refundIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
+import { MARKET_STALLS } from '../../src/game/market/stalls';
 import { COVE_NPCS } from '../../src/game/npcs';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from '../../src/game/thousand-bough-npcs';
 import { boardTopics, type CourseBoardTopic } from '../../src/learn/course-board';
@@ -113,8 +114,27 @@ export const PACK_SCHEMAS: readonly string[] = PACK_FILES.flatMap((f) =>
 /** A board needs at least this many topics to read as a board (docs/specs/COURSE-BOARDS.md). */
 const MIN_BOARD_TOPICS = 5;
 
-/** Starfish you can find before the market (Anchorage and Meridian). */
-const MARKET_STARFISH = starfishOn('anchorage').length + starfishOn('meridian').length;
+/**
+ * The fewest starfish that clear every job right-sized at the market, each at its fair hire (`pay`,
+ * and `back` refunded), spending what comes back: the best order of the jobs (there are at most four).
+ */
+export function marketPurseNeeded(jobs: readonly { pay: number; back: number }[]): number {
+  const orders = (xs: readonly number[]): number[][] =>
+    xs.length <= 1
+      ? [[...xs]]
+      : xs.flatMap((x, i) => orders(xs.filter((_, k) => k !== i)).map((o) => [x, ...o]));
+  let best = Infinity;
+  for (const order of orders(jobs.map((_, i) => i))) {
+    let spent = 0;
+    let need = 0;
+    for (const i of order) {
+      need = Math.max(need, spent + jobs[i]!.pay);
+      spent += jobs[i]!.pay - jobs[i]!.back;
+    }
+    best = Math.min(best, need);
+  }
+  return jobs.length ? best : 0;
+}
 
 /** The ground under a board: each island's own height function (the board may stand on a deck). */
 /** The chests and message bottles each island places (the game's spots; what's in them is the course's). */
@@ -752,6 +772,7 @@ export function checkContent(
       course,
       linesFile: `${dir}/voice/lines.json`,
       manifestPath,
+      islands: meta.islands.map((i) => i.island),
     });
   const boards = get<CourseBoardsData>('boards.json');
   if (boards) checkBoards(boards, meta, lock, issue);
@@ -949,6 +970,8 @@ function checkMarket(
     course: string;
     linesFile: string;
     manifestPath: string;
+    /** The islands the course uses (each has a stall). */
+    islands: readonly string[];
   },
 ): void {
   const rel = 'market.json';
@@ -990,10 +1013,10 @@ function checkMarket(
       fail(`efforts[${i}].price`, `more effort can't cost less than ${prev.label}`);
   });
 
-  // The economy: every hire costs 1 to maxPrice (≤ 4); a right-sized hire's refund is never more
-  // than it cost, so a hire never adds starfish (the purse only grows by finding them, and spending
-  // can't take it below 0); and every job can be done right-sized with the starfish you find before
-  // the market.
+  // The economy: every hire costs 1 to maxPrice (≤ 4); a right-sized hire's refund is always less
+  // than it cost, so a right-sized job costs at least a starfish and a hire never adds starfish (the
+  // purse only grows by finding them, and spending can't take it below 0); and every job can be done
+  // right-sized with the starfish you find before the market.
   const hires: Hire[] = [{ auto: true }];
   for (const c of cats)
     for (const e of EFFORTS) hires.push({ auto: false, category: c, model: c, effort: e });
@@ -1004,27 +1027,42 @@ function checkMarket(
       fail('categories', `${name(h)} costs ${p}: every hire should cost 1 to ${m.maxPrice}`);
   }
   const cheapest = new Map<string, number>();
-  let fair = 0;
+  /** Each job's cheapest right-sized hire: what it costs, and what comes back. */
+  const fairHires: { pay: number; back: number }[] = [];
   m.jobs.forEach((j, i) => {
     const job = { size: j.size } as MarketJob;
     const right = hires.filter((h) => grade(job, h, tiers).outcome === 'right');
     if (!right.length) return fail(`jobs[${i}]`, 'no hire is right-sized for it');
     const least = Math.min(...right.map((h) => priceIn(m, h)));
     cheapest.set(j.size, least);
-    fair += least;
+    const refunds = { quick: m.sizes.quick.refund, hard: m.sizes.hard.refund };
+    fairHires.push({
+      pay: least,
+      back: refundIn(
+        refunds,
+        job,
+        right.find((h) => priceIn(m, h) === least)!,
+        (h) => priceIn(m, h),
+      ),
+    });
   });
   for (const [size, least] of cheapest) {
     const refund = m.sizes[size as keyof MarketData['sizes']].refund;
-    if (refund > least)
+    if (refund >= least)
       fail(
         `sizes.${size}.refund`,
-        `${refund} back for a ${least}-starfish hire: a refund can't be more than the hire, or hiring makes starfish`,
+        `${refund} back for a ${least}-starfish hire: a refund must be less than the hire, so a right-sized job costs at least 1 starfish`,
       );
   }
-  if (fair > MARKET_STARFISH)
+  // Every island has a stall, so the first market is on the course's first island: its starfish
+  // must clear every job right-sized, spending the starfish that come back (in the best order).
+  const first = ctx.islands[0];
+  const found = first ? starfishOn(first as IslandId).length : 0;
+  const need = marketPurseNeeded(fairHires);
+  if (need > found)
     fail(
       'jobs',
-      `the jobs need ${fair} starfish right-sized, but there are only ${MARKET_STARFISH} on Anchorage and Meridian`,
+      `the jobs need ${need} starfish to start with, right-sized, but there are only ${found} on ${first ?? 'the first island'}`,
     );
 
   const seen = new Set<string>();
@@ -1047,6 +1085,49 @@ function checkMarket(
         `the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${ctx.course} --only=${g.voice}; docs/content-data.md)`,
       );
     if (g.source) ctx.cite(rel, `${path}.source`, g.source);
+  }
+
+  // The other stalls' keepers: each stall on the course's islands (the game's) has its keeper's own
+  // hello and goodbye, in the keeper's voice (their name is the lines' speaker).
+  const keepers = m.keepers ?? {};
+  for (const stall of MARKET_STALLS) {
+    if (stall.story || !ctx.islands.includes(stall.island)) continue;
+    if (!keepers[stall.island])
+      fail(
+        'keepers',
+        `has no "${stall.island}": ${stall.keeper.name} keeps a stall there and needs a hello and a goodbye`,
+      );
+  }
+  for (const [island, k] of Object.entries(keepers)) {
+    const stall = MARKET_STALLS.find((s) => s.island === island && !s.story);
+    if (!stall) {
+      fail(`keepers.${island}`, `"${island}" has no stall but Gilda's (src/game/market/stalls.ts)`);
+      continue;
+    }
+    for (const [key, g] of Object.entries(k)) {
+      const path = `keepers.${island}.${key}`;
+      if (seen.has(g.voice)) fail(`${path}.voice`, `"${g.voice}" is used twice`);
+      seen.add(g.voice);
+      const l = ctx.lines.get(g.voice);
+      if (!l) fail(`${path}.voice`, `"${g.voice}" isn't in ${ctx.linesFile}`);
+      else {
+        if (l.speaker !== stall.keeper.name)
+          fail(`${path}.voice`, `"${g.voice}" is ${l.speaker}'s line, not ${stall.keeper.name}'s`);
+        if (l.text !== g.text)
+          fail(
+            `${path}.text`,
+            `differs from "${g.voice}" in ${ctx.linesFile}: change both to the same words`,
+          );
+      }
+      const a = ctx.audio.get(g.voice);
+      if (!a) fail(`${path}.voice`, `"${g.voice}" has no audio (${ctx.manifestPath})`);
+      else if (a.text !== g.text)
+        fail(
+          `${path}.text`,
+          `the audio says something else: regenerate it (npx tsx tools/voice/generate.ts --course ${ctx.course} --only=${g.voice}; docs/content-data.md)`,
+        );
+      if (g.source) ctx.cite(rel, `${path}.source`, g.source);
+    }
   }
 }
 

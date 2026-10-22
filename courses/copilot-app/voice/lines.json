@@ -1152,6 +1152,11 @@
       "text": "Right-sized! Here's some starfish back for hiring smart."
     },
     {
+      "id": "mer.market.fair",
+      "speaker": "Gilda",
+      "text": "Right-sized! That's a fair price for this job."
+    },
+    {
       "id": "mer.market.over",
       "speaker": "Gilda",
       "text": "That's a lot of starfish for a quick look. Auto would've done it."
@@ -1180,6 +1185,26 @@
       "id": "mer.market.done",
       "speaker": "Gilda",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    },
+    {
+      "id": "desmond.market.hello",
+      "speaker": "Desmond",
+      "text": "Welcome, Captain! This is Desmond's Model Market. Hire a model that fits the job, and pay in starfish. Bigger models cost more."
+    },
+    {
+      "id": "desmond.market.bye",
+      "speaker": "Desmond",
+      "text": "Safe sailing, Captain! A job done here counts at every market stall."
+    },
+    {
+      "id": "tb.lani.market.hello",
+      "speaker": "Lani",
+      "text": "Hello, Captain! Lani's Model Market, right here on the landing. Hire a model that fits the job. Bigger models cost more starfish."
+    },
+    {
+      "id": "tb.lani.market.bye",
+      "speaker": "Lani",
+      "text": "Off up the tree? Good luck, Captain. Your starfish and your jobs go with you."
     },
     {
       "id": "juno.cabin.01",

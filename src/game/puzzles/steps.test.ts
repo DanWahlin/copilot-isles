@@ -14,6 +14,7 @@ import { createCrateYard } from './crate-yard';
 import { createThreeHelms } from './three-helms';
 import { createLostLetters } from './lost-letters';
 import { createModelMarket } from './model-market';
+import { marketStall } from '../market/stalls';
 import { createChannelRouting } from './channel-routing/puzzle';
 import { TWIST_CHOICES } from './channel-routing/model';
 
@@ -203,7 +204,7 @@ describe('a course that renames every mechanic step', () => {
     expect(sorting(S('lost-letters', 'letters')).engaged()).toBe(true);
 
     const market = host({});
-    const m = createModelMarket(market.h as never, stub() as never);
+    const m = createModelMarket(market.h as never, stub() as never, marketStall('meridian'));
     m.update(1 / 60, 0);
     expect(written(market.set)).toEqual([[Q('market'), S('market', 'start')]]);
   });
