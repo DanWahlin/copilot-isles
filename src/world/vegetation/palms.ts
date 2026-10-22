@@ -472,3 +472,49 @@ export function buildYoungPalm(seed = 5): BufferGeometry {
   }
   return builder.build(4, new Vector3(0, 1, 0));
 }
+
+/** One ring of a palm's trunk: its centre and girth, in the geometry's space. */
+export interface PalmTrunkRing {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly r: number;
+}
+
+/**
+ * The trunk's rings of a palm geometry (after any normalising transform), bottom up: where the
+ * trunk really stands, leans and curves, for props tied to it (the bard's hammock).
+ */
+export function palmTrunkRings(geometry: BufferGeometry): PalmTrunkRing[] {
+  const pos = geometry.getAttribute('position');
+  const veg = geometry.getAttribute('aVeg');
+  const mat = geometry.getAttribute('aMat');
+  if (!pos || !veg || !mat) return [];
+  const rows = new Map<number, { min: number[]; max: number[]; y: number; n: number }>();
+  for (let i = 0; i < pos.count; i += 1) {
+    if (mat.getX(i) !== PALM_PART.STEM || veg.getY(i) > 0.001 || veg.getZ(i) > 0.001) continue;
+    const key = Math.round(veg.getX(i) * 10000);
+    let row = rows.get(key);
+    if (!row) rows.set(key, (row = { min: [Infinity, Infinity], max: [-Infinity, -Infinity], y: 0, n: 0 }));
+    const x = pos.getX(i);
+    const z = pos.getZ(i);
+    row.min[0] = Math.min(row.min[0]!, x);
+    row.min[1] = Math.min(row.min[1]!, z);
+    row.max[0] = Math.max(row.max[0]!, x);
+    row.max[1] = Math.max(row.max[1]!, z);
+    row.y += pos.getY(i);
+    row.n += 1;
+  }
+  const rings: PalmTrunkRing[] = [];
+  for (const row of rows.values()) {
+    // A cap's single centre vertex isn't a ring.
+    if (row.n < 3) continue;
+    rings.push({
+      x: (row.min[0]! + row.max[0]!) / 2,
+      y: row.y / row.n,
+      z: (row.min[1]! + row.max[1]!) / 2,
+      r: (row.max[0]! - row.min[0]! + row.max[1]! - row.min[1]!) / 4,
+    });
+  }
+  return rings.sort((a, b) => a.y - b.y);
+}

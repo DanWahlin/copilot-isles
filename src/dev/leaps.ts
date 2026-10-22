@@ -2,6 +2,10 @@ import { createPost } from '../engine/post';
 import { createCove } from '../world/cove-scene';
 import { createLeaps } from '../world/life/leaps';
 import { compileAndStart, createDevHarness } from './harness';
+import { activateCourse } from '../course/load';
+
+// The cove reads course content (its signs, cast and sites), so a pack is active first, as a voyage does.
+await activateCourse();
 
 const { q, backend, tier, renderer, engine } = await createDevHarness();
 const { scene, camera, clock } = engine;

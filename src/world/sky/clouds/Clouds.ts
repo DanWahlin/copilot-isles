@@ -207,6 +207,10 @@ export class Clouds {
       'clWind',
     );
     this.offset = uniform(new THREE.Vector2()).setName('clOffset'); // accumulated wind offset (m)
+    // How much of the wind the clouds move with (0 holds them still: reduced motion, set each frame by
+    // the sky, see cloud-drift.ts), and the detail noise's evolution clock, which runs at the same pace.
+    this.driftScale = 1;
+    this.detailTime = uniform(0).setName('clDetailT');
     this.shadowCenter = uniform(new THREE.Vector2()).setName('clShadowC');
     this.shadowSize = uniform(8000).setName('clShadowSize');
     this.shadowStrength = uniform(0.85).setName('clShadowK');
@@ -789,7 +793,7 @@ export class Clouds {
       const dp = vec3(np.x, alt, np.y)
         .div(DETAIL_SIZE)
         .add(vec3(sw.x, 0, sw.y))
-        .add(vec3(G.time.mul(0.0015), 0, 0))
+        .add(vec3(this.detailTime.mul(0.0015), 0, 0))
         .toVar();
       // three octaves per fetch; s: size (m) of the coarsest features
       const octaves = (uvw, s) => {
@@ -1661,20 +1665,24 @@ export class Clouds {
     if (this._compiling) return;
     const r = this.renderer;
 
-    // wind drift, kept bounded (every noise tiles within TILE)
+    // wind drift, kept bounded (every noise tiles within TILE); `driftScale` slows it (reduced motion)
+    // without a jump: the offsets only stop growing
     const wind = this.wind.value;
     const c = Math.cos(this._rot),
       s = Math.sin(this._rot);
+    const ddt = dt * this.driftScale;
+    // wrapped at 1e5 s: 150 whole detail tiles at 0.0015 tiles/s, so the wrap is seamless
+    this.detailTime.value = (this.detailTime.value + ddt) % 1e5;
     const o = this.offset.value;
-    o.addScaledVector(wind, dt);
+    o.addScaledVector(wind, ddt);
     o.set(((o.x % TILE) + TILE) % TILE, ((o.y % TILE) + TILE) % TILE);
     const ow = this._offsetW;
-    ow.x += (wind.x * c + wind.y * s) * dt;
-    ow.y += (wind.y * c - wind.x * s) * dt;
+    ow.x += (wind.x * c + wind.y * s) * ddt;
+    ow.y += (wind.y * c - wind.x * s) * ddt;
     ow.set(((ow.x % TILE) + TILE) % TILE, ((ow.y % TILE) + TILE) % TILE);
 
     const oh = this._offsetH;
-    oh.addScaledVector(wind, dt * 1.6);
+    oh.addScaledVector(wind, ddt * 1.6);
     oh.set(((oh.x % TILE) + TILE) % TILE, ((oh.y % TILE) + TILE) % TILE);
 
     camera.updateMatrixWorld();
@@ -1727,14 +1735,14 @@ export class Clouds {
     this._prevSun.copy(sun);
     // camera motion since last frame minus the wind drift of the clouds
     this.camDelta.value.set(
-      cp.x - this._prevCam.x - wind.x * dt,
+      cp.x - this._prevCam.x - wind.x * ddt,
       cp.y - this._prevCam.y,
-      cp.z - this._prevCam.z - wind.y * dt,
+      cp.z - this._prevCam.z - wind.y * ddt,
     );
     this.camDeltaHi.value.set(
-      cp.x - this._prevCam.x - wind.x * dt * 1.6,
+      cp.x - this._prevCam.x - wind.x * ddt * 1.6,
       cp.y - this._prevCam.y,
-      cp.z - this._prevCam.z - wind.y * dt * 1.6,
+      cp.z - this._prevCam.z - wind.y * ddt * 1.6,
     );
     this._prevCam.copy(cp);
     this._hasPrev = true;

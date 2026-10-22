@@ -54,6 +54,7 @@ import { disposeLightShadow, disposeRenderTarget } from '../../util/dispose-thre
 import { SHADOW_MASK } from '../shadow-casters';
 import { CachedSunShadowNode, type SunShadowMap } from './cached-sun-shadow';
 import { staticCoverage } from './shadow-cache';
+import { easeCloudDrift } from './cloud-drift';
 
 /** Lighting keyframes keyed by sun elevation (PLAN §6), blended continuously. */
 interface Key {
@@ -79,6 +80,8 @@ interface TidewaterCloudsPort {
     lightDetail: number;
   };
   panoQuality: { maxSteps: number };
+  /** How much of the wind the clouds move with (0 holds them still). */
+  driftScale: number;
   update(dt: number, camera: Camera): void;
   compileAsync(): Promise<void>;
   invalidate(): void;
@@ -277,6 +280,8 @@ export function createSky(
     (tideClouds as unknown as { cirrus: { value: number } }).cirrus.value =
       cirrusQ !== null ? Number(cirrusQ) : 0.12;
     applyCloudDebugParams(tideClouds);
+    // Reduced motion holds the clouds still (PLAN §9); one already on doesn't ease in from a drift.
+    tideClouds.driftScale = world.reducedMotion.value > 0.5 ? 0 : 1;
     // Only the terrain samples the cloud shadow (cloudShadowNode below): without it, don't trace it.
     if (options.title || !(tier.cloudShadowRes > 0)) tideClouds.disableShadow();
   }
@@ -450,7 +455,10 @@ export function createSky(
       hemi.intensity = k.hemiI * (1 + (mood.fill - 1) * (0.5 + 0.5 * dark));
       renderer.toneMappingExposure = k.exposure * (1 + (mood.exposure - 1) * (0.15 + 0.85 * dark));
       tideAtmo.update(dt, camera?.position.y ?? 1);
-      if (tideClouds && camera) tideClouds.update(dt, camera);
+      if (tideClouds && camera) {
+        tideClouds.driftScale = easeCloudDrift(tideClouds.driftScale, world.reducedMotion.value > 0.5, dt);
+        tideClouds.update(dt, camera);
+      }
       tideMesh.position.copy(focus);
 
       if (sunShadowNode) {
