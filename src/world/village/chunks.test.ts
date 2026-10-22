@@ -17,6 +17,7 @@ import {
   buildChunkLodIndex,
   chunkLodEdges,
   chunkLodFloor,
+  chunkShadowLodFloor,
   mergeIntoChunks,
   moveBucketInto,
   simplifyInPlace,
@@ -164,6 +165,37 @@ describe('chunk levels of detail', () => {
     for (let i = 1; i < edges.length; i++) expect(edges[i]![0]).toBeGreaterThan(edges[i - 1]![0]);
     // Medium and up: the first level's 5 cm is half a pixel or less, so it starts past ~90 m.
     expect(chunkLodEdges(TIERS.medium)[0]).toBeGreaterThan(90);
+  });
+
+  it("draws the sun's static map at the coarsest level whose error stays under its texel", () => {
+    // Low: 1024² over 220 m (21 cm a texel, a texel allowed) takes LOD 2 (18 cm); Medium: 2048² over
+    // 220 m (half of 11 cm) takes LOD 1 (5 cm); High's 4096² over 280 m keeps full detail; Lite has none.
+    expect(chunkShadowLodFloor(TIERS.lite)).toBe(0);
+    expect(chunkShadowLodFloor(TIERS.low)).toBe(2);
+    expect(chunkShadowLodFloor(TIERS.medium)).toBe(1);
+    expect(chunkShadowLodFloor(TIERS.high)).toBe(0);
+  });
+
+  it('draws a chunk at its shadow floor in a shadow pass only', () => {
+    const g = new SphereGeometry(2, 48, 32);
+    expect(buildChunkLodIndex(g, simplify)).toBe(true);
+    const r = lodRanges(g)!;
+    const mesh = new Mesh(g);
+    const lods = new ChunkLods([50, 150], 0, 2);
+    expect(lods.attach(mesh)).toBe(true);
+    lods.update(0, 0, 10);
+    const camera = new PerspectiveCamera();
+    const draw = (shadow: boolean) => {
+      if (shadow) mesh.onBeforeShadow(null!, null!, camera, camera, g, null!, null!);
+      mesh.onBeforeRender(null!, null!, camera, g, null!, null!);
+      const count = g.drawRange.count;
+      mesh.onAfterRender(null!, null!, camera, g, null!, null!);
+      if (shadow) mesh.onAfterShadow(null!, null!, camera, camera, g, null!, null!);
+      return count;
+    };
+    expect(draw(false)).toBe(r[1]);
+    expect(draw(true)).toBe(r[5]);
+    expect(draw(false)).toBe(r[1]);
   });
 
   it("picks a moving mesh's level from the drawing camera, wherever the mesh has gone", () => {

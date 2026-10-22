@@ -28,6 +28,7 @@ import {
   buildChunkLodIndex,
   chunkLodEdges,
   chunkLodFloor,
+  chunkShadowLodFloor,
   chunkOptions,
   eachChunk,
 } from '../village/chunks';
@@ -385,7 +386,7 @@ function* buildMeridianTown({
   let staticTriangles = 0;
   // Spatial chunks per material, so frustum culling works across the town, each with its own levels
   // of detail (no new draws or pipelines).
-  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier));
+  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier), chunkShadowLodFloor(tier));
   for (const key of Object.keys(buckets) as MaterialKey[]) {
     const parts = buckets[key];
     if (parts.length === 0) continue;

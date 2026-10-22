@@ -45,7 +45,7 @@ import { foamLight, world } from '../uniforms';
 import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
 import { MatchedDepth } from './depth-copy';
-import { createPolarGrid, type PolarGridOptions } from './polar-grid';
+import { createPolarGrid, cullPolarSectors, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
@@ -523,6 +523,24 @@ export function createOcean({
   // Its look is its own (no other mesh shares it), so it keeps its shadow-free shader: as a skipped
   // receiver it carried the shadow lookup for nothing, and changing the flag later built it again.
   mesh.userData.sunShadowNever = true;
+  // Of the grid past the disc round the camera, only the wedges a camera can see draw; the disc is a
+  // second draw of the same geometry and material (no new buffer or shader), drawn first, as its
+  // rings came first. The margins hold what the waves move a vertex (across by their summed q·a, up
+  // and down by their summed a) four times over, and a metre more.
+  const near = new Mesh(geo, mat);
+  near.name = 'ocean near';
+  near.frustumCulled = false;
+  near.renderOrder = -2;
+  near.receiveShadow = false;
+  near.userData.sunShadowNever = true;
+  mesh.add(near);
+  const sway = waves.reduce((s, w) => s + w.q * w.a, 0);
+  cullPolarSectors(
+    mesh,
+    near,
+    () => 4 * sway + 1,
+    () => 4 * sumA + 1,
+  );
 
   return {
     mesh,

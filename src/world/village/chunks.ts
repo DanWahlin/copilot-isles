@@ -1,6 +1,7 @@
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BufferAttribute, Vector3, type BufferGeometry, type Camera, type Mesh } from 'three/webgpu';
-import type { TierSettings } from '../../engine/quality';
+import { sunShadowReach, type TierSettings } from '../../engine/quality';
+import { staticCoverage } from '../sky/shadow-cache';
 import {
   chooseLodLevel,
   lodRanges,
@@ -230,6 +231,22 @@ export function chunkLodFloor(tier: TierSettings): number {
   return tier.tier === 'lite' ? 1 : 0;
 }
 
+/**
+ * The finest chunk level the sun's static shadow map draws on a tier: the coarsest level whose error is
+ * under a texel of that map (half a texel on Medium and up), the rule `chunkLodEdges` keeps for screen
+ * pixels. Low's 1024² map spans 220 m (21 cm a texel), so LOD 2 (18 cm) can't move a shadow by a
+ * texel there; High's 4096² over 280 m (7 cm) keeps the full level. 0 without sun shadows.
+ */
+export function chunkShadowLodFloor(
+  tier: TierSettings,
+  errors: readonly [number, number] = CHUNK_LOD_ERRORS,
+): number {
+  if (tier.shadowCascades === 0 || !tier.shadowMap) return 0;
+  const texel = (2 * staticCoverage(sunShadowReach(tier))) / tier.shadowMap;
+  const allowed = (tier.tier === 'lite' || tier.tier === 'low' ? 1 : 0.5) * texel;
+  return errors[1] <= allowed ? 2 : errors[0] <= allowed ? 1 : 0;
+}
+
 /** Puts a LOD geometry's draw range back on its full level after each draw. */
 const drawFullLevel: Mesh['onAfterRender'] = (_renderer, _scene, _camera, g) => {
   const r = lodRanges(g);
@@ -247,10 +264,14 @@ export class ChunkLods {
   private y = 0;
   private z = 0;
 
-  /** `floor`: the finest level drawn (Lite draws its towns at LOD 1 even up close). */
+  /**
+   * `floor`: the finest level drawn (Lite draws its towns at LOD 1 even up close); `shadowFloor`: the
+   * finest the sun's shadow maps draw (`chunkShadowLodFloor`).
+   */
   constructor(
     private readonly edges: readonly [number, number],
     private readonly floor = 0,
+    private readonly shadowFloor = 0,
   ) {}
 
   /** Hooks a chunk mesh that has LOD ranges (`buildChunkLodIndex`); allocates only here. */
@@ -260,6 +281,15 @@ export class ChunkLods {
     if (!geometry.boundingSphere) geometry.computeBoundingSphere();
     const sphere = geometry.boundingSphere!;
     let level = 0;
+    let shadow = false;
+    if (this.shadowFloor > 0) {
+      mesh.onBeforeShadow = () => {
+        shadow = true;
+      };
+      mesh.onAfterShadow = () => {
+        shadow = false;
+      };
+    }
     mesh.onBeforeRender = (_renderer, _scene, _camera, g) => {
       const r = lodRanges(g);
       if (!r) return;
@@ -269,7 +299,7 @@ export class ChunkLods {
           sphere.radius,
       );
       level = chooseLodLevel(d, level, this.edges);
-      const drawn = Math.max(level, this.floor);
+      const drawn = Math.max(level, shadow ? Math.max(this.floor, this.shadowFloor) : this.floor);
       g.drawRange.start = r[drawn * 2]!;
       g.drawRange.count = r[drawn * 2 + 1]!;
     };

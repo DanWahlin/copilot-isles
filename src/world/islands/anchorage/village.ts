@@ -31,6 +31,7 @@ import {
   buildChunkLodIndex,
   chunkLodEdges,
   chunkLodFloor,
+  chunkShadowLodFloor,
   chunkOptions,
   eachChunk,
   moveBucketInto,
@@ -235,7 +236,7 @@ export async function createVillage({
   // levels of detail (no new draws or pipelines; the simplifier is the characters' lazy chunk).
   const neighbourDetail: Mesh[] = [];
   const simplify = typeof window === 'undefined' ? null : await loadLodSimplifier();
-  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier));
+  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier), chunkShadowLodFloor(tier));
   // Lite draws the rope with the cloth (alike: matte vertex colour), a draw fewer.
   if (tier.tier === 'lite') moveBucketInto(buckets, 'rope', 'cloth');
   for (const key of Object.keys(buckets) as MaterialKey[]) {
