@@ -255,15 +255,17 @@ export function createOcean({
       const harborMask = float(1)
         .sub(smoothstep(COVE.harbor.radius * 0.78, COVE.harbor.radius, harborDist))
         .mul(mirror.active);
+      // The matrix already maps to 0-1 (HarborMirror's bias); three flips v for a render target on WebGPU.
       const mirrorClip = mirror.matrix.mul(vec4(positionWorld.x, positionWorld.y, positionWorld.z, 1));
-      const mirrorUv = mirrorClip.xy.div(mirrorClip.w).mul(0.5).add(0.5).add(N.xz.mul(0.008).mul(harborMask));
+      const mirrorNdc = mirrorClip.xy.div(mirrorClip.w);
+      const mirrorUv = vec2(mirrorNdc.x, float(1).sub(mirrorNdc.y)).add(N.xz.mul(0.008).mul(harborMask));
       const uvOk = mirrorUv.x
         .greaterThanEqual(0)
         .and(mirrorUv.x.lessThanEqual(1))
         .and(mirrorUv.y.greaterThanEqual(0))
         .and(mirrorUv.y.lessThanEqual(1))
         .select(float(1), float(0));
-      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(uvOk).mul(0.34));
+      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(uvOk).mul(0.6));
     }
 
     // GGX key-light highlight (sun by day, a moon path at night).

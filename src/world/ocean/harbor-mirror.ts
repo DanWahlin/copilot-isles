@@ -45,6 +45,12 @@ export interface HarborMirrorOptions {
   disabled?: boolean;
 }
 
+/**
+ * The render layer of stand-ins only the mirror draws (`reflectOnly`): no other camera has it (the
+ * main camera draws layer 0, the shadow maps layers 0-3, the warm stages on 31).
+ */
+export const MIRROR_ONLY_LAYER = 5;
+
 const HARBOR_CENTER = new Vector3(COVE.harbor.center.x, 0, COVE.harbor.center.z);
 const HARBOR_RADIUS = COVE.harbor.radius;
 const MIRROR_MAX_DISTANCE = HARBOR_RADIUS + 155;
@@ -71,7 +77,9 @@ export class HarborMirror {
     ratioToMainTriangles: 0,
   };
 
-  private readonly enabled: boolean;
+  /** Whether it ever draws (High or Ultra with the tier's mirror on, and not `?nomirror`). */
+  readonly enabled: boolean;
+  private readonly only: Object3D[] = [];
   private readonly hiddenList: Object3D[] = [];
   private readonly wasVisible: boolean[] = [];
   private hiddenRoots: () => readonly (Object3D | null | undefined)[] = () => [];
@@ -93,6 +101,45 @@ export class HarborMirror {
     this.target.texture.name = 'harbor-planar-mirror';
     this.target.depthTexture = new DepthTexture(1, 1);
     this.target.depthTexture.name = 'harbor-planar-mirror-depth';
+    this.camera.layers.enable(MIRROR_ONLY_LAYER);
+  }
+
+  /**
+   * Draws `root` in the mirror only (a cheap stand-in for what the harbour reflects): its meshes go
+   * on `MIRROR_ONLY_LAYER`. It stays visible, so the warms' precompile (`compileObject`) finds it,
+   * and no other camera draws it. `warmReflectOnly` uploads it before play.
+   */
+  reflectOnly(root: Object3D): void {
+    root.traverse((o) => o.layers.set(MIRROR_ONLY_LAYER));
+    this.only.push(root);
+  }
+
+  /**
+   * One draw of the mirror-only stand-ins into the mirror's target (the world's warm-up): their
+   * geometry uploads now, wherever the camera is, not on the mirror's first frame in play. Their
+   * pipelines come from the warm's `compileObject` (the same target and camera).
+   */
+  warmReflectOnly(renderer: WebGPURenderer, scene: Scene): void {
+    if (!this.enabled || !this.only.length) return;
+    const culled: boolean[] = [];
+    const meshes: Object3D[] = [];
+    for (const root of this.only)
+      root.traverse((o) => {
+        meshes.push(o);
+        culled.push(o.frustumCulled);
+        o.frustumCulled = false;
+      });
+    const mask = this.camera.layers.mask;
+    this.camera.layers.set(MIRROR_ONLY_LAYER);
+    const prevTarget = renderer.getRenderTarget();
+    const mrt = renderer.getMRT();
+    renderer.setRenderTarget(this.target);
+    renderer.setMRT(null);
+    renderer.render(scene, this.camera);
+    renderer.setRenderTarget(prevTarget);
+    renderer.setMRT(mrt);
+    this.camera.layers.mask = mask;
+    for (let i = 0; i < meshes.length; i++) meshes[i]!.frustumCulled = culled[i]!;
   }
 
   /** What `update` will hide (the same list), so `compileObject` doesn't build pipelines it never draws. */

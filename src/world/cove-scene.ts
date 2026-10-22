@@ -359,6 +359,17 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
     breathe,
   });
+  // What the harbour mirror (Ultra) reflects of the island: the hills, the village front and the quay
+  // as the silhouette's big shapes in its one cheap look (the real ones would each be a second set of
+  // shaders), drawn by the mirror alone (#31).
+  const mirrorStandIn = mirror?.enabled
+    ? createAnchorageSilhouette({
+        heightField: terrain.heightField,
+        bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
+        breathe,
+        mirror: true,
+      })
+    : null;
   const anchorage = createAnchorageStream({
     scene,
     terrain,
@@ -437,6 +448,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
 
   const focus = new Vector3();
   // What the harbour mirror leaves out, refilled each frame (some systems arrive late) without a new array.
+  // The island itself is its stand-in there (`mirrorStandIn`); the ship reflects its big shapes, its
+  // small parts are `unreflected` (brigantine.ts).
   const mirrorHidden: (Object3D | null | undefined)[] = [];
   const fillMirrorHidden = () => {
     mirrorHidden.length = 0;
@@ -448,7 +461,6 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       village.group,
       sites.group,
       debris.group,
-      ship.group,
       wreck.mesh,
       vegetation?.group,
       birds?.group,
@@ -496,7 +508,16 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     },
   });
   // The far islands' silhouettes are built a few rows a breath: in the scene before the island compiles.
-  await Promise.all([meridian.silhouetteReady, thousandBough.silhouetteReady, anchorageFar.ready]);
+  await Promise.all([
+    meridian.silhouetteReady,
+    thousandBough.silhouetteReady,
+    anchorageFar.ready,
+    mirrorStandIn?.ready,
+  ]);
+  if (mirror && mirrorStandIn) {
+    mirror.reflectOnly(mirrorStandIn.group);
+    scene.add(mirrorStandIn.group);
+  }
   report(0.9, 'Lighting the lanterns');
 
   result = {
@@ -563,6 +584,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (dockGull) scene.remove(dockGull.group);
       if (leaps) scene.remove(leaps.group);
       disposeTree(foam);
+      if (mirrorStandIn) {
+        scene.remove(mirrorStandIn.group);
+        disposeTree(mirrorStandIn.group);
+      }
       disposeTree(ranges);
       anchorage.dispose();
       meridian.dispose();
