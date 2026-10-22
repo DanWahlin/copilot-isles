@@ -202,6 +202,10 @@ export class ImpostorBatch {
   private readonly atlasUv: InstancedBufferAttribute;
   private readonly entries: ImpostorEntry[];
   private visible = 0;
+  /** The camera's ground position and the entry count at the last fill. */
+  private lastX = NaN;
+  private lastZ = NaN;
+  private lastCount = -1;
 
   constructor(
     instances: PlantInstance[],
@@ -229,6 +233,16 @@ export class ImpostorBatch {
   }
 
   update(camera: PerspectiveCamera): void {
+    // Everything here follows the camera's ground position: still, it would write the same cards.
+    if (
+      camera.position.x === this.lastX &&
+      camera.position.z === this.lastZ &&
+      this.entries.length === this.lastCount
+    )
+      return;
+    this.lastX = camera.position.x;
+    this.lastZ = camera.position.z;
+    this.lastCount = this.entries.length;
     this.visible = 0;
     const tile = 1 / GRID;
     for (const { instance, prototype, tint } of this.entries) {

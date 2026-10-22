@@ -57,6 +57,8 @@ interface PlantBatch {
   nearOnly: boolean;
   farDistance: number;
   visible: number;
+  /** What the last fill saw (`fillKey`): the same again, and it would write the same instances. */
+  seen: Float64Array;
 }
 
 const TREE_LIKE = new Set<PlantSpecies>(['palmTall', 'palmCluster', 'palmYoung', 'broadleafTree']);
@@ -229,6 +231,7 @@ function createBatch(
     nearOnly,
     farDistance,
     visible: 0,
+    seen: new Float64Array(FILL_KEY).fill(NaN),
   };
 }
 
@@ -265,8 +268,36 @@ function setPlantFrustum(camera: PerspectiveCamera): void {
   frustum.setFromProjectionMatrix(viewProj);
 }
 
+/** The camera's ground position, the culling switch, the instance count and the frustum's matrix. */
+const FILL_KEY = 20;
+
+/**
+ * Whether a batch's fill would come out as last time (the camera hasn't moved or turned, and nothing
+ * it reads changed), recording what it sees now when it wouldn't. A still camera then neither refills
+ * nor re-uploads the plants.
+ */
+function sameFill(batch: PlantBatch, camera: PerspectiveCamera): boolean {
+  const k = batch.seen;
+  const culled = batch.mesh.frustumCulled ? 1 : 0;
+  const e = viewProj.elements;
+  let same =
+    k[0] === camera.position.x &&
+    k[1] === camera.position.z &&
+    k[2] === culled &&
+    k[3] === batch.instances.length;
+  for (let i = 0; same && culled && i < 16; i++) same = k[4 + i] === e[i];
+  if (same) return true;
+  k[0] = camera.position.x;
+  k[1] = camera.position.z;
+  k[2] = culled;
+  k[3] = batch.instances.length;
+  for (let i = 0; i < 16; i++) k[4 + i] = e[i]!;
+  return false;
+}
+
 /** Fills the batch with the plants in range and in view (the frustum from `setPlantFrustum`). */
 function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSettings): void {
+  if (sameFill(batch, camera)) return;
   batch.visible = 0;
   const handoff = geometryHandoff(batch.species, tier);
   const tints = batch.tints;
