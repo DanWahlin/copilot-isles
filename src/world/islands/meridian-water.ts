@@ -408,6 +408,64 @@ interface Nearest {
   slope: number;
 }
 
+/**
+ * Whether (x, z) can lie within `k` times a basin's shoreline: `basinRadius` is at least the distance
+ * over its larger radius times the wobble's peak (1.14), so it can't past `k` times its `reach`
+ * (1.15 times that radius) on either axis.
+ */
+function nearBasin(b: WaterBasin, x: number, z: number, k: number): boolean {
+  const r = k * b.reach;
+  return Math.abs(x - b.x) <= r && Math.abs(z - b.z) <= r;
+}
+
+/** Segments a run of `StreamRuns` boxes. */
+const STREAM_RUN = 8;
+
+/**
+ * A stream's centre line in runs of `STREAM_RUN` segments, each boxed, and the farthest its water's
+ * edge can lie from that line (its widest half, wandering by up to 11 %: `edgeOf`). A point at least
+ * that far from every box isn't in its water, so `streamAt` and `levelAt` skip the nearest-point search
+ * there (the follow camera asks a few thousand times a frame, mostly nowhere near the water).
+ */
+interface StreamRuns {
+  boxes: Float64Array;
+  edge: number;
+}
+
+function streamRuns(s: WaterStream): StreamRuns {
+  const n = Math.max(1, Math.ceil((s.count - 1) / STREAM_RUN));
+  const boxes = new Float64Array(n * 4);
+  for (let r = 0; r < n; r++) {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    const end = Math.min(s.count - 1, (r + 1) * STREAM_RUN);
+    for (let i = r * STREAM_RUN; i <= end; i++) {
+      minX = Math.min(minX, s.x[i]!);
+      maxX = Math.max(maxX, s.x[i]!);
+      minZ = Math.min(minZ, s.z[i]!);
+      maxZ = Math.max(maxZ, s.z[i]!);
+    }
+    boxes.set([minX, maxX, minZ, maxZ], r * 4);
+  }
+  let half = 0;
+  for (let i = 0; i < s.count; i++) half = Math.max(half, s.half[i]!);
+  return { boxes, edge: half * 1.12 };
+}
+
+/** Whether (x, z) lies nearer a stream's line than its widest edge (`StreamRuns`). */
+function nearWater(runs: StreamRuns, x: number, z: number): boolean {
+  const b = runs.boxes;
+  const e2 = runs.edge * runs.edge;
+  for (let i = 0; i < b.length; i += 4) {
+    const dx = Math.max(b[i]! - x, 0, x - b[i + 1]!);
+    const dz = Math.max(b[i + 2]! - z, 0, z - b[i + 3]!);
+    if (dx * dx + dz * dz < e2) return true;
+  }
+  return false;
+}
+
 function nearestOnStream(s: WaterStream, x: number, z: number, out: Nearest): Nearest {
   out.dist = Infinity;
   out.surface = 0;
@@ -499,7 +557,7 @@ export function createFreshWater<N extends string>(
   const basinList: WaterBasin[] = Object.values(basins);
 
   function basinAt(x: number, z: number): WaterBasin | null {
-    for (const b of basinList) if (basinRadius(b, x, z) < 1) return b;
+    for (const b of basinList) if (nearBasin(b, x, z, 1) && basinRadius(b, x, z) < 1) return b;
     return null;
   }
 
@@ -598,6 +656,8 @@ export function createFreshWater<N extends string>(
   }
   for (const s of streams) grow(s.box);
 
+  const runs = streams.map(streamRuns);
+
   const near: Nearest = { dist: 0, surface: 0, half: 0, depth: 0, beyondEnd: false, past: 0, slope: 0 };
   const inBox = (b: { minX: number; maxX: number; minZ: number; maxZ: number }, x: number, z: number) =>
     x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ;
@@ -652,8 +712,9 @@ export function createFreshWater<N extends string>(
     for (const b of basinList) {
       if (basinRadius(b, x, z) < 1) best = Math.max(best ?? -Infinity, b.level);
     }
-    for (const s of streams) {
-      if (!inBox(s.box, x, z)) continue;
+    for (let i = 0; i < streams.length; i++) {
+      const s = streams[i]!;
+      if (!inBox(s.box, x, z) || !nearWater(runs[i]!, x, z)) continue;
       nearestOnStream(s, x, z, near);
       if (near.dist < edgeOf(s, near, x, z) && !near.beyondEnd)
         best = Math.max(best ?? -Infinity, near.surface);
@@ -664,8 +725,9 @@ export function createFreshWater<N extends string>(
   function streamAt(x: number, z: number, out: StreamPoint): boolean {
     if (!inBox(box, x, z)) return false;
     let found = false;
-    for (const s of streams) {
-      if (!inBox(s.box, x, z)) continue;
+    for (let i = 0; i < streams.length; i++) {
+      const s = streams[i]!;
+      if (!inBox(s.box, x, z) || !nearWater(runs[i]!, x, z)) continue;
       nearestOnStream(s, x, z, near);
       if (near.beyondEnd || near.dist >= edgeOf(s, near, x, z)) continue;
       if (found && near.surface <= out.surface) continue;
@@ -695,7 +757,7 @@ export function createFreshWater<N extends string>(
   }
 
   const basinAtScaled = (x: number, z: number, k = 1): WaterBasin | null => {
-    for (const b of basinList) if (basinRadius(b, x, z) < k) return b;
+    for (const b of basinList) if (nearBasin(b, x, z, k) && basinRadius(b, x, z) < k) return b;
     return null;
   };
 

@@ -507,6 +507,8 @@ const STAIR_TREADS: readonly (readonly [from: number, to: number, height: number
   [0.13, 0.54, 0.42],
   [0.54, 1.0, 0.2],
 ];
+/** How far from its centre (m) any point of the stairs lies: the half-width and the farthest tread end. */
+const STAIRS_REACH = 1.5;
 
 /** A house's exterior stairs in world space: centre, outward heading, and the ground they sit on. */
 export interface StairSpan {
@@ -534,6 +536,8 @@ export function houseStairsSpan(spec: HouseSpec): StairSpan | null {
 export function stairsHeightAt(span: StairSpan, x: number, z: number): number | null {
   const dx = x - span.x;
   const dz = z - span.z;
+  // The treads lie within hypot(1, 1.07) of the centre: farther off on either axis, they're not here.
+  if (Math.abs(dx) > STAIRS_REACH || Math.abs(dz) > STAIRS_REACH) return null;
   const fx = Math.sin(span.heading);
   const fz = Math.cos(span.heading);
   if (Math.abs(dx * fz - dz * fx) > STAIRS_HALF_WIDTH) return null;

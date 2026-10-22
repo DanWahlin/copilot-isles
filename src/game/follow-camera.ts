@@ -458,5 +458,5 @@ function blocked(
  * the level at the camera's height when that's lower (nothing but a deck far overhead there).
  */
 function groundUnder(world: CollisionWorld, x: number, z: number, y: number): number {
-  return Math.min(world.groundAt(x, z), world.groundAt(x, z, y));
+  return world.groundUnder(x, z, y);
 }

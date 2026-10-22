@@ -2035,6 +2035,8 @@ const cameraBlockers: VillageBoxCollider[] = [];
 const FACADE_DEPTH = 0.35;
 
 function isStreetPavedPoint(x: number, z: number): boolean {
+  const b = STREET_REACH;
+  if (x < b.minX || x > b.maxX || z < b.minZ || z > b.maxZ) return false;
   return streetCoverage(x, z, 0) > 0;
 }
 
@@ -2093,6 +2095,26 @@ const STREET_ROUTES: readonly (readonly StreetPoint[])[] = [
     [-115, -45],
   ],
 ] as const;
+
+/**
+ * Where a street's paving can reach (`streetCoverage` > 0): the routes padded by the widest a street's
+ * half can be (2.85 + 0.18 + 0.42 m), and the square out to its curb. Walk queries from anywhere else
+ * (the follow camera's, ~1000 a frame) skip the routes.
+ */
+const STREET_REACH = (() => {
+  const pad = 3.5;
+  const square = SQUARE.radius + 0.4;
+  const c = COVE.village.center;
+  const box = { minX: c.x - square, maxX: c.x + square, minZ: c.z - square, maxZ: c.z + square };
+  for (const route of STREET_ROUTES)
+    for (const [x, z] of route) {
+      box.minX = Math.min(box.minX, x - pad);
+      box.maxX = Math.max(box.maxX, x + pad);
+      box.minZ = Math.min(box.minZ, z - pad);
+      box.maxZ = Math.max(box.maxZ, z + pad);
+    }
+  return box;
+})();
 
 const MIN_PAVING_RUN = 4;
 

@@ -117,3 +117,29 @@ describe('CollisionWorld.remove', () => {
     expect(pushed(0.5)).toBe(true);
   });
 });
+
+describe('CollisionWorld.groundUnder', () => {
+  it('reads the lower of the ground without and at the camera height, as two groundAt calls did', () => {
+    const hills: HeightField = { ...seabed, heightAt: (x, z) => Math.sin(x * 0.3) * 2 + Math.cos(z * 0.2) };
+    // A stair stacked over a deck: the level at y, or the lowest without it.
+    const stacked = {
+      heightAt: (x: number, z: number, y?: number) =>
+        Math.abs(x) > 6 || Math.abs(z) > 6 ? null : y !== undefined && y > 5 ? 6 : 3,
+      kind: 'stone' as const,
+    };
+    const w = new CollisionWorld({
+      ground: hills,
+      surfaces: [pier, stacked],
+      inland: (x, _z, g, out) => {
+        if (x < 12 || x > 20) return false;
+        out.level = g + 0.5;
+        out.floor = g - 0.3;
+        return true;
+      },
+    });
+    for (let x = -30; x <= 30; x += 0.7)
+      for (let z = -10; z <= 10; z += 1.3)
+        for (const y of [-2, 1, 4, 7, 12])
+          expect(w.groundUnder(x, z, y)).toBe(Math.min(w.groundAt(x, z), w.groundAt(x, z, y)));
+  });
+});
