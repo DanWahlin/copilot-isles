@@ -12,6 +12,7 @@ import {
 } from '../../world/sites/sluice-logic';
 import { SURI_SOLVED } from '../cove-quests';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
+import { tileFocus } from './tile-focus';
 import { lineOf, puzzleContent, puzzleQuest, puzzleSteps, textOf } from '../../course/puzzles';
 
 /** The mill race's words and lines (`puzzles/sluice.json`). */
@@ -112,14 +113,13 @@ export function createSluice(
   const wheelAt = site.anchors.millWheel!;
   let loops: { spout: SoundLoopHandle; stream: SoundLoopHandle; wheel: SoundLoopHandle } | null = null;
 
+  const centres = layout.tiles.map((_, i) => site.cellCenter(i));
+  const turns = (i: number) => rotatable(layout.tiles[i]!);
+  /** The tile you're facing (1 m ahead, else underfoot), held at edges and corners (`tileFocus`). */
   const target = (): number => {
     const p = host.player;
     if (Math.abs(p.y - site.top) > 0.6) return -1;
-    const fx = Math.sin(p.heading),
-      fz = Math.cos(p.heading);
-    const ahead = site.cellAt(p.x + fx * 1.0, p.z + fz * 1.0);
-    const i = ahead >= 0 && rotatable(layout.tiles[ahead]!) ? ahead : site.cellAt(p.x, p.z);
-    return i >= 0 && rotatable(layout.tiles[i]!) ? i : -1;
+    return tileFocus(site, centres, turns, focus, p.x, p.z, p.heading);
   };
   let focus = -1;
 
