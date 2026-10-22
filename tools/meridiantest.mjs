@@ -4,8 +4,9 @@
 // buoy's helm, Interactive's marks, Plan's approval, Autopilot home to the berth), the lift up the
 // bluff to Oren, Pell and the Lost Letters (P1.3, played with the keyboard), and the Admiral's Exam that
 // lights the lighthouse. Screenshots at each beat. First, on the way up from the quay, Gilda's Model
-// Market (optional): walk up as Gilda calls out, then a quick job right-sized, one overspent, and a hard
-// one that falls short and is retried, all with real keys, then Meridian is freed and rebuilt to check the market reads the save. At a helm order and at Pell's desk it also types
+// Market (optional): walk up as Gilda calls out, then a quick job right-sized, one overspent, and two hard
+// ones that fall short and are retried (a different model, more effort: you choose each), all with real
+// keys, then Meridian is freed and rebuilt to check the market reads the save. At a helm order and at Pell's desk it also types
 // in the fork form over the overlay, to check the overlay leaves those keys (and J) alone.
 // Oren asks which model the player kept and which computer they're on (Your setup): `--setup=skip`
 // skips both forms; by default the run enters them and checks the shortcut, quiz and Logbook use them.
@@ -465,13 +466,15 @@ async function pellAndLetters() {
  * The Model Market (docs/specs/MODEL-MARKET.md), with real key presses: walk across the plaza (Gilda
  * calls out), E at the counter, then 1 (tour) 1 (Auto) E → right-sized; 2 (explain)
  * 4 (Powerful) → (High) E → overspent; 3 (bug) 2 (Lightweight) → → (High) E → fell short, R (Retry with
- * a different model: Powerful, High) E → right-sized. The fork form's typing mustn't reach it. Then
+ * a different model: nothing picked, Lightweight's own model left out) 2 4 (Powerful) E → right-sized;
+ * 4 (files) 3 (Versatile) E → fell short, E (Retry with more effort: the dial live, Default last time's)
+ * → (High) E → right-sized. The fork form's typing mustn't reach it. Then
  * Meridian is freed and streamed in again: the jobs, the purse and the quest come back from the save.
  */
 async function marketRun() {
   const M = (f, a) => S(f, a);
   const market = () => M(() => window.__dev.session().debug.puzzle('market')?.state() ?? null);
-  await M(() => window.__dev.learn.refundStarfish(10));
+  await M(() => window.__dev.learn.refundStarfish(16));
   const purse0 = await M(() => window.__dev.learn.getState().starfishPurse);
   // From the fountain side of the plaza, walk toward the stall (north), until Gilda says hello.
   await M(() => window.__dev.bench.teleport(674.6, -799.5, 0.2, 0.2, 0.14));
@@ -539,7 +542,7 @@ async function marketRun() {
       return st.open && JSON.stringify(st.view.screen) === before && st.view.job === null;
     });
   }
-  // 1 · The tour with Auto: right-sized, 1 starfish back.
+  // 1 · The tour with Auto: right-sized at the fair price (1 starfish, none back).
   let st = await press('Digit1');
   if (st.view.screen !== 'hire' || st.view.job !== 'tour')
     logs.push(`[meridiantest] market: 1 → ${st.view.screen} ${st.view.job}`);
@@ -550,8 +553,8 @@ async function marketRun() {
   if (!live.startsWith('Right-sized')) logs.push(`[meridiantest] market: live region "${live}"`);
   await page.waitForTimeout(600);
   await shot('market-right');
-  if (st.purse !== purse0)
-    logs.push(`[meridiantest] market: purse ${st.purse} after Auto and a refund (was ${purse0})`);
+  if (st.purse !== purse0 - 1)
+    logs.push(`[meridiantest] market: purse ${st.purse} after Auto at the fair price (was ${purse0})`);
   // 2 · Explain filterBooks with Powerful on High: overspent, no refund.
   st = await press('KeyE');
   if (st.view.screen !== 'board') logs.push(`[meridiantest] market: Got it → ${st.view.screen}`);
@@ -562,25 +565,47 @@ async function marketRun() {
   expectOutcome(st, 'over', 'explain + Powerful High');
   await page.waitForTimeout(600);
   await shot('market-over');
-  if (st.purse !== purse0 - 4) logs.push(`[meridiantest] market: purse ${st.purse} after overspending 4`);
-  // 3 · The bug with Lightweight on High: fell short; R retries with a different model (Powerful, High).
+  if (st.purse !== purse0 - 5) logs.push(`[meridiantest] market: purse ${st.purse} after overspending 4`);
+  // 3 · The bug with Lightweight on High: fell short; R retries with a different model, which you
+  // choose: the work order opens with nothing picked, and Lightweight's other models only.
   st = await press('KeyE', 'Digit3', 'Digit2', 'ArrowRight', 'ArrowRight', 'KeyE');
   expectOutcome(st, 'short', 'bug + Lightweight High');
   await page.waitForTimeout(600);
   await shot('market-short');
+  const shortModel = st.view.result?.hire.model;
   st = await press('KeyR');
-  if (!st.view.retry || st.view.draft.category !== 'Powerful' || st.view.draft.effort !== 'high')
+  if (st.view.retry?.live !== 'model' || st.view.draft.pending !== 'model' || st.view.draft.effort !== 'high')
     logs.push(
       `[meridiantest] market: Retry → ${JSON.stringify({ retry: st.view.retry, draft: st.view.draft })}`,
     );
+  // The live picker has the focus (the first pick it takes), and nothing's been paid.
+  const focus = await M(() => document.activeElement?.getAttribute('data-pick') ?? null);
+  if (focus !== 'auto') logs.push(`[meridiantest] market: Retry's focus on ${focus}`);
   await shot('market-retry');
-  st = await press('KeyE');
+  st = await press('Digit2');
+  if (st.view.draft.pending || st.view.draft.model === shortModel)
+    logs.push(`[meridiantest] market: Retry picked ${st.view.draft.model} (fell short: ${shortModel})`);
+  st = await press('Digit4', 'KeyE');
   expectOutcome(st, 'right', 'bug Retry + Powerful High');
   await page.waitForTimeout(600);
   await shot('market-retry-right');
+  // 4 · Many files with Versatile on Default: fell short; E retries with more effort (the same model,
+  // the dial live with nothing chosen and Default marked as last time's), → picks High.
+  st = await press('KeyE', 'Digit4', 'Digit3', 'KeyE');
+  expectOutcome(st, 'short', 'files + Versatile Default');
+  const versatile = st.view.result?.hire.model;
+  st = await press('KeyE');
+  if (st.view.draft.pending !== 'effort' || st.view.draft.model !== versatile)
+    logs.push(`[meridiantest] market: Retry (effort) → ${JSON.stringify(st.view.draft)}`);
+  await shot('market-retry-effort');
+  st = await press('ArrowRight');
+  if (st.view.draft.pending || st.view.draft.effort !== 'high')
+    logs.push(`[meridiantest] market: Retry (effort) → ${JSON.stringify(st.view.draft)} after →`);
+  st = await press('KeyE');
+  expectOutcome(st, 'right', 'files Retry + Versatile High');
   const doneBefore = st.done.slice().sort();
   const purseBefore = st.purse;
-  if (JSON.stringify(doneBefore) !== JSON.stringify(['bug', 'tour']))
+  if (JSON.stringify(doneBefore) !== JSON.stringify(['bug', 'files', 'tour']))
     logs.push(`[meridiantest] market: done ${doneBefore}`);
   // Esc on the result goes back to the board, Esc again steps away.
   st = await press('Escape', 'Escape');

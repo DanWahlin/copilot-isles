@@ -407,6 +407,28 @@ export const NPC_PALETTES: Record<NpcId, PaletteSlots> = {
     bandana: OUTFIT.plum,
     bandanaStripe: OUTFIT.cream,
   },
+  // Desmond (Anchorage's Model Market): teal and cream like his awning, a coral sash.
+  an_market: {
+    skin: SKIN.deep,
+    eyes: EYES.deepBrown,
+    hair: HAIR.black,
+    shirt: OUTFIT.cream,
+    vest: OUTFIT.teal,
+    trousers: OUTFIT.navy,
+    sash: OUTFIT.coral,
+    bandana: HAIR.black,
+    bandanaStripe: HAIR.black,
+  },
+  // Lani (Thousand-Bough's Model Market): the tree village's greens with a coral top.
+  tb_market: {
+    skin: SKIN.medium,
+    eyes: EYES.warmBrown,
+    hair: HAIR.black,
+    shirt: OUTFIT.coral,
+    vest: OUTFIT.green,
+    trousers: OUTFIT.brown,
+    sash: OUTFIT.saffron,
+  },
   mer_kid_a: {
     skin: SKIN.fair,
     eyes: EYES.blue,

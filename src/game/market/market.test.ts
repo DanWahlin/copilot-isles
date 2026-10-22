@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { parseProgress, Progress, type ProgressStorage } from '../../learn/progress';
 import { LearnStore } from '../../learn/store';
 import { starfishOn } from '../../world/starfish/spots';
@@ -21,16 +21,30 @@ import {
   JOBS,
   MAX_PRICE,
   QUOTES,
+  GILDA,
   REFUND,
+  effortLastTime,
   feedback,
   grade,
   jobById,
   price,
-  retryHire,
+  refundFor,
+  retryChanges,
+  retryPlan,
+  usedLastTime,
   TIER_OF,
   type Hire,
 } from './jobs';
+import { createModelMarket, type MarketHost } from '../puzzles/model-market';
+import type { ModelMarketSite } from '../../world/sites/model-market';
+import { MARKET_STALLS, marketStall, questStall } from './stalls';
+import { MARKET } from '../../content/market';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, puzzleQuest, puzzleSteps } from '../../course/puzzles';
+import { modelsIn } from './models';
 import { BOARDS, MODELS, MODELS_FILE, savedHireName } from './models';
+
+vi.mock('../../ui/puzzles/ModelMarket', () => ({ mountModelMarket: () => () => undefined }));
 
 const ROOT = join(__dirname, '../../..');
 const read = (p: string) => readFileSync(join(ROOT, p), 'utf8');
@@ -228,47 +242,47 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     }
   });
 
-  it('never refunds more than a right-sized hire cost', () => {
+  it('refunds less than every right-sized hire: a right-sized job costs at least one starfish', () => {
     for (const job of JOBS)
       for (const h of [AUTO, ...CATEGORIES.flatMap((c) => EFFORTS.map((e) => hire(c, e)))])
-        if (grade(job, h).outcome === 'right')
-          expect(REFUND[job.size], `${job.id}`).toBeLessThanOrEqual(price(h));
-    expect(REFUND.quick).toBe(1);
+        if (grade(job, h).outcome === 'right') {
+          expect(refundFor(job, h), `${job.id} ${JSON.stringify(h)}`).toBeLessThan(price(h));
+          expect(price(h) - refundFor(job, h)).toBeGreaterThanOrEqual(1);
+        }
+    expect(REFUND.quick).toBe(0);
     expect(REFUND.hard).toBe(2);
+    expect(refundFor(jobById('tour')!, AUTO)).toBe(0);
+    expect(refundFor(jobById('bug')!, hire('Powerful', 'default'))).toBe(2);
+    expect(refundFor(jobById('bug')!, hire('Versatile', 'high'))).toBe(2);
+    // Whatever a pack's refund, the game never gives back the whole hire.
+    expect(refundFor({ size: 'quick' }, AUTO)).toBe(0);
   });
 
-  it('offers a Retry that does better: a stronger model, or more effort', () => {
-    const first = (c: string) => `${c} first`;
-    const bug = jobById('bug')!;
-    for (const h of [
-      AUTO,
-      hire('Lightweight', 'low'),
-      hire('Versatile', 'default'),
-      hire('Powerful', 'low'),
-    ]) {
-      // Each Retry costs at least as much (a stronger model or more effort), and two get it done.
-      for (const kind of ['model', 'effort'] as const)
-        expect(price(retryHire(h, kind, first))).toBeGreaterThanOrEqual(price(h));
-      const twice = retryHire(retryHire(h, 'model', first), 'effort', first);
-      expect(grade(bug, twice).outcome, JSON.stringify(h)).toBe('right');
+  it('plans a Retry with nothing chosen: you pick the different model, or the effort, yourself', () => {
+    const light = hire('Lightweight', 'low') as Extract<Hire, { auto: false }>;
+    const byModel = retryPlan(light, 'model');
+    expect(byModel).toMatchObject({ kind: 'model', live: 'model' });
+    // The model that fell short can't be picked again; another (or Auto) can.
+    expect(usedLastTime(byModel, 'Lightweight', light.model)).toBe(true);
+    expect(usedLastTime(byModel, 'Lightweight', 'another')).toBe(false);
+    expect(usedLastTime(byModel, 'auto')).toBe(false);
+    expect(retryChanges(byModel, light)).toBe(false);
+    expect(retryChanges(byModel, hire('Powerful', 'low'))).toBe(true);
+    const versatile = hire('Versatile', 'default') as Extract<Hire, { auto: false }>;
+    const byEffort = retryPlan(versatile, 'effort');
+    expect(byEffort.live).toBe('effort');
+    expect(effortLastTime(byEffort, versatile.model, 'default')).toBe(true);
+    expect(effortLastTime(byEffort, versatile.model, 'high')).toBe(false);
+    expect(retryChanges(byEffort, versatile)).toBe(false);
+    expect(retryChanges(byEffort, { ...versatile, effort: 'high' })).toBe(true);
+    // After Auto either Retry turns it off: the model picker is live, and Auto can't be picked again.
+    for (const kind of ['model', 'effort'] as const) {
+      const p = retryPlan(AUTO, kind);
+      expect(p.live).toBe('model');
+      expect(usedLastTime(p, 'auto')).toBe(true);
+      expect(retryChanges(p, AUTO)).toBe(false);
+      expect(retryChanges(p, hire('Powerful', 'default'))).toBe(true);
     }
-    expect(retryHire(hire('Versatile', 'default'), 'effort', first)).toMatchObject({
-      category: 'Versatile',
-      effort: 'high',
-    });
-    expect(retryHire(hire('Lightweight', 'high'), 'model', first)).toMatchObject({
-      category: 'Powerful',
-      effort: 'high',
-    });
-    // A different model or more effort gets a Lightweight or Versatile hire there in one Retry.
-    expect(grade(bug, retryHire(hire('Lightweight', 'default'), 'model', first)).outcome).toBe('right');
-    expect(grade(bug, retryHire(hire('Versatile', 'default'), 'effort', first)).outcome).toBe('right');
-    expect(grade(bug, retryHire(hire('Powerful', 'low'), 'model', first)).outcome).toBe('right');
-    expect(retryHire(AUTO, 'effort', first)).toMatchObject({
-      auto: false,
-      category: 'Versatile',
-      effort: 'high',
-    });
   });
 
   it('gives each outcome a stamp, a voiced line, and the course sentences behind it', () => {
@@ -278,12 +292,17 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     expect(over.summary).toBe(
       'Powerful model on High did the job, but it cost 4 starfish for a 1-starfish job.',
     );
-    expect(GILDA_TEXT[over.line]).toBe("That's a lot of starfish for a quick look. Auto would've done it.");
+    expect(GILDA_TEXT[GILDA[over.key]]).toBe(
+      "That's a lot of starfish for a quick look. Auto would've done it.",
+    );
     expect(over.quotes).toContain(QUOTES.cost);
     const short = feedback(jobById('bug')!, hire('Lightweight', 'low'));
     expect(short.stamp).toBe('↻ Fell short');
     expect(short.quotes).toContain(QUOTES.retry);
     expect(feedback(tour, AUTO).quotes).toContain(QUOTES.auto);
+    // Right-sized at the fair price (nothing back) or with starfish back: each its own line.
+    expect(feedback(tour, AUTO).key).toBe('fair');
+    expect(feedback(jobById('bug')!, hire('Powerful', 'default')).key).toBe('right');
     expect(feedback(jobById('files')!, hire('Powerful', 'high')).stamp).toBe('✓ Right-sized');
   });
 });
@@ -365,5 +384,241 @@ describe('the starfish purse (MODEL-MARKET.md §3)', () => {
       JSON.stringify({ v: 1, market: { jobs: { bug: { done: 'yes', last: { outcome: 'great' } } } } }),
     );
     expect(junk.market.jobs.bug).toEqual({ done: false, last: null });
+  });
+});
+
+describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
+  type Debug = {
+    open(): Promise<void>;
+    pickJob(id: string): void;
+    pick(p: string): void;
+    model(m: string): void;
+    effort(e: string): void;
+    pay(): void;
+    retry(kind: 'model' | 'effort'): void;
+    back(): void;
+    close(): void;
+    state(): {
+      purse: number;
+      done: string[];
+      view: {
+        screen: string;
+        draft: { auto: boolean; category: string; model: string; effort: string; pending: string | null };
+        retry: unknown;
+        notice: string | null;
+      };
+    };
+  };
+  const stocked = () => {
+    const s = new LearnStore(new Progress(new MemStorage()));
+    s.refundStarfish(20);
+    return s;
+  };
+  const play = (
+    island: 'anchorage' | 'meridian' | 'thousand-bough',
+    store = stocked(),
+    quests: Record<string, string> = {},
+  ) => {
+    const said: string[][] = [];
+    const pages: string[] = [];
+    const host = {
+      learn: store,
+      hud: { toast: () => undefined },
+      dialogue: {
+        say: async () => undefined,
+        play: async (ids: string[]) => void said.push(ids),
+        cancel: () => undefined,
+      },
+      audio: null,
+      interactions: { add: () => undefined, remove: () => undefined },
+      player: { x: 0, y: 0, z: 0, heading: 0 },
+      quests: () => quests,
+      setQuest: (id: string, step: string) => void (quests[id] = step),
+      canAct: () => true,
+      beat: async () => true,
+      frame: () => undefined,
+      cut: () => undefined,
+      setModal: () => undefined,
+      reducedMotion: () => true,
+      place: () => undefined,
+      filePage: (id: string) => void pages.push(id),
+      spotlight: () => undefined,
+    } as unknown as MarketHost;
+    const site = {
+      stand: { x: 0, y: 0, z: 1, heading: 0 },
+      counter: { x: 0, y: 0, z: 0 },
+      shot: {},
+      setDone: () => undefined,
+    } as unknown as ModelMarketSite;
+    const p = createModelMarket(host, site, marketStall(island));
+    return { p, d: p.debug as unknown as Debug, quests, said, pages, store };
+  };
+
+  it('has a stall on every island, and only Gilda’s runs the story', () => {
+    expect(MARKET_STALLS.map((s) => s.island).sort()).toEqual(['anchorage', 'meridian', 'thousand-bough']);
+    expect(MARKET_STALLS.filter((s) => s.lines === 'gilda').map((s) => s.puzzle)).toEqual(['market']);
+    expect(MARKET_STALLS.filter((s) => questStall(s.island)).map((s) => s.puzzle)).toEqual(['market']);
+  });
+
+  it('Retry opens the work order with the model picker live and nothing chosen', async () => {
+    const { d } = play('meridian');
+    d.state();
+    await d.open();
+    (d as unknown as { pickJob(id: string): void }).pickJob('bug');
+    d.pick('Lightweight');
+    d.pay();
+    expect(d.state().view.screen).toBe('result');
+    const lastModel = d.state().view.draft.model;
+    d.retry('model');
+    let s = d.state();
+    expect(s.view.screen).toBe('hire');
+    expect(s.view.draft.pending).toBe('model');
+    expect(s.view.retry).toMatchObject({ kind: 'model', live: 'model' });
+    // Nothing chosen: signing waits (no starfish taken).
+    const purse = s.purse;
+    d.pay();
+    s = d.state();
+    expect(s.purse).toBe(purse);
+    expect(s.view.screen).toBe('hire');
+    expect(s.view.notice).toBeTruthy();
+    // The same category picks another of its models, never the one that fell short.
+    d.pick('Lightweight');
+    s = d.state();
+    expect(s.view.draft.pending).toBeNull();
+    expect(s.view.draft.model).not.toBe(lastModel);
+    d.model(lastModel);
+    expect(d.state().view.draft.model).not.toBe(lastModel);
+    d.pick('Powerful');
+    d.pay();
+    s = d.state();
+    expect(s.view.screen).toBe('result');
+    expect(s.done).toContain('bug');
+  });
+
+  it('Retry: more effort keeps the model and waits for the effort; after Auto, Auto is off', async () => {
+    const { d } = play('anchorage');
+    await d.open();
+    d.pickJob('files');
+    d.pick('Versatile');
+    d.pay();
+    d.retry('effort');
+    let s = d.state();
+    expect(s.view.draft).toMatchObject({ category: 'Versatile', pending: 'effort', effort: 'default' });
+    d.effort('default');
+    expect(d.state().view.draft.pending).toBe('effort');
+    d.effort('high');
+    d.pay();
+    expect(d.state().done).toContain('files');
+    d.back();
+    d.pickJob('bug');
+    d.pick('auto');
+    d.pay();
+    d.retry('effort');
+    s = d.state();
+    expect(s.view.draft).toMatchObject({ auto: false, pending: 'model' });
+    d.pick('auto');
+    expect(d.state().view.draft.auto).toBe(false);
+    d.pick(modelsIn('Powerful').length ? 'Powerful' : 'Versatile');
+    d.pay();
+    expect(d.state().done).toContain('bug');
+  });
+
+  it('shares one board and one purse: a job done at one stall is done at all', async () => {
+    const store = new LearnStore(new Progress(new MemStorage()));
+    store.refundStarfish(6);
+    const tb = play('thousand-bough', store);
+    await tb.d.open();
+    tb.d.pickJob('tour');
+    tb.d.pick('auto');
+    tb.d.pay();
+    // The fair price: one spent, none back; and only Gilda's stall touches the story's task.
+    expect(tb.d.state()).toMatchObject({ purse: 5, done: ['tour'] });
+    expect(tb.quests).toEqual({});
+    const anc = play('anchorage', store);
+    expect(anc.d.state()).toMatchObject({ purse: 5, done: ['tour'] });
+    // Another keeper says every line in their own voice, never Gilda's.
+    await anc.d.open();
+    anc.d.close();
+    expect(anc.said.flat().every((id) => !id.startsWith('mer.'))).toBe(true);
+    expect(anc.said.flat().length).toBeGreaterThan(0);
+    expect(tb.said.flat()).toContain(MARKET.keepers!['thousand-bough']!.fair.voice);
+  });
+
+  /** Right-sizes every job on the board at a stall. */
+  const clearBoard = async (d: Debug) => {
+    await d.open();
+    for (const job of JOBS) {
+      const hires: Hire[] = [
+        { auto: true },
+        ...CATEGORIES.flatMap((category) =>
+          EFFORTS.map((effort) => ({
+            auto: false as const,
+            category,
+            model: modelsIn(category)[0]!.name,
+            effort,
+          })),
+        ),
+      ];
+      const h = hires.find((x) => grade(job, x).outcome === 'right')!;
+      d.pickJob(job.id);
+      d.pick(h.auto ? 'auto' : h.category);
+      if (!h.auto) d.effort(h.effort);
+      d.pay();
+      expect(d.state().view.screen).toBe('result');
+      d.back();
+    }
+  };
+
+  it('every keeper voices every line in their own voice', async () => {
+    for (const island of ['anchorage', 'thousand-bough'] as const) {
+      const own = MARKET.keepers![island]!;
+      const { d, said } = play(island);
+      await clearBoard(d);
+      d.close();
+      const ids = said.flat();
+      expect(ids.every((id) => !Object.values(GILDA).includes(id))).toBe(true);
+      for (const key of ['hello', 'done', 'bye'] as const) expect(ids).toContain(own[key].voice);
+    }
+  });
+
+  it('jobs done at another stall count, but only Gilda’s stall finishes her task and gives its page', async () => {
+    const store = stocked();
+    const quests: Record<string, string> = {};
+    const anc = play('anchorage', store, quests);
+    await clearBoard(anc.d);
+    expect(anc.d.state().done).toHaveLength(JOBS.length);
+    expect(quests).toEqual({});
+    expect(anc.pages).toEqual([]);
+    expect(anc.said.flat()).toContain(MARKET.keepers!.anchorage!.done.voice);
+
+    // At Port Meridian: as you come up, Gilda says hello and finishes the task with her line.
+    const mer = play('meridian', store, quests);
+    expect(quests).toEqual({});
+    mer.p.update(1 / 60, 0);
+    expect(quests[puzzleQuest('market')]).toBe('done');
+    expect(mer.pages).toEqual([puzzleContent<PuzzleFile & { page: string }>('market').page]);
+    expect(mer.said).toEqual([[GILDA.hello, GILDA.done]]);
+    // Only once: at the counter next, she just points you at the board.
+    mer.p.update(1 / 60, 0);
+    await mer.d.open();
+    expect(mer.said).toEqual([[GILDA.hello, GILDA.done], [GILDA.open]]);
+    expect(mer.pages).toHaveLength(1);
+  });
+
+  it('a board finished elsewhere is done when you open Gilda’s stall (her hello already said)', async () => {
+    const store = stocked();
+    const quests: Record<string, string> = {};
+    const mer = play('meridian', store, quests);
+    await mer.d.open();
+    mer.d.close();
+    expect(quests[puzzleQuest('market')]).toBe(puzzleSteps('market').start);
+    expect(mer.pages).toEqual([]);
+    await clearBoard(play('thousand-bough', store, quests).d);
+    expect(quests[puzzleQuest('market')]).toBe(puzzleSteps('market').start);
+    const back = play('meridian', store, quests);
+    await back.d.open();
+    expect(quests[puzzleQuest('market')]).toBe('done');
+    expect(back.pages).toHaveLength(1);
+    expect(back.said).toEqual([[GILDA.done]]);
   });
 });

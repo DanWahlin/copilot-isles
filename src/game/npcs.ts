@@ -182,6 +182,17 @@ export const COVE_NPCS: NpcSpec[] = withCourseVoices([
     },
   },
   {
+    // Desmond keeps the Model Market's stall on the quay (src/game/market/stalls.ts): its counter's E
+    // is the way to talk shop, so he has no bark of his own.
+    id: 'desmond',
+    body: 'an_market',
+    name: 'Desmond',
+    anchor: 'marketKeeper',
+    clip: 'idle',
+    // On his step behind the counter (no walk surface there).
+    keepY: true,
+  },
+  {
     id: 'lookout',
     name: 'Lookout',
     anchor: 'lookout',

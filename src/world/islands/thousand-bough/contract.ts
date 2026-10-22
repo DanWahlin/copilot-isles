@@ -71,7 +71,9 @@ export type TbAnchorName =
   | 'extraWeaver'
   | 'extraLift'
   | 'extraFisher'
-  | 'extraLook';
+  | 'extraLook'
+  | 'modelMarket'
+  | 'marketKeeper';
 
 /** Interaction ids the compass and prompts use. */
 export type TbInteractionId =

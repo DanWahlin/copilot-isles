@@ -1,0 +1,122 @@
+{
+  "id": "desmond.market.short.auto",
+  "speaker": "Desmond",
+  "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort.",
+  "words": [
+    {
+      "word": "With",
+      "start": 0,
+      "end": 0.336
+    },
+    {
+      "word": "Auto",
+      "start": 0.336,
+      "end": 0.827
+    },
+    {
+      "word": "on",
+      "start": 0.827,
+      "end": 1.2
+    },
+    {
+      "word": "the",
+      "start": 1.2,
+      "end": 1.509
+    },
+    {
+      "word": "effort",
+      "start": 1.509,
+      "end": 1.97
+    },
+    {
+      "word": "setting",
+      "start": 1.97,
+      "end": 2.4
+    },
+    {
+      "word": "stays",
+      "start": 2.4,
+      "end": 2.857
+    },
+    {
+      "word": "hidden",
+      "start": 2.857,
+      "end": 3.7
+    },
+    {
+      "word": "For",
+      "start": 3.7,
+      "end": 4.28
+    },
+    {
+      "word": "a",
+      "start": 4.28,
+      "end": 4.384
+    },
+    {
+      "word": "hard",
+      "start": 4.384,
+      "end": 4.74
+    },
+    {
+      "word": "job",
+      "start": 4.74,
+      "end": 5.189
+    },
+    {
+      "word": "switch",
+      "start": 5.189,
+      "end": 5.68
+    },
+    {
+      "word": "Auto",
+      "start": 5.68,
+      "end": 6.1
+    },
+    {
+      "word": "off",
+      "start": 6.1,
+      "end": 6.944
+    },
+    {
+      "word": "then",
+      "start": 6.944,
+      "end": 7.904
+    },
+    {
+      "word": "pick",
+      "start": 7.904,
+      "end": 8.2
+    },
+    {
+      "word": "a",
+      "start": 8.2,
+      "end": 8.307
+    },
+    {
+      "word": "model",
+      "start": 8.307,
+      "end": 8.72
+    },
+    {
+      "word": "and",
+      "start": 8.72,
+      "end": 9
+    },
+    {
+      "word": "a",
+      "start": 9,
+      "end": 9.097
+    },
+    {
+      "word": "higher",
+      "start": 9.097,
+      "end": 9.531
+    },
+    {
+      "word": "effort",
+      "start": 9.531,
+      "end": 9.781
+    }
+  ]
+}

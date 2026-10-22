@@ -1,0 +1,67 @@
+{
+  "id": "desmond.market.bye",
+  "speaker": "Desmond",
+  "text": "Safe sailing, Captain! A job done here counts at every market stall.",
+  "words": [
+    {
+      "word": "Safe",
+      "start": 0,
+      "end": 0.37
+    },
+    {
+      "word": "sailing",
+      "start": 0.37,
+      "end": 0.86
+    },
+    {
+      "word": "Captain",
+      "start": 0.86,
+      "end": 1.56
+    },
+    {
+      "word": "A",
+      "start": 1.56,
+      "end": 1.86
+    },
+    {
+      "word": "job",
+      "start": 1.86,
+      "end": 2.208
+    },
+    {
+      "word": "done",
+      "start": 2.208,
+      "end": 2.464
+    },
+    {
+      "word": "here",
+      "start": 2.464,
+      "end": 2.789
+    },
+    {
+      "word": "counts",
+      "start": 2.789,
+      "end": 3.253
+    },
+    {
+      "word": "at",
+      "start": 3.253,
+      "end": 3.413
+    },
+    {
+      "word": "every",
+      "start": 3.413,
+      "end": 3.749
+    },
+    {
+      "word": "market",
+      "start": 3.749,
+      "end": 4.227
+    },
+    {
+      "word": "stall",
+      "start": 4.227,
+      "end": 4.477
+    }
+  ]
+}

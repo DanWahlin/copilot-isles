@@ -4,7 +4,7 @@ import type { SourceRef } from '../learn/types';
 
 /**
  * The typed view of a course pack's `market.json` (docs/content-data.md): the Model Market's prices,
- * refunds, board numbers, stamps, course quotes, jobs and Gilda's lines. It's part of the build, so a
+ * refunds, board numbers, stamps, course quotes, jobs, Gilda's lines and the other keepers'. It's part of the build, so a
  * merged edit ships with the next deploy. `src/content/content.test.ts` validates the file against
  * `courses/schemas/market.schema.json` and checks the quotes, anchors and voice lines. A course that
  * teaches models has one (COURSE-PACKS.md §4); the keys below are the ones the game asks for.
@@ -49,6 +49,7 @@ export const GILDA_KEYS = [
   'open',
   'auto',
   'right',
+  'fair',
   'over',
   'overEffort',
   'short',
@@ -77,6 +78,12 @@ export interface GildaLineData {
   source?: CourseCite;
 }
 
+/**
+ * Another stall's keeper's own voiced lines, by the stall's island: their version of every line Gilda
+ * says (the same teaching, in their words), and a goodbye.
+ */
+export type KeeperLinesData = Readonly<Record<GildaKey | 'bye', GildaLineData>>;
+
 export interface MarketData {
   categories: readonly {
     id: ModelCategoryId;
@@ -95,6 +102,11 @@ export interface MarketData {
   quotes: Readonly<Record<QuoteKey, MarketQuoteData> & Record<string, MarketQuoteData>>;
   jobs: readonly MarketJobData[];
   gilda: Readonly<Record<GildaKey, GildaLineData>>;
+  /**
+   * The keepers of the stalls other than Gilda's (each island's; the game's MARKET_STALLS): every line
+   * in their own voice, so a stall never plays Gilda's.
+   */
+  keepers?: Readonly<Record<string, KeeperLinesData>>;
 }
 
 /** The active course's market (empty until a voyage loads the course pack). */

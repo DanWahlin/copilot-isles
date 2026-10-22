@@ -12,6 +12,7 @@ import { createSetPieces, type SetPieces } from '../set-pieces';
 import { islandCourseBoard } from '../../../../learn/course-board';
 import { addCourseBoardNotices, addCourseBoardTimber } from '../../../sites/course-board';
 import { COURSE_BOARDS } from '../../course-boards';
+import { addThousandBoughMarket } from './model-market';
 
 export interface TreeVillage {
   group: Group;
@@ -128,6 +129,8 @@ export async function createTreeVillage(
     out.colliders.push(parts.box);
     out.cameraBoxes.push(parts.camera);
   }
+  // Lani's Model Market on Bough Landing (docs/specs/MODEL-MARKET.md §2; scenery without the market).
+  addThousandBoughMarket(buckets, out, o.tier.tier === 'lite' || o.tier.tier === 'low');
   out.colliders.push(...flume.colliders);
   group.add(flume.group);
   await breathe();

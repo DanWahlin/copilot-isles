@@ -1,0 +1,67 @@
+{
+  "id": "desmond.market.over.effort",
+  "speaker": "Desmond",
+  "text": "High effort for a quick look? The default would have done fine.",
+  "words": [
+    {
+      "word": "High",
+      "start": 0,
+      "end": 0.297
+    },
+    {
+      "word": "effort",
+      "start": 0.297,
+      "end": 0.68
+    },
+    {
+      "word": "for",
+      "start": 0.68,
+      "end": 0.84
+    },
+    {
+      "word": "a",
+      "start": 0.84,
+      "end": 0.933
+    },
+    {
+      "word": "quick",
+      "start": 0.933,
+      "end": 1.28
+    },
+    {
+      "word": "look",
+      "start": 1.28,
+      "end": 1.88
+    },
+    {
+      "word": "The",
+      "start": 1.88,
+      "end": 2.55
+    },
+    {
+      "word": "default",
+      "start": 2.55,
+      "end": 3.067
+    },
+    {
+      "word": "would",
+      "start": 3.067,
+      "end": 3.248
+    },
+    {
+      "word": "have",
+      "start": 3.248,
+      "end": 3.488
+    },
+    {
+      "word": "done",
+      "start": 3.488,
+      "end": 3.76
+    },
+    {
+      "word": "fine",
+      "start": 3.76,
+      "end": 4.01
+    }
+  ]
+}

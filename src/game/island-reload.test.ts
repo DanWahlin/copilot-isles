@@ -3,6 +3,7 @@ import type { RecordsAlcovesSite } from '../world/sites/records-alcoves';
 import { createChannelRouting, type ChannelRoutingHost } from './puzzles/channel-routing/puzzle';
 import { createLostLetters, type LettersHost } from './puzzles/lost-letters';
 import { createModelMarket, type MarketHost } from './puzzles/model-market';
+import { marketStall } from './market/stalls';
 import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import type { ModelMarketSite } from '../world/sites/model-market';
@@ -153,6 +154,7 @@ describe('an island rebuilt after an unload reads the save', () => {
       reducedMotion: () => true,
       place: vi.fn(),
       filePage: vi.fn(),
+      spotlight: vi.fn(),
     } as unknown as MarketHost;
     const site = () =>
       ({
@@ -169,20 +171,25 @@ describe('an island rebuilt after an unload reads the save', () => {
       state(): { done: string[]; purse: number };
     };
     const firstSite = site();
-    const first = createModelMarket(host, firstSite);
+    const first = createModelMarket(host, firstSite, marketStall('meridian'));
     const d = first.debug as unknown as Debug;
     await d.open();
     d.pickJob('tour');
     d.pick('auto');
     d.pay();
-    expect(d.state()).toMatchObject({ done: ['tour'], purse: 5 });
+    // Auto's right-sized for a tour, at the fair price: a starfish spent, none back.
+    expect(d.state()).toMatchObject({ done: ['tour'], purse: 4 });
     expect(quests['Q1.A']).toBe('start');
     first.dispose();
     // A new store from the same storage, as the next session's would be.
     const again = new LearnStore(new Progress(storage));
     const rebuiltSite = site();
-    const rebuilt = createModelMarket({ ...host, learn: again } as MarketHost, rebuiltSite);
-    expect((rebuilt.debug as unknown as Debug).state()).toMatchObject({ done: ['tour'], purse: 5 });
+    const rebuilt = createModelMarket(
+      { ...host, learn: again } as MarketHost,
+      rebuiltSite,
+      marketStall('meridian'),
+    );
+    expect((rebuilt.debug as unknown as Debug).state()).toMatchObject({ done: ['tour'], purse: 4 });
     expect(rebuiltSite.setDone).toHaveBeenCalledWith(['tour']);
     expect(again.progress.data.market.greeted).toBe(true);
     rebuilt.dispose();

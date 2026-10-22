@@ -30,6 +30,9 @@ const MERIDIAN_MARKERS = {
   mer_kid_b: ['headscarf wrap', 'toy hoop', 'sash'],
   mer_guard: ['guard bicorne', 'guard uniform coat', 'guard brass belt'],
   mer_market: ['headscarf wrap', 'merchant apron bib', 'money pouch'],
+  // The other Model Market stalls' keepers (Anchorage, Thousand-Bough).
+  an_market: ['flat cap crown', 'merchant apron bib', 'money pouch'],
+  tb_market: ['sun hat ribbon', 'merchant apron bib', 'money pouch'],
 } as const satisfies Partial<Record<CharacterBody, readonly string[]>>;
 
 describe('NPC accessories', () => {

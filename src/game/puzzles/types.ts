@@ -38,6 +38,8 @@ export interface SailAction {
 
 export interface Puzzle {
   readonly id: string;
+  /** Its chart label's id (`puzzle:<label>`), when puzzles share one (the market's stalls); else `id`. */
+  readonly label?: string;
   /** True when you're at this puzzle and it's in progress, so Wingman's hint key talks about it. */
   engaged(): boolean;
   /**

@@ -1,0 +1,72 @@
+{
+  "id": "desmond.market.over",
+  "speaker": "Desmond",
+  "text": "That's plenty of starfish for a quick look. Auto would have handled it.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.377
+    },
+    {
+      "word": "plenty",
+      "start": 0.377,
+      "end": 0.747
+    },
+    {
+      "word": "of",
+      "start": 0.747,
+      "end": 0.88
+    },
+    {
+      "word": "starfish",
+      "start": 0.88,
+      "end": 1.4
+    },
+    {
+      "word": "for",
+      "start": 1.4,
+      "end": 1.56
+    },
+    {
+      "word": "a",
+      "start": 1.56,
+      "end": 1.653
+    },
+    {
+      "word": "quick",
+      "start": 1.653,
+      "end": 1.984
+    },
+    {
+      "word": "look",
+      "start": 1.984,
+      "end": 2.608
+    },
+    {
+      "word": "Auto",
+      "start": 2.608,
+      "end": 3.467
+    },
+    {
+      "word": "would",
+      "start": 3.467,
+      "end": 3.632
+    },
+    {
+      "word": "have",
+      "start": 3.632,
+      "end": 3.81
+    },
+    {
+      "word": "handled",
+      "start": 3.81,
+      "end": 4.24
+    },
+    {
+      "word": "it",
+      "start": 4.24,
+      "end": 4.49
+    }
+  ]
+}

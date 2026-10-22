@@ -515,6 +515,13 @@ export const THOUSAND_BOUGH = {
     extraLift: { x: 1987.7, y: 18.5, z: -1564.7, heading: 1.2 },
     extraFisher: { x: 1839.6, y: 1.2, z: -1344, heading: 1.6 },
     extraLook: { x: 2066.5, y: 27, z: -1597, heading: -0.5 },
+    /**
+     * Lani's Model Market in Bough Landing's south-east corner (village/model-market.ts): the booth's
+     * origin, its back to the rail and its front to the deck (north), clear of the sister tree's limbs,
+     * and Lani's spot behind the counter (the booth's `vendor`).
+     */
+    modelMarket: { x: 1953, y: 2.6, z: -1430.4, heading: Math.PI },
+    marketKeeper: { x: 1952.85, y: 2.82, z: -1428.4, heading: Math.PI },
   } satisfies Record<string, TbAnchorSpec>,
 
   /** Collectibles (§3.8). */

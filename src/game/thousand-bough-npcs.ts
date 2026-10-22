@@ -1,3 +1,4 @@
+import { marketStall } from './market/stalls';
 import { withCourseVoices, type NpcSpec } from './npcs';
 
 /**
@@ -80,6 +81,16 @@ export function thousandBoughExtras(
       seatDrop: 0.22,
     },
   ];
+  // Lani keeps the Model Market's booth on Bough Landing (her counter's E is the way to talk shop: no
+  // bark). A course without the market leaves her out (thousand-bough-session.ts).
+  extras.push({
+    id: marketStall('thousand-bough').keeper.npc,
+    body: 'tb_market',
+    name: marketStall('thousand-bough').keeper.name,
+    anchor: 'marketKeeper',
+    clip: 'idle',
+    keepY: true,
+  });
   if (twistDone)
     extras.push({
       id: 'tb_lookout',

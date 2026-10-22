@@ -1,0 +1,47 @@
+{
+  "id": "mer.market.fair",
+  "speaker": "Gilda",
+  "text": "Right-sized! That's a fair price for this job.",
+  "words": [
+    {
+      "word": "Right-sized",
+      "start": 0,
+      "end": 1.168
+    },
+    {
+      "word": "That's",
+      "start": 1.168,
+      "end": 1.8
+    },
+    {
+      "word": "a",
+      "start": 1.8,
+      "end": 1.888
+    },
+    {
+      "word": "fair",
+      "start": 1.888,
+      "end": 2.147
+    },
+    {
+      "word": "price",
+      "start": 2.147,
+      "end": 2.5
+    },
+    {
+      "word": "for",
+      "start": 2.5,
+      "end": 2.608
+    },
+    {
+      "word": "this",
+      "start": 2.608,
+      "end": 2.9
+    },
+    {
+      "word": "job",
+      "start": 2.9,
+      "end": 3.15
+    }
+  ]
+}

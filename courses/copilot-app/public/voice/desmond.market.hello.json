@@ -1,0 +1,117 @@
+{
+  "id": "desmond.market.hello",
+  "speaker": "Desmond",
+  "text": "Welcome, Captain! This is Desmond's Model Market. Hire a model that fits the job, and pay in starfish. Bigger models cost more.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0,
+      "end": 0.53
+    },
+    {
+      "word": "Captain",
+      "start": 0.53,
+      "end": 1.072
+    },
+    {
+      "word": "This",
+      "start": 1.072,
+      "end": 1.573
+    },
+    {
+      "word": "is",
+      "start": 1.573,
+      "end": 1.75
+    },
+    {
+      "word": "Desmond's",
+      "start": 1.75,
+      "end": 2.373
+    },
+    {
+      "word": "Model",
+      "start": 2.373,
+      "end": 2.72
+    },
+    {
+      "word": "Market",
+      "start": 2.72,
+      "end": 3.568
+    },
+    {
+      "word": "Hire",
+      "start": 3.568,
+      "end": 4.12
+    },
+    {
+      "word": "a",
+      "start": 4.12,
+      "end": 4.227
+    },
+    {
+      "word": "model",
+      "start": 4.227,
+      "end": 4.64
+    },
+    {
+      "word": "that",
+      "start": 4.64,
+      "end": 5.024
+    },
+    {
+      "word": "fits",
+      "start": 5.024,
+      "end": 5.32
+    },
+    {
+      "word": "the",
+      "start": 5.32,
+      "end": 5.52
+    },
+    {
+      "word": "job",
+      "start": 5.52,
+      "end": 5.98
+    },
+    {
+      "word": "and",
+      "start": 5.98,
+      "end": 6.48
+    },
+    {
+      "word": "pay",
+      "start": 6.48,
+      "end": 6.8
+    },
+    {
+      "word": "in",
+      "start": 6.8,
+      "end": 7.056
+    },
+    {
+      "word": "starfish",
+      "start": 7.056,
+      "end": 8.28
+    },
+    {
+      "word": "Bigger",
+      "start": 8.28,
+      "end": 8.629
+    },
+    {
+      "word": "models",
+      "start": 8.629,
+      "end": 9.12
+    },
+    {
+      "word": "cost",
+      "start": 9.12,
+      "end": 9.536
+    },
+    {
+      "word": "more",
+      "start": 9.536,
+      "end": 9.786
+    }
+  ]
+}

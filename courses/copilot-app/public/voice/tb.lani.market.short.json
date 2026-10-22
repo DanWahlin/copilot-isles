@@ -1,0 +1,97 @@
+{
+  "id": "tb.lani.market.short",
+  "speaker": "Lani",
+  "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.206
+    },
+    {
+      "word": "enough",
+      "start": 0.206,
+      "end": 0.5
+    },
+    {
+      "word": "for",
+      "start": 0.5,
+      "end": 0.608
+    },
+    {
+      "word": "this",
+      "start": 0.608,
+      "end": 0.88
+    },
+    {
+      "word": "one",
+      "start": 0.88,
+      "end": 1.307
+    },
+    {
+      "word": "It",
+      "start": 1.307,
+      "end": 1.587
+    },
+    {
+      "word": "needs",
+      "start": 1.587,
+      "end": 1.984
+    },
+    {
+      "word": "more",
+      "start": 1.984,
+      "end": 2.297
+    },
+    {
+      "word": "muscle",
+      "start": 2.297,
+      "end": 2.933
+    },
+    {
+      "word": "so",
+      "start": 2.933,
+      "end": 3.16
+    },
+    {
+      "word": "retry",
+      "start": 3.16,
+      "end": 3.824
+    },
+    {
+      "word": "with",
+      "start": 3.824,
+      "end": 4.2
+    },
+    {
+      "word": "a",
+      "start": 4.2,
+      "end": 4.347
+    },
+    {
+      "word": "stronger",
+      "start": 4.347,
+      "end": 4.627
+    },
+    {
+      "word": "model",
+      "start": 4.627,
+      "end": 5.093
+    },
+    {
+      "word": "or",
+      "start": 5.093,
+      "end": 5.408
+    },
+    {
+      "word": "more",
+      "start": 5.408,
+      "end": 5.691
+    },
+    {
+      "word": "effort",
+      "start": 5.691,
+      "end": 5.941
+    }
+  ]
+}

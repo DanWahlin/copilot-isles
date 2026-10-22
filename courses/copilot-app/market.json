@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/market.schema.json",
-  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs and Gilda's lines. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's `text` must match her line in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines and the other stalls' keepers' hello and goodbye (`keepers`, by island). The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
   "categories": [
     {
       "id": "Lightweight",
@@ -46,7 +46,7 @@
   "sizes": {
     "quick": {
       "label": "Quick look",
-      "refund": 1,
+      "refund": 0,
       "doubloons": 5
     },
     "hard": {
@@ -193,6 +193,10 @@
       "voice": "mer.market.right",
       "text": "Right-sized! Here's some starfish back for hiring smart."
     },
+    "fair": {
+      "voice": "mer.market.fair",
+      "text": "Right-sized! That's a fair price for this job."
+    },
     "over": {
       "voice": "mer.market.over",
       "text": "That's a lot of starfish for a quick look. Auto would've done it.",
@@ -236,6 +240,168 @@
     "done": {
       "voice": "mer.market.done",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    }
+  },
+  "keepers": {
+    "anchorage": {
+      "hello": {
+        "voice": "desmond.market.hello",
+        "text": "Welcome, Captain! This is Desmond's Model Market. Hire a model that fits the job, and pay in starfish. Bigger models cost more.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "open": {
+        "voice": "desmond.market.open",
+        "text": "Choose a job from the board, then hire a model and set the effort dial."
+      },
+      "auto": {
+        "voice": "desmond.market.auto",
+        "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "right": {
+        "voice": "desmond.market.right",
+        "text": "Right-sized! Take some starfish back for hiring smart."
+      },
+      "fair": {
+        "voice": "desmond.market.fair",
+        "text": "Right-sized! A fair price for this job."
+      },
+      "over": {
+        "voice": "desmond.market.over",
+        "text": "That's plenty of starfish for a quick look. Auto would have handled it.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "overEffort": {
+        "voice": "desmond.market.over.effort",
+        "text": "High effort for a quick look? The default would have done fine.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "short": {
+        "voice": "desmond.market.short",
+        "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "try-again-with-a-different-model",
+          "hash": "b0031ded9c4d"
+        }
+      },
+      "shortAuto": {
+        "voice": "desmond.market.short.auto",
+        "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "broke": {
+        "voice": "desmond.market.broke",
+        "text": "No starfish yet? They're hidden all over the islands. Come back when you've found a few."
+      },
+      "done": {
+        "voice": "desmond.market.done",
+        "text": "Every job on the board, right-sized. You know your models, Captain!"
+      },
+      "bye": {
+        "voice": "desmond.market.bye",
+        "text": "Safe sailing, Captain! A job done here counts at every market stall."
+      }
+    },
+    "thousand-bough": {
+      "hello": {
+        "voice": "tb.lani.market.hello",
+        "text": "Hello, Captain! Lani's Model Market, right here on the landing. Hire a model that fits the job. Bigger models cost more starfish.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "open": {
+        "voice": "tb.lani.market.open",
+        "text": "Pick a job off the board, then hire a model and set the effort dial."
+      },
+      "auto": {
+        "voice": "tb.lani.market.auto",
+        "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "right": {
+        "voice": "tb.lani.market.right",
+        "text": "Right-sized! Here, have some starfish back."
+      },
+      "fair": {
+        "voice": "tb.lani.market.fair",
+        "text": "Right-sized, and a fair price for the job."
+      },
+      "over": {
+        "voice": "tb.lani.market.over",
+        "text": "That's a lot of starfish for a quick look. Auto could have done it.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "overEffort": {
+        "voice": "tb.lani.market.over.effort",
+        "text": "High effort for a quick look? Default effort would have been plenty.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "short": {
+        "voice": "tb.lani.market.short",
+        "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "try-again-with-a-different-model",
+          "hash": "b0031ded9c4d"
+        }
+      },
+      "shortAuto": {
+        "voice": "tb.lani.market.short.auto",
+        "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "broke": {
+        "voice": "tb.lani.market.broke",
+        "text": "Out of starfish? There are plenty hidden around the islands. Come back when you've found some."
+      },
+      "done": {
+        "voice": "tb.lani.market.done",
+        "text": "The whole board, right-sized! You really know your models, Captain."
+      },
+      "bye": {
+        "voice": "tb.lani.market.bye",
+        "text": "Off up the tree? Good luck, Captain. Your starfish and your jobs go with you."
+      }
     }
   }
 }

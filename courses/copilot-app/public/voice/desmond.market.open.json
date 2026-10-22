@@ -1,0 +1,82 @@
+{
+  "id": "desmond.market.open",
+  "speaker": "Desmond",
+  "text": "Choose a job from the board, then hire a model and set the effort dial.",
+  "words": [
+    {
+      "word": "Choose",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "a",
+      "start": 0.28,
+      "end": 0.4
+    },
+    {
+      "word": "job",
+      "start": 0.4,
+      "end": 0.688
+    },
+    {
+      "word": "from",
+      "start": 0.688,
+      "end": 0.9
+    },
+    {
+      "word": "the",
+      "start": 0.9,
+      "end": 1.027
+    },
+    {
+      "word": "board",
+      "start": 1.027,
+      "end": 1.968
+    },
+    {
+      "word": "then",
+      "start": 1.968,
+      "end": 2.224
+    },
+    {
+      "word": "hire",
+      "start": 2.224,
+      "end": 2.56
+    },
+    {
+      "word": "a",
+      "start": 2.56,
+      "end": 2.707
+    },
+    {
+      "word": "model",
+      "start": 2.707,
+      "end": 3.1
+    },
+    {
+      "word": "and",
+      "start": 3.1,
+      "end": 3.36
+    },
+    {
+      "word": "set",
+      "start": 3.36,
+      "end": 3.64
+    },
+    {
+      "word": "the",
+      "start": 3.64,
+      "end": 3.806
+    },
+    {
+      "word": "effort",
+      "start": 3.806,
+      "end": 4.16
+    },
+    {
+      "word": "dial",
+      "start": 4.16,
+      "end": 4.41
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "desmond.market.broke",
+  "speaker": "Desmond",
+  "text": "No starfish yet? They're hidden all over the islands. Come back when you've found a few.",
+  "words": [
+    {
+      "word": "No",
+      "start": 0,
+      "end": 0.224
+    },
+    {
+      "word": "starfish",
+      "start": 0.224,
+      "end": 0.8
+    },
+    {
+      "word": "yet",
+      "start": 0.8,
+      "end": 1.36
+    },
+    {
+      "word": "They're",
+      "start": 1.36,
+      "end": 2.434
+    },
+    {
+      "word": "hidden",
+      "start": 2.434,
+      "end": 2.76
+    },
+    {
+      "word": "all",
+      "start": 2.76,
+      "end": 3.2
+    },
+    {
+      "word": "over",
+      "start": 3.2,
+      "end": 3.56
+    },
+    {
+      "word": "the",
+      "start": 3.56,
+      "end": 3.76
+    },
+    {
+      "word": "islands",
+      "start": 3.76,
+      "end": 4.656
+    },
+    {
+      "word": "Come",
+      "start": 4.656,
+      "end": 5.408
+    },
+    {
+      "word": "back",
+      "start": 5.408,
+      "end": 5.648
+    },
+    {
+      "word": "when",
+      "start": 5.648,
+      "end": 5.86
+    },
+    {
+      "word": "you've",
+      "start": 5.86,
+      "end": 6.133
+    },
+    {
+      "word": "found",
+      "start": 6.133,
+      "end": 6.44
+    },
+    {
+      "word": "a",
+      "start": 6.44,
+      "end": 6.58
+    },
+    {
+      "word": "few",
+      "start": 6.58,
+      "end": 6.83
+    }
+  ]
+}

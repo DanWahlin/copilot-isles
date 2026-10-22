@@ -1,0 +1,82 @@
+{
+  "id": "tb.lani.market.bye",
+  "speaker": "Lani",
+  "text": "Off up the tree? Good luck, Captain. Your starfish and your jobs go with you.",
+  "words": [
+    {
+      "word": "Off",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "up",
+      "start": 0.213,
+      "end": 0.36
+    },
+    {
+      "word": "the",
+      "start": 0.36,
+      "end": 0.56
+    },
+    {
+      "word": "tree",
+      "start": 0.56,
+      "end": 1.072
+    },
+    {
+      "word": "Good",
+      "start": 1.072,
+      "end": 1.568
+    },
+    {
+      "word": "luck",
+      "start": 1.568,
+      "end": 1.91
+    },
+    {
+      "word": "Captain",
+      "start": 1.91,
+      "end": 2.592
+    },
+    {
+      "word": "Your",
+      "start": 2.592,
+      "end": 3.136
+    },
+    {
+      "word": "starfish",
+      "start": 3.136,
+      "end": 4
+    },
+    {
+      "word": "and",
+      "start": 4,
+      "end": 4.272
+    },
+    {
+      "word": "your",
+      "start": 4.272,
+      "end": 4.512
+    },
+    {
+      "word": "jobs",
+      "start": 4.512,
+      "end": 5.093
+    },
+    {
+      "word": "go",
+      "start": 5.093,
+      "end": 5.408
+    },
+    {
+      "word": "with",
+      "start": 5.408,
+      "end": 5.68
+    },
+    {
+      "word": "you",
+      "start": 5.68,
+      "end": 5.93
+    }
+  ]
+}

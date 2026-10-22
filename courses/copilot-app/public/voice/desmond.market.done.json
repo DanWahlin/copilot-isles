@@ -1,0 +1,62 @@
+{
+  "id": "desmond.market.done",
+  "speaker": "Desmond",
+  "text": "Every job on the board, right-sized. You know your models, Captain!",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "job",
+      "start": 0.42,
+      "end": 0.747
+    },
+    {
+      "word": "on",
+      "start": 0.747,
+      "end": 0.84
+    },
+    {
+      "word": "the",
+      "start": 0.84,
+      "end": 1.027
+    },
+    {
+      "word": "board",
+      "start": 1.027,
+      "end": 1.653
+    },
+    {
+      "word": "right-sized",
+      "start": 1.653,
+      "end": 3
+    },
+    {
+      "word": "You",
+      "start": 3,
+      "end": 4.128
+    },
+    {
+      "word": "know",
+      "start": 4.128,
+      "end": 4.352
+    },
+    {
+      "word": "your",
+      "start": 4.352,
+      "end": 4.549
+    },
+    {
+      "word": "models",
+      "start": 4.549,
+      "end": 5.1
+    },
+    {
+      "word": "Captain",
+      "start": 5.1,
+      "end": 5.35
+    }
+  ]
+}

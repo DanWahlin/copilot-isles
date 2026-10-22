@@ -166,6 +166,17 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addApron(root, 0xf0e6cf, 0x2f5f9a);
       addMoneyPouch(root, 0x8b5428, 1);
       break;
+    // The Model Market's keepers wear Gilda's shopkeeper's apron and money pouch, in their own colours.
+    case 'an_market':
+      addFlatCap(root, 0x2f6f74);
+      addApron(root, 0xeadcb4, 0x3f8fb0);
+      addMoneyPouch(root, 0x8b5428, 1);
+      break;
+    case 'tb_market':
+      addSunHat(root, 0xe2c98f, 0x1ea7a7);
+      addApron(root, 0xf0e6cf, 0x3fa34d);
+      addMoneyPouch(root, 0x6b4a2c, 1);
+      break;
     case 'mer_kid_a':
       addChildSailorCap(root, 0x2f6fa1, 0xd28a22);
       addToyPinwheel(root, -1);

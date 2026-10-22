@@ -30,11 +30,11 @@ const SPOTS: Readonly<Record<IslandId, Omit<CourseBoardPlacement, 'chapter'>>> =
   },
   'thousand-bough': {
     where:
-      "Bough Landing's east side, facing back up the wharf: you see it as you walk ashore, before the Fern Walk.",
-    x: 1954.5,
+      "Bough Landing's east side, north of Lani's market booth, facing back up the wharf: you see it as you walk ashore, before the Fern Walk.",
+    x: 1955.6,
     y: 2.6,
-    z: -1431.5,
-    rot: -0.75,
+    z: -1436.2,
+    rot: -1.0,
   },
 };
 

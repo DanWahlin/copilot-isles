@@ -1,19 +1,28 @@
-import { BufferGeometry, CylinderGeometry, Matrix4, SphereGeometry } from 'three/webgpu';
-import { box, cylinder, paint, plank, TRIM, tubeBetween, worldUv } from '../sites/geo';
+import type { BufferGeometry } from 'three/webgpu';
+import { box, cylinder, plank, TRIM } from '../sites/geo';
 import { makeBuckets, type MaterialKey, type VillageBoxCollider } from '../village/kit';
+import { archBand, archStones, spandrel, turned } from '../market-stall/shapes';
+import { stallToWorld, type MarketStallLayout } from '../market-stall/layout';
 import {
-  archBand,
-  archStones,
-  boardOutline,
-  finish,
-  frameRing,
-  prismZ,
-  spandrel,
-  turned,
-} from './market-shapes';
-import { addPottedPlant } from './plaza-plants';
+  addBoardChains,
+  addHangingBoard,
+  addJobsBoard,
+  addStallAwning,
+  addStallCounter,
+  addStallLantern,
+  addStallShelves,
+  addTill,
+  blob,
+  counterFront,
+  placeStall,
+  stallBox,
+  walkBox,
+  type StallBuckets,
+  type StallCounter,
+  type StallStyle,
+} from '../market-stall/parts';
+import { addPlantOn, addPottedPlant } from './plaza-plants';
 import { addTiledRoof } from './plaza-roofs';
-import { starGeometry } from '../starfish';
 import { clamp01, smoothstep } from '../../util/math';
 import { LIMESTONE_LIGHT, TERRACOTTA } from './terraces';
 
@@ -25,9 +34,10 @@ import { LIMESTONE_LIGHT, TERRACOTTA } from './terraces';
  * a tiled eave close it off at the corner house's eave height. Under each arch a carved beam carries a
  * shaped signboard on two chains, growing with the models (sage Lightweight, blue Versatile, red and
  * gold Powerful). Behind the plank counter: a striped awning, shelves of bottles and jars, Gilda's
- * jar of starfish, a brass bell, the cork jobs board, iron lanterns, a draped cloth, pot plants, a
- * cypress and a barrel. All of it goes into the town's material buckets (no new draw or shader); the
- * boards' lettering is one sign atlas (src/world/sites/model-market.ts).
+ * jar of starfish, a brass bell, the cork jobs board, iron lanterns, a draped cloth, potted palms and
+ * geraniums, a planter and a barrel. The parts every stall shares are src/world/market-stall/'s; all of
+ * it goes into the town's material buckets (no new draw or shader), and the boards' lettering is one
+ * sign atlas (src/world/sites/model-market.ts).
  *
  * Everything here is in the stall's own frame: origin at the arches' centre line, on the plaza floor;
  * +z out into the plaza, +x to the player's right as they face it.
@@ -70,25 +80,34 @@ const EAVE = UPPER.y1 + 0.15;
 const BACK = -4.6;
 const CEILING = WALL_TOP - 0.3;
 /** The counter stands back under the arches, behind a walkway. */
-const COUNTER = { x0: -INNER, x1: INNER, z: -2.15, d: 0.7, h: 1.0 } as const;
-/** The stallholder's step behind the counter (the middle bay), so she's seen over it. */
-const STEP = { x0: -1.6, x1: 1.6, z0: -2.55, z1: -4.0, h: 0.3 } as const;
+const COUNTER: StallCounter = {
+  x0: -INNER,
+  x1: INNER,
+  z: -2.15,
+  d: 0.7,
+  h: 1.0,
+  posts: [-5.08, -3.7, -2.1, -0.92, 0.92, 2.1, 3.7, 5.08],
+  // The blue-and-white cloth over the counter's right end.
+  cloth: { x0: 4.05, stripes: 6 },
+  // The stallholder's step behind the counter (the middle bay), so she's seen over it.
+  step: { x0: -1.6, x1: 1.6, z0: -2.55, z1: -4.0, h: 0.3 },
+};
 /** The counter body's front face (its top overhangs it by 7 cm). */
-const COUNTER_FRONT = COUNTER.z + (COUNTER.d - 0.1) / 2;
+const COUNTER_FRONT = counterFront(COUNTER);
 const BEAM = { h: 0.24, z: 0.1, d: 0.2 } as const;
 const AWNING = { x0: -INNER, x1: INNER, zFront: -1.72, zBack: -3.3, yFront: 2.6, yBack: 3.0 } as const;
 
 /** Where things are in the stall's frame (shared by the town, the signs and the puzzle). */
-export const MARKET_LAYOUT = {
+export const MARKET_LAYOUT: MarketStallLayout = {
   /**
    * The three boards, smallest first: arch centre x, face size (bigger model, bigger board), the
    * face's top, its outline's top (a scalloped edge, or the Powerful board's crest), and the foot of
    * the carved beam it hangs from inside its arch (each a step higher, like the boards).
    */
   boards: [
-    { x: -3.85, w: 1.32, h: 0.74, top: 3.5, shape: 'scallop' as const, beam: 3.78 },
-    { x: 0, w: 1.86, h: 1.0, top: 3.98, shape: 'scallop' as const, beam: 4.3 },
-    { x: 3.7, w: 2.6, h: 1.42, top: 4.42, shape: 'crest' as const, beam: 4.92 },
+    { x: -3.85, w: 1.32, h: 0.74, top: 3.5, shape: 'scallop', beam: 3.78 },
+    { x: 0, w: 1.86, h: 1.0, top: 3.98, shape: 'scallop', beam: 4.3 },
+    { x: 3.7, w: 2.6, h: 1.42, top: 4.42, shape: 'crest', beam: 4.92 },
   ],
   /** The boards' painted faces, in the arch's opening. */
   boardZ: BEAM.z + 0.05,
@@ -106,20 +125,20 @@ export const MARKET_LAYOUT = {
   ],
   noteSize: { w: 0.58, h: 0.37 },
   /** Gilda's spot behind the counter, and yours in front of it (in the walkway under the middle arch). */
-  vendor: { x: 0.25, z: -3.0, y: STEP.h },
+  vendor: { x: 0.25, z: -3.0, y: COUNTER.step!.h },
   stand: { x: 0.1, z: -0.9 },
   /** The counter's front, where E works from. */
   counter: { x: 0.1, z: -1.75 },
   /** The starfish jar, at the counter's front edge, front left of Gilda. */
   jar: { x: -0.95, y: COUNTER.h, z: COUNTER_FRONT - 0.2 },
-} as const;
+  // Square on from the plaza at a standing eye height, like concept B's close-up: the three boards
+  // across the top, Gilda at the counter in the middle, the jar, the bell and the jobs board.
+  shot: { eye: [-0.4, 2.8, 6.6], at: [0.1, 2.85, -2.0] },
+};
 
 /** A point in the stall's frame, in the world. */
-export function marketToWorld(lx: number, lz: number): { x: number; z: number } {
-  const c = Math.cos(MODEL_MARKET.heading);
-  const s = Math.sin(MODEL_MARKET.heading);
-  return { x: MODEL_MARKET.x + lx * c + lz * s, z: MODEL_MARKET.z - lx * s + lz * c };
-}
+export const marketToWorld = (lx: number, lz: number): { x: number; z: number } =>
+  stallToWorld(MODEL_MARKET, lx, lz);
 
 /** Warm sandstone (two course tints), its lighter dressings, and the plaster over it. */
 const SAND = [0xeda150, 0xf3ad5a] as const;
@@ -133,28 +152,25 @@ const BACK_PLASTER = 0xf0b874;
 const WOOD = 0x7a4e2b;
 const WOOD_LIGHT = 0xa5733f;
 const DARK_WOOD = 0x3c281a;
-const PLANK = [0x8e5b33, 0x82522e] as const;
-const BRASS = 0xe9b54a;
 const IRON = 0x2b2d2c;
-const RED = 0xc8302a;
-const WHITE = 0xf5efe2;
-const CLOTH_BLUE = 0x2f64aa;
-const CORK = 0xb07a45;
 const SHUTTER = 0x2f6b4d;
 const GLASS = 0x1b2528;
-const CYPRESS = 0x1e4a2a;
-/** The boards' faces and frames: sage, sky blue, and red framed in gold. */
-const BOARD_FACE = [0x8fae74, 0x3e7fc6, 0xb3302a] as const;
-const BOARD_FRAME = [0x5b3a20, 0x5b3a20, 0xe6b44c] as const;
-/**
- * The lantern glass is the town's glow material. It mixes its vertex colour × 0.18 by day with an
- * orange glow by night, so a colour over 1 keeps the glass warm and bright in the afternoon too.
- */
-const LANTERN_GLASS: readonly [number, number, number] = [5.5, 3.9, 1.4];
-/** The jar's highlights: white on the glow material by day. */
-const GLASS_SHINE: readonly [number, number, number] = [4.3, 5.0, 5.1];
-/** The collectible starfish's shape and colours, 0.55 m in radius. */
-const starShape = starGeometry();
+/** The stall's shared parts' colours: the boards sage, sky blue, and red framed in gold. */
+const STYLE: StallStyle = {
+  wood: WOOD,
+  woodLight: WOOD_LIGHT,
+  darkWood: DARK_WOOD,
+  plank: [0x8e5b33, 0x82522e],
+  brass: 0xe9b54a,
+  iron: IRON,
+  awning: [0xc8302a, 0xf5efe2],
+  counterCloth: [0x2f64aa, 0xf5efe2],
+  curtain: 0x23558a,
+  cork: 0xb07a45,
+  boardFace: [0x8fae74, 0x3e7fc6, 0xb3302a],
+  boardFrame: [0x5b3a20, 0x5b3a20, 0xe6b44c],
+  shelfTints: [0x2f5fa8, 0x3d8a4f, 0xb03a2e, 0xc8873a, 0x2a4f8f, 0x6a8f3a],
+};
 
 type Buckets = Record<MaterialKey, BufferGeometry[]>;
 
@@ -163,36 +179,8 @@ interface MarketColliders {
   camera: VillageBoxCollider[];
 }
 
-interface Local {
-  stone: BufferGeometry[];
-  plaster: BufferGeometry[];
-  wood: BufferGeometry[];
-  cloth: BufferGeometry[];
-  metal: BufferGeometry[];
-  glow: BufferGeometry[];
-  roofTile: BufferGeometry[];
-}
-
-/** A sphere (a blob of leaves or flowers, a knob), squashed by sy. */
-function blob(
-  x: number,
-  y: number,
-  z: number,
-  r: number,
-  sy: number,
-  hex: number,
-  w = 7,
-  h = 5,
-): BufferGeometry {
-  const g = new SphereGeometry(r, w, h);
-  g.scale(1, sy, 1);
-  g.translate(x, y, z);
-  worldUv(g, 1.8);
-  return paint(g, hex);
-}
-
 /** The loggia: piers, arches, spandrels, cornice, upper storey, eave and roof, and the inside's shell. */
-function addShell(l: Local, lite: boolean): void {
+function addShell(l: StallBuckets, lite: boolean): void {
   const { plaster, wood, roofTile } = l;
   // Piers: a plinth, the shaft in courses (alternate courses a shade lighter and 1 cm in, for the
   // joints), and a two-step capital.
@@ -366,8 +354,8 @@ function addShell(l: Local, lite: boolean): void {
   );
 }
 
-/** One beam inside an arch (each a step higher), on two corbels, and two chains down to the board. */
-function addBeamAndChains(l: Local, i: number, lite: boolean): void {
+/** One beam inside an arch (each a step higher) on two corbels, and its board's chains down from it. */
+function addBeamAndChains(l: StallBuckets, i: number, lite: boolean): void {
   const b = MARKET_LAYOUT.boards[i]!;
   // Wall to wall across the arch's opening at the beam's height (the chord, above the springing).
   const rise = Math.max(0, b.beam + BEAM.h - SPRING);
@@ -384,367 +372,11 @@ function addBeamAndChains(l: Local, i: number, lite: boolean): void {
         1.8,
       ),
     );
-  // The chains: iron links, alternately turned.
-  const top = b.top + (b.shape === 'crest' ? 0.07 : 0.05);
-  for (const s of [-1, 1]) {
-    const x = b.x + s * Math.min(b.w / 2 - 0.18, 0.75);
-    const y0 = b.beam;
-    if (lite) {
-      l.metal.push(
-        tubeBetween(0.014, { x, y: top, z: MARKET_LAYOUT.boardZ - 0.02 }, { x, y: y0, z: BEAM.z }, IRON, 4),
-      );
-      continue;
-    }
-    const links = Math.max(2, Math.round((y0 - top) / 0.075));
-    const lh = (y0 - top) / links;
-    for (let k = 0; k < links; k += 1)
-      l.metal.push(
-        box(
-          k % 2 ? 0.016 : 0.05,
-          lh + 0.012,
-          k % 2 ? 0.05 : 0.016,
-          { x, y: top + k * lh - 0.006, z: MARKET_LAYOUT.boardZ - 0.02 },
-          IRON,
-          1.8,
-        ),
-      );
-  }
+  addBoardChains(l, b, MARKET_LAYOUT.boardZ, { y: b.beam, z: BEAM.z }, lite, IRON);
 }
 
-/**
- * A board: its shaped backing, the painted face over it, and a chunky carved frame that follows the
- * outline all round, scalloped top or crest included (gilded on the Powerful board).
- */
-function addBoard(l: Local, i: number): void {
-  const b = MARKET_LAYOUT.boards[i]!;
-  const z = MARKET_LAYOUT.boardZ;
-  const rim = i === 2 ? 0.11 : 0.08;
-  const y0 = b.top - b.h;
-  const at = (pts: [number, number][], dy: number) =>
-    pts.map(([x, y]) => [b.x + x, dy + y] as [number, number]);
-  const outer = at(boardOutline(b.w + rim * 2, b.h + rim * 2, b.shape), y0 - rim);
-  const inner = at(boardOutline(b.w, b.h, b.shape), y0);
-  const frame = i === 2 ? l.plaster : l.wood;
-  frame.push(prismZ(outer, z - 0.07, z - 0.03, BOARD_FRAME[i]!));
-  l.cloth.push(prismZ(inner, z - 0.03, z - 0.004, BOARD_FACE[i]!));
-  frame.push(frameRing(outer, inner, z - 0.03, z + 0.035, BOARD_FRAME[i]!));
-}
-
-/** The counter: a dark body, a light top with an overhang, a plank front between posts, and a kick rail. */
-function addCounter(l: Local): void {
-  const cx = (COUNTER.x0 + COUNTER.x1) / 2;
-  const cw = COUNTER.x1 - COUNTER.x0;
-  l.wood.push(box(cw, COUNTER.h - 0.06, COUNTER.d - 0.1, { x: cx, z: COUNTER.z }, WOOD, 1.8));
-  l.wood.push(
-    plank(
-      cw + 0.06,
-      0.07,
-      COUNTER.d + 0.04,
-      { x: cx, y: COUNTER.h - 0.07, z: COUNTER.z + 0.02 },
-      WOOD_LIGHT,
-      TRIM.light,
-      0.5,
-    ),
-  );
-  const front = COUNTER_FRONT;
-  const pq = MARKET_LAYOUT.plaque;
-  const posts = [-5.08, -3.7, -2.1, -0.92, 0.92, 2.1, 3.7, 5.08];
-  for (const x of posts)
-    l.wood.push(box(0.1, COUNTER.h - 0.1, 0.05, { x, y: 0.02, z: front + 0.025 }, DARK_WOOD, 1.8));
-  // Vertical planks between the posts, 1.5 cm proud of the body.
-  let k = 0;
-  for (let x = COUNTER.x0 + 0.12; x < COUNTER.x1 - 0.1; x += 0.2, k += 1) {
-    if (posts.some((p) => Math.abs(p - x) < 0.11)) continue;
-    if (Math.abs(x - pq.x) < pq.w / 2 + 0.02) continue;
-    l.wood.push(
-      plank(
-        0.185,
-        COUNTER.h - 0.24,
-        0.015,
-        { x, y: 0.12, z: front + 0.0075 },
-        PLANK[k % 2]!,
-        TRIM.light,
-        0.5,
-        0.2,
-      ),
-    );
-  }
-  l.wood.push(box(cw, 0.1, 0.04, { x: cx, y: 0.02, z: front + 0.02 }, DARK_WOOD, 1.8));
-  l.wood.push(box(cw, 0.08, 0.035, { x: cx, y: COUNTER.h - 0.16, z: front + 0.0175 }, DARK_WOOD, 1.8));
-  // The House special plaque's carved frame (its lettering is a sign).
-  l.wood.push(
-    box(
-      pq.w + 0.12,
-      pq.h + 0.12,
-      0.03,
-      { x: pq.x, y: pq.y - pq.h / 2 - 0.06, z: front + 0.015 },
-      DARK_WOOD,
-      1.8,
-    ),
-  );
-  // Gilda's step.
-  l.wood.push(
-    box(
-      STEP.x1 - STEP.x0,
-      STEP.h,
-      STEP.z0 - STEP.z1,
-      { x: (STEP.x0 + STEP.x1) / 2, z: (STEP.z0 + STEP.z1) / 2 },
-      WOOD_LIGHT,
-      1.8,
-    ),
-  );
-  // The blue-and-white cloth over the counter's right end: across the top and down the front.
-  const c0 = 4.05;
-  const stripes = 6;
-  const sw = 0.17;
-  for (let s = 0; s < stripes; s += 1) {
-    const x = c0 + (s + 0.5) * sw;
-    const hex = s % 2 ? WHITE : CLOTH_BLUE;
-    l.cloth.push(box(sw, 0.012, COUNTER.d + 0.08, { x, y: COUNTER.h, z: COUNTER.z + 0.04 }, hex, 1.8));
-    l.cloth.push(
-      box(sw, COUNTER.h - 0.12, 0.012, { x, y: 0.12, z: COUNTER.z + COUNTER.d / 2 + 0.085 }, hex, 1.8),
-    );
-  }
-}
-
-/**
- * The till: a big glass jar at the counter's front edge holding Gilda's starfish, the game's own
- * collectible shape in its coral and gold. The glass is all but invisible (no see-through material
- * for it): a base, a rim at the foot and a rounded shoulder, a brass lid with a knob, and two bright
- * streaks of highlight down the front (unlit glow, like the lanterns' glass). And the brass bell.
- */
-function addTill(l: Local, lite: boolean): void {
-  const j = MARKET_LAYOUT.jar;
-  const r = 0.25;
-  const h = 0.5;
-  l.plaster.push(cylinder(r + 0.01, r + 0.01, 0.03, { x: j.x, y: j.y, z: j.z }, 0xc9e7e3, 16));
-  l.plaster.push(turnedRing(r, 0.022, j.x, j.y + 0.03, j.z, 0xd8f0ec, lite));
-  l.plaster.push(turnedRing(r * 0.86, 0.02, j.x, j.y + h + 0.02, j.z, 0xd8f0ec, lite));
-  l.plaster.push(cylinder(r * 0.8, r * 0.8, 0.06, { x: j.x, y: j.y + h + 0.07, z: j.z }, BRASS, 16));
-  l.plaster.push(cylinder(r * 0.84, r * 0.84, 0.02, { x: j.x, y: j.y + h + 0.07, z: j.z }, 0xc8902e, 16));
-  l.plaster.push(blob(j.x, j.y + h + 0.16, j.z, 0.045, 1, BRASS, 8, 5));
-  // The highlights: two thin curved streaks on the front left, as glass catches the sun.
-  for (const [a0, a1, y0, y1] of [
-    [-0.75, -0.62, 0.08, 0.47],
-    [-0.52, -0.46, 0.15, 0.4],
-  ] as const) {
-    const g = new CylinderGeometry(r + 0.004, r + 0.004, y1 - y0, 3, 1, true, a0, a1 - a0);
-    g.translate(j.x, j.y + (y0 + y1) / 2, j.z);
-    const streak = finish(g, 0xffffff);
-    const c = streak.getAttribute('color');
-    for (let i = 0; i < c.count; i += 1) c.setXYZ(i, ...GLASS_SHINE);
-    l.glow.push(streak);
-  }
-  // The starfish: 0.2 m across, heaped and tilted toward the plaza, a shade brighter than in the wild.
-  const stars: readonly [number, number, number, number, number, number][] = [
-    [-0.09, 0.16, 0.06, 0.135, -0.35, 0.3],
-    [0.1, 0.15, -0.03, 0.13, 0.25, -0.5],
-    [0.01, 0.34, 0.08, 0.14, -0.2, 0.9],
-    [-0.06, 0.42, -0.1, 0.12, 0.45, 1.7],
-  ];
-  for (const [dx, dy, dz, sr, tilt, spin] of lite ? stars.slice(0, 3) : stars) {
-    const g = starShape.clone();
-    g.scale(sr / 0.55, sr / 0.55, sr / 0.55);
-    g.rotateZ(spin);
-    g.rotateX(tilt);
-    g.rotateY(dx * 2);
-    g.translate(j.x + dx, j.y + dy, j.z + dz);
-    const c = g.getAttribute('color');
-    for (let i = 0; i < c.count; i += 1)
-      c.setXYZ(i, Math.min(1.25, c.getX(i) * 1.12), c.getY(i) * 1.12, c.getZ(i) * 1.12);
-    worldUv(g, 1.8);
-    l.cloth.push(g);
-  }
-  // The bell on a turned wooden base.
-  const bx = -0.35,
-    bz = COUNTER.z + 0.05;
-  l.wood.push(cylinder(0.12, 0.13, 0.035, { x: bx, y: COUNTER.h, z: bz }, DARK_WOOD, 12));
-  l.plaster.push(blob(bx, COUNTER.h + 0.035, bz, 0.1, 0.85, BRASS, 12, 6));
-  l.plaster.push(cylinder(0.012, 0.012, 0.06, { x: bx, y: COUNTER.h + 0.11, z: bz }, BRASS, 6));
-  l.plaster.push(blob(bx, COUNTER.h + 0.18, bz, 0.022, 1, BRASS, 6, 4));
-}
-
-/** A round rim (a torus-like ring of radius r, tube t) lying flat at (x, y, z). */
-function turnedRing(
-  r: number,
-  t: number,
-  x: number,
-  y: number,
-  z: number,
-  hex: number,
-  lite: boolean,
-): BufferGeometry {
-  const profile: [number, number][] = [];
-  for (let k = 0; k <= 4; k += 1) {
-    const a = -Math.PI / 2 + (k / 4) * Math.PI;
-    profile.push([r + Math.cos(a) * t, t + Math.sin(a) * t]);
-  }
-  return turned(profile, lite ? 12 : 18, x, y, z, hex);
-}
-
-/** The striped awning over the counter, sloping down to the front, with a scalloped valance. */
-function addAwning(l: Local): void {
-  const aw = AWNING;
-  const stripes = 12;
-  const sw = (aw.x1 - aw.x0) / stripes;
-  const depth = Math.hypot(aw.zFront - aw.zBack, aw.yBack - aw.yFront);
-  const tilt = Math.atan2(aw.yBack - aw.yFront, aw.zFront - aw.zBack);
-  for (let i = 0; i < stripes; i += 1) {
-    const x = aw.x0 + (i + 0.5) * sw;
-    l.cloth.push(
-      // Alternate stripes sit 1.2 cm apart where they overlap.
-      box(
-        sw + 0.01,
-        0.03,
-        depth,
-        {
-          x,
-          y: (aw.yFront + aw.yBack) / 2 - 0.015 + (i % 2) * 0.012,
-          z: (aw.zFront + aw.zBack) / 2,
-          rx: tilt,
-        },
-        i % 2 ? WHITE : RED,
-        1.8,
-      ),
-    );
-    // A tongue of the valance: straight sides and a round foot.
-    const tongue: [number, number][] = [
-      [x - sw / 2, aw.yFront],
-      [x - sw / 2, aw.yFront - 0.12],
-    ];
-    for (let k = 1; k < 6; k += 1) {
-      const a = Math.PI + (k / 6) * Math.PI;
-      tongue.push([x + Math.cos(a) * sw * 0.5, aw.yFront - 0.12 + Math.sin(a) * 0.08]);
-    }
-    tongue.push([x + sw / 2, aw.yFront - 0.12], [x + sw / 2, aw.yFront]);
-    l.cloth.push(
-      prismZ(
-        tongue,
-        aw.zFront + 0.005 + (i % 2) * 0.006,
-        aw.zFront + 0.02 + (i % 2) * 0.006,
-        i % 2 ? WHITE : RED,
-      ),
-    );
-  }
-  l.wood.push(
-    tubeBetween(
-      0.035,
-      { x: aw.x0, y: aw.yFront + 0.01, z: aw.zFront - 0.02 },
-      { x: aw.x1, y: aw.yFront + 0.01, z: aw.zFront - 0.02 },
-      DARK_WOOD,
-      6,
-    ),
-  );
-}
-
-/** Shelves of bottles, jars and pots against the back wall, either side of the blue curtained door. */
-function addShelves(l: Local, lite: boolean): void {
-  const zs = BACK + 0.2;
-  const units: readonly [number, number][] = [
-    [-4.6, -0.85],
-    [1.25, 4.6],
-  ];
-  const tints = [0x2f5fa8, 0x3d8a4f, 0xb03a2e, 0xc8873a, 0x2a4f8f, 0x6a8f3a] as const;
-  const bottle = [
-    [0, 0],
-    [0.07, 0],
-    [0.08, 0.14],
-    [0.06, 0.2],
-    [0.025, 0.24],
-    [0.025, 0.3],
-    [0, 0.3],
-  ] as const;
-  const jar = [
-    [0, 0],
-    [0.09, 0],
-    [0.11, 0.08],
-    [0.1, 0.17],
-    [0.07, 0.2],
-    [0, 0.2],
-  ] as const;
-  const pot = [
-    [0, 0],
-    [0.07, 0],
-    [0.12, 0.1],
-    [0.1, 0.2],
-    [0.08, 0.23],
-    [0.09, 0.25],
-    [0, 0.25],
-  ] as const;
-  const shapes = [bottle, jar, pot] as const;
-  for (const [x0, x1] of units) {
-    for (const x of [x0 + 0.04, x1 - 0.04]) l.wood.push(box(0.06, 2.75, 0.36, { x, z: zs }, DARK_WOOD, 1.8));
-    [1.3, 1.95, 2.6].forEach((sy, row) => {
-      l.wood.push(box(x1 - x0, 0.05, 0.38, { x: (x0 + x1) / 2, y: sy, z: zs }, WOOD_LIGHT, 1.8));
-      if (lite && row !== 1) return;
-      for (let x = x0 + 0.28, k = 0; x < x1 - 0.2; x += lite ? 0.62 : 0.36, k += 1) {
-        const pick = (k + row * 2 + (x0 > 0 ? 1 : 0)) % 3;
-        const s = 0.9 + ((k * 7 + row * 3) % 4) * 0.12;
-        const shape = shapes[pick]!.map(([r, y]) => [r * s, y * s] as const);
-        l.plaster.push(
-          turned(
-            shape,
-            lite ? 6 : 8,
-            x,
-            sy + 0.05,
-            zs + (k % 2 ? 0.04 : -0.04),
-            tints[(k + row) % tints.length]!,
-          ),
-        );
-      }
-    });
-  }
-  l.cloth.push(box(1.5, 2.45, 0.03, { x: 0.2, z: BACK + 0.03 }, 0x23558a, 1.8));
-  l.wood.push(
-    tubeBetween(
-      0.025,
-      { x: -0.65, y: 2.48, z: BACK + 0.08 },
-      { x: 1.05, y: 2.48, z: BACK + 0.08 },
-      DARK_WOOD,
-      5,
-    ),
-  );
-}
-
-/** The cork jobs board on two posts behind the counter's right end. */
-function addJobsBoard(l: Local): void {
-  const ck = MARKET_LAYOUT.cork;
-  for (const dx of [-ck.w / 2 - 0.05, ck.w / 2 + 0.05])
-    l.wood.push(box(0.08, ck.y + 0.12, 0.08, { x: ck.x + dx, z: ck.z - 0.06 }, DARK_WOOD, 1.8));
-  l.wood.push(
-    box(ck.w + 0.16, ck.h + 0.16, 0.05, { x: ck.x, y: ck.y - ck.h - 0.08, z: ck.z - 0.07 }, WOOD, 1.8),
-  );
-  l.cloth.push(box(ck.w, ck.h, 0.02, { x: ck.x, y: ck.y - ck.h, z: ck.z - 0.03 }, CORK, 1.8));
-}
-
-/** An iron lantern on a bracket from an end pier's front, its glass lit warm. */
-function addLantern(l: Local, px: number): void {
-  const lz = FRONT + 0.42;
-  const top = 3.2;
-  l.metal.push(tubeBetween(0.028, { x: px, y: 3.4, z: FRONT }, { x: px, y: 3.4, z: lz + 0.04 }, IRON, 5));
-  l.metal.push(tubeBetween(0.016, { x: px, y: 3.4, z: FRONT + 0.02 }, { x: px, y: 3.17, z: FRONT }, IRON, 4));
-  l.metal.push(tubeBetween(0.012, { x: px, y: top + 0.12, z: lz }, { x: px, y: 3.4, z: lz }, IRON, 4));
-  const cap = new CylinderGeometry(0.03, 0.17, 0.14, 4, 1);
-  cap.rotateY(Math.PI / 4);
-  cap.translate(px, top + 0.06, lz);
-  l.metal.push(finish(cap, IRON));
-  l.metal.push(box(0.22, 0.04, 0.22, { x: px, y: top - 0.02, z: lz }, IRON, 1.8));
-  l.metal.push(box(0.18, 0.05, 0.18, { x: px, y: top - 0.42, z: lz }, IRON, 1.8));
-  for (const [dx, dz] of [
-    [-0.085, -0.085],
-    [0.085, -0.085],
-    [-0.085, 0.085],
-    [0.085, 0.085],
-  ] as const)
-    l.metal.push(box(0.022, 0.38, 0.022, { x: px + dx, y: top - 0.39, z: lz + dz }, IRON, 1.8));
-  const glass = box(0.15, 0.33, 0.15, { x: px, y: top - 0.37, z: lz }, 0xffffff, 1.8);
-  const c = glass.getAttribute('color');
-  for (let i = 0; i < c.count; i += 1) c.setXYZ(i, ...LANTERN_GLASS);
-  l.glow.push(glass);
-}
-
-/** Dressing: the barrel, two potted palms at the counter's ends, and a cypress in a stone planter. */
-function addOutside(l: Local, lite: boolean): void {
+/** Dressing: the barrel, potted palms and geraniums at the counter's ends, and a planted stone planter. */
+function addOutside(l: StallBuckets, lite: boolean): void {
   const barrel = [
     [0, 0],
     [0.27, 0],
@@ -759,28 +391,24 @@ function addOutside(l: Local, lite: boolean): void {
   l.wood.push(turned(barrel, lite ? 10 : 14, bx, 0, bz, 0x7a4c2b));
   for (const hy of [0.12, 0.62])
     l.metal.push(cylinder(0.318, 0.318, 0.04, { x: bx, y: hy, z: bz }, IRON, lite ? 10 : 14));
-  // The concept's two potted palms, either end of the counter, from the plaza's planting kit.
+  // The plaza's planting kit in Meridian's colours: a fan palm in a big terracotta pot at each end of
+  // the counter with a pot of geraniums before it, and a fan palm in a mound of geraniums in the
+  // planter by the passage.
   const plants = makeBuckets();
   const detail = lite ? 'lite' : 'full';
-  addPottedPlant(plants, -4.45, 0, -1.15, 1.25, 'leafy', detail, 11);
-  addPottedPlant(plants, 4.5, 0, -1.15, 1.15, 'leafy', detail, 23);
-  for (const key of Object.keys(plants) as MaterialKey[])
-    if (key in l) l[key as keyof Local].push(...plants[key]);
-  // A tall cypress in a stone planter before the pier between the stall and the passage.
+  addPottedPlant(plants, -4.45, 0, -1.25, 1.2, 'fan', detail, 11);
+  addPottedPlant(plants, 4.5, 0, -1.25, 1.1, 'fan', detail, 23);
+  addPottedPlant(plants, -4.3, 0, -0.35, 0.62, 'flowers', detail, 5);
+  addPottedPlant(plants, 4.35, 0, -0.35, 0.62, 'flowers', detail, 8);
+  for (const key of Object.keys(plants) as MaterialKey[]) l[key].push(...plants[key]);
+  // The stone planter before the pier between the stall and the passage.
   const pl = { x: PIERS[3], z: 1.3 };
   l.plaster.push(box(1.0, 0.66, 1.0, { x: pl.x, z: pl.z }, SAND[0], 1.8));
   l.plaster.push(box(1.12, 0.08, 1.12, { x: pl.x, y: 0.66, z: pl.z }, SAND_EDGE, 1.8));
-  l.wood.push(cylinder(0.09, 0.11, 0.8, { x: pl.x, y: 0.66, z: pl.z }, 0x5a3924, 6));
-  const sides = lite ? 6 : 8;
-  for (const [y0, r, h, hex] of [
-    [1.05, 0.62, 2.5, CYPRESS],
-    [1.95, 0.48, 2.1, 0x173d22],
-    [2.85, 0.33, 1.65, 0x21522f],
-  ] as const) {
-    const cone = new CylinderGeometry(0, r, h, sides, 1);
-    cone.translate(pl.x, y0 + h / 2, pl.z);
-    l.cloth.push(finish(cone, hex));
-  }
+  const tree = makeBuckets();
+  addPlantOn(tree, pl.x, 0.74, pl.z, 1.5, 'fan', detail, 3);
+  addPlantOn(tree, pl.x, 0.74, pl.z, 1.05, 'flowers', detail, 6);
+  for (const key of Object.keys(tree) as MaterialKey[]) l[key].push(...tree[key]);
 }
 
 /**
@@ -816,37 +444,37 @@ export function addModelMarketStall(
   y: number,
   lite: boolean,
 ): void {
-  const local: Local = { stone: [], plaster: [], wood: [], cloth: [], metal: [], glow: [], roofTile: [] };
+  const local = makeBuckets();
   addShell(local, lite);
   MARKET_LAYOUT.boards.forEach((_, i) => {
     addBeamAndChains(local, i, lite);
-    addBoard(local, i);
+    addHangingBoard(local, MARKET_LAYOUT, i, STYLE);
   });
-  addCounter(local);
-  addTill(local, lite);
-  addAwning(local);
-  addShelves(local, lite);
-  addJobsBoard(local);
-  for (const px of [PIERS[0], PIERS[4]]) addLantern(local, px);
+  addStallCounter(local, COUNTER, MARKET_LAYOUT.plaque, STYLE);
+  addTill(local, MARKET_LAYOUT.jar, COUNTER.h, { x: -0.35, z: COUNTER.z + 0.05 }, lite, STYLE);
+  addStallAwning(local, AWNING, STYLE);
+  addStallShelves(
+    local,
+    {
+      back: BACK,
+      units: [
+        [-4.6, -0.85],
+        [1.25, 4.6],
+      ],
+      curtain: { x: 0.2, w: 1.5, h: 2.45 },
+    },
+    lite,
+    STYLE,
+  );
+  addJobsBoard(local, MARKET_LAYOUT.cork, STYLE);
+  for (const px of [PIERS[0], PIERS[4]]) addStallLantern(local, px, FRONT, 3.2, IRON);
   addOutside(local, lite);
 
   for (const key of ['plaster', 'wood'] as const) for (const g of local[key]) occlude(g);
-  const m = new Matrix4().makeRotationY(MODEL_MARKET.heading).setPosition(MODEL_MARKET.x, y, MODEL_MARKET.z);
-  for (const key of Object.keys(local) as (keyof Local)[])
-    for (const g of local[key]) buckets[key].push(g.applyMatrix4(m));
+  placeStall(local, buckets, MODEL_MARKET, y);
 
-  const at = (lx: number, lz: number, hx: number, hz: number, y0: number, y1: number): VillageBoxCollider => {
-    const p = marketToWorld(lx, lz);
-    return { x: p.x, z: p.z, hx, hz, rot: MODEL_MARKET.heading, y0: y + y0, y1: y + y1 };
-  };
-  const walk = (cl: VillageBoxCollider, h: number): VillageBoxCollider => ({
-    x: cl.x,
-    z: cl.z,
-    hx: cl.hx,
-    hz: cl.hz,
-    rot: cl.rot,
-    height: h,
-  });
+  const at = stallBox(MODEL_MARKET, y);
+  const walk = walkBox;
   const backZ = (BACK - 0.15 + FRONT) / 2;
   const backHalf = (FRONT - BACK + 0.15) / 2;
   const walls = [
@@ -862,8 +490,8 @@ export function addModelMarketStall(
     ...walls.map((w) => walk(w, EAVE)),
     walk(at(cx, COUNTER.z, cw / 2, COUNTER.d / 2 + 0.04, 0, COUNTER.h), COUNTER.h),
     walk(at(-4.55, 0.95, 0.36, 0.36, 0, 0.8), 0.8),
-    walk(at(-4.45, -1.15, 0.45, 0.45, 0, 0.7), 0.7),
-    walk(at(4.5, -1.15, 0.45, 0.45, 0, 0.7), 0.7),
+    walk(at(-4.4, -0.85, 0.45, 0.85, 0, 0.7), 0.7),
+    walk(at(4.45, -0.85, 0.45, 0.85, 0, 0.7), 0.7),
     walk(at(PIERS[3], 1.3, 0.56, 0.56, 0, 1.2), 1.2),
   );
   colliders.camera.push(
@@ -882,6 +510,6 @@ export function addModelMarketStall(
     at((PASS.x0 + PASS.x1) / 2, BACK + 0.05, (PASS.x1 - PASS.x0) / 2, 0.2, SPRING - 0.4, WALL_TOP),
     at(cx, COUNTER.z, cw / 2, COUNTER.d / 2, 0, COUNTER.h + 0.1),
     at(0, BACK + 0.2, INNER, 0.22, 1.2, 2.8),
-    at(PIERS[3], 1.3, 0.6, 0.6, 0, 5.5),
+    at(PIERS[3], 1.3, 0.6, 0.6, 0, 3.0),
   );
 }

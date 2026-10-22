@@ -514,6 +514,40 @@
   opacity: 0.5;
 }
 
+/* A Retry's live picker (nothing chosen yet): a dashed frame round it says "choose here". */
+.ci-mm-picks.is-live,
+.ci-mm-effort.is-live .ci-mm-levels {
+  padding: 6px;
+  border: 2px dashed #b2742a;
+  border-radius: 12px;
+}
+/* What you hired last time, which a Retry won't take again: struck through and labelled. */
+.ci-mm-pick.is-used,
+.ci-mm-models button.is-used,
+.ci-mm-levels button.is-used {
+  border-style: dashed;
+  background: rgba(255, 250, 235, 0.35);
+  color: #7b6650;
+}
+.ci-mm-pick.is-used > span:not(.ci-mm-last),
+.ci-mm-models button.is-used .name,
+.ci-mm-levels button.is-used > span:first-child {
+  text-decoration: line-through;
+}
+.ci-mm-last {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.ci-mm-choose {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 250, 235, 0.6);
+  font-weight: 700;
+}
+
 .ci-mm-actions {
   display: flex;
   flex-wrap: wrap;

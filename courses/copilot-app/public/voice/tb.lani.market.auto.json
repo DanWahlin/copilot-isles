@@ -1,0 +1,127 @@
+{
+  "id": "tb.lani.market.auto",
+  "speaker": "Lani",
+  "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
+  "words": [
+    {
+      "word": "Auto's",
+      "start": 0,
+      "end": 0.62
+    },
+    {
+      "word": "our",
+      "start": 0.62,
+      "end": 0.867
+    },
+    {
+      "word": "house",
+      "start": 0.867,
+      "end": 1.27
+    },
+    {
+      "word": "special",
+      "start": 1.27,
+      "end": 1.96
+    },
+    {
+      "word": "The",
+      "start": 1.96,
+      "end": 2.42
+    },
+    {
+      "word": "app",
+      "start": 2.42,
+      "end": 2.78
+    },
+    {
+      "word": "chooses",
+      "start": 2.78,
+      "end": 3.24
+    },
+    {
+      "word": "a",
+      "start": 3.24,
+      "end": 3.333
+    },
+    {
+      "word": "model",
+      "start": 3.333,
+      "end": 3.68
+    },
+    {
+      "word": "for",
+      "start": 3.68,
+      "end": 4
+    },
+    {
+      "word": "you",
+      "start": 4,
+      "end": 4.4
+    },
+    {
+      "word": "and",
+      "start": 4.4,
+      "end": 4.693
+    },
+    {
+      "word": "tells",
+      "start": 4.693,
+      "end": 5
+    },
+    {
+      "word": "you",
+      "start": 5,
+      "end": 5.173
+    },
+    {
+      "word": "which",
+      "start": 5.173,
+      "end": 5.54
+    },
+    {
+      "word": "one",
+      "start": 5.54,
+      "end": 5.94
+    },
+    {
+      "word": "and",
+      "start": 5.94,
+      "end": 6.36
+    },
+    {
+      "word": "why",
+      "start": 6.36,
+      "end": 7.093
+    },
+    {
+      "word": "It's",
+      "start": 7.093,
+      "end": 7.68
+    },
+    {
+      "word": "not",
+      "start": 7.68,
+      "end": 7.94
+    },
+    {
+      "word": "the",
+      "start": 7.94,
+      "end": 8.112
+    },
+    {
+      "word": "same",
+      "start": 8.112,
+      "end": 8.64
+    },
+    {
+      "word": "as",
+      "start": 8.64,
+      "end": 8.88
+    },
+    {
+      "word": "Autopilot",
+      "start": 8.88,
+      "end": 9.13
+    }
+  ]
+}

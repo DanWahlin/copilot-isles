@@ -95,6 +95,7 @@ import {
 import { islandCourseBoard } from '../../../learn/course-board';
 import { addCourseBoardTimber } from '../../sites/course-board';
 import { COURSE_BOARDS } from '../course-boards';
+import { addAnchorageMarket } from './model-market';
 
 interface VillageMetrics {
   staticDraws: number;
@@ -196,6 +197,8 @@ export async function createVillage({
   const fountainWater = addPlaza(buckets, colliders, anchors, heightField, villageKit, low);
   await buildSlice();
   addMarketStalls(buckets, colliders, anchors, heightField, perches);
+  // Desmond's Model Market on the quay's east end (docs/specs/MODEL-MARKET.md §2).
+  addAnchorageMarket(buckets, colliders, cameraBlockers, anchors, COVE.quay.height, low);
   // The course notice board on the street up from the quay (its lettering is in the sites' atlas).
   const courseBoard = islandCourseBoard('anchorage');
   if (courseBoard) {

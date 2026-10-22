@@ -1,0 +1,127 @@
+{
+  "id": "desmond.market.auto",
+  "speaker": "Desmond",
+  "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
+  "words": [
+    {
+      "word": "Auto's",
+      "start": 0,
+      "end": 0.44
+    },
+    {
+      "word": "the",
+      "start": 0.44,
+      "end": 0.613
+    },
+    {
+      "word": "house",
+      "start": 0.613,
+      "end": 0.94
+    },
+    {
+      "word": "special",
+      "start": 0.94,
+      "end": 1.58
+    },
+    {
+      "word": "The",
+      "start": 1.58,
+      "end": 2.06
+    },
+    {
+      "word": "app",
+      "start": 2.06,
+      "end": 2.293
+    },
+    {
+      "word": "picks",
+      "start": 2.293,
+      "end": 2.6
+    },
+    {
+      "word": "a",
+      "start": 2.6,
+      "end": 2.693
+    },
+    {
+      "word": "model",
+      "start": 2.693,
+      "end": 3
+    },
+    {
+      "word": "for",
+      "start": 3,
+      "end": 3.16
+    },
+    {
+      "word": "you",
+      "start": 3.16,
+      "end": 3.712
+    },
+    {
+      "word": "then",
+      "start": 3.712,
+      "end": 3.907
+    },
+    {
+      "word": "tells",
+      "start": 3.907,
+      "end": 4.28
+    },
+    {
+      "word": "you",
+      "start": 4.28,
+      "end": 4.453
+    },
+    {
+      "word": "which",
+      "start": 4.453,
+      "end": 4.78
+    },
+    {
+      "word": "one",
+      "start": 4.78,
+      "end": 5.04
+    },
+    {
+      "word": "it",
+      "start": 5.04,
+      "end": 5.253
+    },
+    {
+      "word": "chose",
+      "start": 5.253,
+      "end": 5.56
+    },
+    {
+      "word": "and",
+      "start": 5.56,
+      "end": 5.76
+    },
+    {
+      "word": "why",
+      "start": 5.76,
+      "end": 6.304
+    },
+    {
+      "word": "Mind",
+      "start": 6.304,
+      "end": 7.413
+    },
+    {
+      "word": "it",
+      "start": 7.413,
+      "end": 7.58
+    },
+    {
+      "word": "isn't",
+      "start": 7.58,
+      "end": 7.9
+    },
+    {
+      "word": "Autopilot",
+      "start": 7.9,
+      "end": 8.15
+    }
+  ]
+}

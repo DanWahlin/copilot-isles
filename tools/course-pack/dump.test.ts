@@ -656,7 +656,9 @@ test('dump the course data', async () => {
     feedback: jobs.JOBS.map((j: Any) => everyHire.map((h) => jobs.feedback(j, h))),
     names: everyHire.map((h) => jobs.hireName(h)),
     retry: everyHire.flatMap((h) =>
-      (['model', 'effort'] as const).map((k) => jobs.retryHire(h, k, (c: string) => `first ${c}`)),
+      (['model', 'effort'] as const).map((k) =>
+        jobs.retryPlan ? jobs.retryPlan(h, k) : jobs.retryHire(h, k, (c: string) => `first ${c}`),
+      ),
     ),
   };
 
@@ -702,6 +704,8 @@ test('dump the course data', async () => {
     });
     const market = (await sitesMod('model-market'))!.createModelMarketSigns({
       origin,
+      layout: (await tryImport('world/meridian-town/model-market'))?.MARKET_LAYOUT,
+      keeper: 'Gilda',
       boards: models.BOARDS.map((b: Any) => ({
         category: b.category,
         price: jobs.CATEGORY_PRICE[b.category],

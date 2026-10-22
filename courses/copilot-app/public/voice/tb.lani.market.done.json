@@ -1,0 +1,57 @@
+{
+  "id": "tb.lani.market.done",
+  "speaker": "Lani",
+  "text": "The whole board, right-sized! You really know your models, Captain.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "whole",
+      "start": 0.24,
+      "end": 0.747
+    },
+    {
+      "word": "board",
+      "start": 0.747,
+      "end": 1.733
+    },
+    {
+      "word": "right-sized",
+      "start": 1.733,
+      "end": 3.02
+    },
+    {
+      "word": "You",
+      "start": 3.02,
+      "end": 3.497
+    },
+    {
+      "word": "really",
+      "start": 3.497,
+      "end": 3.92
+    },
+    {
+      "word": "know",
+      "start": 3.92,
+      "end": 4.32
+    },
+    {
+      "word": "your",
+      "start": 4.32,
+      "end": 4.72
+    },
+    {
+      "word": "models",
+      "start": 4.72,
+      "end": 5.51
+    },
+    {
+      "word": "Captain",
+      "start": 5.51,
+      "end": 5.76
+    }
+  ]
+}

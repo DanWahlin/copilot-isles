@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "The Model Market (courses/<id>/market.json)",
-  "description": "Prices, refunds, the board rule's numbers, stamps, course quotes, jobs and Gilda's lines. docs/content-data.md, docs/specs/MODEL-MARKET.md.",
+  "description": "Prices, refunds, the board rule's numbers, stamps, course quotes, jobs, Gilda's lines and the other stalls' keepers'. docs/content-data.md, docs/specs/MODEL-MARKET.md.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -189,7 +189,7 @@
       }
     },
     "gilda": {
-      "description": "Gilda's voiced lines. The grading and the puzzle use every key.",
+      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back).",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -197,6 +197,7 @@
         "open",
         "auto",
         "right",
+        "fair",
         "over",
         "overEffort",
         "short",
@@ -217,6 +218,9 @@
         "right": {
           "$ref": "#/$defs/line"
         },
+        "fair": {
+          "$ref": "#/$defs/line"
+        },
         "over": {
           "$ref": "#/$defs/line"
         },
@@ -234,6 +238,66 @@
         },
         "done": {
           "$ref": "#/$defs/line"
+        }
+      }
+    },
+    "keepers": {
+      "description": "The other stalls' keepers (the game's stalls, src/game/market/stalls.ts), by the stall's island: each keeper's own voiced version of every line Gilda says (the same keys, the same teaching and its `source`, in their own words, never naming Gilda or her stall), and a goodbye. The line's speaker in voice/lines.json is the keeper's name.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hello",
+          "open",
+          "auto",
+          "right",
+          "fair",
+          "over",
+          "overEffort",
+          "short",
+          "shortAuto",
+          "broke",
+          "done",
+          "bye"
+        ],
+        "properties": {
+          "hello": {
+            "$ref": "#/$defs/line"
+          },
+          "open": {
+            "$ref": "#/$defs/line"
+          },
+          "auto": {
+            "$ref": "#/$defs/line"
+          },
+          "right": {
+            "$ref": "#/$defs/line"
+          },
+          "fair": {
+            "$ref": "#/$defs/line"
+          },
+          "over": {
+            "$ref": "#/$defs/line"
+          },
+          "overEffort": {
+            "$ref": "#/$defs/line"
+          },
+          "short": {
+            "$ref": "#/$defs/line"
+          },
+          "shortAuto": {
+            "$ref": "#/$defs/line"
+          },
+          "broke": {
+            "$ref": "#/$defs/line"
+          },
+          "done": {
+            "$ref": "#/$defs/line"
+          },
+          "bye": {
+            "$ref": "#/$defs/line"
+          }
         }
       }
     }
@@ -258,7 +322,7 @@
           "$ref": "#/$defs/text"
         },
         "refund": {
-          "description": "Starfish back for a right-sized hire (less than it cost).",
+          "description": "Starfish back for a right-sized hire. Always less than the cheapest right-sized hire for the size (a right-sized job costs at least 1); the game also never refunds a hire's whole price.",
           "type": "integer",
           "minimum": 0
         },
