@@ -37,7 +37,10 @@ import {
 } from './jobs';
 import { createModelMarket, type MarketHost } from '../puzzles/model-market';
 import type { ModelMarketSite } from '../../world/sites/model-market';
-import { MARKET_STALLS, marketStall } from './stalls';
+import { MARKET_STALLS, marketStall, questStall } from './stalls';
+import { MARKET } from '../../content/market';
+import type { PuzzleFile } from '../../course/pack';
+import { puzzleContent, puzzleQuest, puzzleSteps } from '../../course/puzzles';
 import { modelsIn } from './models';
 import { BOARDS, MODELS, MODELS_FILE, savedHireName } from './models';
 
@@ -289,15 +292,17 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     expect(over.summary).toBe(
       'Powerful model on High did the job, but it cost 4 starfish for a 1-starfish job.',
     );
-    expect(GILDA_TEXT[over.line]).toBe("That's a lot of starfish for a quick look. Auto would've done it.");
+    expect(GILDA_TEXT[GILDA[over.key]]).toBe(
+      "That's a lot of starfish for a quick look. Auto would've done it.",
+    );
     expect(over.quotes).toContain(QUOTES.cost);
     const short = feedback(jobById('bug')!, hire('Lightweight', 'low'));
     expect(short.stamp).toBe('↻ Fell short');
     expect(short.quotes).toContain(QUOTES.retry);
     expect(feedback(tour, AUTO).quotes).toContain(QUOTES.auto);
     // Right-sized at the fair price (nothing back) or with starfish back: each its own line.
-    expect(feedback(tour, AUTO).line).toBe(GILDA.fair);
-    expect(feedback(jobById('bug')!, hire('Powerful', 'default')).line).toBe(GILDA.right);
+    expect(feedback(tour, AUTO).key).toBe('fair');
+    expect(feedback(jobById('bug')!, hire('Powerful', 'default')).key).toBe('right');
     expect(feedback(jobById('files')!, hire('Powerful', 'high')).stamp).toBe('✓ Right-sized');
   });
 });
@@ -409,9 +414,13 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     s.refundStarfish(20);
     return s;
   };
-  const play = (island: 'anchorage' | 'meridian' | 'thousand-bough', store = stocked()) => {
-    const quests: Record<string, string> = {};
+  const play = (
+    island: 'anchorage' | 'meridian' | 'thousand-bough',
+    store = stocked(),
+    quests: Record<string, string> = {},
+  ) => {
     const said: string[][] = [];
+    const pages: string[] = [];
     const host = {
       learn: store,
       hud: { toast: () => undefined },
@@ -432,7 +441,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
       setModal: () => undefined,
       reducedMotion: () => true,
       place: () => undefined,
-      filePage: () => undefined,
+      filePage: (id: string) => void pages.push(id),
       spotlight: () => undefined,
     } as unknown as MarketHost;
     const site = {
@@ -442,12 +451,13 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
       setDone: () => undefined,
     } as unknown as ModelMarketSite;
     const p = createModelMarket(host, site, marketStall(island));
-    return { p, d: p.debug as unknown as Debug, quests, said, store };
+    return { p, d: p.debug as unknown as Debug, quests, said, pages, store };
   };
 
   it('has a stall on every island, and only Gilda’s runs the story', () => {
     expect(MARKET_STALLS.map((s) => s.island).sort()).toEqual(['anchorage', 'meridian', 'thousand-bough']);
-    expect(MARKET_STALLS.filter((s) => s.story).map((s) => s.puzzle)).toEqual(['market']);
+    expect(MARKET_STALLS.filter((s) => s.lines === 'gilda').map((s) => s.puzzle)).toEqual(['market']);
+    expect(MARKET_STALLS.filter((s) => questStall(s.island)).map((s) => s.puzzle)).toEqual(['market']);
   });
 
   it('Retry opens the work order with the model picker live and nothing chosen', async () => {
@@ -526,10 +536,89 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     expect(tb.quests).toEqual({});
     const anc = play('anchorage', store);
     expect(anc.d.state()).toMatchObject({ purse: 5, done: ['tour'] });
-    // Another keeper says only their own hello and goodbye; Gilda's lines are their captions.
+    // Another keeper says every line in their own voice, never Gilda's.
     await anc.d.open();
     anc.d.close();
     expect(anc.said.flat().every((id) => !id.startsWith('mer.'))).toBe(true);
     expect(anc.said.flat().length).toBeGreaterThan(0);
+    expect(tb.said.flat()).toContain(MARKET.keepers!['thousand-bough']!.fair.voice);
+  });
+
+  /** Right-sizes every job on the board at a stall. */
+  const clearBoard = async (d: Debug) => {
+    await d.open();
+    for (const job of JOBS) {
+      const hires: Hire[] = [
+        { auto: true },
+        ...CATEGORIES.flatMap((category) =>
+          EFFORTS.map((effort) => ({
+            auto: false as const,
+            category,
+            model: modelsIn(category)[0]!.name,
+            effort,
+          })),
+        ),
+      ];
+      const h = hires.find((x) => grade(job, x).outcome === 'right')!;
+      d.pickJob(job.id);
+      d.pick(h.auto ? 'auto' : h.category);
+      if (!h.auto) d.effort(h.effort);
+      d.pay();
+      expect(d.state().view.screen).toBe('result');
+      d.back();
+    }
+  };
+
+  it('every keeper voices every line in their own voice', async () => {
+    for (const island of ['anchorage', 'thousand-bough'] as const) {
+      const own = MARKET.keepers![island]!;
+      const { d, said } = play(island);
+      await clearBoard(d);
+      d.close();
+      const ids = said.flat();
+      expect(ids.every((id) => !Object.values(GILDA).includes(id))).toBe(true);
+      for (const key of ['hello', 'done', 'bye'] as const) expect(ids).toContain(own[key].voice);
+    }
+  });
+
+  it('jobs done at another stall count, but only Gilda’s stall finishes her task and gives its page', async () => {
+    const store = stocked();
+    const quests: Record<string, string> = {};
+    const anc = play('anchorage', store, quests);
+    await clearBoard(anc.d);
+    expect(anc.d.state().done).toHaveLength(JOBS.length);
+    expect(quests).toEqual({});
+    expect(anc.pages).toEqual([]);
+    expect(anc.said.flat()).toContain(MARKET.keepers!.anchorage!.done.voice);
+
+    // At Port Meridian: as you come up, Gilda says hello and finishes the task with her line.
+    const mer = play('meridian', store, quests);
+    expect(quests).toEqual({});
+    mer.p.update(1 / 60, 0);
+    expect(quests[puzzleQuest('market')]).toBe('done');
+    expect(mer.pages).toEqual([puzzleContent<PuzzleFile & { page: string }>('market').page]);
+    expect(mer.said).toEqual([[GILDA.hello, GILDA.done]]);
+    // Only once: at the counter next, she just points you at the board.
+    mer.p.update(1 / 60, 0);
+    await mer.d.open();
+    expect(mer.said).toEqual([[GILDA.hello, GILDA.done], [GILDA.open]]);
+    expect(mer.pages).toHaveLength(1);
+  });
+
+  it('a board finished elsewhere is done when you open Gilda’s stall (her hello already said)', async () => {
+    const store = stocked();
+    const quests: Record<string, string> = {};
+    const mer = play('meridian', store, quests);
+    await mer.d.open();
+    mer.d.close();
+    expect(quests[puzzleQuest('market')]).toBe(puzzleSteps('market').start);
+    expect(mer.pages).toEqual([]);
+    await clearBoard(play('thousand-bough', store, quests).d);
+    expect(quests[puzzleQuest('market')]).toBe(puzzleSteps('market').start);
+    const back = play('meridian', store, quests);
+    await back.d.open();
+    expect(quests[puzzleQuest('market')]).toBe('done');
+    expect(back.pages).toHaveLength(1);
+    expect(back.said).toEqual([[GILDA.done]]);
   });
 });

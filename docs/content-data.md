@@ -19,7 +19,7 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 | `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic` and the `quest` it plays in, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
-| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' hello and goodbye | You, by hand | `src/content/market.ts` |
+| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' own version of each (and a goodbye) | You, by hand | `src/content/market.ts` |
 | `models.json` (optional) | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
 | `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
@@ -179,11 +179,15 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
   `text` shown as her caption, and, for a teaching line, the course `source` it paraphrases (the drift
   report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none.
-- **The other keepers** (`keepers.<island>.hello`, `.bye`): each stall but Gilda's (the game's
+- **The other keepers** (`keepers.<island>`): each stall but Gilda's (the game's
   `src/game/market/stalls.ts`: Desmond on `anchorage`, Lani on `thousand-bough`) has its keeper's own
-  voiced hello and goodbye, in the same form as Gilda's lines; the line's `speaker` in `voice/lines.json` is
-  the keeper's name. A course needs one for every such stall on its islands. At those stalls Gilda's other
-  lines are captions on the work order (not voiced).
+  version of every one of Gilda's lines (the same keys, the same teaching and `source`, in their own words
+  and never naming her or her stall) and a goodbye (`bye`), in the same form as Gilda's lines; the line's
+  `speaker` in `voice/lines.json` is the keeper's name. A course needs one for every such stall on its
+  islands, with every key: a stall never plays Gilda's voice.
+- **Whose task it is:** jobs at every stall count on the one board, but the market's quest (`puzzles/market.json`
+  → `quest`) is done, and its `page` given, only at the stall on the island whose `quests/<island>.json` holds
+  that quest (Gilda's).
 
 ### `boards.json`
 

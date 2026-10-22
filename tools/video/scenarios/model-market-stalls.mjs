@@ -103,8 +103,9 @@ export default {
     const anchorage = await stall(api, ANCHORAGE);
     await api.press('KeyE');
     await api.pause(1500);
+    // Desmond's goodbye plays out before the cut.
     await api.press('Escape');
-    await api.pause(3500);
+    await settle(api, 1200);
 
     await api.cut(async () => {
       await ashore(page, api, 'thousand-bough', 'tamsin');

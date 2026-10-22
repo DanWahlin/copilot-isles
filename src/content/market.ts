@@ -78,11 +78,11 @@ export interface GildaLineData {
   source?: CourseCite;
 }
 
-/** Another stall's keeper's own voiced lines (their hello and goodbye), by the stall's island. */
-export interface KeeperLinesData {
-  hello: GildaLineData;
-  bye: GildaLineData;
-}
+/**
+ * Another stall's keeper's own voiced lines, by the stall's island: their version of every line Gilda
+ * says (the same teaching, in their words), and a goodbye.
+ */
+export type KeeperLinesData = Readonly<Record<GildaKey | 'bye', GildaLineData>>;
 
 export interface MarketData {
   categories: readonly {
@@ -103,8 +103,8 @@ export interface MarketData {
   jobs: readonly MarketJobData[];
   gilda: Readonly<Record<GildaKey, GildaLineData>>;
   /**
-   * The keepers of the stalls other than Gilda's (each island's; the game's MARKET_STALLS): their own
-   * hello and goodbye. Gilda's other lines are their captions on the work order (not voiced).
+   * The keepers of the stalls other than Gilda's (each island's; the game's MARKET_STALLS): every line
+   * in their own voice, so a stall never plays Gilda's.
    */
   keepers?: Readonly<Record<string, KeeperLinesData>>;
 }

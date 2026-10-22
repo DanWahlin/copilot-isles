@@ -21,8 +21,8 @@ import {
   type Hire,
   type JobId,
 } from '../market/jobs';
-import { MARKET } from '../../content/market';
-import { MARKET_PUZZLE, type MarketStallSpec } from '../market/stalls';
+import { GILDA_KEYS, MARKET, type GildaKey } from '../../content/market';
+import { MARKET_PUZZLE, questStall, type MarketStallSpec } from '../market/stalls';
 import { firstModel, modelsIn, savedHireName } from '../market/models';
 import { AUTO_HIRE } from '../../learn/progress';
 import type { MarketDraft, MarketStore, MarketView } from '../../ui/puzzles/ModelMarket';
@@ -31,7 +31,10 @@ import { createViewStore } from './channel-routing/view';
 import { PadEdges, standardPad } from './pad-edges';
 import type { HintTier, Puzzle, PuzzleHost } from './types';
 
-/** Gilda calls out once you're this close (metres from her counter), the first time in a save. */
+/**
+ * The quest's keeper calls out once you're this close (metres from her counter): the first time in a
+ * save, and again when the board's full and her task isn't done yet.
+ */
 const HELLO_RANGE = 9;
 /**
  * The other keepers say hello only once you're at their counter: their stalls stand by the islands'
@@ -74,26 +77,36 @@ const draft = (model = ''): MarketDraft => ({
  * models cost more starfish) and set the effort dial, then sign and pay. The work order comes back
  * stamped right-sized (a fair price, or a starfish or two back), overspent, or fell short (Retry it:
  * the same job, and you choose a different model or more effort yourself). What you've hired lives in
- * the save (`market`), so every stall, and a rebuilt island, shows the same jobs done. The story's
- * stall (Gilda's) also runs its island's optional task; the others are shops with keepers of their own.
+ * the save (`market`), so every stall, and a rebuilt island, shows the same jobs done. Each keeper says
+ * every line in their own voice. The quest's stall (`questStall`: Gilda's) also runs its island's
+ * optional task: jobs done anywhere count, but the task is done, and its Logbook page given, only there.
  */
 export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall: MarketStallSpec): Puzzle {
   const quest = puzzleQuest(MARKET_PUZZLE);
   const S = puzzleSteps(MARKET_PUZZLE);
   const progress = host.learn?.progress ?? null;
   const keeper = stall.keeper.name;
-  /** Another stall's keeper's own hello and goodbye (voiced); Gilda's lines are their captions. */
-  const own = stall.story ? null : (MARKET.keepers?.[stall.island] ?? null);
-  const lineText = (id: string) =>
-    GILDA_TEXT[id] ?? (id === own?.hello.voice ? own.hello.text : id === own?.bye.voice ? own.bye.text : '');
+  /** The stall runs the market's optional task (and gives its page). */
+  const story = questStall(stall.island);
+  /** Another stall's keeper's own lines (every one voiced; a stall never plays Gilda's voice). */
+  const own = stall.lines === 'gilda' ? null : (MARKET.keepers?.[stall.island] ?? null);
+  /** The keeper's line for a moment: its voice id (none: caption only) and its words. */
+  const lineFor = (key: GildaKey): { voice: string | null; text: string } =>
+    own
+      ? own[key]
+      : stall.lines === 'gilda'
+        ? { voice: GILDA[key], text: GILDA_TEXT[GILDA[key]] ?? '' }
+        : { voice: null, text: GILDA_TEXT[GILDA[key]] ?? '' };
   const pad = new PadEdges();
   let open = false;
   let openedOnce = false;
   /** The keeper's lit for the counter (you're at it). */
   let spotlit = false;
-  /** Another stall's keeper says hello once a session, as you come up (Gilda once a save). */
+  /** Another stall's keeper says hello once a session, as you come up (the quest's keeper once a save). */
   let greetedHere = false;
   let unmount: (() => void) | null = null;
+  /** The task's page was handed over (the Logbook keeps it; this only saves asking twice). */
+  let paged = false;
   /** Retry starts from the last hire (session only: a reload starts the job fresh). */
   let last: Hire | null = null;
 
@@ -108,6 +121,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   const view = createViewStore<MarketView>({
     open: false,
     keeper,
+    lines: Object.fromEntries(GILDA_KEYS.map((k) => [k, lineFor(k).text])) as Record<GildaKey, string>,
     screen: 'board',
     purse: purse(),
     jobs: jobsView(),
@@ -126,25 +140,21 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   let glow = false;
 
   site.setDone(doneIds());
-  // A save that finished every job (before a reload, or at another stall) keeps its quest done.
-  if (stall.story && doneIds().length === JOBS.length && host.quests()[quest] !== 'done')
-    host.setQuest(quest, 'done');
 
-  /**
-   * The keeper's line, written on the work order. Gilda says hers; another keeper says only their own
-   * hello and goodbye, and the market's lines are their captions (they're Gilda's voice).
-   */
+  /** The keeper's lines, said in their voice (and written on the work order while it's open). */
   let speaking = 0;
-  const speak = (lines: readonly string[]) => {
+  const speak = (keys: readonly GildaKey[]) => {
+    const lines = keys.map((k) => lineFor(k).voice).filter((v): v is string => !!v);
+    if (!lines.length) return;
     const n = ++speaking;
     void host.dialogue.play(lines).finally(() => {
       if (speaking === n) speaking = 0;
     });
   };
-  const voiced = (line: string) => stall.story || line === own?.hello.voice || line === own?.bye.voice;
-  const say = (line: string) => {
-    view.set({ says: lineText(line) });
-    if (voiced(line)) speak([line]);
+  const words = (keys: readonly GildaKey[]) => keys.map((k) => lineFor(k).text).join(' ');
+  const say = (...keys: GildaKey[]) => {
+    view.set({ says: words(keys) });
+    speak(keys);
   };
 
   const counterId = `${stall.puzzle}:counter`;
@@ -180,7 +190,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     host.place(site.stand.x, site.stand.z, site.stand.heading);
     if (host.reducedMotion()) host.cut(site.shot);
     else host.frame(site.shot);
-    const hello = greet();
+    const hello = arrive();
     view.set({
       open: true,
       screen: 'board',
@@ -192,11 +202,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       more: null,
       hint: null,
       notice: null,
-      says: hello ? lineText(hello) : null,
+      says: hello.length ? words(hello) : null,
       reduced: host.reducedMotion(),
     });
-    if (purse() === 0) say(GILDA.broke);
-    else if (!openedOnce && !hello) say(GILDA.open);
+    if (hello.includes('done')) {
+      // The board was finished at other stalls: her task's done now, and that's what she says.
+    } else if (purse() === 0) say('broke');
+    else if (!openedOnce && !hello.length) say('open');
     openedOnce = true;
   }
 
@@ -211,7 +223,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     view.set({ open: false, result: null, notice: null, hint: null, says: null });
     host.frame(null);
     host.setModal(false);
-    if (own) speak([own.bye.voice]);
+    if (own) void host.dialogue.play([own.bye.voice]);
   }
 
   function back(): void {
@@ -266,7 +278,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     const d = v.draft;
     if (p === 'auto') {
       if (v.retry && usedLastTime(v.retry, 'auto')) return lastTime();
-      if (!d.auto) say(GILDA.auto);
+      if (!d.auto) say('auto');
       view.set({ draft: { ...d, auto: true, pending: null }, notice: null });
       return;
     }
@@ -378,16 +390,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       hint: null,
     });
     if (f.outcome === 'right' && !was) {
-      const page = puzzleContent<PuzzleFile & { page?: string }>(MARKET_PUZZLE).page;
-      if (page) host.filePage(page);
+      filePage();
       if (done.length === JOBS.length) {
-        if (stall.story && host.quests()[quest] !== 'done') host.setQuest(quest, 'done');
-        view.set({ says: `${lineText(f.line)} ${lineText(GILDA.done)}` });
-        if (stall.story) speak([f.line, GILDA.done]);
-        return;
+        complete();
+        return say(f.key, 'done');
       }
     }
-    say(f.line);
+    say(f.key);
   }
 
   function retry(kind: 'model' | 'effort'): void {
@@ -415,23 +424,57 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     });
   }
 
-  /** The keeper's hello: Gilda's the first time in a save (it starts the optional task), another's once a session. */
-  function greet(): string | null {
-    if (stall.story) {
-      if (!progress || progress.data.market.greeted) return null;
-      progress.markMarketGreeted();
-      if (!host.quests()[quest]) host.setQuest(quest, S.start);
-      say(GILDA.hello);
-      return GILDA.hello;
+  /** The task's Logbook page: only at the quest's stall, once a job's been right-sized (anywhere). */
+  function filePage(): void {
+    if (!story || paged || !doneIds().length) return;
+    paged = true;
+    const page = puzzleContent<PuzzleFile & { page?: string }>(MARKET_PUZZLE).page;
+    if (page) host.filePage(page);
+  }
+
+  /** At the quest's stall with every job done: the task's done (true the moment it is). */
+  function complete(): boolean {
+    if (!story || doneIds().length !== JOBS.length || host.quests()[quest] === 'done') return false;
+    host.setQuest(quest, 'done');
+    filePage();
+    return true;
+  }
+
+  /** The quest's keeper has something to say as you come up (her hello, or the finished board). */
+  const arrivalDue = () =>
+    story
+      ? !!progress &&
+        (!progress.data.market.greeted ||
+          (doneIds().length === JOBS.length && host.quests()[quest] !== 'done'))
+      : !!own && !greetedHere;
+
+  /**
+   * As you come up (or open the stall): the quest's keeper says hello the first time in a save (it
+   * starts the optional task), and finishes the task when the board's been cleared, at any stall; another
+   * keeper says hello once a session. Returns what they said.
+   */
+  function arrive(): GildaKey[] {
+    const keys: GildaKey[] = [];
+    if (story) {
+      if (!progress) return keys;
+      if (!progress.data.market.greeted) {
+        progress.markMarketGreeted();
+        if (!host.quests()[quest]) host.setQuest(quest, S.start);
+        keys.push('hello');
+      }
+      if (complete()) keys.push('done');
+      // Jobs right-sized at other stalls: her page is given here.
+      else filePage();
+    } else if (own && !greetedHere) {
+      greetedHere = true;
+      keys.push('hello');
     }
-    if (!own || greetedHere) return null;
-    greetedHere = true;
-    say(own.hello.voice);
-    return own.hello.voice;
+    if (keys.length) say(...keys);
+    return keys;
   }
 
   const dist = () => Math.hypot(host.player.x - site.counter.x, host.player.z - site.counter.z);
-  const near = stall.story ? NEAR : SHOP_NEAR;
+  const near = story ? NEAR : SHOP_NEAR;
 
   /** The pick (and effort) that fits the open job: Wingman's second hint. */
   const fits = (id: JobId): { pick: 'auto' | ModelCategory; effort: Effort | null } =>
@@ -506,8 +549,8 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
         host.spotlight(stall.keeper.npc, lit);
       }
       if (open) pollPad();
-      else if (dist() < (stall.story ? HELLO_RANGE : SHOP_HELLO_RANGE) && host.canAct() && !!host.learn) {
-        if (stall.story ? progress && !progress.data.market.greeted : own && !greetedHere) greet();
+      else if (dist() < (story ? HELLO_RANGE : SHOP_HELLO_RANGE) && host.canAct() && !!host.learn) {
+        if (arrivalDue()) arrive();
       }
     },
     debug: {

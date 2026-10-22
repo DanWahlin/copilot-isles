@@ -28,7 +28,7 @@ The stalls are island data (each island's package) built from shared, data-drive
 
 | What | Where (src) | Notes |
 | --- | --- | --- |
-| The stalls and their keepers | `src/game/market/stalls.ts` (`MARKET_STALLS`) | One per island: its island, its puzzle id (`market` for the story's, `market@<island>` for the others), its keeper (their cast id and name) and whether it's the story's (Gilda's, which runs `Q1.A`). |
+| The stalls and their keepers | `src/game/market/stalls.ts` (`MARKET_STALLS`) | One per island: its island, its puzzle id (`market` for Gilda's, `market@<island>` for the others), its keeper (their cast id and name) and whose lines they say (`gilda`, or their own `keepers.<island>`). `questStall(island)`: the stall that runs the market's task is the one on the island whose quests hold the puzzle's `quest` (the pack's story, Port Meridian's `Q1.A`). |
 | Shared parts | `src/world/market-stall/` | `layout.ts` (a stall's frame and `MarketStallLayout`: boards, plaques, cork board and notes, keeper's spot, your spot, the counter camera), `parts.ts` (the hanging boards and chains, the plank counter and plaque frame, the starfish jar and bell, the striped awning, the shelves and curtain, the cork jobs board, the lanterns, `placeStall`), `shapes.ts` (arches, board outlines and frames, turned pots), and `booth.ts` (an open timber booth round those parts, `BOOTH_LAYOUT`, for an island without an arcade: the island gives its colours, roof and dressing). |
 | Gilda's stall | `src/world/meridian-town/model-market.ts` | Port Meridian's loggia (below), on the shared parts. |
 | Desmond's stall | `src/world/islands/anchorage/model-market.ts` (`ANCHORAGE_MARKET`) | A booth at the east end of Anchorage's quay, between the harbourmaster's and the storehouse, its front to the pier: the village's dark timber under a blue-and-canvas striped canopy like the square's stall, a coral-and-cream awning over the counter, crates of fruit and a cask on its right (its left is the quay's edge). No lanterns of its own: the quay's lamp posts light it, and the village's ironwork stays one draw. Built into the village's buckets (`createVillage`). |
@@ -213,7 +213,7 @@ in `CH01.voiced` (from their `source` in `courses/copilot-app/market.json`), so 
 course moves on.
 
 **The data is JSON:** the jobs, the prices, refunds and doubloons, the effort levels, the board rule's numbers, the
-stamps, the course quotes, Gilda's lines and the other keepers' hello and goodbye (`keepers`, by island) are in `courses/copilot-app/market.json` ([content-data.md](../content-data.md)),
+stamps, the course quotes, Gilda's lines and the other keepers' own version of each, plus a goodbye (`keepers`, by island), are in `courses/copilot-app/market.json` ([content-data.md](../content-data.md)),
 checked against `courses/schemas/market.schema.json`. The grading above stays in code (`src/game/market/jobs.ts`).
 
 ## 6. The overlay (UI 2, `src/ui/puzzles/ModelMarket.tsx`)
@@ -248,14 +248,20 @@ again is labelled for screen readers ("GPT-6 Luna: hired last time, pick another
 
 - Gilda calls out the first time you come within 9 m of her counter (once per save) and the optional task
   **The Model Market: Hire a model that fits the job** joins the Meridian task list (`Q1.A`, optional). Only her
-  stall touches `Q1.A`: the other stalls are shops (no quest of their own).
+  stall touches `Q1.A` (it's the stall on the island whose quests hold the puzzle's `quest`, `questStall`): the
+  other stalls are shops (no quest of their own).
 - Desmond and Lani say hello when you come up to their counter (4.5 m, once a session: their stalls stand by
   the islands' first conversations, and a hello from further off talked over Tamsin's) and goodbye when you step
   away from the work order.
 - The chart label `puzzle:market` shows the first time you stand at any stall's counter (the stalls share it).
-- The first right-sized job, at any stall, files the Logbook page **The Model Market** (`pg1.market`).
-- Every job done right-sized finishes `Q1.A` (at Gilda's stall, or as soon as Port Meridian's market is built if
-  you finished the board elsewhere). The Seal never waits for it.
+- Jobs right-sized at any stall count on the shared board, but `Q1.A` is done, and its Logbook page **The Model
+  Market** (`pg1.market`) given, only at Gilda's stall:
+  - the page comes with your first right-sized job there or, if you right-sized one somewhere else, when she
+    greets you or you open her stall;
+  - the last job right-sized there finishes `Q1.A` with her `done` line. If you cleared the board at another
+    stall, `Q1.A` stays open (its tracker still says to visit her) until you come within 9 m of her counter, or
+    open it: then she says `done` (after her hello, if you hadn't met) and the task's done.
+- The Seal never waits for `Q1.A`.
 - A course without the market (no `puzzles/market.json`, like `copilot-cli`) builds the stalls as scenery: no
   lettering, no keeper, no counter.
 
@@ -267,10 +273,12 @@ older woman with a refined, brisk shopkeeper's manner. Lines `mer.market.*` in `
 
 Desmond (Anchorage): ElevenLabs Voice Library "Donovan Wilson" (`GLpuYaUYNnusyOVvP3PM`), Jamaican English, a warm,
 calm, mature man (its description: "unmistakably Jamaican without sounding exaggerated or forced"); lines
-`desmond.market.hello` and `desmond.market.bye`. Lani (Thousand-Bough): "Kalala – Calm & Friendly Pacific"
-(`sxEoZ67pB0EMoWOZZ37G`), a warm, calm Pacific woman's voice; lines `tb.lani.market.hello` and
-`tb.lani.market.bye`. Each says only their own hello and goodbye: the market's other lines are Gilda's, and at
-their stalls they're captions on the work order (written, not voiced), so no keeper speaks in Gilda's voice.
+`desmond.market.*`. Lani (Thousand-Bough): "Kalala – Calm & Friendly Pacific" (`sxEoZ67pB0EMoWOZZ37G`), a warm,
+calm Pacific woman's voice; lines `tb.lani.market.*`. Each keeper says every line in their own voice and words:
+their own version of each of Gilda's (`hello`, `open`, `auto`, `right`, `fair`, `over`, `overEffort`, `short`,
+`shortAuto`, `broke`, `done`, with the same teaching and the same `source` citations, never naming her or her
+stall), plus a goodbye (`bye`), so a stall never plays Gilda's voice. The grading returns which moment it is
+(`Feedback.key`), and each stall says its keeper's line for it.
 
 ## 9. Tests
 
@@ -279,10 +287,12 @@ their stalls they're captions on the work order (written, not voiced), so no kee
   the Retry plan (nothing chosen; last time's model or effort can't be taken again; Auto off after Auto), the
   purse (earn, spend, never below 0, old-save migration), saved hires (a model that left the list), every quote is
   the course's, and the market at every stall (a stall per island, only Gilda's runs the story; a Retry with real
-  picks; one board and one purse across stalls; another keeper says only their own lines).
+  picks; one board and one purse across stalls; every keeper voices every line in their own voice; jobs cleared at
+  another stall leave `Q1.A` open and the page unfiled until you visit Gilda, who then finishes it).
 - `src/content/content.test.ts`: `courses/copilot-app/market.json` against its schema; every quote word for word in its
   cited section of the snapshot, every anchor and hash in the lock; Gilda's and each keeper's captions the same as
-  their voice lines (spoken by them) and their audio; a keeper for every other stall on the course's islands; the
+  their voice lines (spoken by them) and their audio; a keeper for every other stall on the course's islands,
+  with every line; the
   economy (prices 1-4, bigger models cost more, a refund always less than the cheapest right-sized hire, the first
   island's starfish clear every job); and that broken edits are reported by entry.
 - `src/learn/content/labels.test.ts`, `src/learn/course/refs.test.ts`: the label and every citation.
@@ -300,5 +310,5 @@ their stalls they're captions on the work order (written, not voiced), so no kee
 - ~~Roll out to the other islands~~: done (2026-10-22). One stall on each island, sharing the same boards,
   starfish and save (§2).
 - ~~Deploy on merge~~: done. `pages.yml` deploys when CI passes on a push to `main` (docs/content-data.md).
-- The other keepers' teaching lines are captions (Gilda's words, unvoiced). Voicing them would be 9 lines per
-  keeper in their own voices.
+- ~~Voice the other keepers' teaching lines~~: done. Desmond and Lani voice their own version of every line (§8).
+- ~~Where `Q1.A` finishes~~: decided. Jobs at every stall count, but `Q1.A` and its page are Gilda's (§7).

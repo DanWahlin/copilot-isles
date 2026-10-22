@@ -8,8 +8,6 @@ import {
   EFFORTS,
   EFFORT_LABEL,
   EFFORT_PRICE,
-  GILDA,
-  GILDA_TEXT,
   JOBS,
   QUOTES,
   TIER_OF,
@@ -27,7 +25,7 @@ import {
   type RetryPlan,
 } from '../../game/market/jobs';
 import { boardOf, modelsIn } from '../../game/market/models';
-import { MARKET } from '../../content/market';
+import { MARKET, type GildaKey } from '../../content/market';
 import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './model-market.css';
@@ -59,6 +57,8 @@ export interface MarketView {
   open: boolean;
   /** Who keeps this stall (the work order's name, and who "says"). */
   keeper: string;
+  /** What this stall's keeper says at each moment (their own words). */
+  lines: Readonly<Record<GildaKey, string>>;
   screen: 'board' | 'hire' | 'result';
   /** Starfish to spend. */
   purse: number;
@@ -251,9 +251,7 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
         </ol>
       </section>
       <Says text={v.says} keeper={v.keeper} />
-      {v.purse === 0 && v.says !== GILDA_TEXT[GILDA.broke] && (
-        <p className="ci-mm-notice">{GILDA_TEXT[GILDA.broke]}</p>
-      )}
+      {v.purse === 0 && v.says !== v.lines.broke && <p className="ci-mm-notice">{v.lines.broke}</p>}
       <footer className="ci-mm-foot">
         <Quote q={QUOTES.cost} />
         <p className="ci-mm-help" aria-hidden="true">
@@ -502,7 +500,7 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
         </p>
         <p className="ci-mm-summary">{f.summary}</p>
         <h3 className="ci-mm-step">{T('keeperSays', { keeper: v.keeper })}</h3>
-        <p className="ci-mm-says">{T('says', { text: v.says ?? GILDA_TEXT[f.line] ?? '' })}</p>
+        <p className="ci-mm-says">{T('says', { text: v.says ?? v.lines[f.key] })}</p>
         {f.quotes.map((q) => (
           <Quote key={q.text} q={q} />
         ))}
@@ -550,7 +548,7 @@ function announce(v: MarketView): string {
       stamp: plain(f.stamp.replace(/^\W+\s*/, '')),
       summary: f.summary,
       keeper: v.keeper,
-      says: v.says ?? GILDA_TEXT[f.line] ?? '',
+      says: v.says ?? v.lines[f.key],
     });
   }
   if (v.screen === 'hire' && v.job) {

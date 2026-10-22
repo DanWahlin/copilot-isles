@@ -1088,18 +1088,19 @@ function checkMarket(
   }
 
   // The other stalls' keepers: each stall on the course's islands (the game's) has its keeper's own
-  // hello and goodbye, in the keeper's voice (their name is the lines' speaker).
+  // version of every line Gilda says, and a goodbye, in the keeper's voice (their name is the lines'
+  // speaker), so a stall never plays Gilda's voice.
   const keepers = m.keepers ?? {};
   for (const stall of MARKET_STALLS) {
-    if (stall.story || !ctx.islands.includes(stall.island)) continue;
+    if (stall.lines === 'gilda' || !ctx.islands.includes(stall.island)) continue;
     if (!keepers[stall.island])
       fail(
         'keepers',
-        `has no "${stall.island}": ${stall.keeper.name} keeps a stall there and needs a hello and a goodbye`,
+        `has no "${stall.island}": ${stall.keeper.name} keeps a stall there and needs their own lines`,
       );
   }
   for (const [island, k] of Object.entries(keepers)) {
-    const stall = MARKET_STALLS.find((s) => s.island === island && !s.story);
+    const stall = MARKET_STALLS.find((s) => s.island === island && s.lines === 'keepers');
     if (!stall) {
       fail(`keepers.${island}`, `"${island}" has no stall but Gilda's (src/game/market/stalls.ts)`);
       continue;

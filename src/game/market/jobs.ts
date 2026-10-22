@@ -190,8 +190,8 @@ export interface Feedback {
   reason: Reason;
   /** The stamp on the work order. */
   stamp: string;
-  /** Gilda's voiced line (its id). */
-  line: string;
+  /** What the keeper says to it (each stall's keeper has their own line for it). */
+  key: GildaKey;
   /** What happened, in one sentence. */
   summary: string;
   /** The course sentences behind the grade (the Retry one too when it fell short). */
@@ -256,7 +256,7 @@ export function hireName(h: Hire): string {
 export function feedback(job: MarketJob, h: Hire): Feedback {
   const { outcome, reason } = grade(job, h);
   // Right-sized: some starfish back, or (when the hire was already the fair price) a fair price.
-  const right = refundFor(job, h) > 0 ? GILDA.right : GILDA.fair;
+  const right: GildaKey = refundFor(job, h) > 0 ? 'right' : 'fair';
   const paid = price(h);
   const who = hireName(h);
   const fair = fairPrice(job);
@@ -266,49 +266,49 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
     case 'quick-right':
       return {
         ...base,
-        line: right,
+        key: right,
         summary,
         quotes: [job.why, ...(h.auto ? [QUOTES.auto] : [])],
       };
     case 'quick-over-model':
       return {
         ...base,
-        line: GILDA.over,
+        key: 'over',
         summary,
         quotes: [QUOTES.cost, job.why],
       };
     case 'quick-over-effort':
       return {
         ...base,
-        line: GILDA.overEffort,
+        key: 'overEffort',
         summary,
         quotes: [QUOTES.effort, job.why],
       };
     case 'hard-right':
       return {
         ...base,
-        line: right,
+        key: right,
         summary,
         quotes: [QUOTES.hard, QUOTES.noGuarantee],
       };
     case 'hard-short-auto':
       return {
         ...base,
-        line: GILDA.shortAuto,
+        key: 'shortAuto',
         summary,
         quotes: [QUOTES.autoHidden, QUOTES.hard, QUOTES.retry],
       };
     case 'hard-short-model':
       return {
         ...base,
-        line: GILDA.short,
+        key: 'short',
         summary,
         quotes: [QUOTES.hard, QUOTES.retry],
       };
     case 'hard-short-effort':
       return {
         ...base,
-        line: GILDA.short,
+        key: 'short',
         summary,
         quotes: [QUOTES.hard, QUOTES.effort, QUOTES.retry],
       };
