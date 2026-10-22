@@ -167,13 +167,14 @@ describe('chunk levels of detail', () => {
     expect(chunkLodEdges(TIERS.medium)[0]).toBeGreaterThan(90);
   });
 
-  it("draws the sun's static map at the coarsest level whose error stays under its texel", () => {
-    // Low: 1024² over 220 m (21 cm a texel, a texel allowed) takes LOD 2 (18 cm); Medium: 2048² over
-    // 220 m (half of 11 cm) takes LOD 1 (5 cm); High's 4096² over 280 m keeps full detail; Lite has none.
-    expect(chunkShadowLodFloor(TIERS.lite)).toBe(0);
-    expect(chunkShadowLodFloor(TIERS.low)).toBe(2);
-    expect(chunkShadowLodFloor(TIERS.medium)).toBe(1);
-    expect(chunkShadowLodFloor(TIERS.high)).toBe(0);
+  it('draws a town that takes no sun shadows into the static map at the coarsest level under its texel', () => {
+    // Low: 1024² over 220 m (21 cm a texel) takes LOD 2 (18 cm); a town that takes the shadows keeps
+    // its full level on every tier; Lite has no sun shadows.
+    expect(chunkShadowLodFloor(TIERS.low, false)).toBe(2);
+    expect(chunkShadowLodFloor(TIERS.low, true)).toBe(0);
+    expect(chunkShadowLodFloor(TIERS.medium, true)).toBe(0);
+    expect(chunkShadowLodFloor(TIERS.high, true)).toBe(0);
+    expect(chunkShadowLodFloor(TIERS.lite, false)).toBe(0);
   });
 
   it('draws a chunk at its shadow floor in a shadow pass only', () => {

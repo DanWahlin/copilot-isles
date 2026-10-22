@@ -20,7 +20,7 @@ import {
 } from 'three/webgpu';
 import { buildSlice } from '../../../engine/build-slice';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import type { TierSettings } from '../../../engine/quality';
+import { islandsTakeSunShadows, type TierSettings } from '../../../engine/quality';
 import type { CircleObstacle, HeightField } from '../../contracts';
 import { COVE } from '../../layout';
 import { BUILDINGS, type BuildingSpec } from './buildings';
@@ -236,7 +236,12 @@ export async function createVillage({
   // levels of detail (no new draws or pipelines; the simplifier is the characters' lazy chunk).
   const neighbourDetail: Mesh[] = [];
   const simplify = typeof window === 'undefined' ? null : await loadLodSimplifier();
-  const chunkLods = new ChunkLods(chunkLodEdges(tier), chunkLodFloor(tier), chunkShadowLodFloor(tier));
+  const chunkLods = new ChunkLods(
+    chunkLodEdges(tier),
+    chunkLodFloor(tier),
+    // Its own surfaces take the sun's shadows from Medium up; below, its shadows fall on characters only.
+    chunkShadowLodFloor(tier, islandsTakeSunShadows(tier)),
+  );
   // Lite draws the rope with the cloth (alike: matte vertex colour), a draw fewer.
   if (tier.tier === 'lite') moveBucketInto(buckets, 'rope', 'cloth');
   for (const key of Object.keys(buckets) as MaterialKey[]) {

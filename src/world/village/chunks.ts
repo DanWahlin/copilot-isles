@@ -232,19 +232,22 @@ export function chunkLodFloor(tier: TierSettings): number {
 }
 
 /**
- * The finest chunk level the sun's static shadow map draws on a tier: the coarsest level whose error is
- * under a texel of that map (half a texel on Medium and up), the rule `chunkLodEdges` keeps for screen
- * pixels. Low's 1024² map spans 220 m (21 cm a texel), so LOD 2 (18 cm) can't move a shadow by a
- * texel there; High's 4096² over 280 m (7 cm) keeps the full level. 0 without sun shadows.
+ * The finest level a town's chunks draw into the sun's static shadow map. A town whose own surfaces
+ * take that map's shadows (`takesShadows`) keeps its full level: a coarser caster moves the shadows you
+ * see on it (a same-frame A/B moved Port Meridian's quay shadows on Low, and Anchorage's bollard
+ * shadows on Medium, where LOD 1 prunes small parts). One whose surfaces skip them (Anchorage on Low,
+ * `islandsTakeSunShadows`) shadows only characters and small props, so it draws the coarsest level
+ * whose error is under a texel of the map, the rule `chunkLodEdges` keeps for screen pixels on Lite and
+ * Low: LOD 2 (18 cm) in Low's 1024² map over 220 m (21 cm a texel). 0 without sun shadows.
  */
 export function chunkShadowLodFloor(
   tier: TierSettings,
+  takesShadows: boolean,
   errors: readonly [number, number] = CHUNK_LOD_ERRORS,
 ): number {
-  if (tier.shadowCascades === 0 || !tier.shadowMap) return 0;
+  if (takesShadows || tier.shadowCascades === 0 || !tier.shadowMap) return 0;
   const texel = (2 * staticCoverage(sunShadowReach(tier))) / tier.shadowMap;
-  const allowed = (tier.tier === 'lite' || tier.tier === 'low' ? 1 : 0.5) * texel;
-  return errors[1] <= allowed ? 2 : errors[0] <= allowed ? 1 : 0;
+  return errors[1] <= texel ? 2 : errors[0] <= texel ? 1 : 0;
 }
 
 /** Puts a LOD geometry's draw range back on its full level after each draw. */
