@@ -7,7 +7,8 @@
 // Screenshots at the sighting, a broadside, a hit, a raider striking, the question, the bonus pick and
 // the win card.
 // node tools/battletest.mjs [--base=http://localhost:5301] [--tier=high] [--webgl] [--out=/tmp/shots/battle]
-//   [--only=play|skip]
+//   [--only=play|skip] [--sea=calm|breeze|fresh|gale] (the Sea state setting: the battle must still fight
+//   on its own fixed sea, today's Breeze, and the harbour must show the setting's)
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
 
 const opt = parseFlags();
@@ -35,6 +36,7 @@ async function voyage() {
   await page.goto(url, { waitUntil: 'load' });
   await page.evaluate(() => localStorage.clear());
   await waitForTitle(page, 90_000);
+  if (opt.sea) await page.evaluate((id) => window.__flow.updateSettings({ seaState: id }), opt.sea);
   await page.evaluate(() => window.__flow.chooseCaptain());
   await page.waitForTimeout(600);
   await page.evaluate(() => window.__flow.newVoyage('woman'));
@@ -118,7 +120,21 @@ async function sample(page, label) {
   if (i.programs > PROGRAM_CAP) fail(`${i.programs} programs at ${label} (cap ${PROGRAM_CAP})`);
 }
 
+/** With --sea: in harbour the sea is the setting's; once the battle's on it's the fixed Breeze. */
+async function checkSea(page, label, fixed) {
+  if (!opt.sea) return;
+  const sea = await S(page, 's.debug.sea()');
+  report.sea ??= {};
+  report.sea[label] = sea;
+  const breeze = sea.windSpeed === 6.5 && sea.amp.every((a) => a === 1);
+  if (fixed && !(sea.fixed && sea.settled && breeze))
+    fail(`${label}: the battle's sea isn't the fixed Breeze (${JSON.stringify(sea)})`);
+  if (!fixed && opt.sea !== 'breeze' && (sea.fixed || breeze))
+    fail(`${label}: the harbour's sea isn't the ${opt.sea} setting (${JSON.stringify(sea)})`);
+}
+
 async function boardAndSailOut(page) {
+  await checkSea(page, 'harbour', false);
   await S(page, 's.debug.board()');
   await page.waitForFunction(() => window.__flow.debugSession.debug.state().mode === 'sail', null, {
     timeout: 20_000,
@@ -174,10 +190,12 @@ async function play() {
   await page.waitForTimeout(3600);
   await shot(page, 'sighting');
   await sample(page, 'sighting');
+  await checkSea(page, 'sighting', true);
   // Gentle seas for the run, so a break-off doesn't make the test slow (it's covered by the unit tests).
   await S(page, 's.debug.battleRun().battle.setCalm(true)');
   for (let wave = 0; wave < 2; wave++) {
     await waitPhase(page, ['fight']);
+    await checkSea(page, `wave ${wave + 1}`, true);
     // Your helmsman brings her round (R) and you fire when she bears (Space).
     await page.keyboard.press('KeyR');
     let fired = false;
