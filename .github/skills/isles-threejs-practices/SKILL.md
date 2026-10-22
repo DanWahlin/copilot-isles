@@ -107,8 +107,8 @@ hook (release it when the site is freed).
   first island's batches.
 - Shader sharing (issues 235–237): three r186 names some buffers after node ids, which makes every
   mesh's shader unique. Characters go through `shareSkinning` (one skinning graph, a named bone
-  buffer) and keep their palette in `paletteMap`, not `map`. New instanced meshes use
-  `sharedInstancedMesh` and `markInstancesChanged`. Don't precompile instanced meshes for the scene
+  buffer) and keep their palette in `paletteMap` (read through `materialTexture`), not `map`. New
+  instanced meshes use `sharedInstancedMesh` and `markInstancesChanged`. Don't precompile instanced meshes for the scene
   pass (it doubles their instance buffers); the warm's real draws build them.
 - New characters (anything made by the character library) stay out of the harbour mirror through
   `unreflected`; other late roots that shouldn't reflect can register there too.
@@ -198,18 +198,33 @@ hook (release it when the site is freed).
   row and fails on any WebGPU validation error.
 - Shared texture caches count their users: the baked cloud keys free their GPU copy with the last
   dome that used them (the voyage's dawn and dusk keys stayed at the title).
-- A freed texture can come back through another material's look (issue 264). three r186 reads every
-  material's `map` (`normalMap`, `emissiveMap`…) through one shared node, and a build keeps the
-  texture that node holds at its generate stage in its binding: every new render object of that look
-  uploads it, then swaps in its own. compileAsync's builds yield between stages, so a frame drawn
-  mid-build leaves its `map` there: the world's chest-glow look, built behind the cabin, kept the
-  nameplate and uploaded it again after the opening had freed it, for good (1-2 runs in 15). A
-  texture freed while other `map` looks still build (the opening's) goes in through a texture node of
-  its own (`ownMap`, engine/own-map.ts), not `map`. The first look built keeps its texture the same
-  way: Thousand-Bough's signs upload Anchorage's freed atlas while it's dormant (issue 265). Find
-  them with a scratch probe: wrap the renderer's bindings update and list textures uploaded for a
-  render object that none of its bindings hold afterwards. To make the race show every run, make
-  three's build yields (`scheduler.yield`) wait for a frame.
+- A freed texture can come back through another material's look (issues 264, 265). three r186
+  builds a look once, and each new render object of it starts from a copy of that build's bindings:
+  a texture binding holds whatever texture its node had at the build's generate stage, and the new
+  object uploads it before its own update swaps in its material's. A texture that's freed later
+  gets there two ways:
+  - **Three's shared slots, by timing:** every material's `map` (`normalMap`, `emissiveMap`…) is
+    read through one node for all looks (`MaterialNode`'s property cache), holding whichever
+    material it was last drawn for. compileAsync's builds yield between stages, so a frame drawn
+    mid-build leaves its texture in another look: the chest glow's kept the cabin's nameplate and
+    uploaded it after the opening freed it (issue 264); on WebGL2, plants' looks caught each other's
+    barks and leaves in every probed run.
+  - **A look many materials share, every time:** its binding holds the first material's texture.
+    Thousand-Bough's signs uploaded Anchorage's 4 MB sign atlas, and its NPCs Nell's palette, at
+    every warm while Anchorage was dormant (issue 265).
+  - **So** a texture that can be freed while the game goes on (an island's own, with its dormancy
+    or unload; the opening's) never goes through three's slots. In a look of its own, give it a
+    texture node of its own (`ownMap`, `ownNormalMap` in engine/own-map.ts: the dock gull, every
+    mapped plant). In a look many materials share, read it per draw with `materialTexture`
+    (engine/texture-stand-in.ts; the characters', signs' and kit's `paletteMap`): its build binds a
+    1 × 1 stand-in with the texture's format, filters and wrapping, so the shader is the one the
+    texture builds (census unchanged) and no material's texture is in the look. The stand-ins are
+    freed with the voyage (`releaseTextureStandIns`). A node per material is a look per material:
+    don't `ownMap` a shared look.
+  - **Find them** with a scratch probe: wrap the renderer's bindings update and list textures
+    uploaded for a render object that none of its bindings hold afterwards, and log every texture's
+    dispose with its stack to see what's freed mid-voyage. To make the race show every run, make
+    three's build yields (`scheduler.yield`) wait for a frame.
 - Nothing new may draw through the island's post: back at the title, nothing's drawn until the
   title's post is ready (`restoreTitlePost`). One frame of the title through the island's TRAA scene
   pass built a second set of the title's shaders on Medium.

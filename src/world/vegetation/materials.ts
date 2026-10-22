@@ -61,6 +61,7 @@ import { world } from '../uniforms';
 import { terrainNoiseTexture } from '../terrain/noise-texture';
 import { gustNode } from '../wind-nodes';
 import { trackedPosition } from '../../engine/motion-vectors';
+import { ownMap, ownNormalMap } from '../../engine/own-map';
 import { FLORA_SPECIES_MAX, FLOWER_REACH, floraPushers, floraSpeciesTable } from '../flora/nodes';
 import type { HeightGrid } from './types';
 import { BLADE_RANK_STEP, MID_ALONG, bladeBandShape, type BandMath, type BladeBands } from './blade-bands';
@@ -734,9 +735,7 @@ export function createMappedVegetationMaterial(source: {
 }): MeshStandardNodeMaterial {
   const material = new MeshStandardNodeMaterial({
     name: source.name,
-    map: source.map,
     color: source.color,
-    normalMap: source.normalMap,
     roughness: source.roughness,
     metalness: 0,
     side: DoubleSide,
@@ -744,6 +743,11 @@ export function createMappedVegetationMaterial(source: {
     alphaTest: 0.5,
     vertexColors: true,
   });
+  // Its textures through nodes of its own, not three's shared `map` and `normalMap` slots: a plant
+  // only one island grows (Anchorage's dead trees) has its textures freed with that island, while
+  // other looks still build (issue 265).
+  ownMap(material, source.map);
+  if (source.normalMap) ownNormalMap(material, source.normalMap);
   material.maskNode = lodMask();
   return material;
 }

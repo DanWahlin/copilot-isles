@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   BoxGeometry,
+  Color,
   DataTexture,
   Mesh,
   MeshStandardNodeMaterial,
@@ -8,7 +9,8 @@ import {
   PlaneGeometry,
 } from 'three/webgpu';
 import type { Material, Texture } from 'three/webgpu';
-import { ownMap } from './own-map';
+import { ownMap, ownNormalMap } from './own-map';
+import { createMappedVegetationMaterial } from '../world/vegetation/materials';
 import { disposeMaterialWithTextures } from '../util/dispose-three';
 import { meshNodeBuilder, type MeshNodeBuilder } from '../world/vegetation/wgsl-test-helpers';
 
@@ -44,7 +46,7 @@ function boundTextures(builder: MeshNodeBuilder): unknown[] {
  */
 async function buildWithFrameBetween(between: Material): Promise<{ builder: MeshNodeBuilder; map: Texture }> {
   const map = pixel();
-  const material = new MeshStandardNodeMaterial({ map, roughness: 0.3, metalness: 0 });
+  const material = new MeshStandardNodeMaterial({ map, normalMap: pixel(), roughness: 0.3, metalness: 0 });
   const builder = meshNodeBuilder(new Mesh(new BoxGeometry(), material), material);
   let drawn = false;
   // three yields through requestAnimationFrame where there's no scheduler.yield (as here, in Node).
@@ -90,6 +92,45 @@ describe('ownMap', () => {
     builder.build();
     expect(material.map).toBeNull();
     expect(boundTextures(builder)).toContain(plate);
+  });
+
+  it('keeps a normal map out of other looks built while it draws', async () => {
+    const plate = pixel();
+    const normal = pixel();
+    const material = ownNormalMap(ownMap(new MeshStandardNodeMaterial(), plate), normal);
+    const { builder } = await buildWithFrameBetween(material);
+    expect(boundTextures(builder)).not.toContain(normal);
+    expect(boundTextures(builder)).not.toContain(plate);
+    expect(material.normalMap).toBeNull();
+    const own = meshNodeBuilder(new Mesh(new PlaneGeometry(), material), material);
+    own.build();
+    expect(boundTextures(own)).toEqual(expect.arrayContaining([plate, normal]));
+  });
+
+  it('three’s shared slots keep a mid-build frame’s normal map too', async () => {
+    const normal = pixel();
+    const { builder } = await buildWithFrameBetween(
+      new MeshStandardNodeMaterial({ map: pixel(), normalMap: normal }),
+    );
+    expect(boundTextures(builder)).toContain(normal);
+  });
+
+  it('gives a textured plant its own texture nodes, freed with it (Anchorage’s dead trees)', () => {
+    const map = pixel();
+    const normal = pixel();
+    const plant = createMappedVegetationMaterial({
+      name: 'vegetation-Bark_DeadTree',
+      map,
+      color: new Color(1, 1, 1),
+      normalMap: normal,
+      roughness: 0.8,
+    });
+    expect(plant.map).toBeNull();
+    expect(plant.normalMap).toBeNull();
+    const freed: Texture[] = [];
+    for (const t of [map, normal]) t.addEventListener('dispose', () => freed.push(t));
+    disposeMaterialWithTextures(plant);
+    expect(freed).toEqual([map, normal]);
   });
 
   it('frees its texture with the material, beside any others it frees', () => {
