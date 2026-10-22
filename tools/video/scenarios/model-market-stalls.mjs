@@ -43,8 +43,11 @@ async function home(page, api) {
   await skipTalk(page, 40_000);
 }
 
-/** In front of a stall, facing it, past its keeper's hello range (they call out as you come up). */
-async function approach(api, id, back = 11) {
+/**
+ * In front of a stall, facing it, past its keeper's hello range (they call out as you come up), on its
+ * deck or quay (Lani's has 10 m of deck in front of it).
+ */
+async function approach(api, id, back = 8) {
   const s = await api.S((id) => window.__dev.session().debug.puzzle(id).stand(), id);
   const out = s.heading + Math.PI;
   await api.teleport(s.x + Math.sin(out) * back, s.z + Math.cos(out) * back, s.heading);
