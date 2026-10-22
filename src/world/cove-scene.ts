@@ -97,6 +97,12 @@ export interface CoveScene {
    * from that island; the game adds what it places (`FarCull.add`).
    */
   detail: Record<'anchorage' | 'meridian' | 'thousand-bough', FarCull>;
+  /**
+   * Frozen shots on a dev page (tools/shots.mjs): puts what moves on its own state back to the same
+   * start in every run, for a frame held at sim time `t`. The ship goes back to its mooring and
+   * replays 30 s of the swell up to `t`, and the birds go back to their seeded start. Not for play.
+   */
+  holdStill(t: number): void;
   dispose(): void;
 }
 
@@ -524,6 +530,15 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     async warmLate(roots) {
       if (lateWarm) return lateWarm(roots);
       for (const r of roots) await renderer.compileAsync(r, camera, scene);
+    },
+    holdStill(t) {
+      ship.restartMotion(COVE.mooring.x, COVE.mooring.z, COVE.mooring.heading);
+      const step = 1 / 60;
+      for (let k = 30 * 60; k >= 0; k--) {
+        shipEnv.t = t - k * step;
+        ship.update(step, shipEnv.t, shipEnv);
+      }
+      birds?.reset();
     },
     dispose() {
       disposed = true;

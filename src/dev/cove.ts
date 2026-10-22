@@ -386,11 +386,16 @@ const frozenDir = new Vector3();
     engine.resize();
   },
   /**
-   * Freeze-frame mode for tools/flickertest.mjs: pauses the clock (waves, wind, foam, clouds, life),
-   * stops the frame loop, and draws at full render scale without orbit damping. `false` resumes.
+   * Freeze-frame mode for tools/flickertest.mjs and tools/shots.mjs: pauses the clock (waves, wind,
+   * foam, clouds, life), stops the frame loop, and draws at full render scale without orbit damping.
+   * `sim` holds the clock at that many seconds (the same sea in every run). `false` resumes.
    */
-  freeze: (on = true) => {
+  freeze: (on = true, sim?: number) => {
     clock.paused = on;
+    if (on && sim !== undefined) {
+      clock.sim = sim;
+      cove.holdStill(sim);
+    }
     controls.enableDamping = !on;
     engine.setRenderScale(on ? 1 : null);
     camera.clearViewOffset();
@@ -412,6 +417,8 @@ const frozenDir = new Vector3();
     camera.updateMatrixWorld();
     engine.renderStill();
   },
+  /** Starts temporal AA's jitter over (frozen shots end on the same jitter, tools/shots.mjs). */
+  restartJitter: () => post?.restartJitter(),
   /** Static z-fighting audit of what's visible now (coplanar-audit.ts). */
   coplanar: (o: Omit<CoplanarAuditOptions, 'skip'> = {}) => auditCoplanar(scene, o),
   stats: () => {

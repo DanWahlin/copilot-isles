@@ -60,6 +60,11 @@ export interface Post {
   warmOutput(): void;
   /** The metered exposure (WebGPU, not the lean title post): log2 luminance and scale, for probes. */
   readExposure?(): Promise<{ logLum: number; scale: number }>;
+  /**
+   * Starts temporal AA's sub-pixel jitter over at its first offset (a no-op without it), so frozen
+   * shots (tools/shots.mjs) end on the same jitter whatever ran before.
+   */
+  restartJitter(): void;
   /** Live grade controls (per-island looks can tween these). */
   grade: {
     vibrance: { value: number };
@@ -175,7 +180,8 @@ export async function createPost(
     sceneDepth!,
     scenePass!.getTextureNode('velocity'),
     camera,
-  ) as (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; dispose(): void }) | undefined;
+  ) as
+    (Node<'vec4'> & { getTextureNode(): Node<'vec4'>; restartJitter(): void; dispose(): void }) | undefined;
   const sharpenNode =
     temporalNode && sharpenMod
       ? (sharpenMod!.sharpen(temporalNode.getTextureNode(), float(0.45)) as {
@@ -313,6 +319,9 @@ export async function createPost(
       renderer.setRenderTarget(target);
     },
     readExposure: meter ? () => meter.read() : undefined,
+    restartJitter() {
+      temporalNode?.restartJitter();
+    },
     grade: { vibrance: uVibrance, saturation: uSaturation, contrast: uContrast, vignette: uVignette },
     dispose() {
       scenePass?.dispose();

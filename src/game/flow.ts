@@ -231,6 +231,11 @@ export class GameFlow implements GameBridge {
     return this.title?.ready ?? Promise.resolve();
   }
 
+  /** Frozen shots of the title (`?debug`, tools/shots.mjs): see `TitleBackdrop.holdStill`. */
+  holdTitleStill(t: number): void {
+    this.title?.holdStill(t);
+  }
+
   showTitle(): void {
     this.title ??= createTitleBackdrop(this.o.engine);
     this.title.setSails(this.learn.getState().sails);

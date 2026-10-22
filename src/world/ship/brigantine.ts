@@ -116,6 +116,12 @@ export interface Brigantine {
   dynamics: ShipDynamics;
   uniforms: BrigantineUniforms;
   update(dt: number, t: number, env: BrigantineEnv): void;
+  /**
+   * Puts the ship at rest at (x, z, heading) with every motion it integrates (the hull's springs and
+   * fixed-step remainder, the lantern and block, the flags' phase) at its start, so replaying the same
+   * updates gives the same pose (frozen shots, `CoveScene.holdStill`).
+   */
+  restartMotion(x: number, z: number, heading: number): void;
   waterlineTable: Float32Array;
   stations: readonly BuoyancyStation[];
   capsules: readonly HullCapsule[];
@@ -762,6 +768,15 @@ export function createBrigantine({
     sternWorld(outWorld: Float32Array | number[]): Float32Array | number[] {
       localToWorldXZ(dynamics.pose, 0, STERN_Z, outWorld, 0);
       return outWorld;
+    },
+    restartMotion(x: number, z: number, heading: number): void {
+      dynamics.reset(x, z, heading);
+      accumulator = 0;
+      copyPose(dynamics.pose, previous);
+      lanternX = lanternZ = lanternVx = lanternVz = 0;
+      blockX = blockZ = blockVx = blockVz = 0;
+      uniforms.flagPhase.value = 0;
+      flagEased = false;
     },
     update(dt: number, t: number, env: BrigantineEnv): void {
       accumulator = Math.min(accumulator + Math.max(0, dt), fixed * 5);
