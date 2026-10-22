@@ -109,6 +109,9 @@ the dev page plays it with `?battle=2`.
 - Battles are **required, with a skip**: **Skip battle** (HUD and pause menu) marks it done with no penalty
   and no reward pennant. Sailing out of the zone pauses the battle; the wave you were on is kept.
 - The fog bank on the zone's edge is where raiders come from and where crews row away to.
+- **A fixed sea:** whatever Settings → Sea state says, a passage with a battle on it sails today's Breeze
+  (the waves, the wind, the handling) from just outside the harbour until the battle is won or skipped; the
+  sea eases in over 5 s before a rested battle resumes (`passage-battles.ts`, PLAN §6).
 
 ## 4. The loop
 

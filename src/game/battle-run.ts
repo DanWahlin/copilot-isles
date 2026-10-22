@@ -11,6 +11,7 @@ import { unreflected } from '../world/reflection';
 import type { ShipDynamics } from '../world/ship';
 import { skipSunShadows } from '../world/sky/cached-sun-shadow';
 import { world } from '../world/uniforms';
+import { seaState } from '../world/ocean/sea-state';
 import { BATTLE_SOUNDS, createBattleAudio } from './battle-audio';
 import { BattleCamera } from './battle-camera';
 import { BattleHud } from './battle-hud';
@@ -142,6 +143,9 @@ export class BattleRun {
     // A dolphin's splash looks like a ball's: nothing leaps while the battle's on (or its hulls sink),
     // only while it rests in harbour.
     this.unquiet = this.o.cove.quietSea.add({ x: 0, z: 0, r: Infinity, when: () => !this.suspended });
+    // The passage has held the fixed sea since you left harbour (passage-battles.ts); if it's still
+    // easing in (a debug start), it's there now.
+    if (seaState.fixed) seaState.snap();
     this.setMusic(true);
     let hidden = false;
     try {

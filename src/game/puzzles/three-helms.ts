@@ -1,5 +1,6 @@
 import type { CameraShot } from '../follow-camera';
 import type { TerminalLine } from '../hud';
+import { seaState } from '../../world/ocean/sea-state';
 import type { QuietSea } from '../../world/life/quiet-sea';
 import type { HelmBuoysSite } from '../../world/sites/helm-buoys';
 import {
@@ -112,6 +113,9 @@ interface Run {
 
 type ChoiceKind = 'order' | 'heading' | 'review';
 
+/** How far (m) outside the course the sea starts easing to its fixed state (~20 s under sail). */
+const FIXED_SEA_MARGIN = 120;
+
 /**
  * P1.2 The Three Helms (Rhea): three orders sailed in your own ship out in Port Meridian's
  * bay (helms-logic.ts has the lesson). Sail up to a buoy and press E: Rhea hands you an order card
@@ -196,6 +200,14 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
   // While the course is on, no dolphin or flying fish leaps among the buoys (their splashes would
   // read as something the lesson put there).
   const unquiet = quiet?.add({ ...helmsCourseArea(), when: () => active() && !solved });
+  // The course keeps its own fixed sea (Breeze) whatever the Sea state setting: it eases in as you
+  // sail up to it, so the lesson's runs sail the sea they were made for.
+  const seaArea = helmsCourseArea(30 + FIXED_SEA_MARGIN);
+  const unholdSea = seaState.hold(() => {
+    if (!active() || solved) return false;
+    const p = host.ship.pose;
+    return Math.hypot(p.x - seaArea.x, p.z - seaArea.z) < seaArea.r;
+  });
   const save = () => host.learn?.progress.setPuzzle(HELMS_ID, { solved, state: [done.length] });
   const pose = () => host.ship.pose;
   const here = () => ({ x: pose().x, z: pose().z });
@@ -648,6 +660,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       unmount?.();
       unmount = null;
       unquiet?.();
+      unholdSea();
     },
   };
 }

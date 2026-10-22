@@ -7,6 +7,7 @@ import { createBrigantine, gullPerches, type BrigantineEnv } from '../world/ship
 import type { LeapsSystem, ScreenRect } from '../world/life/leaps';
 import type { BirdsSystem } from '../world/life/birds';
 import { world } from '../world/uniforms';
+import { seaState } from '../world/ocean/sea-state';
 import { bindTitleDrag, TitleOrbit } from './title-orbit';
 import type { TierSettings } from '../engine/quality';
 import { createTitleWordmarkGull } from './title-wordmark-gull';
@@ -117,6 +118,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
   }
 
   const shipEnv: BrigantineEnv = { waves: ocean.field, ground: null, obstacles: [], t: 0 };
+  // The title's sea is its own (Breeze), whatever the Sea state setting: the voyage brings that in.
+  const unholdSea = seaState.hold(() => true);
+  seaState.snap();
 
   clock.set(TITLE_HOURS, -35);
   sky.invalidate();
@@ -192,6 +196,9 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     ready,
     dispose() {
       disposed = true;
+      // Behind the opening's veil: the voyage's sea is the setting's from its first frame.
+      unholdSea();
+      seaState.snap();
       endShadowWarm();
       unbind();
       if (lazyLeapsTimer) window.clearTimeout(lazyLeapsTimer);
