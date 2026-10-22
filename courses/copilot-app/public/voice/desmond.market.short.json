@@ -1,0 +1,97 @@
+{
+  "id": "desmond.market.short",
+  "speaker": "Desmond",
+  "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.293
+    },
+    {
+      "word": "quite",
+      "start": 0.293,
+      "end": 0.875
+    },
+    {
+      "word": "Captain",
+      "start": 0.875,
+      "end": 1.44
+    },
+    {
+      "word": "A",
+      "start": 1.44,
+      "end": 1.76
+    },
+    {
+      "word": "job",
+      "start": 1.76,
+      "end": 2.048
+    },
+    {
+      "word": "like",
+      "start": 2.048,
+      "end": 2.288
+    },
+    {
+      "word": "this",
+      "start": 2.288,
+      "end": 2.52
+    },
+    {
+      "word": "needs",
+      "start": 2.52,
+      "end": 2.768
+    },
+    {
+      "word": "more",
+      "start": 2.768,
+      "end": 3.04
+    },
+    {
+      "word": "muscle",
+      "start": 3.04,
+      "end": 3.787
+    },
+    {
+      "word": "Retry",
+      "start": 3.787,
+      "end": 4.736
+    },
+    {
+      "word": "with",
+      "start": 4.736,
+      "end": 4.88
+    },
+    {
+      "word": "a",
+      "start": 4.88,
+      "end": 5.013
+    },
+    {
+      "word": "stronger",
+      "start": 5.013,
+      "end": 5.507
+    },
+    {
+      "word": "model",
+      "start": 5.507,
+      "end": 5.92
+    },
+    {
+      "word": "or",
+      "start": 5.92,
+      "end": 6.128
+    },
+    {
+      "word": "more",
+      "start": 6.128,
+      "end": 6.411
+    },
+    {
+      "word": "effort",
+      "start": 6.411,
+      "end": 6.661
+    }
+  ]
+}

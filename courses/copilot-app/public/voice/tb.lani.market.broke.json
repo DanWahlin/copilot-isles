@@ -1,0 +1,87 @@
+{
+  "id": "tb.lani.market.broke",
+  "speaker": "Lani",
+  "text": "Out of starfish? There are plenty hidden around the islands. Come back when you've found some.",
+  "words": [
+    {
+      "word": "Out",
+      "start": 0,
+      "end": 0.187
+    },
+    {
+      "word": "of",
+      "start": 0.187,
+      "end": 0.352
+    },
+    {
+      "word": "starfish",
+      "start": 0.352,
+      "end": 1.36
+    },
+    {
+      "word": "There",
+      "start": 1.36,
+      "end": 1.8
+    },
+    {
+      "word": "are",
+      "start": 1.8,
+      "end": 1.989
+    },
+    {
+      "word": "plenty",
+      "start": 1.989,
+      "end": 2.457
+    },
+    {
+      "word": "hidden",
+      "start": 2.457,
+      "end": 2.846
+    },
+    {
+      "word": "around",
+      "start": 2.846,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.28
+    },
+    {
+      "word": "islands",
+      "start": 3.28,
+      "end": 4.016
+    },
+    {
+      "word": "Come",
+      "start": 4.016,
+      "end": 4.464
+    },
+    {
+      "word": "back",
+      "start": 4.464,
+      "end": 4.768
+    },
+    {
+      "word": "when",
+      "start": 4.768,
+      "end": 5
+    },
+    {
+      "word": "you've",
+      "start": 5,
+      "end": 5.253
+    },
+    {
+      "word": "found",
+      "start": 5.253,
+      "end": 5.6
+    },
+    {
+      "word": "some",
+      "start": 5.6,
+      "end": 5.85
+    }
+  ]
+}

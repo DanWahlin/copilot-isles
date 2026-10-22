@@ -1,0 +1,117 @@
+{
+  "id": "tb.lani.market.short.auto",
+  "speaker": "Lani",
+  "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort.",
+  "words": [
+    {
+      "word": "Auto",
+      "start": 0,
+      "end": 0.547
+    },
+    {
+      "word": "keeps",
+      "start": 0.547,
+      "end": 0.9
+    },
+    {
+      "word": "the",
+      "start": 0.9,
+      "end": 1.029
+    },
+    {
+      "word": "effort",
+      "start": 1.029,
+      "end": 1.51
+    },
+    {
+      "word": "setting",
+      "start": 1.51,
+      "end": 2.08
+    },
+    {
+      "word": "hidden",
+      "start": 2.08,
+      "end": 2.92
+    },
+    {
+      "word": "For",
+      "start": 2.92,
+      "end": 3.56
+    },
+    {
+      "word": "a",
+      "start": 3.56,
+      "end": 3.74
+    },
+    {
+      "word": "job",
+      "start": 3.74,
+      "end": 4.224
+    },
+    {
+      "word": "this",
+      "start": 4.224,
+      "end": 4.576
+    },
+    {
+      "word": "hard",
+      "start": 4.576,
+      "end": 5.344
+    },
+    {
+      "word": "turn",
+      "start": 5.344,
+      "end": 5.696
+    },
+    {
+      "word": "Auto",
+      "start": 5.696,
+      "end": 6.22
+    },
+    {
+      "word": "off",
+      "start": 6.22,
+      "end": 7.248
+    },
+    {
+      "word": "then",
+      "start": 7.248,
+      "end": 7.509
+    },
+    {
+      "word": "choose",
+      "start": 7.509,
+      "end": 8
+    },
+    {
+      "word": "a",
+      "start": 8,
+      "end": 8.147
+    },
+    {
+      "word": "model",
+      "start": 8.147,
+      "end": 8.58
+    },
+    {
+      "word": "and",
+      "start": 8.58,
+      "end": 8.92
+    },
+    {
+      "word": "a",
+      "start": 8.92,
+      "end": 9.029
+    },
+    {
+      "word": "higher",
+      "start": 9.029,
+      "end": 9.554
+    },
+    {
+      "word": "effort",
+      "start": 9.554,
+      "end": 9.804
+    }
+  ]
+}

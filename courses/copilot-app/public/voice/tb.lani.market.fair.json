@@ -1,0 +1,47 @@
+{
+  "id": "tb.lani.market.fair",
+  "speaker": "Lani",
+  "text": "Right-sized, and a fair price for the job.",
+  "words": [
+    {
+      "word": "Right-sized",
+      "start": 0,
+      "end": 1.18
+    },
+    {
+      "word": "and",
+      "start": 1.18,
+      "end": 1.88
+    },
+    {
+      "word": "a",
+      "start": 1.88,
+      "end": 1.984
+    },
+    {
+      "word": "fair",
+      "start": 1.984,
+      "end": 2.32
+    },
+    {
+      "word": "price",
+      "start": 2.32,
+      "end": 2.76
+    },
+    {
+      "word": "for",
+      "start": 2.76,
+      "end": 2.9
+    },
+    {
+      "word": "the",
+      "start": 2.9,
+      "end": 3.08
+    },
+    {
+      "word": "job",
+      "start": 3.08,
+      "end": 3.33
+    }
+  ]
+}

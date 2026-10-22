@@ -1192,6 +1192,56 @@
       "text": "Welcome, Captain! This is Desmond's Model Market. Hire a model that fits the job, and pay in starfish. Bigger models cost more."
     },
     {
+      "id": "desmond.market.open",
+      "speaker": "Desmond",
+      "text": "Choose a job from the board, then hire a model and set the effort dial."
+    },
+    {
+      "id": "desmond.market.auto",
+      "speaker": "Desmond",
+      "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot."
+    },
+    {
+      "id": "desmond.market.right",
+      "speaker": "Desmond",
+      "text": "Right-sized! Take some starfish back for hiring smart."
+    },
+    {
+      "id": "desmond.market.fair",
+      "speaker": "Desmond",
+      "text": "Right-sized! A fair price for this job."
+    },
+    {
+      "id": "desmond.market.over",
+      "speaker": "Desmond",
+      "text": "That's plenty of starfish for a quick look. Auto would have handled it."
+    },
+    {
+      "id": "desmond.market.over.effort",
+      "speaker": "Desmond",
+      "text": "High effort for a quick look? The default would have done fine."
+    },
+    {
+      "id": "desmond.market.short",
+      "speaker": "Desmond",
+      "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort."
+    },
+    {
+      "id": "desmond.market.short.auto",
+      "speaker": "Desmond",
+      "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort."
+    },
+    {
+      "id": "desmond.market.broke",
+      "speaker": "Desmond",
+      "text": "No starfish yet? They're hidden all over the islands. Come back when you've found a few."
+    },
+    {
+      "id": "desmond.market.done",
+      "speaker": "Desmond",
+      "text": "Every job on the board, right-sized. You know your models, Captain!"
+    },
+    {
       "id": "desmond.market.bye",
       "speaker": "Desmond",
       "text": "Safe sailing, Captain! A job done here counts at every market stall."
@@ -1200,6 +1250,56 @@
       "id": "tb.lani.market.hello",
       "speaker": "Lani",
       "text": "Hello, Captain! Lani's Model Market, right here on the landing. Hire a model that fits the job. Bigger models cost more starfish."
+    },
+    {
+      "id": "tb.lani.market.open",
+      "speaker": "Lani",
+      "text": "Pick a job off the board, then hire a model and set the effort dial."
+    },
+    {
+      "id": "tb.lani.market.auto",
+      "speaker": "Lani",
+      "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot."
+    },
+    {
+      "id": "tb.lani.market.right",
+      "speaker": "Lani",
+      "text": "Right-sized! Here, have some starfish back."
+    },
+    {
+      "id": "tb.lani.market.fair",
+      "speaker": "Lani",
+      "text": "Right-sized, and a fair price for the job."
+    },
+    {
+      "id": "tb.lani.market.over",
+      "speaker": "Lani",
+      "text": "That's a lot of starfish for a quick look. Auto could have done it."
+    },
+    {
+      "id": "tb.lani.market.over.effort",
+      "speaker": "Lani",
+      "text": "High effort for a quick look? Default effort would have been plenty."
+    },
+    {
+      "id": "tb.lani.market.short",
+      "speaker": "Lani",
+      "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort."
+    },
+    {
+      "id": "tb.lani.market.short.auto",
+      "speaker": "Lani",
+      "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort."
+    },
+    {
+      "id": "tb.lani.market.broke",
+      "speaker": "Lani",
+      "text": "Out of starfish? There are plenty hidden around the islands. Come back when you've found some."
+    },
+    {
+      "id": "tb.lani.market.done",
+      "speaker": "Lani",
+      "text": "The whole board, right-sized! You really know your models, Captain."
     },
     {
       "id": "tb.lani.market.bye",

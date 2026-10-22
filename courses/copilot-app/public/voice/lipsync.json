@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T07:53:59.779Z",
+  "generatedAt": "2026-10-22T14:25:05.402Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -2644,6 +2644,176 @@
         14, 15, 4, 11, 14, 14, 28, 7, 4
       ],
       "v": "XEGCABXBHCABCXCEBDCBCBCEBECBXBCFBCBX"
+    },
+    "desmond.market.open": {
+      "h": "4bfc49575a97933b",
+      "e": "neutral",
+      "t": [
+        0, 3, 20, 7, 14, 7, 7, 20, 12, 2, 8, 7, 20, 14, 62, 8, 35, 21, 9, 6, 6, 42, 21, 7, 28, 7, 14, 14, 14,
+        14, 31
+      ],
+      "v": "XFBCBEABABAEBXBCBADBCBCBCGBCBX"
+    },
+    "desmond.market.auto": {
+      "h": "96bd915159e32e26",
+      "e": "concerned",
+      "t": [
+        0, 7, 5, 4, 21, 14, 28, 7, 8, 20, 21, 63, 12, 7, 15, 31, 7, 9, 21, 14, 28, 41, 6, 5, 7, 14, 14, 8, 29,
+        20, 7, 14, 30, 7, 7, 7, 14, 7, 7, 14, 7, 42, 37, 9, 6, 27, 21, 27, 7, 7, 7, 7, 7, 8, 14, 28, 11
+      ],
+      "v": "XEBEFCBACBXBCABCABGFXBCBCHEFBFCBEFBCBFDBXBACBXBCBEBEACBX"
+    },
+    "desmond.market.right": {
+      "h": "5471ac72319015e7",
+      "e": "happy",
+      "t": [
+        0, 3, 41, 14, 28, 38, 25, 13, 14, 7, 9, 10, 14, 7, 7, 7, 8, 23, 21, 7, 7, 7, 19, 5, 39, 8, 9, 21, 13
+      ],
+      "v": "XBDBXBCBCABDBGBACBGEBDCBADBX"
+    },
+    "desmond.market.fair": {
+      "h": "b1feaf3a798db48d",
+      "e": "happy",
+      "t": [0, 4, 10, 7, 35, 14, 21, 68, 18, 7, 14, 13, 7, 14, 14, 7, 7, 35, 7, 22, 4],
+      "v": "XBCBDBXBGCABCBGEBEAX"
+    },
+    "desmond.market.over": {
+      "h": "39a13595d241c626",
+      "e": "neutral",
+      "t": [
+        0, 20, 12, 8, 10, 14, 14, 7, 7, 7, 21, 7, 7, 14, 7, 14, 7, 7, 7, 21, 28, 66, 11, 7, 28, 14, 14, 7, 14,
+        56, 24
+      ],
+      "v": "XBAHCBCGBDBGBGEBFBFBXEBEFCGCBX"
+    },
+    "desmond.market.over.effort": {
+      "h": "f29a315267e31749",
+      "e": "neutral",
+      "t": [
+        0, 5, 23, 7, 7, 14, 7, 14, 7, 7, 7, 21, 28, 21, 50, 25, 6, 6, 21, 7, 21, 14, 7, 21, 7, 28, 7, 7, 21,
+        37
+      ],
+      "v": "XCBCGEBGECBFBXCBCBGEBFCBCGCBX"
+    },
+    "desmond.market.short": {
+      "h": "f6795b272852baad",
+      "e": "neutral",
+      "t": [
+        0, 13, 8, 21, 7, 7, 21, 10, 7, 28, 44, 10, 14, 8, 16, 7, 63, 8, 16, 8, 4, 4, 14, 21, 42, 11, 15, 35,
+        7, 7, 7, 7, 7, 14, 21, 14, 11, 5, 4, 14, 35, 10, 14, 7, 21, 7, 7, 7, 12, 11, 1
+      ],
+      "v": "XDBFBCABCXCBAHCBAEAEBGBXBXBCBFBCBEBADBCEAEBCGEBXBX"
+    },
+    "desmond.market.short.auto": {
+      "h": "e4153fb4207a033f",
+      "e": "neutral",
+      "t": [
+        0, 13, 20, 14, 7, 21, 10, 10, 21, 19, 21, 14, 7, 7, 21, 7, 42, 21, 28, 28, 83, 7, 7, 7, 25, 7, 24, 7,
+        23, 19, 7, 21, 14, 7, 14, 7, 21, 21, 115, 15, 7, 8, 12, 21, 10, 6, 6, 14, 23, 7, 7, 28, 7, 21, 21, 7,
+        7, 14, 32
+      ],
+      "v": "XBEBEFECXBCGEBCBCBCXGECDCBEABFBEBEFEGXBCABCADBCHCBCBECGEBX"
+    },
+    "desmond.market.broke": {
+      "h": "1acce846b3f55833",
+      "e": "neutral",
+      "t": [
+        0, 5, 7, 6, 7, 7, 14, 7, 7, 21, 7, 28, 105, 5, 11, 21, 28, 28, 42, 28, 7, 49, 71, 25, 10, 14, 14, 7,
+        7, 14, 21, 7, 7, 29, 7, 21, 10
+      ],
+      "v": "XCEFBDBGBCBXBCBCEFBCBXCACBFCFGCECGFX"
+    },
+    "desmond.market.done": {
+      "h": "e9d22c1c495a6279",
+      "e": "happy",
+      "t": [
+        0, 9, 14, 7, 28, 7, 8, 15, 7, 8, 26, 14, 26, 42, 14, 35, 129, 29, 7, 7, 21, 12, 7, 6, 14, 7, 7, 14, 9,
+        7, 20, 4
+      ],
+      "v": "XCGBEADCAEBXBDBXFCEFADBCHBCABCX"
+    },
+    "tb.lani.market.open": {
+      "h": "008d988106240654",
+      "e": "neutral",
+      "t": [
+        0, 1, 6, 7, 20, 14, 7, 32, 10, 7, 7, 8, 28, 14, 51, 5, 39, 21, 9, 6, 19, 28, 28, 28, 7, 56, 7, 14, 7,
+        7, 21, 7, 7, 7, 1
+      ],
+      "v": "XABCBEAEGBAEBXBCBAEBHCBCBCGEBCBCHX"
+    },
+    "tb.lani.market.auto": {
+      "h": "668da63b9a6036fa",
+      "e": "neutral",
+      "t": [
+        0, 7, 11, 21, 7, 21, 14, 7, 21, 7, 14, 8, 11, 14, 14, 14, 40, 17, 9, 27, 28, 21, 9, 6, 6, 14, 7, 14,
+        7, 7, 21, 14, 23, 12, 21, 7, 8, 20, 28, 7, 35, 14, 7, 14, 14, 14, 21, 13, 31, 15, 22, 14, 7, 7, 12,
+        20, 14, 14, 13, 26, 14, 7, 14, 8, 24, 42
+      ],
+      "v": "XEBCBDBCEBACBCHXBCAFBAEBCHGEBCBXBCHEFBFCBCBFDBXBXBCDBXBCBABEBCADB"
+    },
+    "tb.lani.market.right": {
+      "h": "bb559b93507ce1b2",
+      "e": "happy",
+      "t": [0, 9, 10, 7, 21, 7, 8, 5, 5, 51, 29, 17, 23, 14, 8, 8, 21, 7, 7, 14, 8, 24, 21, 4],
+      "v": "XBCBCAHCBCBCBABDBGBACBX"
+    },
+    "tb.lani.market.fair": {
+      "h": "2faddc80a300a18b",
+      "e": "neutral",
+      "t": [0, 4, 37, 14, 49, 38, 36, 22, 14, 21, 16, 97, 4],
+      "v": "XBCBXBCGCABX"
+    },
+    "tb.lani.market.over": {
+      "h": "d2905accca6e9268",
+      "e": "neutral",
+      "t": [0, 10, 20, 7, 7, 14, 7, 7, 14, 7, 7, 28, 14, 7, 7, 7, 35, 73, 11, 7, 14, 21, 7, 28, 21, 4],
+      "v": "XBCEBGBDBGBECBFBXEBCFBCBX"
+    },
+    "tb.lani.market.over.effort": {
+      "h": "6c9a91adf9261121",
+      "e": "neutral",
+      "t": [
+        0, 3, 23, 7, 14, 7, 14, 7, 7, 7, 14, 7, 21, 14, 35, 22, 17, 19, 47, 14, 14, 7, 8, 8, 7, 14, 21, 7, 7,
+        8, 18, 8, 17, 7, 42, 4
+      ],
+      "v": "XCBCGBGECBFBCBXBXBDBCABCBFBCABAHCBX"
+    },
+    "tb.lani.market.short": {
+      "h": "9121f02298e6e637",
+      "e": "neutral",
+      "t": [
+        0, 6, 6, 5, 14, 21, 7, 35, 7, 14, 14, 17, 54, 8, 18, 8, 13, 7, 14, 24, 12, 7, 42, 26, 4, 15, 6, 26,
+        21, 7, 7, 8, 4, 4, 14, 21, 16, 13, 10, 18, 7, 7, 7, 42, 4
+      ],
+      "v": "XCDBCGBFDCXBAEACBCHBCBDCBFBECBADBCHBEAEBCGBX"
+    },
+    "tb.lani.market.short.auto": {
+      "h": "ec50f804a8e1d3c8",
+      "e": "neutral",
+      "t": [
+        0, 3, 9, 7, 42, 14, 8, 32, 17, 7, 7, 28, 35, 21, 35, 43, 33, 14, 7, 7, 21, 7, 23, 32, 42, 14, 20, 9,
+        28, 28, 35, 21, 28, 24, 22, 12, 4, 16, 4, 33, 14, 7, 11, 7, 21, 14, 18, 5, 39, 7, 7, 14, 14, 10, 21,
+        35, 4
+      ],
+      "v": "XEBEBABCGEBCBCXCGECBEABEBXBCEFEGXBXBCEFBCADCHBCBCBCBCGBX"
+    },
+    "tb.lani.market.broke": {
+      "h": "6c4efbefe4aaa2e8",
+      "e": "neutral",
+      "t": [
+        0, 6, 6, 19, 7, 14, 14, 14, 7, 89, 10, 7, 8, 13, 7, 63, 7, 21, 21, 7, 7, 7, 14, 46, 27, 9, 18, 20, 5,
+        11, 21, 14, 7, 7, 7, 14, 14, 8, 4
+      ],
+      "v": "XCBGBDBGBCBAHCBCEBCBHCBCACBFBFGCECBCAX"
+    },
+    "tb.lani.market.done": {
+      "h": "b7fd57223a173fa6",
+      "e": "happy",
+      "t": [
+        0, 14, 7, 7, 28, 30, 9, 33, 21, 20, 24, 7, 21, 21, 7, 42, 39, 23, 42, 28, 28, 7, 14, 10, 7, 20, 7, 29,
+        17, 10, 7, 28, 1
+      ],
+      "v": "XBCEFAEBXBCBECBXFBCBCEADCHBCABCX"
     }
   }
 }

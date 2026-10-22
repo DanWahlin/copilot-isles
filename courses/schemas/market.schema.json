@@ -189,7 +189,7 @@
       }
     },
     "gilda": {
-      "description": "Gilda's voiced lines (Port Meridian's stall); they're also the other stalls' captions. The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back).",
+      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back).",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -242,14 +242,57 @@
       }
     },
     "keepers": {
-      "description": "The other stalls' keepers (the game's stalls, src/game/market/stalls.ts), by the stall's island: each keeper's own voiced hello and goodbye, spoken by the keeper (their name is the line's speaker). Gilda's other lines are their captions on the work order.",
+      "description": "The other stalls' keepers (the game's stalls, src/game/market/stalls.ts), by the stall's island: each keeper's own voiced version of every line Gilda says (the same keys, the same teaching and its `source`, in their own words, never naming Gilda or her stall), and a goodbye. The line's speaker in voice/lines.json is the keeper's name.",
       "type": "object",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["hello", "bye"],
+        "required": [
+          "hello",
+          "open",
+          "auto",
+          "right",
+          "fair",
+          "over",
+          "overEffort",
+          "short",
+          "shortAuto",
+          "broke",
+          "done",
+          "bye"
+        ],
         "properties": {
           "hello": {
+            "$ref": "#/$defs/line"
+          },
+          "open": {
+            "$ref": "#/$defs/line"
+          },
+          "auto": {
+            "$ref": "#/$defs/line"
+          },
+          "right": {
+            "$ref": "#/$defs/line"
+          },
+          "fair": {
+            "$ref": "#/$defs/line"
+          },
+          "over": {
+            "$ref": "#/$defs/line"
+          },
+          "overEffort": {
+            "$ref": "#/$defs/line"
+          },
+          "short": {
+            "$ref": "#/$defs/line"
+          },
+          "shortAuto": {
+            "$ref": "#/$defs/line"
+          },
+          "broke": {
+            "$ref": "#/$defs/line"
+          },
+          "done": {
             "$ref": "#/$defs/line"
           },
           "bye": {

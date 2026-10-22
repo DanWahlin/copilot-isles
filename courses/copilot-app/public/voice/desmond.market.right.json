@@ -1,0 +1,47 @@
+{
+  "id": "desmond.market.right",
+  "speaker": "Desmond",
+  "text": "Right-sized! Take some starfish back for hiring smart.",
+  "words": [
+    {
+      "word": "Right-sized",
+      "start": 0,
+      "end": 1.408
+    },
+    {
+      "word": "Take",
+      "start": 1.408,
+      "end": 1.648
+    },
+    {
+      "word": "some",
+      "start": 1.648,
+      "end": 1.904
+    },
+    {
+      "word": "starfish",
+      "start": 1.904,
+      "end": 2.464
+    },
+    {
+      "word": "back",
+      "start": 2.464,
+      "end": 2.78
+    },
+    {
+      "word": "for",
+      "start": 2.78,
+      "end": 3.04
+    },
+    {
+      "word": "hiring",
+      "start": 3.04,
+      "end": 3.6
+    },
+    {
+      "word": "smart",
+      "start": 3.6,
+      "end": 3.85
+    }
+  ]
+}

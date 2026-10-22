@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T07:53:04.757Z",
+  "generatedAt": "2026-10-22T14:21:39.807Z",
   "set": "testcove",
   "lines": [
     {
@@ -31167,6 +31167,1746 @@
           "word": "you",
           "start": 5.68,
           "end": 5.93
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "desmond.market.open",
+      "speaker": "Desmond",
+      "text": "Choose a job from the board, then hire a model and set the effort dial.",
+      "duration": 4.808,
+      "files": {
+        "webm": "desmond.market.open.webm",
+        "m4a": "desmond.market.open.m4a"
+      },
+      "hash": "4bfc49575a97933b",
+      "words": [
+        {
+          "word": "Choose",
+          "start": 0,
+          "end": 0.28
+        },
+        {
+          "word": "a",
+          "start": 0.28,
+          "end": 0.4
+        },
+        {
+          "word": "job",
+          "start": 0.4,
+          "end": 0.688
+        },
+        {
+          "word": "from",
+          "start": 0.688,
+          "end": 0.9
+        },
+        {
+          "word": "the",
+          "start": 0.9,
+          "end": 1.027
+        },
+        {
+          "word": "board",
+          "start": 1.027,
+          "end": 1.968
+        },
+        {
+          "word": "then",
+          "start": 1.968,
+          "end": 2.224
+        },
+        {
+          "word": "hire",
+          "start": 2.224,
+          "end": 2.56
+        },
+        {
+          "word": "a",
+          "start": 2.56,
+          "end": 2.707
+        },
+        {
+          "word": "model",
+          "start": 2.707,
+          "end": 3.1
+        },
+        {
+          "word": "and",
+          "start": 3.1,
+          "end": 3.36
+        },
+        {
+          "word": "set",
+          "start": 3.36,
+          "end": 3.64
+        },
+        {
+          "word": "the",
+          "start": 3.64,
+          "end": 3.806
+        },
+        {
+          "word": "effort",
+          "start": 3.806,
+          "end": 4.16
+        },
+        {
+          "word": "dial",
+          "start": 4.16,
+          "end": 4.41
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.auto",
+      "speaker": "Desmond",
+      "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
+      "duration": 8.808,
+      "files": {
+        "webm": "desmond.market.auto.webm",
+        "m4a": "desmond.market.auto.m4a"
+      },
+      "hash": "96bd915159e32e26",
+      "words": [
+        {
+          "word": "Auto's",
+          "start": 0,
+          "end": 0.44
+        },
+        {
+          "word": "the",
+          "start": 0.44,
+          "end": 0.613
+        },
+        {
+          "word": "house",
+          "start": 0.613,
+          "end": 0.94
+        },
+        {
+          "word": "special",
+          "start": 0.94,
+          "end": 1.58
+        },
+        {
+          "word": "The",
+          "start": 1.58,
+          "end": 2.06
+        },
+        {
+          "word": "app",
+          "start": 2.06,
+          "end": 2.293
+        },
+        {
+          "word": "picks",
+          "start": 2.293,
+          "end": 2.6
+        },
+        {
+          "word": "a",
+          "start": 2.6,
+          "end": 2.693
+        },
+        {
+          "word": "model",
+          "start": 2.693,
+          "end": 3
+        },
+        {
+          "word": "for",
+          "start": 3,
+          "end": 3.16
+        },
+        {
+          "word": "you",
+          "start": 3.16,
+          "end": 3.712
+        },
+        {
+          "word": "then",
+          "start": 3.712,
+          "end": 3.907
+        },
+        {
+          "word": "tells",
+          "start": 3.907,
+          "end": 4.28
+        },
+        {
+          "word": "you",
+          "start": 4.28,
+          "end": 4.453
+        },
+        {
+          "word": "which",
+          "start": 4.453,
+          "end": 4.78
+        },
+        {
+          "word": "one",
+          "start": 4.78,
+          "end": 5.04
+        },
+        {
+          "word": "it",
+          "start": 5.04,
+          "end": 5.253
+        },
+        {
+          "word": "chose",
+          "start": 5.253,
+          "end": 5.56
+        },
+        {
+          "word": "and",
+          "start": 5.56,
+          "end": 5.76
+        },
+        {
+          "word": "why",
+          "start": 5.76,
+          "end": 6.304
+        },
+        {
+          "word": "Mind",
+          "start": 6.304,
+          "end": 7.413
+        },
+        {
+          "word": "it",
+          "start": 7.413,
+          "end": 7.58
+        },
+        {
+          "word": "isn't",
+          "start": 7.58,
+          "end": 7.9
+        },
+        {
+          "word": "Autopilot",
+          "start": 7.9,
+          "end": 8.15
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.right",
+      "speaker": "Desmond",
+      "text": "Right-sized! Take some starfish back for hiring smart.",
+      "duration": 4.308,
+      "files": {
+        "webm": "desmond.market.right.webm",
+        "m4a": "desmond.market.right.m4a"
+      },
+      "hash": "5471ac72319015e7",
+      "words": [
+        {
+          "word": "Right-sized",
+          "start": 0,
+          "end": 1.408
+        },
+        {
+          "word": "Take",
+          "start": 1.408,
+          "end": 1.648
+        },
+        {
+          "word": "some",
+          "start": 1.648,
+          "end": 1.904
+        },
+        {
+          "word": "starfish",
+          "start": 1.904,
+          "end": 2.464
+        },
+        {
+          "word": "back",
+          "start": 2.464,
+          "end": 2.78
+        },
+        {
+          "word": "for",
+          "start": 2.78,
+          "end": 3.04
+        },
+        {
+          "word": "hiring",
+          "start": 3.04,
+          "end": 3.6
+        },
+        {
+          "word": "smart",
+          "start": 3.6,
+          "end": 3.85
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.fair",
+      "speaker": "Desmond",
+      "text": "Right-sized! A fair price for this job.",
+      "duration": 3.308,
+      "files": {
+        "webm": "desmond.market.fair.webm",
+        "m4a": "desmond.market.fair.m4a"
+      },
+      "hash": "b1feaf3a798db48d",
+      "words": [
+        {
+          "word": "Right-sized",
+          "start": 0,
+          "end": 1.44
+        },
+        {
+          "word": "A",
+          "start": 1.44,
+          "end": 1.664
+        },
+        {
+          "word": "fair",
+          "start": 1.664,
+          "end": 1.987
+        },
+        {
+          "word": "price",
+          "start": 1.987,
+          "end": 2.36
+        },
+        {
+          "word": "for",
+          "start": 2.36,
+          "end": 2.528
+        },
+        {
+          "word": "this",
+          "start": 2.528,
+          "end": 2.82
+        },
+        {
+          "word": "job",
+          "start": 2.82,
+          "end": 3.07
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.over",
+      "speaker": "Desmond",
+      "text": "That's plenty of starfish for a quick look. Auto would have handled it.",
+      "duration": 4.808,
+      "files": {
+        "webm": "desmond.market.over.webm",
+        "m4a": "desmond.market.over.m4a"
+      },
+      "hash": "39a13595d241c626",
+      "words": [
+        {
+          "word": "That's",
+          "start": 0,
+          "end": 0.377
+        },
+        {
+          "word": "plenty",
+          "start": 0.377,
+          "end": 0.747
+        },
+        {
+          "word": "of",
+          "start": 0.747,
+          "end": 0.88
+        },
+        {
+          "word": "starfish",
+          "start": 0.88,
+          "end": 1.4
+        },
+        {
+          "word": "for",
+          "start": 1.4,
+          "end": 1.56
+        },
+        {
+          "word": "a",
+          "start": 1.56,
+          "end": 1.653
+        },
+        {
+          "word": "quick",
+          "start": 1.653,
+          "end": 1.984
+        },
+        {
+          "word": "look",
+          "start": 1.984,
+          "end": 2.608
+        },
+        {
+          "word": "Auto",
+          "start": 2.608,
+          "end": 3.467
+        },
+        {
+          "word": "would",
+          "start": 3.467,
+          "end": 3.632
+        },
+        {
+          "word": "have",
+          "start": 3.632,
+          "end": 3.81
+        },
+        {
+          "word": "handled",
+          "start": 3.81,
+          "end": 4.24
+        },
+        {
+          "word": "it",
+          "start": 4.24,
+          "end": 4.49
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.over.effort",
+      "speaker": "Desmond",
+      "text": "High effort for a quick look? The default would have done fine.",
+      "duration": 4.608,
+      "files": {
+        "webm": "desmond.market.over.effort.webm",
+        "m4a": "desmond.market.over.effort.m4a"
+      },
+      "hash": "f29a315267e31749",
+      "words": [
+        {
+          "word": "High",
+          "start": 0,
+          "end": 0.297
+        },
+        {
+          "word": "effort",
+          "start": 0.297,
+          "end": 0.68
+        },
+        {
+          "word": "for",
+          "start": 0.68,
+          "end": 0.84
+        },
+        {
+          "word": "a",
+          "start": 0.84,
+          "end": 0.933
+        },
+        {
+          "word": "quick",
+          "start": 0.933,
+          "end": 1.28
+        },
+        {
+          "word": "look",
+          "start": 1.28,
+          "end": 1.88
+        },
+        {
+          "word": "The",
+          "start": 1.88,
+          "end": 2.55
+        },
+        {
+          "word": "default",
+          "start": 2.55,
+          "end": 3.067
+        },
+        {
+          "word": "would",
+          "start": 3.067,
+          "end": 3.248
+        },
+        {
+          "word": "have",
+          "start": 3.248,
+          "end": 3.488
+        },
+        {
+          "word": "done",
+          "start": 3.488,
+          "end": 3.76
+        },
+        {
+          "word": "fine",
+          "start": 3.76,
+          "end": 4.01
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.short",
+      "speaker": "Desmond",
+      "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort.",
+      "duration": 7.208,
+      "files": {
+        "webm": "desmond.market.short.webm",
+        "m4a": "desmond.market.short.m4a"
+      },
+      "hash": "f6795b272852baad",
+      "words": [
+        {
+          "word": "Not",
+          "start": 0,
+          "end": 0.293
+        },
+        {
+          "word": "quite",
+          "start": 0.293,
+          "end": 0.875
+        },
+        {
+          "word": "Captain",
+          "start": 0.875,
+          "end": 1.44
+        },
+        {
+          "word": "A",
+          "start": 1.44,
+          "end": 1.76
+        },
+        {
+          "word": "job",
+          "start": 1.76,
+          "end": 2.048
+        },
+        {
+          "word": "like",
+          "start": 2.048,
+          "end": 2.288
+        },
+        {
+          "word": "this",
+          "start": 2.288,
+          "end": 2.52
+        },
+        {
+          "word": "needs",
+          "start": 2.52,
+          "end": 2.768
+        },
+        {
+          "word": "more",
+          "start": 2.768,
+          "end": 3.04
+        },
+        {
+          "word": "muscle",
+          "start": 3.04,
+          "end": 3.787
+        },
+        {
+          "word": "Retry",
+          "start": 3.787,
+          "end": 4.736
+        },
+        {
+          "word": "with",
+          "start": 4.736,
+          "end": 4.88
+        },
+        {
+          "word": "a",
+          "start": 4.88,
+          "end": 5.013
+        },
+        {
+          "word": "stronger",
+          "start": 5.013,
+          "end": 5.507
+        },
+        {
+          "word": "model",
+          "start": 5.507,
+          "end": 5.92
+        },
+        {
+          "word": "or",
+          "start": 5.92,
+          "end": 6.128
+        },
+        {
+          "word": "more",
+          "start": 6.128,
+          "end": 6.411
+        },
+        {
+          "word": "effort",
+          "start": 6.411,
+          "end": 6.661
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.short.auto",
+      "speaker": "Desmond",
+      "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort.",
+      "duration": 10.408,
+      "files": {
+        "webm": "desmond.market.short.auto.webm",
+        "m4a": "desmond.market.short.auto.m4a"
+      },
+      "hash": "e4153fb4207a033f",
+      "words": [
+        {
+          "word": "With",
+          "start": 0,
+          "end": 0.336
+        },
+        {
+          "word": "Auto",
+          "start": 0.336,
+          "end": 0.827
+        },
+        {
+          "word": "on",
+          "start": 0.827,
+          "end": 1.2
+        },
+        {
+          "word": "the",
+          "start": 1.2,
+          "end": 1.509
+        },
+        {
+          "word": "effort",
+          "start": 1.509,
+          "end": 1.97
+        },
+        {
+          "word": "setting",
+          "start": 1.97,
+          "end": 2.4
+        },
+        {
+          "word": "stays",
+          "start": 2.4,
+          "end": 2.857
+        },
+        {
+          "word": "hidden",
+          "start": 2.857,
+          "end": 3.7
+        },
+        {
+          "word": "For",
+          "start": 3.7,
+          "end": 4.28
+        },
+        {
+          "word": "a",
+          "start": 4.28,
+          "end": 4.384
+        },
+        {
+          "word": "hard",
+          "start": 4.384,
+          "end": 4.74
+        },
+        {
+          "word": "job",
+          "start": 4.74,
+          "end": 5.189
+        },
+        {
+          "word": "switch",
+          "start": 5.189,
+          "end": 5.68
+        },
+        {
+          "word": "Auto",
+          "start": 5.68,
+          "end": 6.1
+        },
+        {
+          "word": "off",
+          "start": 6.1,
+          "end": 6.944
+        },
+        {
+          "word": "then",
+          "start": 6.944,
+          "end": 7.904
+        },
+        {
+          "word": "pick",
+          "start": 7.904,
+          "end": 8.2
+        },
+        {
+          "word": "a",
+          "start": 8.2,
+          "end": 8.307
+        },
+        {
+          "word": "model",
+          "start": 8.307,
+          "end": 8.72
+        },
+        {
+          "word": "and",
+          "start": 8.72,
+          "end": 9
+        },
+        {
+          "word": "a",
+          "start": 9,
+          "end": 9.097
+        },
+        {
+          "word": "higher",
+          "start": 9.097,
+          "end": 9.531
+        },
+        {
+          "word": "effort",
+          "start": 9.531,
+          "end": 9.781
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.broke",
+      "speaker": "Desmond",
+      "text": "No starfish yet? They're hidden all over the islands. Come back when you've found a few.",
+      "duration": 7.108,
+      "files": {
+        "webm": "desmond.market.broke.webm",
+        "m4a": "desmond.market.broke.m4a"
+      },
+      "hash": "1acce846b3f55833",
+      "words": [
+        {
+          "word": "No",
+          "start": 0,
+          "end": 0.224
+        },
+        {
+          "word": "starfish",
+          "start": 0.224,
+          "end": 0.8
+        },
+        {
+          "word": "yet",
+          "start": 0.8,
+          "end": 1.36
+        },
+        {
+          "word": "They're",
+          "start": 1.36,
+          "end": 2.434
+        },
+        {
+          "word": "hidden",
+          "start": 2.434,
+          "end": 2.76
+        },
+        {
+          "word": "all",
+          "start": 2.76,
+          "end": 3.2
+        },
+        {
+          "word": "over",
+          "start": 3.2,
+          "end": 3.56
+        },
+        {
+          "word": "the",
+          "start": 3.56,
+          "end": 3.76
+        },
+        {
+          "word": "islands",
+          "start": 3.76,
+          "end": 4.656
+        },
+        {
+          "word": "Come",
+          "start": 4.656,
+          "end": 5.408
+        },
+        {
+          "word": "back",
+          "start": 5.408,
+          "end": 5.648
+        },
+        {
+          "word": "when",
+          "start": 5.648,
+          "end": 5.86
+        },
+        {
+          "word": "you've",
+          "start": 5.86,
+          "end": 6.133
+        },
+        {
+          "word": "found",
+          "start": 6.133,
+          "end": 6.44
+        },
+        {
+          "word": "a",
+          "start": 6.44,
+          "end": 6.58
+        },
+        {
+          "word": "few",
+          "start": 6.58,
+          "end": 6.83
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "desmond.market.done",
+      "speaker": "Desmond",
+      "text": "Every job on the board, right-sized. You know your models, Captain!",
+      "duration": 5.608,
+      "files": {
+        "webm": "desmond.market.done.webm",
+        "m4a": "desmond.market.done.m4a"
+      },
+      "hash": "e9d22c1c495a6279",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0,
+          "end": 0.42
+        },
+        {
+          "word": "job",
+          "start": 0.42,
+          "end": 0.747
+        },
+        {
+          "word": "on",
+          "start": 0.747,
+          "end": 0.84
+        },
+        {
+          "word": "the",
+          "start": 0.84,
+          "end": 1.027
+        },
+        {
+          "word": "board",
+          "start": 1.027,
+          "end": 1.653
+        },
+        {
+          "word": "right-sized",
+          "start": 1.653,
+          "end": 3
+        },
+        {
+          "word": "You",
+          "start": 3,
+          "end": 4.128
+        },
+        {
+          "word": "know",
+          "start": 4.128,
+          "end": 4.352
+        },
+        {
+          "word": "your",
+          "start": 4.352,
+          "end": 4.549
+        },
+        {
+          "word": "models",
+          "start": 4.549,
+          "end": 5.1
+        },
+        {
+          "word": "Captain",
+          "start": 5.1,
+          "end": 5.35
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "tb.lani.market.open",
+      "speaker": "Lani",
+      "text": "Pick a job off the board, then hire a model and set the effort dial.",
+      "duration": 5.408,
+      "files": {
+        "webm": "tb.lani.market.open.webm",
+        "m4a": "tb.lani.market.open.m4a"
+      },
+      "hash": "008d988106240654",
+      "words": [
+        {
+          "word": "Pick",
+          "start": 0,
+          "end": 0.2
+        },
+        {
+          "word": "a",
+          "start": 0.2,
+          "end": 0.34
+        },
+        {
+          "word": "job",
+          "start": 0.34,
+          "end": 0.72
+        },
+        {
+          "word": "off",
+          "start": 0.72,
+          "end": 1
+        },
+        {
+          "word": "the",
+          "start": 1,
+          "end": 1.187
+        },
+        {
+          "word": "board",
+          "start": 1.187,
+          "end": 2.048
+        },
+        {
+          "word": "then",
+          "start": 2.048,
+          "end": 2.32
+        },
+        {
+          "word": "hire",
+          "start": 2.32,
+          "end": 2.68
+        },
+        {
+          "word": "a",
+          "start": 2.68,
+          "end": 2.8
+        },
+        {
+          "word": "model",
+          "start": 2.8,
+          "end": 3.32
+        },
+        {
+          "word": "and",
+          "start": 3.32,
+          "end": 3.8
+        },
+        {
+          "word": "set",
+          "start": 3.8,
+          "end": 4.22
+        },
+        {
+          "word": "the",
+          "start": 4.22,
+          "end": 4.457
+        },
+        {
+          "word": "effort",
+          "start": 4.457,
+          "end": 4.896
+        },
+        {
+          "word": "dial",
+          "start": 4.896,
+          "end": 5.146
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.auto",
+      "speaker": "Lani",
+      "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
+      "duration": 10.008,
+      "files": {
+        "webm": "tb.lani.market.auto.webm",
+        "m4a": "tb.lani.market.auto.m4a"
+      },
+      "hash": "668da63b9a6036fa",
+      "words": [
+        {
+          "word": "Auto's",
+          "start": 0,
+          "end": 0.62
+        },
+        {
+          "word": "our",
+          "start": 0.62,
+          "end": 0.867
+        },
+        {
+          "word": "house",
+          "start": 0.867,
+          "end": 1.27
+        },
+        {
+          "word": "special",
+          "start": 1.27,
+          "end": 1.96
+        },
+        {
+          "word": "The",
+          "start": 1.96,
+          "end": 2.42
+        },
+        {
+          "word": "app",
+          "start": 2.42,
+          "end": 2.78
+        },
+        {
+          "word": "chooses",
+          "start": 2.78,
+          "end": 3.24
+        },
+        {
+          "word": "a",
+          "start": 3.24,
+          "end": 3.333
+        },
+        {
+          "word": "model",
+          "start": 3.333,
+          "end": 3.68
+        },
+        {
+          "word": "for",
+          "start": 3.68,
+          "end": 4
+        },
+        {
+          "word": "you",
+          "start": 4,
+          "end": 4.4
+        },
+        {
+          "word": "and",
+          "start": 4.4,
+          "end": 4.693
+        },
+        {
+          "word": "tells",
+          "start": 4.693,
+          "end": 5
+        },
+        {
+          "word": "you",
+          "start": 5,
+          "end": 5.173
+        },
+        {
+          "word": "which",
+          "start": 5.173,
+          "end": 5.54
+        },
+        {
+          "word": "one",
+          "start": 5.54,
+          "end": 5.94
+        },
+        {
+          "word": "and",
+          "start": 5.94,
+          "end": 6.36
+        },
+        {
+          "word": "why",
+          "start": 6.36,
+          "end": 7.093
+        },
+        {
+          "word": "It's",
+          "start": 7.093,
+          "end": 7.68
+        },
+        {
+          "word": "not",
+          "start": 7.68,
+          "end": 7.94
+        },
+        {
+          "word": "the",
+          "start": 7.94,
+          "end": 8.112
+        },
+        {
+          "word": "same",
+          "start": 8.112,
+          "end": 8.64
+        },
+        {
+          "word": "as",
+          "start": 8.64,
+          "end": 8.88
+        },
+        {
+          "word": "Autopilot",
+          "start": 8.88,
+          "end": 9.13
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.right",
+      "speaker": "Lani",
+      "text": "Right-sized! Here, have some starfish back.",
+      "duration": 3.308,
+      "files": {
+        "webm": "tb.lani.market.right.webm",
+        "m4a": "tb.lani.market.right.m4a"
+      },
+      "hash": "bb559b93507ce1b2",
+      "words": [
+        {
+          "word": "Right-sized",
+          "start": 0,
+          "end": 1.248
+        },
+        {
+          "word": "Here",
+          "start": 1.248,
+          "end": 1.712
+        },
+        {
+          "word": "have",
+          "start": 1.712,
+          "end": 1.888
+        },
+        {
+          "word": "some",
+          "start": 1.888,
+          "end": 2.16
+        },
+        {
+          "word": "starfish",
+          "start": 2.16,
+          "end": 2.8
+        },
+        {
+          "word": "back",
+          "start": 2.8,
+          "end": 3.05
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.fair",
+      "speaker": "Lani",
+      "text": "Right-sized, and a fair price for the job.",
+      "duration": 3.608,
+      "files": {
+        "webm": "tb.lani.market.fair.webm",
+        "m4a": "tb.lani.market.fair.m4a"
+      },
+      "hash": "2faddc80a300a18b",
+      "words": [
+        {
+          "word": "Right-sized",
+          "start": 0,
+          "end": 1.18
+        },
+        {
+          "word": "and",
+          "start": 1.18,
+          "end": 1.88
+        },
+        {
+          "word": "a",
+          "start": 1.88,
+          "end": 1.984
+        },
+        {
+          "word": "fair",
+          "start": 1.984,
+          "end": 2.32
+        },
+        {
+          "word": "price",
+          "start": 2.32,
+          "end": 2.76
+        },
+        {
+          "word": "for",
+          "start": 2.76,
+          "end": 2.9
+        },
+        {
+          "word": "the",
+          "start": 2.9,
+          "end": 3.08
+        },
+        {
+          "word": "job",
+          "start": 3.08,
+          "end": 3.33
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.over",
+      "speaker": "Lani",
+      "text": "That's a lot of starfish for a quick look. Auto could have done it.",
+      "duration": 3.908,
+      "files": {
+        "webm": "tb.lani.market.over.webm",
+        "m4a": "tb.lani.market.over.m4a"
+      },
+      "hash": "d2905accca6e9268",
+      "words": [
+        {
+          "word": "That's",
+          "start": 0,
+          "end": 0.2
+        },
+        {
+          "word": "a",
+          "start": 0.2,
+          "end": 0.28
+        },
+        {
+          "word": "lot",
+          "start": 0.28,
+          "end": 0.427
+        },
+        {
+          "word": "of",
+          "start": 0.427,
+          "end": 0.56
+        },
+        {
+          "word": "starfish",
+          "start": 0.56,
+          "end": 1.16
+        },
+        {
+          "word": "for",
+          "start": 1.16,
+          "end": 1.32
+        },
+        {
+          "word": "a",
+          "start": 1.32,
+          "end": 1.413
+        },
+        {
+          "word": "quick",
+          "start": 1.413,
+          "end": 1.76
+        },
+        {
+          "word": "look",
+          "start": 1.76,
+          "end": 2.656
+        },
+        {
+          "word": "Auto",
+          "start": 2.656,
+          "end": 3.067
+        },
+        {
+          "word": "could",
+          "start": 3.067,
+          "end": 3.232
+        },
+        {
+          "word": "have",
+          "start": 3.232,
+          "end": 3.392
+        },
+        {
+          "word": "done",
+          "start": 3.392,
+          "end": 3.573
+        },
+        {
+          "word": "it",
+          "start": 3.573,
+          "end": 3.823
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.over.effort",
+      "speaker": "Lani",
+      "text": "High effort for a quick look? Default effort would have been plenty.",
+      "duration": 5.008,
+      "files": {
+        "webm": "tb.lani.market.over.effort.webm",
+        "m4a": "tb.lani.market.over.effort.m4a"
+      },
+      "hash": "6c9a91adf9261121",
+      "words": [
+        {
+          "word": "High",
+          "start": 0,
+          "end": 0.286
+        },
+        {
+          "word": "effort",
+          "start": 0.286,
+          "end": 0.6
+        },
+        {
+          "word": "for",
+          "start": 0.6,
+          "end": 0.76
+        },
+        {
+          "word": "a",
+          "start": 0.76,
+          "end": 0.867
+        },
+        {
+          "word": "quick",
+          "start": 0.867,
+          "end": 1.28
+        },
+        {
+          "word": "look",
+          "start": 1.28,
+          "end": 1.85
+        },
+        {
+          "word": "Default",
+          "start": 1.85,
+          "end": 3.109
+        },
+        {
+          "word": "effort",
+          "start": 3.109,
+          "end": 3.56
+        },
+        {
+          "word": "would",
+          "start": 3.56,
+          "end": 3.792
+        },
+        {
+          "word": "have",
+          "start": 3.792,
+          "end": 3.968
+        },
+        {
+          "word": "been",
+          "start": 3.968,
+          "end": 4.251
+        },
+        {
+          "word": "plenty",
+          "start": 4.251,
+          "end": 4.501
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.short",
+      "speaker": "Lani",
+      "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort.",
+      "duration": 6.408,
+      "files": {
+        "webm": "tb.lani.market.short.webm",
+        "m4a": "tb.lani.market.short.m4a"
+      },
+      "hash": "9121f02298e6e637",
+      "words": [
+        {
+          "word": "Not",
+          "start": 0,
+          "end": 0.206
+        },
+        {
+          "word": "enough",
+          "start": 0.206,
+          "end": 0.5
+        },
+        {
+          "word": "for",
+          "start": 0.5,
+          "end": 0.608
+        },
+        {
+          "word": "this",
+          "start": 0.608,
+          "end": 0.88
+        },
+        {
+          "word": "one",
+          "start": 0.88,
+          "end": 1.307
+        },
+        {
+          "word": "It",
+          "start": 1.307,
+          "end": 1.587
+        },
+        {
+          "word": "needs",
+          "start": 1.587,
+          "end": 1.984
+        },
+        {
+          "word": "more",
+          "start": 1.984,
+          "end": 2.297
+        },
+        {
+          "word": "muscle",
+          "start": 2.297,
+          "end": 2.933
+        },
+        {
+          "word": "so",
+          "start": 2.933,
+          "end": 3.16
+        },
+        {
+          "word": "retry",
+          "start": 3.16,
+          "end": 3.824
+        },
+        {
+          "word": "with",
+          "start": 3.824,
+          "end": 4.2
+        },
+        {
+          "word": "a",
+          "start": 4.2,
+          "end": 4.347
+        },
+        {
+          "word": "stronger",
+          "start": 4.347,
+          "end": 4.627
+        },
+        {
+          "word": "model",
+          "start": 4.627,
+          "end": 5.093
+        },
+        {
+          "word": "or",
+          "start": 5.093,
+          "end": 5.408
+        },
+        {
+          "word": "more",
+          "start": 5.408,
+          "end": 5.691
+        },
+        {
+          "word": "effort",
+          "start": 5.691,
+          "end": 5.941
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.short.auto",
+      "speaker": "Lani",
+      "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort.",
+      "duration": 10.408,
+      "files": {
+        "webm": "tb.lani.market.short.auto.webm",
+        "m4a": "tb.lani.market.short.auto.m4a"
+      },
+      "hash": "ec50f804a8e1d3c8",
+      "words": [
+        {
+          "word": "Auto",
+          "start": 0,
+          "end": 0.547
+        },
+        {
+          "word": "keeps",
+          "start": 0.547,
+          "end": 0.9
+        },
+        {
+          "word": "the",
+          "start": 0.9,
+          "end": 1.029
+        },
+        {
+          "word": "effort",
+          "start": 1.029,
+          "end": 1.51
+        },
+        {
+          "word": "setting",
+          "start": 1.51,
+          "end": 2.08
+        },
+        {
+          "word": "hidden",
+          "start": 2.08,
+          "end": 2.92
+        },
+        {
+          "word": "For",
+          "start": 2.92,
+          "end": 3.56
+        },
+        {
+          "word": "a",
+          "start": 3.56,
+          "end": 3.74
+        },
+        {
+          "word": "job",
+          "start": 3.74,
+          "end": 4.224
+        },
+        {
+          "word": "this",
+          "start": 4.224,
+          "end": 4.576
+        },
+        {
+          "word": "hard",
+          "start": 4.576,
+          "end": 5.344
+        },
+        {
+          "word": "turn",
+          "start": 5.344,
+          "end": 5.696
+        },
+        {
+          "word": "Auto",
+          "start": 5.696,
+          "end": 6.22
+        },
+        {
+          "word": "off",
+          "start": 6.22,
+          "end": 7.248
+        },
+        {
+          "word": "then",
+          "start": 7.248,
+          "end": 7.509
+        },
+        {
+          "word": "choose",
+          "start": 7.509,
+          "end": 8
+        },
+        {
+          "word": "a",
+          "start": 8,
+          "end": 8.147
+        },
+        {
+          "word": "model",
+          "start": 8.147,
+          "end": 8.58
+        },
+        {
+          "word": "and",
+          "start": 8.58,
+          "end": 8.92
+        },
+        {
+          "word": "a",
+          "start": 8.92,
+          "end": 9.029
+        },
+        {
+          "word": "higher",
+          "start": 9.029,
+          "end": 9.554
+        },
+        {
+          "word": "effort",
+          "start": 9.554,
+          "end": 9.804
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.broke",
+      "speaker": "Lani",
+      "text": "Out of starfish? There are plenty hidden around the islands. Come back when you've found some.",
+      "duration": 6.008,
+      "files": {
+        "webm": "tb.lani.market.broke.webm",
+        "m4a": "tb.lani.market.broke.m4a"
+      },
+      "hash": "6c4efbefe4aaa2e8",
+      "words": [
+        {
+          "word": "Out",
+          "start": 0,
+          "end": 0.187
+        },
+        {
+          "word": "of",
+          "start": 0.187,
+          "end": 0.352
+        },
+        {
+          "word": "starfish",
+          "start": 0.352,
+          "end": 1.36
+        },
+        {
+          "word": "There",
+          "start": 1.36,
+          "end": 1.8
+        },
+        {
+          "word": "are",
+          "start": 1.8,
+          "end": 1.989
+        },
+        {
+          "word": "plenty",
+          "start": 1.989,
+          "end": 2.457
+        },
+        {
+          "word": "hidden",
+          "start": 2.457,
+          "end": 2.846
+        },
+        {
+          "word": "around",
+          "start": 2.846,
+          "end": 3.14
+        },
+        {
+          "word": "the",
+          "start": 3.14,
+          "end": 3.28
+        },
+        {
+          "word": "islands",
+          "start": 3.28,
+          "end": 4.016
+        },
+        {
+          "word": "Come",
+          "start": 4.016,
+          "end": 4.464
+        },
+        {
+          "word": "back",
+          "start": 4.464,
+          "end": 4.768
+        },
+        {
+          "word": "when",
+          "start": 4.768,
+          "end": 5
+        },
+        {
+          "word": "you've",
+          "start": 5,
+          "end": 5.253
+        },
+        {
+          "word": "found",
+          "start": 5.253,
+          "end": 5.6
+        },
+        {
+          "word": "some",
+          "start": 5.6,
+          "end": 5.85
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "tb.lani.market.done",
+      "speaker": "Lani",
+      "text": "The whole board, right-sized! You really know your models, Captain.",
+      "duration": 6.108,
+      "files": {
+        "webm": "tb.lani.market.done.webm",
+        "m4a": "tb.lani.market.done.m4a"
+      },
+      "hash": "b7fd57223a173fa6",
+      "words": [
+        {
+          "word": "The",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "word": "whole",
+          "start": 0.24,
+          "end": 0.747
+        },
+        {
+          "word": "board",
+          "start": 0.747,
+          "end": 1.733
+        },
+        {
+          "word": "right-sized",
+          "start": 1.733,
+          "end": 3.02
+        },
+        {
+          "word": "You",
+          "start": 3.02,
+          "end": 3.497
+        },
+        {
+          "word": "really",
+          "start": 3.497,
+          "end": 3.92
+        },
+        {
+          "word": "know",
+          "start": 3.92,
+          "end": 4.32
+        },
+        {
+          "word": "your",
+          "start": 4.32,
+          "end": 4.72
+        },
+        {
+          "word": "models",
+          "start": 4.72,
+          "end": 5.51
+        },
+        {
+          "word": "Captain",
+          "start": 5.51,
+          "end": 5.76
         }
       ],
       "voice": "sxEoZ67pB0EMoWOZZ37G"
