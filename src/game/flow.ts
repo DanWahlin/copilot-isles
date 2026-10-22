@@ -23,6 +23,7 @@ import type { CharacterLibrary } from '../world/characters';
 import type { CoveScene } from '../world/cove-scene';
 import { prewarmWaterDepthTexture } from '../world/ocean/water-depth-texture';
 import { world } from '../world/uniforms';
+import { isSeaStateId, seaState } from '../world/ocean/sea-state';
 import { buildChart, coveTravelPoints, prewarmChart } from './chart';
 import { meridianOpen } from './meridian-open';
 import { thousandBoughOpen } from './thousand-bough-open';
@@ -641,6 +642,8 @@ export class GameFlow implements GameBridge {
     document.documentElement.dataset.subtitles = s.subtitles ? s.subtitleSize : 'off';
     document.documentElement.classList.toggle('reduced-motion', s.reducedMotion);
     world.reducedMotion.value = s.reducedMotion ? 1 : 0;
+    seaState.setSetting(s.seaState);
+    seaState.setReducedMotion(s.reducedMotion);
     this.o.engine.setRenderScale(s.renderScale === 'auto' ? null : s.renderScale);
   }
 
@@ -1117,6 +1120,7 @@ const QUALITIES = new Set(['auto', 'lite', 'low', 'medium', 'high', 'ultra']);
 function sanitizeSettings(s: Settings): Settings {
   const out = { ...s };
   if (!QUALITIES.has(out.quality)) out.quality = DEFAULT_SETTINGS.quality;
+  if (!isSeaStateId(out.seaState)) out.seaState = DEFAULT_SETTINGS.seaState;
   if (out.renderScale !== 'auto' && !(typeof out.renderScale === 'number' && out.renderScale >= 0.5))
     out.renderScale = DEFAULT_SETTINGS.renderScale;
   return out;

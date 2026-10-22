@@ -1,6 +1,7 @@
 import type { Platform } from '../engine/capability';
 import type { Backend, Tier } from '../world/contracts';
 import type { OsId } from '../learn/setup';
+import type { SeaStateId } from '../world/ocean/sea-state';
 
 /**
  * The contract between the React UI (menus, chart, settings) and the game (PLAN §5, POC §3.1).
@@ -40,6 +41,8 @@ export interface Settings {
   subtitles: boolean;
   subtitleSize: SubtitleSize;
   reducedMotion: boolean;
+  /** Settings → Sea state: the waves, wind, foam and sailing at sea (battles and puzzle courses keep their own). */
+  seaState: SeaStateId;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -56,6 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   subtitles: true,
   subtitleSize: 'm',
   reducedMotion: false,
+  seaState: 'breeze',
 };
 
 /** Chart coordinates are normalized 0-1 across the chart (x → east, y → south). */

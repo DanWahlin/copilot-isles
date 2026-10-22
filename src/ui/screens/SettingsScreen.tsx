@@ -6,10 +6,13 @@ import { COURSE } from '../../course/catalog';
 import { Rich } from '../components/Rich';
 import { ApplyQuality, QualityPicker, RenderScaleControl } from '../components/GraphicsSettings';
 import { OverlayShell } from '../components/OverlayShell';
+import { SeaStatePicker } from '../components/SeaStatePicker';
 import { Select, SettingsGroup, Slider, Toggle } from '../components/SettingsControls';
+import { useMenuPad } from '../hooks/menu-pad';
 
 export function SettingsScreen({ state, bridge }: { state: UiState; bridge: GameBridge }) {
   const settings = state.settings;
+  useMenuPad(bridge.back);
   return (
     <OverlayShell title="Settings" eyebrow="Ship’s instruments" onBack={bridge.back} wide>
       <div className="ci-settings-grid">
@@ -84,6 +87,9 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             <StartOver bridge={bridge} />
           </SettingsGroup>
         )}
+        <SettingsGroup title="Sea state" wide>
+          <SeaStatePicker state={state} bridge={bridge} />
+        </SettingsGroup>
         <SettingsGroup title="Graphics" wide>
           <div className="ci-graphics">
             <QualityPicker state={state} bridge={bridge} />

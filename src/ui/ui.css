@@ -2210,6 +2210,23 @@ html.reduced-motion .ci-quality-option {
   transition: none;
 }
 
+.ci-sea-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.7rem 0 0.2rem;
+}
+
+.ci-sea-option {
+  min-height: 44px;
+}
+
+@media (max-width: 760px) {
+  .ci-sea-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 840px) {
   .ci-graphics {
     grid-template-columns: 1fr;
