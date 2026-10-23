@@ -550,6 +550,43 @@ hook (release it when the site is freed).
   with it freed (issue 263 made the first draw its silhouette). Compare trees on the same machine,
   same script, measured settled, before blaming or clearing a change.
 
+### CPU and GPU time (issues 11 and 29)
+
+- **Read GPU time as the union of the passes, never their sum.** On Apple GPUs a pass's start
+  timestamp is taken as soon as it's queued and it then waits for the passes it reads, so a frame's
+  passes overlap: High at Anchorage, seven passes started within 0.75 ms, and their sum read 19.5 ms
+  for passes that all lay within 5.0 ms (7.1 ms at 227 fps uncapped, where a frame can't hold more
+  than 4.4 ms). `BusyTimestampPool` (engine/gpu-timestamps.ts, in the backend's public
+  `timestampQueryPool` slot) keeps each pass's interval; `Engine.gpuBusyMs` is the union, `gpuMs`
+  limits it to the frame (`limitGpuMs`), `gpuRawMs` keeps the sum. WebGL2 can't do better on the
+  Mac: ANGLE-Metal times a TIME_ELAPSED query by the command buffers its pass ran in (QueryMtl.mm),
+  which overlap the same way, and it has no TIMESTAMP_EXT for a union; its sum read past the frame
+  period on High. Measure GPU uncapped (`launchChrome({ uncapped: true })`).
+- **three r186 spends ~50 µs of main thread per draw at Low's 3× throttle** (about 15 µs on the M3
+  Max): every node material refreshes fully every frame (`NodeMaterialObserver.needsRefresh` is FULL
+  whenever a material has a node), so its node updates and bind groups run per draw however static
+  the object. Low's quay view draws 114 times, and its scene pass took 5.6 of the frame's 8.9 ms
+  (a loaded run). Count draws when you plan Low's main thread, and don't expect per-object tricks to
+  pay: sorting opaque draws by material (`setOpaqueSort`) and updating the shadow's reference nodes
+  once per render instead of per object both measured within noise.
+- **What paid on the main thread:** early-outs on a box before the maths in anything the follow
+  camera asks (~1000 ground queries a frame: the streets, door stairs, batteries, basins and streams
+  each kept a box; `CollisionWorld.groundUnder` looks the terrain and bed up once); skipping a plant
+  batch's refill (and its upload) when the camera hasn't moved or turned; NPCs out of view not
+  animating (their time is kept and spent when they're back, PLAN §12.3; above Low, only past the
+  movers' shadow map); plants copying stored matrices and impostor cards building theirs directly
+  on a moving camera; `FrameCounters` filling its stats in place. Low at 3×: sailing 9.5 → 6.0 ms,
+  Thousand-Bough's booths 10.2 → 4.8 ms. Prove an early-out exact: fingerprint the queries over a
+  dense grid in both trees (2.5 M queries hashed the same). Measure on a quiet machine: under a load
+  average of ~9 the same tree read 8-9 ms at the quay that read 6.0 ms at ~6.
+- **Triangles a camera can't see:** the ocean's polar grid draws only the wedges in the camera's
+  frustum (`cullPolarSectors`; the disc round the camera stays whole because every wedge meets
+  there), sector by sector so a run of wedges is one draw range, with the rings in order along each
+  view ray (the sea writes no depth). A coarser caster in a shadow map moves the shadows you see:
+  only a town whose own surfaces skip the sun's shadows (Anchorage on Low) draws its static map
+  coarser (`chunkShadowLodFloor`). Check such a change with a same-frame A/B (pause the clock, stop
+  the loop, `renderStill`, toggle, diff): run-to-run screenshots differ by far more than it does.
+
 ## 6. Verify like this
 
 - `npm run typecheck && npm run lint && npm run format:check && npm test`, then
@@ -560,6 +597,14 @@ hook (release it when the site is freed).
   the last island still resident and with the islands you've left freed, both gated. An island that doesn't settle within `--settle-timeout` fails as UNSETTLED with what it
   waited on. The static shadow map's redraw (one frame per ~50 m walked, PLAN §12.4) is reported
   on its own lines and not gated. A dev page that warms things must count them in `settled()`.
+- CPU, GPU and the flythrough (PLAN §12.1, §12.10): `npm run check:perf -- --base=<no-HMR server>`
+  (tools/perftest.mjs) reads the main thread (`Engine.cpuMs`) at the tier's CPU throttle (Low 3×) on
+  settled views, both backends; GPU ms uncapped (vsync lets an Apple GPU clock down: the same Low
+  frame read 4.7 ms capped, 1.4 ms uncapped) on WebGPU's pass-timestamp union; and the Phase 0
+  flythrough's peak triangles, redraw frames included. It gates on budgets.json `perf` and prints the
+  PLAN targets a reading misses. `--profile=<dir>` saves a CPU profile per view and prints its top
+  functions. Measure before/after trees in turns on a quiet machine (other browsers' GPU work lands in
+  your timestamps; a GPU reading over the frame period is resampled).
 - Terrain or mask changes: `npm run bake` and compare the printed hashes (unchanged hashes prove a
   refactor didn't move a single sample). Refactors of placement code should fingerprint their output
   (hash the scatter's JSON) before and after.
