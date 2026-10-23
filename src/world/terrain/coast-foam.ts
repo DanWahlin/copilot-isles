@@ -15,6 +15,7 @@ import {
 import type { HeightField } from '../contracts';
 import { COVE } from '../layout';
 import { foamLight, world } from '../uniforms';
+import { seaUniforms } from '../ocean/sea-uniforms';
 import type { TerrainBakeData } from './bake';
 import { seaStackWaterlineRadius } from './sea-stack-shape';
 
@@ -55,8 +56,10 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
     smoothstep(uniform(maxDistance * 0.45), uniform(maxDistance), cameraPosition.sub(positionWorld).length()),
   );
   material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5)).mul(foamLight);
+  // The sea state's surf (Breeze 1): a Calm's wash is faint, a Gale's heavy.
   material.opacityNode = band
     .mul(distanceFade)
+    .mul(seaUniforms.surf)
     .mul(float(0.075).add(surge.mul(0.22)).add(wash.mul(0.08)))
     .mul(float(0.45).add(lace.mul(0.55)));
   return material;

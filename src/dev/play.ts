@@ -17,6 +17,7 @@ import '../ui/ui.css';
 import { compileAndStart, createDevHarness } from './harness';
 import { activateCourse } from '../course/load';
 import { COURSE } from '../course/catalog';
+import { isSeaStateId, seaState, type SeaStateId } from '../world/ocean/sea-state';
 const COURSE_ID = () => COURSE.id;
 
 // The course pack the page's content comes from (a voyage loads it the same way): `?pack=<id>`
@@ -28,9 +29,15 @@ await activateCourse(PACK);
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
  * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=,
  * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage),
- * ?pack=<course id> (another course pack, e.g. copilot-cli).
+ * ?pack=<course id> (another course pack, e.g. copilot-cli), ?sea=calm|breeze|fresh|gale (the Sea
+ * state setting, from the first frame).
  */
 const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
+const seaParam = q.get('sea');
+if (isSeaStateId(seaParam)) {
+  seaState.setSetting(seaParam);
+  seaState.snap();
+}
 const { scene, camera, clock } = engine;
 
 const t0 = performance.now();
@@ -270,6 +277,15 @@ const key = (code: string, down: boolean) => {
       (st) => !st.held && (st.state === 'absent' || st.state === 'resident' || st.state === 'failed'),
     );
     return { ok: warms === 0 && out.warming === 0 && still, ...out };
+  },
+  /**
+   * The Sea state setting (Settings → Sea state): eases in over a few seconds like the game's, or
+   * `snap` jumps to it. Returns the live sea (and whether a battle or course holds it fixed).
+   */
+  seaState: (id?: SeaStateId, snap = false) => {
+    if (id) seaState.setSetting(id);
+    if (snap) seaState.snap();
+    return { chosen: seaState.chosen, fixed: seaState.fixed, settled: seaState.settled, live: seaState.live };
   },
   lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
   liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),

@@ -40,6 +40,8 @@
 //   [--top=10] (groups to print) [--json=<file>]
 //   [--views] (print every view) [--meshes] (print the worst frames' top meshes by name and material)
 //   [--webgl] [--cpu-throttle=4] (slows this page's CPU, to check the gate reads the same on a slow machine)
+//   [--sea=calm|breeze|fresh|gale] (the Sea state setting, from the first frame: its foam and spray are
+//   in the sea's own shader, so every state must read the same draws and triangles)
 // npm run check:frame-budgets -- --base=http://127.0.0.1:5353 runs it as a gate (not part of the build).
 // It ends with one line per tier and island (both sample sets), and exits 0 only when every tier's
 // worst settled view in each set is within budget; it exits 1 when any is over (there's no allowance
@@ -470,9 +472,13 @@ for (const tier of tiers) {
     ).send('Emulation.setCPUThrottlingRate', {
       rate: Number(opt['cpu-throttle']),
     });
-  await page.goto(`${base}/devpages/play.html?auto&quiet&shot&tier=${tier}${opt.webgl ? '&webgl' : ''}`, {
-    waitUntil: 'load',
-  });
+  const sea = opt.sea ? `&sea=${opt.sea}` : '';
+  await page.goto(
+    `${base}/devpages/play.html?auto&quiet&shot&tier=${tier}${opt.webgl ? '&webgl' : ''}${sea}`,
+    {
+      waitUntil: 'load',
+    },
+  );
   await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
     timeout: 180000,
   });

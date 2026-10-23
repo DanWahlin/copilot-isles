@@ -412,6 +412,17 @@ hook (release it when the site is freed).
   battle sampled waves on its own clock (out of phase with the drawn sea). Now: no splash without a
   ball, a sinking hull or an animal you can see (`LEAP_MIN_PIXELS`), effects sample the ocean's clock,
   and ambient life keeps out of battles and puzzle courses (`QuietSea`).
+- **A live setting that reshapes a shared look (the sea state):** a setting that changes a TS table the
+  shaders read (wave amplitudes, the wind) must reach them as uniforms built once (`sea-uniforms.ts`),
+  never as constants baked into the graph, or each state (and each frame of its ease) is a new shader.
+  Scale only what can change without tearing: amplitude and steepness per Gerstner component, never
+  a wavelength or frequency (ω·t with t in the thousands jumps the phase). Anything that scrolls with
+  a speed the setting changes scrolls by its integral (`world.windDrift`), not speed × time: the
+  ripples raced across the sea while the wind eased. Keep the default exactly today's: × 1 last in
+  each product, new terms behind `!== 0`, and an ease that ends by copying the target (not blending to
+  it), then prove it with a hash of the CPU samples and a simulated track taken before the change
+  (`breeze-fingerprint.test.ts`). Places with a fixed design (battles, puzzle courses, the title)
+  hold the default through the driver (`seaState.hold`), easing in before they start.
 - **Shared audio and voice:** one subsystem cancelling must not stop a voice another system started
   (`Dialogue.cancel` only stops its own line).
 - **Streaming audio (the title was silent for 40 s on Slow 4G):** GitHub Pages serves HTTP/2 by

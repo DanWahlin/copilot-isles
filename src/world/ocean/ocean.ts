@@ -49,6 +49,8 @@ import { createPolarGrid, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
+import { seaState } from './sea-state';
+import { seaUniforms, syncSea } from './sea-uniforms';
 import { writesMotionVectors } from '../../engine/motion-vectors';
 
 export interface OceanOptions {
@@ -111,7 +113,11 @@ export function createOcean({
   const floorTex = useTerrainDepth ? waterDepthTexture() : null;
   // The colour graph is built once per pass that draws the sea; each build's depth node is this ocean's.
   const depthCopies = new MatchedDepth();
-  const sumA = waves.reduce((s, w) => s + w.a, 0);
+  // The sea state's live amplitudes (uniforms): a change of state builds no new shader.
+  const A = seaUniforms.amp;
+  const QA = seaUniforms.qa;
+  let sumA: Node<'float'> = float(0);
+  for (let i = 0; i < waves.length; i++) sumA = sumA.add(A[i]!);
   const previousWaveTime = uniform(0);
   let lastWaveTime = Number.NaN;
 
@@ -129,15 +135,15 @@ export function createOcean({
     let ox: Node<'float'> = float(0),
       oy: Node<'float'> = float(0),
       oz: Node<'float'> = float(0);
-    for (const W of waves) {
+    waves.forEach((W, i) => {
       const th = dot(rest, vec2(W.dx, W.dz)).mul(W.k).sub(time.mul(W.w)).add(W.ph);
       const c = cos(th);
       const wavelength = (Math.PI * 2) / W.k;
       const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(spanAttr, 0.001)));
-      ox = ox.add(c.mul(W.q * W.a * W.dx).mul(lod));
-      oz = oz.add(c.mul(W.q * W.a * W.dz).mul(lod));
-      oy = oy.add(sin(th).mul(W.a).mul(lod));
-    }
+      ox = ox.add(c.mul(QA[i]!.mul(W.dx)).mul(lod));
+      oz = oz.add(c.mul(QA[i]!.mul(W.dz)).mul(lod));
+      oy = oy.add(sin(th).mul(A[i]!).mul(lod));
+    });
     return vec3(ox, oy, oz);
   };
   const offset = waveOffset(world.time);
@@ -184,26 +190,23 @@ export function createOcean({
       sy: Node<'float'> = float(0),
       sz: Node<'float'> = float(0);
     const waveFootprint = max(vSpan, fwidth(p).length());
-    for (const W of waves) {
+    waves.forEach((W, i) => {
       const th = dot(p, vec2(W.dx, W.dz)).mul(W.k).sub(t.mul(W.w)).add(W.ph);
       const c = cos(th);
       const wavelength = (Math.PI * 2) / W.k;
       const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(waveFootprint, 0.001)));
-      sx = sx.add(c.mul(W.dx * W.k * W.a).mul(lod));
-      sz = sz.add(c.mul(W.dz * W.k * W.a).mul(lod));
-      sy = sy.add(
-        sin(th)
-          .mul(W.q * W.k * W.a)
-          .mul(lod),
-      );
-    }
-    // Procedural ripples: two tiles, rotated against each other, drifting with the wind.
-    const wind = world.windDir.mul(world.windSpeed);
+      sx = sx.add(c.mul(A[i]!.mul(W.dx * W.k)).mul(lod));
+      sz = sz.add(c.mul(A[i]!.mul(W.dz * W.k)).mul(lod));
+      sy = sy.add(sin(th).mul(QA[i]!.mul(W.k)).mul(lod));
+    });
+    // Procedural ripples: two tiles, rotated against each other, drifting with the wind (its
+    // integral, `windDrift`: wind × time raced whenever the sea state changed the wind's speed).
+    const drift = world.windDrift;
     const ca = 0.62,
       sa = 0.78;
-    const uv1 = p.div(8.5).add(wind.mul(t).mul(0.006));
+    const uv1 = p.div(8.5).add(drift.mul(0.006));
     const pr = vec2(p.x.mul(ca).sub(p.y.mul(sa)), p.x.mul(sa).add(p.y.mul(ca)));
-    const uv2 = pr.div(3.3).add(wind.mul(t).mul(0.011));
+    const uv2 = pr.div(3.3).add(drift.mul(0.011));
     const r1 = texture(ripple, uv1);
     const r2 = texture(ripple, uv2);
     const s1 = r1.xy.mul(2).sub(1);
@@ -228,11 +231,11 @@ export function createOcean({
     // where grid spacing can no longer resolve the short Gerstner slopes.
     const nVar = fwidth(N).length();
     let slopeVariance: Node<'float'> = float(0);
-    for (const W of waves) {
+    waves.forEach((W, i) => {
       const wavelength = (Math.PI * 2) / W.k;
       const lod = smoothstep(0.55, 1.35, float(wavelength).div(max(waveFootprint, 0.001)));
-      slopeVariance = slopeVariance.add(float(W.slopeVariance).mul(float(1).sub(lod.mul(lod))));
-    }
+      slopeVariance = slopeVariance.add(seaUniforms.slopeVariance[i]!.mul(float(1).sub(lod.mul(lod))));
+    });
     const waveRough = sqrt(float(1).add(slopeVariance)).sub(1).mul(0.8);
     const spectralVar = smoothstep(0.018, 0.09, rippleFootprint).mul(ripK).mul(0.04);
     const rough = clamp(
@@ -339,19 +342,40 @@ export function createOcean({
       .mul(float(1).sub(world.night.mul(0.8)));
 
     // Foam: sparse wind whitecaps, plus contact/shore bands from the water thickness.
-    const f1 = texture(ripple, p.div(5.2).add(wind.mul(t).mul(0.004))).z;
-    const f2 = texture(ripple, pr.div(2.1).sub(wind.mul(t).mul(0.003))).z;
+    const f1 = texture(ripple, p.div(5.2).add(drift.mul(0.004))).z;
+    const f2 = texture(ripple, pr.div(2.1).sub(drift.mul(0.003))).z;
     const patternRaw = f1.mul(0.65).add(f2.mul(0.5));
     const foamFootprint = max(
-      fwidth(p.div(5.2).add(wind.mul(t).mul(0.004))).length(),
-      fwidth(pr.div(2.1).sub(wind.mul(t).mul(0.003))).length(),
+      fwidth(p.div(5.2).add(drift.mul(0.004))).length(),
+      fwidth(pr.div(2.1).sub(drift.mul(0.003))).length(),
     );
     const foamFilter = smoothstep(0.035, 0.16, foamFootprint);
     const pattern = mix(patternRaw, float(FOAM_PATTERN_MEAN), foamFilter);
-    const capK = smoothstep(4.0, 11.0, world.windSpeed).mul(0.7).add(0.3);
-    const whitecap = smoothstep(0.62, 1.0, vH.div(sumA).add(pattern.sub(0.55).mul(0.4)))
-      .mul(capK)
+    // Whitecaps: the sea state sets where on the crest they start (Breeze 0.62) and how the wind
+    // drives them (Breeze's is today's smoothstep(4, 11, wind) × 0.7 + 0.3, worked out on the CPU).
+    const capFrom = seaUniforms.capFrom;
+    const whitecap = smoothstep(capFrom, capFrom.add(0.38), vH.div(sumA).add(pattern.sub(0.55).mul(0.4)))
+      .mul(seaUniforms.capWind)
       .mul(exp(dist.negate().div(900)));
+    // Spindrift (Fresh and Gale): foam blown off the crests in long streaks along the wind, the
+    // contour lines of the ripple height stretched downwind, in patches, filtered out where a streak
+    // is finer than a pixel. Nothing in a Breeze or a Calm (× 0).
+    const windN = world.windDir;
+    const alongWind = dot(p, windN).sub(dot(drift, windN).mul(0.35));
+    const acrossWind = dot(p, vec2(windN.y.negate(), windN.x));
+    const streakUv = vec2(alongWind.div(55), acrossWind.div(4.5));
+    const streakUv2 = vec2(alongWind.div(31), acrossWind.div(2.6)).add(0.37);
+    const streakFilter = float(1).sub(smoothstep(0.012, 0.05, fwidth(streakUv2).length()));
+    const lineA = smoothstep(0.075, 0.0, texture(ripple, streakUv).w.sub(0.5).abs());
+    const lineB = smoothstep(0.055, 0.0, texture(ripple, streakUv2).w.sub(0.5).abs()).mul(0.7);
+    const patches = smoothstep(0.38, 0.72, texture(ripple, p.div(96).add(drift.mul(0.0015))).w);
+    const streak = max(lineA, lineB)
+      .mul(patches)
+      .mul(smoothstep(0.12, 0.5, pattern))
+      .mul(streakFilter)
+      .mul(smoothstep(-0.45, 0.4, vH.div(sumA)))
+      .mul(seaUniforms.spindrift)
+      .mul(exp(dist.negate().div(650)));
     let shore = smoothstep(0.55, 0.0, vDepth).mul(smoothstep(0.1, 0.6, pattern.add(0.35)));
     // Contact foam where the sea meets rock, hulls and piles: broken lace that gathers only where a crest
     // runs in, not a solid white rim tracing every waterline.
@@ -444,11 +468,19 @@ export function createOcean({
       const blob = smoothstep(3.4, 0.0, p.distance(sample.xy)).mul(sample.w).mul(wakeBreakup);
       trailFoam = max(trailFoam, blob);
     }
+    // Bow spray (Fresh and Gale): white water thrown round her bow as she drives into a sea; its
+    // strength comes from the CPU (bow slams × the sea state's spray, 0 in a Breeze).
+    const bowSpray = smoothstep(4.6, 0.0, vec2(lx.mul(0.8), lz.sub(10.9)).length())
+      .mul(smoothstep(0.25, 0.7, pattern.add(0.18)))
+      .mul(shipOcean.spray)
+      .mul(active);
     const shipFoam = saturate(
-      max(max(hullRing, bowFoam), max(max(wakeArms, sternWash), trailFoam.mul(0.42))),
+      max(max(max(hullRing, bowFoam), bowSpray), max(max(wakeArms, sternWash), trailFoam.mul(0.42))),
     );
 
-    const foam = saturate(max(max(whitecap.mul(smoothstep(0.2, 0.75, pattern)), shore), shipFoam));
+    const foam = saturate(
+      max(max(max(whitecap.mul(smoothstep(0.2, 0.75, pattern)), shore), shipFoam), streak.mul(0.42)),
+    );
     const baseFoamCol = vec3(0.98, 0.99, 1.0).mul(
       ambient
         .mul(0.14)
@@ -481,6 +513,8 @@ export function createOcean({
     mesh,
     field,
     update(camera, time = world.time.value) {
+      syncSea(time);
+      field.setSea(seaState.live, seaState.version);
       if (!Number.isFinite(lastWaveTime)) lastWaveTime = time;
       previousWaveTime.value = lastWaveTime;
       lastWaveTime = time;

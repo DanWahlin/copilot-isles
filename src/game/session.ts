@@ -23,6 +23,7 @@ import type { CoveScene } from '../world/cove-scene';
 import type { FarCull } from '../world/far-cull';
 import { COVE } from '../world/layout';
 import { windOnBow } from '../world/ship/dynamics';
+import { seaState } from '../world/ocean/sea-state';
 import { windAt } from '../world/wind';
 import { CollisionWorld, type BoxCollider, type SurfaceKind, type WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
@@ -249,6 +250,8 @@ export interface GameSession {
     sailTo(x: number, z: number, heading: number): void;
     /** Sets a quest step, e.g. to lower the gangway without playing the island (tests). */
     quest(id: string, step: string): void;
+    /** The live sea (Settings → Sea state), and whether a battle or course holds it fixed. */
+    sea(): { chosen: string; fixed: boolean; settled: boolean; windSpeed: number; amp: number[] };
     /** Whether the gangway's down, and its world-space foot and top (tests). */
     gangway(): {
       down: boolean;
@@ -3117,6 +3120,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           ground: world.groundAt(n.x, n.z),
         })),
       quest: (id: string, step: string) => setQuest(id, step),
+      /** The live sea (Settings → Sea state), and whether a battle or course holds it fixed. */
+      sea: () => ({
+        chosen: seaState.chosen,
+        fixed: seaState.fixed,
+        settled: seaState.settled,
+        windSpeed: seaState.live.windSpeed,
+        amp: seaState.live.amp.slice(),
+      }),
       sailTo(x, z, heading) {
         prefetchSailTarget();
         if (mode === 'sail') dyn.reset(x, z, heading);

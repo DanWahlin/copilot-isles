@@ -25,6 +25,13 @@ export const world = {
   /** Wind (mirrors src/world/wind.ts): unit direction the wind blows toward, and mean speed m/s. */
   windDir: uniform(new Vector2(0.8, -0.6)),
   windSpeed: uniform(6.5),
+  /** Gust strength (wind.ts `GUST`; the sea state's `gust`). */
+  gust: uniform(0.45),
+  /**
+   * The wind's drift (m): the integral of `windDir × windSpeed` over time, so scrolling patterns
+   * (ripples, foam) follow the wind and don't race when the sea state changes its speed.
+   */
+  windDrift: uniform(new Vector2(0, 0)),
   /** Camera focus (xz) for the wave distance fade; must equal WaveField.setFocus(). */
   focus: uniform(new Vector2(0, 0)),
   /** Reduced motion (0/1): materials damp decorative motion (cloud drift, sway amplitude). */

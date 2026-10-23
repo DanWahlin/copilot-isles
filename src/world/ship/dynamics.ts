@@ -1,4 +1,5 @@
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
+import { seaState } from '../ocean/sea-state';
 import { windAt } from '../wind';
 import {
   BRIGANTINE_BEAM,
@@ -348,7 +349,7 @@ export class ShipDynamics {
     }
     const targetHeave = clamp(sumY / this.stations.length, -1.5, 1.5);
     const waveRoll = clamp(Math.atan2(sumXY, Math.max(EPS, sumX2)), -0.23, 0.23);
-    const wavePitch = clamp(-Math.atan2(sumZY, Math.max(EPS, sumZ2)), -0.2, 0.2);
+    const wavePitch = clamp(-Math.atan2(sumZY, Math.max(EPS, sumZ2)) * seaState.live.pitch, -0.2, 0.2);
 
     windAt(this.pose.x, this.pose.z, env.t, this.wind);
     const vx = fwdX * this.forwardSpeed + rightX * this.lateralSpeed;
@@ -356,7 +357,8 @@ export class ShipDynamics {
     const apparentX = this.wind[0] - vx;
     const apparentZ = this.wind[1] - vz;
     const apparentSide = apparentX * rightX + apparentZ * rightZ;
-    const sailHeel = -clamp(apparentSide / 16, -1, 1) * this.control.trim * 0.13;
+    // The sea state's heel factor last, so × 1 (Breeze) leaves today's number exactly.
+    const sailHeel = -clamp(apparentSide / 16, -1, 1) * this.control.trim * 0.13 * seaState.live.heel;
     const turnHeel = -clamp(this.headingRate / MAX_YAW_RATE, -1, 1) * 0.08;
     const crewHeel = -this.crewOffset * 0.026;
     const targetRoll = clamp(waveRoll + sailHeel + turnHeel + crewHeel, -0.33, 0.33);
@@ -417,8 +419,11 @@ export class ShipDynamics {
     const noGo = 1 - smoothstep(-0.82, -0.28, s0 * windDirX + c0 * windDirZ);
     this.pose.luff = clamp(noGo * command.trim, 0, 1);
 
-    const windScale = Math.pow(clamp(windSpeed / 6.5, 0, 2.2), 0.72);
-    let targetSpeed = MAX_SPEED * command.trim * pointOfSail * windScale;
+    // Against the sea state's own mean wind (Breeze's 6.5 m/s), so gusts matter in every state and
+    // its `sailing` factor sets the pace: light airs in a Calm, reefed sails in a Gale.
+    const sea = seaState.live;
+    const windScale = Math.pow(clamp(windSpeed / sea.windSpeed, 0, 2.2), 0.72);
+    let targetSpeed = MAX_SPEED * command.trim * pointOfSail * windScale * sea.sailing;
     // Pinned against a pile or boat the crew fends off, so the helm can still swing her clear.
     this.fendOff = Math.max(0, this.fendOff - dt);
     const steerage = Math.max(
@@ -426,10 +431,15 @@ export class ShipDynamics {
       this.fendOff > 0 ? FEND_OFF_STEERAGE : 0,
     );
     let targetYaw = command.rudder * MAX_YAW_RATE * steerage * (0.45 + command.trim * 0.55);
+    const assisted = this.dockTarget !== null;
+    // A big sea slews her bow with the swell running across her (none in a Breeze, nor while the
+    // crew warps her in): last step's orbital velocity, so it costs no extra sample.
+    if (sea.yaw !== 0 && !assisted)
+      targetYaw += sea.yaw * (this.waveVelocity[0] * c0 - this.waveVelocity[1] * s0);
     if (finite(command.targetSpeedOverride)) targetSpeed = command.targetSpeedOverride;
     if (finite(command.targetYawOverride)) targetYaw = command.targetYawOverride;
 
-    this.headingRate += (targetYaw - this.headingRate) * clamp(3.8 * dt, 0, 1);
+    this.headingRate += (targetYaw - this.headingRate) * clamp(3.8 * sea.helm * dt, 0, 1);
     this.headingRate = clamp(this.headingRate, -MAX_YAW_RATE, MAX_YAW_RATE);
     this.pose.heading += this.headingRate * dt;
 
@@ -441,6 +451,9 @@ export class ShipDynamics {
     this.forwardSpeed += (targetSpeed - this.forwardSpeed) * clamp(speedResponse * dt, 0, 1);
     this.forwardSpeed -= this.forwardSpeed * Math.abs(this.forwardSpeed) * 0.013 * dt;
     this.lateralSpeed -= this.lateralSpeed * clamp((2.7 + Math.abs(this.lateralSpeed) * 0.2) * dt, 0, 0.92);
+    // Leeway: the wind on her beam sets her sideways (none in a Breeze, nor while docking).
+    if (sea.leeway !== 0 && !assisted)
+      this.lateralSpeed += (this.wind[0] * rightX + this.wind[1] * rightZ) * sea.leeway * dt;
 
     env.waves.velocityAt(this.pose.x, this.pose.z, env.t, this.waveVelocity);
     let vx =

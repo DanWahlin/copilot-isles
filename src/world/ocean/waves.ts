@@ -1,4 +1,5 @@
 import type { WaveSampler } from '../contracts';
+import { SEA_WAVES } from './sea-state';
 
 /**
  * Gerstner wave table: the single source for the ocean's shape (PLAN §6 Water system).
@@ -101,11 +102,37 @@ function velocityAt(
   return out;
 }
 
-/** A WaveSampler bound to a tier's wave set and a moving focus point (the camera). */
+/**
+ * A WaveSampler bound to a tier's wave set and a moving focus point (the camera). Its `waves` are the
+ * live sea: the table's waves scaled by the sea state (`setSea`, sea-state.ts), the same numbers the
+ * ocean's uniforms carry. Until `setSea` changes them they're the table's exactly (Breeze).
+ */
 export class WaveField implements WaveSampler {
   focusX = 0;
   focusZ = 0;
-  constructor(public waves: readonly Wave[] = ALL_WAVES) {}
+  /** The live waves (amplitude and steepness scaled by the sea state). */
+  readonly waves: Wave[];
+  private seaVersion = -1;
+  constructor(readonly base: readonly Wave[] = ALL_WAVES) {
+    this.waves = base.map((w) => ({ ...w }));
+  }
+
+  /**
+   * Scales each wave's amplitude and steepness (per component, longest first) by the sea state's,
+   * once per `version`. × 1 leaves a wave exactly as the table has it.
+   */
+  setSea(sea: { amp: readonly number[]; steep: readonly number[] }, version = Number.NaN): void {
+    if (version === this.seaVersion) return;
+    this.seaVersion = version;
+    const n = Math.min(this.waves.length, SEA_WAVES);
+    for (let i = 0; i < n; i++) {
+      const b = this.base[i]!;
+      const w = this.waves[i]!;
+      w.a = b.a * sea.amp[i]!;
+      w.q = b.q * sea.steep[i]!;
+      w.slopeVariance = 0.5 * (w.q * w.a) ** 2;
+    }
+  }
 
   setFocus(x: number, z: number): void {
     this.focusX = x;

@@ -42,6 +42,7 @@ import { sunShadowReach, type TierSettings } from '../../engine/quality';
 import type { DayClock } from '../../engine/day-clock';
 import type { Backend } from '../contracts';
 import { world } from '../uniforms';
+import { seaState } from '../ocean/sea-state';
 import { smoothstep as ss } from '../../util/math';
 import { sunState, type SunState } from './sun';
 import { createAnalyticSky } from './atmosphere';
@@ -457,6 +458,10 @@ export function createSky(
       tideAtmo.update(dt, camera?.position.y ?? 1);
       if (tideClouds && camera) {
         tideClouds.driftScale = easeCloudDrift(tideClouds.driftScale, world.reducedMotion.value > 0.5, dt);
+        // The sea state's wind moves the clouds too (a Calm's barely, a Gale's briskly).
+        (tideClouds as unknown as { wind: { value: Vector2 } }).wind.value.setLength(
+          CLOUD_DRIFT * seaState.live.cloudDrift,
+        );
         tideClouds.update(dt, camera);
       }
       tideMesh.position.copy(focus);

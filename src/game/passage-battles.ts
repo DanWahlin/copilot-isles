@@ -3,6 +3,7 @@ import type { Engine } from '../engine/engine';
 import type { InputState } from '../engine/input';
 import type { CoveScene } from '../world/cove-scene';
 import type { ShipDynamics } from '../world/ship';
+import { seaState } from '../world/ocean/sea-state';
 import type { BattleRun } from './battle-run';
 import {
   HARBOUR_RADIUS,
@@ -41,6 +42,8 @@ export interface PassageBattlesOptions {
 
 /** How often (s) the trigger and the zone are checked while you sail. */
 const CHECK_EVERY = 0.25;
+/** Past the harbour's edge (m) the battle's fixed sea eases in: 60 m (≥ 8 s) before it resumes. */
+const FIXED_SEA_FROM = 20;
 
 /**
  * The passage battles in the game (docs/specs/BATTLES.md §2.0, §3): it builds and warms the battle
@@ -58,9 +61,16 @@ export class PassageBattles {
   private checkIn = 0;
   private disposed = false;
   private quiet = false;
+  /** Out past the harbour's edge (where the battle's sea is fixed), from the last check. */
+  private atSea = false;
+  private readonly unholdSea: () => void;
 
   constructor(private readonly o: PassageBattlesOptions) {
     this.done = new Set(o.done);
+    // A passage with a battle on it sails the fixed sea (Breeze) whatever the Sea state setting, from
+    // just outside the harbour (before a rested battle resumes, HARBOUR_RADIUS + 80) until it's won
+    // or skipped: the raiders, the guns and your ship always fight on the sea they were made for.
+    this.unholdSea = seaState.hold(() => !!this.run && !this.run.ended && this.atSea);
   }
 
   /** True from the lookout's call until the battle is won or skipped. */
@@ -141,6 +151,7 @@ export class PassageBattles {
     const p = dyn.pose;
     if ((this.checkIn -= dt) <= 0) {
       this.checkIn = CHECK_EVERY;
+      this.atSea = !nearHarbour(p.x, p.z, this.o.islands, HARBOUR_RADIUS + FIXED_SEA_FROM);
       if (!run.started) {
         if (run.warmed && battleStarts(this.battle, p.x, p.z, this.o.islands)) run.begin();
       } else if (!run.ended) {
@@ -199,6 +210,7 @@ export class PassageBattles {
 
   dispose(cam: FollowCamera): void {
     this.disposed = true;
+    this.unholdSea();
     this.release(cam);
   }
 }

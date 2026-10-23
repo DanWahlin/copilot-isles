@@ -28,6 +28,7 @@ import {
   fract,
   int,
   max,
+  min,
   mix,
   positionLocal,
   positionWorld,
@@ -431,7 +432,8 @@ export function makeCanvasMaterial(uniforms: BrigantineUniforms): MeshStandardNo
     .mul(0.46);
   const billow = belly
     .mul(uniforms.trim)
-    .mul(world.windSpeed.mul(0.08).add(0.72))
+    // A gale's sails are reefed: they fill no fuller than at 10 m/s.
+    .mul(min(world.windSpeed, 10).mul(0.08).add(0.72))
     .mul(gust.mul(0.28).add(0.86))
     .mul(windFacing)
     .mul(2.05)
