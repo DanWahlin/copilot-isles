@@ -104,6 +104,9 @@ export function lighthouseWalkable(x: number, z: number, y?: number): number | n
   const T = LIGHTHOUSE;
   const dx = x - L.x;
   const dz = z - L.z;
+  // Nothing walkable lies farther out than the gallery or the door step's far corner.
+  const reach = Math.max(T.galleryR, Math.hypot(T.plinthR + 0.8, T.doorHalf + 0.25));
+  if (Math.abs(dx) > reach || Math.abs(dz) > reach) return null;
   const r = Math.hypot(dx, dz);
   if (r > T.galleryR) {
     // The outer door step, off the knoll onto the plinth.

@@ -59,6 +59,8 @@ interface PlantBatch {
   visible: number;
   /** What the last fill saw (`fillKey`): the same again, and it would write the same instances. */
   seen: Float64Array;
+  /** Each instance's matrix (`setPlantMatrix`), worked out once: the plants never move. */
+  matrices: Float32Array;
 }
 
 const TREE_LIKE = new Set<PlantSpecies>(['palmTall', 'palmCluster', 'palmYoung', 'broadleafTree']);
@@ -232,7 +234,15 @@ function createBatch(
     farDistance,
     visible: 0,
     seen: new Float64Array(FILL_KEY).fill(NaN),
+    matrices: plantMatrices(instances),
   };
+}
+
+/** Every instance's matrix as the instanced mesh stores it (`setMatrixAt` writes the same floats). */
+function plantMatrices(instances: readonly PlantInstance[]): Float32Array {
+  const out = new Float32Array(instances.length * 16);
+  for (let i = 0; i < instances.length; i++) setPlantMatrix(instances[i]!).toArray(out, i * 16);
+  return out;
 }
 
 /**
@@ -315,7 +325,8 @@ function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSet
       if (!frustum.intersectsSphere(plantSphere)) continue;
     }
     const slot = batch.visible;
-    batch.mesh.setMatrixAt(slot, setPlantMatrix(instance));
+    const to = batch.mesh.instanceMatrix.array as Float32Array;
+    for (let k = 0; k < 16; k++) to[slot * 16 + k] = batch.matrices[i * 16 + k]!;
     batch.tint.setXYZ(slot, tints[i * 3]!, tints[i * 3 + 1]!, tints[i * 3 + 2]!);
     const fadeNear = batch.nearOnly
       ? 1 - smoothstep(handoff - 10, handoff + 6, d)

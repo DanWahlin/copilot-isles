@@ -7,15 +7,12 @@ import {
   DoubleSide,
   InstancedBufferAttribute,
   InstancedMesh,
-  Matrix4,
   Mesh,
   MeshBasicNodeMaterial,
   Object3D,
   OrthographicCamera,
   PlaneGeometry,
-  Quaternion,
   Scene,
-  Vector3,
   WebGLRenderTarget,
   type Material,
   type PerspectiveCamera,
@@ -28,10 +25,6 @@ import { createImpostorMaterial } from './materials';
 import { clamp01, smoothstep } from '../../util/math';
 import { disposeRenderTarget } from '../../util/dispose-three';
 
-const tmp = new Object3D();
-const matrix = new Matrix4();
-const quat = new Quaternion();
-const up = new Vector3(0, 1, 0);
 const tmpBox = new Box3();
 
 /** Atlas layout: each prototype is baked from `VIEWS` yaw angles into a `GRID`×`GRID` sheet. */
@@ -250,16 +243,33 @@ export class ImpostorBatch {
       const far = Math.max(near + 190, 620);
       const d = Math.hypot(instance.x - camera.position.x, instance.z - camera.position.z);
       if (d < near - 10 || d > far) continue;
-      const yaw = Math.atan2(camera.position.x - instance.x, camera.position.z - instance.z);
+      const dx = camera.position.x - instance.x;
+      const dz = camera.position.z - instance.z;
+      const yaw = Math.atan2(dx, dz);
       const frame = this.bake.frames[prototype];
       const s = frame.size * instance.scale;
-      quat.setFromAxisAngle(up, yaw);
-      tmp.position.set(instance.x, instance.y + (frame.bottom + frame.size / 2) * instance.scale, instance.z);
-      tmp.quaternion.copy(quat);
-      tmp.scale.set(s, s, s);
-      tmp.updateMatrix();
-      matrix.copy(tmp.matrix);
-      this.mesh.setMatrixAt(this.visible, matrix);
+      // The card turned to the camera about +y (sin yaw = dx / d, cos yaw = dz / d), scaled by s: the
+      // matrix a position, a y-axis quaternion and a uniform scale compose to, written directly.
+      const sin = d > 0 ? dx / d : 0;
+      const cos = d > 0 ? dz / d : 1;
+      const m = this.mesh.instanceMatrix.array as Float32Array;
+      const o = this.visible * 16;
+      m[o] = cos * s;
+      m[o + 1] = 0;
+      m[o + 2] = -sin * s;
+      m[o + 3] = 0;
+      m[o + 4] = 0;
+      m[o + 5] = s;
+      m[o + 6] = 0;
+      m[o + 7] = 0;
+      m[o + 8] = sin * s;
+      m[o + 9] = 0;
+      m[o + 10] = cos * s;
+      m[o + 11] = 0;
+      m[o + 12] = instance.x;
+      m[o + 13] = instance.y + (frame.bottom + frame.size / 2) * instance.scale;
+      m[o + 14] = instance.z;
+      m[o + 15] = 1;
       this.tint.setXYZ(this.visible, tint.r, tint.g, tint.b);
       // The two baked views either side of how the camera sees this instance's mesh rotation, and how
       // far it is from the first to the second: the card blends them, so walking past a tree turns it
