@@ -61,6 +61,23 @@ const shots = walt
       { id: 'B2', tier: 'high', page: 'cove' },
     ];
 
+/**
+ * Holds the page still and takes the shot. With the frame loop stopped, a screenshot that waits on a
+ * busy GPU process can time out now and then: hold it still again (the same frame) and retry.
+ */
+async function capture(page, api, path) {
+  for (let attempt = 1; ; attempt++) {
+    if (!live) await holdStill(page, api);
+    try {
+      await page.screenshot({ path, timeout: 30_000 });
+      return;
+    } catch (err) {
+      if (attempt >= 3) throw err;
+      console.warn(`[shots] ${path}: screenshot timed out, holding still again (${attempt})`);
+    }
+  }
+}
+
 async function captureCove(browser, backend, shot) {
   const page = await browser.newPage({ viewport });
   const logs = collectLogs(page);
@@ -69,9 +86,8 @@ async function captureCove(browser, backend, shot) {
   await page.waitForFunction(() => window.__dev?.ready === true, null, { timeout: 180_000 });
   await page.evaluate((id) => window.__dev.shot(id), shot.id);
   await page.waitForTimeout(Number(opt.wait || 2500));
-  if (!live) await holdStill(page, 'dev');
   const path = `${out}/${backend}-${shot.id}-${shot.tier}.png`;
-  await page.screenshot({ path });
+  await capture(page, 'dev', path);
   const stats = await page.evaluate(() => window.__dev.stats());
   await page.close();
   return { path, url, stats, logs };
@@ -84,9 +100,8 @@ async function captureTitle(browser, backend, tier) {
   await page.goto(url, { waitUntil: 'load', timeout: 120_000 });
   await waitForTitle(page);
   await page.waitForTimeout(Number(opt.wait || 2500));
-  if (!live) await holdStill(page, 'isles');
   const path = `${out}/${backend}-T1-${tier}.png`;
-  await page.screenshot({ path });
+  await capture(page, 'isles', path);
   const stats = await page.evaluate(() => window.__isles?.info?.() ?? null);
   await page.close();
   return { path, url, stats, logs };
