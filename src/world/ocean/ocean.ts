@@ -525,8 +525,9 @@ export function createOcean({
   mesh.userData.sunShadowNever = true;
   // Of the grid past the disc round the camera, only the wedges a camera can see draw; the disc is a
   // second draw of the same geometry and material (no new buffer or shader), drawn first, as its
-  // rings came first. The margins hold what the waves move a vertex (across by their summed q·a, up
-  // and down by their summed a) four times over, and a metre more.
+  // rings came first. The margins hold what the waves move a vertex now (the sea state's live
+  // amplitudes: across by their summed q·a, up and down by their summed a), twice over and a metre
+  // more, so a gale or a state easing in is covered as it grows.
   const near = new Mesh(geo, mat);
   near.name = 'ocean near';
   near.frustumCulled = false;
@@ -534,12 +535,16 @@ export function createOcean({
   near.receiveShadow = false;
   near.userData.sunShadowNever = true;
   mesh.add(near);
-  const sway = waves.reduce((s, w) => s + w.q * w.a, 0);
+  const liveSum = (u: readonly { value: number }[]) => {
+    let sum = 0;
+    for (let i = 0; i < waves.length; i++) sum += Math.abs(u[i]!.value);
+    return sum;
+  };
   cullPolarSectors(
     mesh,
     near,
-    () => 4 * sway + 1,
-    () => 4 * sumA + 1,
+    () => 2 * liveSum(QA) + 1,
+    () => 2 * liveSum(A) + 1,
   );
 
   return {

@@ -37,6 +37,8 @@
 //   [--gpu-backends=webgpu,webgl] [--fly-backends=webgpu,webgl] [--skip=cpu,gpu,fly]
 //   [--views=anchorage,a-town,sailing,meridian,m-plaza,thousand-bough,tb-booths] [--frames=90]
 //   [--warmup=30] [--repeats=3] [--noise=0.2] [--size=1920x1080] [--settle-timeout=180]
+//   [--sea=calm|breeze|fresh|gale] (the Sea state setting from the first frame; Gale's foam and spray
+//   are in the sea's own shader and its waves are taller, so the gate must hold in every state)
 //   [--profile=<dir>] (a CPU profile of each CPU view after its sample, top functions printed)
 //   [--json=<file>]
 // It exits 0 only when every gated reading of every tier is within its gate; 1 when any is over, a view
@@ -224,8 +226,9 @@ async function openPlay(tier, backend, uncapped = false) {
   const page = await (await browser(uncapped)).newPage({ viewport });
   const logs = collectLogs(page, { types: ['error'] });
   const cdp = await page.context().newCDPSession(page);
+  const sea = opt.sea ? `&sea=${opt.sea}` : '';
   await page.goto(
-    `${base}/devpages/play.html?auto&quiet&shot&tier=${tier}${backend === 'webgl' ? '&webgl' : ''}`,
+    `${base}/devpages/play.html?auto&quiet&shot&tier=${tier}${backend === 'webgl' ? '&webgl' : ''}${sea}`,
     {
       waitUntil: 'load',
       timeout: 180_000,
@@ -441,7 +444,9 @@ const results = [];
 const fly = [];
 const hitches = [];
 let failed = false;
-console.log(`load average ${load()} (${cpus().length} cores) at the start`);
+console.log(
+  `load average ${load()} (${cpus().length} cores) at the start${opt.sea ? `, sea ${opt.sea}` : ''}`,
+);
 
 /** One page through every view in `mode`, island by island. */
 async function runViews(tier, backend, mode) {
