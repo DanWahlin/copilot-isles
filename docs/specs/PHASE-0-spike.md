@@ -99,7 +99,7 @@ Every asset's source, license, and processing is logged in `ASSETS.md` (CC0 kits
 ---
 
 ## 5. Budgets & how they're judged (emulation, per PLAN §14.5)
-The GPU ms figures are **measured on this M3 Max with timer queries at the tier's render scale**, and they're a **smoke alarm with margin**, not a hard gate. The real UHD 620 check happens before public launch (an accepted risk).
+The GPU ms figures are **measured on this M3 Max with timer queries at the tier's render scale**, and they're a **smoke alarm with margin**, not a hard gate. Since issue #11 they're read uncapped (vsync and the frame cap off: at a capped 60 fps the GPU clocks down and reads ~3× slower) as the union of WebGPU's pass timestamps (summed, Apple's overlapping passes read 2-8× high; WebGL2's timer queries on ANGLE-Metal overlap the same way), by `npm run check:perf`. The real UHD 620 check happens before public launch (an accepted risk).
 
 | Tier (target) | Render (1080p output) | GPU ratio vs M3 Max | **M3 Max GPU budget / frame** | CPU throttle | Main thread budget (throttled) |
 |---|---|---|---|---|---|

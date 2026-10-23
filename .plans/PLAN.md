@@ -520,6 +520,8 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 | Clouds & cloud shadows | Cloud layer, no cloud shadows | Cloud layer + **128² cloud-shadow map** (one slice/frame, one terrain fetch) | Quarter-res dome + 256² | Dome, or **volumetric on WebGPU** (Phase 0b), + 256² | Volumetric (WebGPU) + 256² |
 | Initial download (to title) | **≤ 4 MB wire**. Time-to-interactive and title contents are in **§13.5** | | | | |
 
+**Proposed, pending Dan's approval (issues.md #29, 2026-10-22; nothing above is changed):** the targets stand. Measured by `npm run check:perf` on the M3 Max: Low's main thread (3×) is within 6 ms on WebGPU at every view and 7.0 ms on WebGL2 sailing; High's within 4.0-4.7 ms; Low's flythrough peaks at 476k triangles; GPU (WebGPU's pass union, uncapped) Low 0.43-1.12 ms and High 1.65-4.15 ms, over only at Thousand-Bough's booths. Either accept Low ≤ 7 ms on WebGL2 and Thousand-Bough's 1.15 / 4.2 ms GPU, or keep the targets and cut ~20 draws from the sailing view and ~0.15 ms of GPU at Thousand-Bough. Meanwhile the gate holds the measured worst + ~10 % (`tools/budgets.json` `perf`).
+
 ### 12.2 Draw calls & batching *(your "minimize draw calls")*
 - **InstancedMesh / BatchedMesh** for vegetation, rocks, crates, barrels, fences, and modular building parts. Each chunk gets its own instance set, so culling still works per chunk.
 - **Merge static geometry** per island chunk (`mergeGeometries`) for things that never move, like docks, walls, and terrain dressing.
@@ -579,7 +581,7 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Nothing renders when nothing's visible.** When a full-screen menu, the map, or the Logbook is open, we render a single frame, blur it into a still backdrop, and pause the 3D loop. We also pause everything when the tab is hidden.
 
 ### 12.9 Adaptive quality
-- **GPU time is the primary signal.** On WebGPU it comes from **`timestamp-query`** (the renderer's `trackTimestamp` + `resolveTimestampsAsync`). On the WebGL2 backend it comes from `EXT_disjoint_timer_query_webgl2` where exposed. Both are smoothed. If neither is available, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
+- **GPU time is the primary signal.** On WebGPU it comes from **`timestamp-query`** (the renderer's `trackTimestamp` + `resolveTimestampsAsync`), read as the **union of the frame's pass intervals**, not their sum: on Apple GPUs the passes overlap and the sum read 2-8× the real time (`engine/gpu-timestamps.ts`, issues.md #11). On the WebGL2 backend it comes from `EXT_disjoint_timer_query_webgl2` where exposed (a sum of timer queries; on ANGLE-Metal they overlap too, so it reads high on frames with many passes). Timestamps are resolved every 4th frame. Both are smoothed. If neither is available, we fall back to frame-time and missed-frame counting. **We never rescale during transitions** (fast travel, docking, dialogue cuts), and after a failed upscale we **back off exponentially** (≈ 15 s → 120 s).
 - **Dynamic resolution** starts measuring after a ~90-frame warm-up and averages over 60 frames:
   - **Thresholds are multiples of the tier's target frame time `T`** (33.3 ms at 30 fps, 16.7 ms at 60 fps).
   - **Lowering:** above **1.25 × T**, scale × 0.92, or × 0.84 above 2.5 × T. The floor is **0.72** (lower for Lite/Low), and there's an 8 s cooldown after a drop.
@@ -590,10 +592,11 @@ Efficiency is a **Phase 0 gate**. The spike has to hit these budgets on referenc
 - **Settings → Graphics** shows what Auto picked (tier, GPU name, and WebGL2 when on that backend) and one line per tier, built from the `TIERS` row (`src/engine/tier-info.ts`) with examples for the player's platform (Mac, PC, or phone/tablet). **Apply and reload** saves and reloads into the title or back into the game. **Render scale** is Auto (this adaptive resolution) or a fixed 50-100% (125% on Ultra only on screens up to 1.6× DPR); a fixed scale locks adaptive resolution and applies without a reload.
 
 ### 12.10 Measuring it
-- **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU; GPU is limited to the frame time, raw reading in `gpuRawMs`, issues.md #11), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.
+- **Debug HUD** (`?debug`): FPS, frame ms (CPU/GPU; GPU is the union of the passes' timestamps, `gpuBusyMs`, limited to the frame time; the passes' raw sum in `gpuRawMs`, issues.md #11), **whole-frame** draw calls and triangles (counters accumulated across all passes, not just the last render), textures, geometries, and JS heap, plus a lil-gui tuning panel.
 - **Debug API** (dev builds only, e.g. `window.__isles`): `info()`, `setRes()`, `setPreset()`/`setTime()`, and a deterministic **`shot(id)`** that places the camera, freezes time, and renders one frame. Playwright uses it for **visual-regression screenshots** and for the benchmark. A **`?seed=`** parameter makes ambient systems (Leaps, birds) reproducible.
 - **Hitch guard (dev):** after warm-up, log every shader program, geometry, or texture created during play, with the game state and time. Any entry is a bug to fix (a missing precompile or preload).
 - A **benchmark flythrough** follows a fixed camera path across the ocean, into the town, and through a dialogue scene. It reports average FPS and 1% lows, and we run it before merging any visual change.
+- The **local perf gate** (`npm run check:perf`, tools/perftest.mjs) holds the main thread at each tier's CPU throttle (Low 3×, Phase 0 spec §5) on settled views, GPU time uncapped (an Apple GPU clocks down at a capped 60 fps and reads 3× slower), and the flythrough's triangle peak to `tools/budgets.json` `perf`, and prints which §12.1 / spec §5 targets are still missed.
 - For deeper profiling we'll use Chrome Performance traces and Spector.js frame captures.
 
 ---
