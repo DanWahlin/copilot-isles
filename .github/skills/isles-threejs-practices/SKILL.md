@@ -158,8 +158,18 @@ hook (release it when the site is freed).
 - Late instanced additions on the title (gulls, leaps): don't precompile them (no precompile matches
   an instanced draw). Add them and wait two frames inside `engine.counters.excuse`.
 - Every distinct look in the harbour mirror is a second set of shaders: keep small things out
-  (`unreflected`: chests, message bottles, characters). Static instanced props cost an instanced
-  shader per look: bake them per material (`bakeInstances`; Anchorage's crates, casks, sacks and pots).
+  (`unreflected`: chests, message bottles, characters, the ship's small parts, sails, flags and
+  rigging). Static instanced props cost an instanced shader per look: bake them per material
+  (`bakeInstances`; Anchorage's crates, casks, sacks and pots). What the mirror should show of a
+  whole island is a stand-in in one cheap look, drawn by the mirror alone (`HarborMirror.reflectOnly`
+  puts it on `MIRROR_ONLY_LAYER`, the warm's mirror precompile builds it, `warmReflectOnly` uploads
+  it): Anchorage's hills, village and quay are its silhouette on a 5 m grid with nothing under the
+  water (#31: +4 programs on Ultra WebGPU, none on WebGL2).
+- A projected texture lookup (a planar mirror, a decal): check where it samples before tuning its
+  strength. The harbour mirror's matrix already held the 0-1 bias and the ocean biased it again, and
+  three samples a render target with v flipped, so its reflections landed metres off (the "ghost
+  ship" of #32, hidden by taking the ship out and blending at 0.34). Dump the target
+  (`readRenderTargetPixelsAsync`, rows padded to 256 bytes on WebGPU) and compare it with the frame.
 - Don't draw to the canvas outside the post stack: the renderer's own output pass (a canvas-sized
   target and an output quad) then lives for the page. The opening draws through
   `createCutsceneOutput`, which it frees.
@@ -549,6 +559,12 @@ hook (release it when the site is freed).
 - Terrain or mask changes: `npm run bake` and compare the printed hashes (unchanged hashes prove a
   refactor didn't move a single sample). Refactors of placement code should fingerprint their output
   (hash the scatter's JSON) before and after.
+- Screenshots to compare between runs: take them as frozen frames (`tools/shots.mjs`, issue #86).
+  Holding the clock isn't enough: set it to the same sim time, put back what integrates its own
+  state (the ship's springs and fixed-step remainder, `restartMotion`, then replay the swell; birds
+  and leaps to their seeds; the title's orbit), draw still frames for a few seconds (the metered
+  exposure adapts on wall time) and restart TAA's jitter (`restartJitter`) before a fixed count, at
+  render scale 1. Two runs then differ by ≤ 0.15 % (real time: 0.1-16 %).
 - Visual changes: screenshot with Playwright against `http://localhost:5301` (see `tools/flowtest.mjs`
   and `tools/lib/browser.mjs`), before and after, at the moment that matters. Use a fast JPEG burst
   for timed sequences (the opening chart lasts about 11 s).
