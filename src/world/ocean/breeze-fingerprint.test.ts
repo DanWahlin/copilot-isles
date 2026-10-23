@@ -6,20 +6,25 @@ import { windAt } from '../wind';
 import { WaveField, wavesForTier } from './waves';
 
 /**
- * Breeze is today's sea, byte for byte. These hashes were taken at b1db17d, before the sea-state
+ * Breeze is today's sea, byte for byte. These hashes were taken at b1db17d (rounded, see `hash`), before the sea-state
  * model existed: the wave samples (heights and orbital velocities, every tier's wave set, with the
  * camera fade), the wind field, and a ship's simulated track (sailing, tacking, through a gusty
  * reach, fending off a pile and docking) over a fixed input. If one moves, Breeze isn't today's sea.
  */
 const EXPECTED = {
-  waves: '7bc40b42bebc53e228ea27e328066a3d4f8e16305ea586b062f3ab4f4b33228d',
-  wind: 'a7e521bf9c0c6c50c8425c44826a683151ea746235264194704e214f4983ac08',
-  ship: '8b5ece20888dd2b1e7cecfb081cd9ade30e61a427dbff3382d321b0826d353ac',
+  waves: '9d932b956b77b886ee51cf3057f9e680e1bd1641f05835a53441bfec72a542c8',
+  wind: 'e95da8c7be5adb75a434088ef42035dbb1ceafda27bf02b53f3729e33a66937e',
+  ship: 'a84c2e9f75ee097886d32bfaf063874f4155e715dc5358555c0fb2c974436ae3',
 };
 
+/**
+ * Rounded to 9 significant digits: libm's sin, cos and exp may differ in the last bits between
+ * platforms (macOS here, Linux in CI), and a long ship track carries that along. Any real change to
+ * the sea or the ship moves far more than that.
+ */
 function hash(values: number[]): string {
   return createHash('sha256')
-    .update(new Uint8Array(new Float64Array(values).buffer))
+    .update(values.map((v) => (v === 0 ? '0' : v.toPrecision(9))).join(','))
     .digest('hex');
 }
 
