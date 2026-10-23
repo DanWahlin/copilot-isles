@@ -171,7 +171,11 @@ export class CollisionWorld {
    * picks the level of a stacked surface (see WalkSurface).
    */
   surfaceHeightAt(x: number, z: number, y?: number): number | null {
-    const t = this.ground.heightAt(x, z);
+    return this.surfaceOver(x, z, y, this.ground.heightAt(x, z));
+  }
+
+  /** `surfaceHeightAt` over the terrain's height `t` there. */
+  private surfaceOver(x: number, z: number, y: number | undefined, t: number): number | null {
     let best: number | null = null;
     for (const s of this.surfaces) {
       const sh = s.heightAt(x, z, y);
@@ -182,12 +186,33 @@ export class CollisionWorld {
 
   /** Walkable height: the highest man-made surface, else the terrain (or the bed under fresh water). */
   groundAt(x: number, z: number, y?: number): number {
-    return this.surfaceHeightAt(x, z, y) ?? this.bedAt(x, z);
+    const t = this.ground.heightAt(x, z);
+    return this.surfaceOver(x, z, y, t) ?? this.bedAt(x, z, t);
   }
 
-  /** The terrain at (x, z), or the bed you wade on where fresh water lies over it. */
-  private bedAt(x: number, z: number): number {
-    const g = this.ground.heightAt(x, z);
+  /**
+   * The walkable height under a camera at height y: the lower of `groundAt(x, z)` (a stacked surface's
+   * lowest level) and `groundAt(x, z, y)` (the level at the camera's height), with the terrain and the
+   * bed looked up once (the follow camera asks this ~1000 times a frame).
+   */
+  groundUnder(x: number, z: number, y: number): number {
+    const t = this.ground.heightAt(x, z);
+    const floor = t - 0.05;
+    let low: number | null = null;
+    let at: number | null = null;
+    for (const s of this.surfaces) {
+      const a = s.heightAt(x, z);
+      if (a !== null && a >= floor && (low === null || a > low)) low = a;
+      const b = s.heightAt(x, z, y);
+      if (b !== null && b >= floor && (at === null || b > at)) at = b;
+    }
+    if (low !== null && at !== null) return Math.min(low, at);
+    const bed = this.bedAt(x, z, t);
+    return Math.min(low ?? bed, at ?? bed);
+  }
+
+  /** The terrain at (x, z) (its height `g`), or the bed you wade on where fresh water lies over it. */
+  private bedAt(x: number, z: number, g = this.ground.heightAt(x, z)): number {
     return this.inland?.(x, z, g, this.fresh) ? Math.min(g, this.fresh.floor) : g;
   }
 

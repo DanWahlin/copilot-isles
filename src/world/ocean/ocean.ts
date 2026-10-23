@@ -45,7 +45,7 @@ import { foamLight, world } from '../uniforms';
 import type { HarborMirrorInput } from './harbor-mirror';
 import { shipOcean } from './ship-interaction';
 import { MatchedDepth } from './depth-copy';
-import { createPolarGrid, type PolarGridOptions } from './polar-grid';
+import { createPolarGrid, cullPolarSectors, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
 import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
@@ -523,6 +523,29 @@ export function createOcean({
   // Its look is its own (no other mesh shares it), so it keeps its shadow-free shader: as a skipped
   // receiver it carried the shadow lookup for nothing, and changing the flag later built it again.
   mesh.userData.sunShadowNever = true;
+  // Of the grid past the disc round the camera, only the wedges a camera can see draw; the disc is a
+  // second draw of the same geometry and material (no new buffer or shader), drawn first, as its
+  // rings came first. The margins hold what the waves move a vertex now (the sea state's live
+  // amplitudes: across by their summed q·a, up and down by their summed a), twice over and a metre
+  // more, so a gale or a state easing in is covered as it grows.
+  const near = new Mesh(geo, mat);
+  near.name = 'ocean near';
+  near.frustumCulled = false;
+  near.renderOrder = -2;
+  near.receiveShadow = false;
+  near.userData.sunShadowNever = true;
+  mesh.add(near);
+  const liveSum = (u: readonly { value: number }[]) => {
+    let sum = 0;
+    for (let i = 0; i < waves.length; i++) sum += Math.abs(u[i]!.value);
+    return sum;
+  };
+  cullPolarSectors(
+    mesh,
+    near,
+    () => 2 * liveSum(QA) + 1,
+    () => 2 * liveSum(A) + 1,
+  );
 
   return {
     mesh,

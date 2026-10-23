@@ -245,6 +245,7 @@ async function boot(): Promise<void> {
     {
       getCpuMs: () => engine.cpuMs,
       getGpuMs: () => engine.gpuMs,
+      getGpuBusyMs: () => engine.gpuBusyMs,
       getGpuRawMs: () => engine.gpuRawMs,
       still: {
         freeze(on, sim) {

@@ -50,6 +50,8 @@ export interface InfoLike {
 }
 
 const MB = 1048576;
+/** The memory ledger recounts resized textures every 8th frame (`frames & 7`). */
+const RECOUNT_EVERY_MASK = 7;
 
 /**
  * The GPU time we show and report (HUD, stats, `window.__isles`, the benchmark): the raw timestamp
@@ -68,7 +70,7 @@ export function limitGpuMs(rawMs: number, frameMs: number): number {
  * `render.calls` is a lifetime count in three's shared Info, which is why we read `drawCalls`.
  */
 export class FrameCounters {
-  last: FrameStats = {
+  readonly last: FrameStats = {
     drawCalls: 0,
     frameCalls: 0,
     triangles: 0,
@@ -87,7 +89,9 @@ export class FrameCounters {
   /** Excused late additions still loading, and frames left to let their first draw upload. */
   private excused = 0;
   private settle = 0;
-  private base = { programs: 0, geometries: 0, textures: 0 };
+  private readonly base = { programs: 0, geometries: 0, textures: 0 };
+  /** Frames counted, for the texture recount's cadence. */
+  private frames = 0;
   private readonly info: InfoLike;
   /** Recounts textures whose size changed since three counted them (engine/memory-ledger.ts). */
   private readonly recountTextures: () => void;
@@ -103,25 +107,27 @@ export class FrameCounters {
   }
 
   endFrame(t: number): void {
-    this.recountTextures();
+    // A texture's size changes rarely (an image decoded, a target resized): a recount every few
+    // frames keeps the memory figures right without walking every texture every frame.
+    if ((this.frames++ & RECOUNT_EVERY_MASK) === 0) this.recountTextures();
     const { render, memory } = this.info;
     const programs = memory.programs ?? 0;
-    this.last = {
-      drawCalls: render.drawCalls,
-      frameCalls: render.frameCalls,
-      triangles: render.triangles,
-      programs,
-      geometries: memory.geometries,
-      textures: memory.textures,
-      textureMB: (memory.texturesSize ?? 0) / MB,
-      trackedMB: (memory.total ?? 0) / MB,
-    };
+    // Filled in place: a frame allocates nothing here.
+    const last = this.last;
+    last.drawCalls = render.drawCalls;
+    last.frameCalls = render.frameCalls;
+    last.triangles = render.triangles;
+    last.programs = programs;
+    last.geometries = memory.geometries;
+    last.textures = memory.textures;
+    last.textureMB = (memory.texturesSize ?? 0) / MB;
+    last.trackedMB = (memory.total ?? 0) / MB;
     // Hitch guard: after warm-up, any new pipeline/geometry/texture during play is a missing precompile.
     if (!this.armed) return;
     // An excused, precompiled late addition: its pipelines and first uploads aren't hitches.
     if (this.excused > 0 || this.settle > 0) {
       if (this.excused === 0) this.settle--;
-      this.base = { programs, geometries: memory.geometries, textures: memory.textures };
+      this.setBase(programs, memory.geometries, memory.textures);
       return;
     }
     const grew =
@@ -137,7 +143,13 @@ export class FrameCounters {
         ...(this.stage ? { stage: this.stage() } : {}),
       });
     }
-    this.base = { programs, geometries: memory.geometries, textures: memory.textures };
+    this.setBase(programs, memory.geometries, memory.textures);
+  }
+
+  private setBase(programs: number, geometries: number, textures: number): void {
+    this.base.programs = programs;
+    this.base.geometries = geometries;
+    this.base.textures = textures;
   }
 
   /**
@@ -173,7 +185,7 @@ export class FrameCounters {
   /** Call once warm-up is complete. */
   arm(): void {
     const { memory } = this.info;
-    this.base = { programs: memory.programs ?? 0, geometries: memory.geometries, textures: memory.textures };
+    this.setBase(memory.programs ?? 0, memory.geometries, memory.textures);
     this.armed = true;
   }
 }

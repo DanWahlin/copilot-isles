@@ -252,6 +252,8 @@ limitations under the License.
 - License: MIT
 - Adapted: `src/engine/traa-node.js` from `examples/jsm/tsl/display/TRAANode.js` (copied, with its `dispose()`
   also freeing the 1x1 depth texture it draws with before its first depth copy)
+- Adapted: `src/engine/gpu-timestamps.ts` from `src/renderers/webgpu/utils/WebGPUTimestampQueryPool.js`
+  (ported to TypeScript; it reads a frame's passes as the union of their intervals, not their sum)
 
 ```
 The MIT License

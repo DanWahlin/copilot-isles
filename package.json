@@ -23,6 +23,7 @@
     "check:opening": "node tools/openingtest.mjs",
     "check:audio": "node tools/audiotest.mjs --serve=dist",
     "check:memory": "node tools/memorytest.mjs",
+    "check:perf": "node tools/perftest.mjs",
     "course:sync": "node tools/course/sync.mjs",
     "course:drift": "tsx tools/course/drift.ts",
     "course:refs": "node tools/course/refs.mjs",

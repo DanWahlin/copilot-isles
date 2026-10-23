@@ -5,7 +5,7 @@ import { createPolarGrid } from '../world/ocean/polar-grid';
 
 function oceanTriangles(tier: keyof typeof TIERS): number {
   const g = createPolarGrid(oceanGrid(TIERS[tier]));
-  return g.index!.count / 3;
+  return g.drawRange.count / 3;
 }
 
 describe('tier settings (PLAN §12.1 budget cuts)', () => {
