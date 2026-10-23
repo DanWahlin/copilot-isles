@@ -71,7 +71,14 @@ export interface PiecePlacement {
   tint?: number;
 }
 
-type Bounds = readonly [minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number];
+export type Bounds = readonly [
+  minX: number,
+  minY: number,
+  minZ: number,
+  maxX: number,
+  maxY: number,
+  maxZ: number,
+];
 
 const HOUSE_PIECE_BOUNDS = {
   Wall_UnevenBrick_Straight: [-1, 0, -0.314, 1, 3.123, 0.092],
@@ -723,7 +730,8 @@ function roofFrontPiece(width: HouseWidth): 'Roof_Front_Brick4' | 'Roof_Front_Br
   return 'Roof_Front_Brick4';
 }
 
-function pieceBounds(piece: string): Bounds {
+/** A kit piece's local bounds (min x, y, z, max x, y, z). */
+export function pieceBounds(piece: string): Bounds {
   return HOUSE_PIECE_BOUNDS[piece as keyof typeof HOUSE_PIECE_BOUNDS] ?? [-0.5, 0, -0.5, 0.5, 1, 0.5];
 }
 

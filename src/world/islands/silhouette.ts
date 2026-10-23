@@ -49,6 +49,16 @@ export interface SilhouetteBlock {
   roofRise?: number;
 }
 
+/**
+ * A flat face with its own colour (a façade cell, a roof slope), lit like the blocks. `inside` is a
+ * point behind it (the face's normal points away from it).
+ */
+export interface SilhouetteFace {
+  pts: readonly (readonly [number, number, number])[];
+  color: number;
+  inside: readonly [number, number, number];
+}
+
 /** A round landmark as an eight-sided prism (a lighthouse, a sea stack, a tower), with a cone cap. */
 export interface SilhouetteTower {
   x: number;
@@ -130,6 +140,8 @@ export interface SilhouetteOptions {
   sheen?: number;
   light?: SilhouetteLight;
   blocks?: readonly SilhouetteBlock[];
+  /** Faces as they are (a town's façades and roofs in their own colours, `SilhouetteFace`). */
+  faces?: readonly SilhouetteFace[];
   towers?: readonly SilhouetteTower[];
   ribbons?: readonly SilhouetteRibbon[];
 }
@@ -335,6 +347,7 @@ function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry,
       for (let k = 0; k < 4; k++) face([top[k]!, top[(k + 1) % 4]!, apex], b.roof, mid);
     } else face(top, b.color, mid);
   }
+  for (const f of o.faces ?? []) face(f.pts, f.color, f.inside);
   for (const t of o.towers ?? []) {
     const sides = 8;
     const ringAt = (y: number, r: number) =>

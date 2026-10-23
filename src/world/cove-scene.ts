@@ -26,6 +26,7 @@ import { MERIDIAN } from './islands/meridian';
 import { createMeridianStream, type MeridianStream } from './islands/meridian-stream';
 import { createAnchorageStream, type AnchorageStream } from './islands/anchorage/stream';
 import { createAnchorageSilhouette } from './islands/anchorage/silhouette';
+import { anchorageMirrorFacades } from './islands/anchorage/mirror-facades';
 import { createBeachDebris, type BeachDebrisSystem } from './debris/beach-debris';
 import { addLiteShipLods, createBrigantine, type Brigantine } from './ship';
 import { createVegetation, type VegetationSystem } from './vegetation';
@@ -368,6 +369,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
         bounds: { minX: data.minX, maxX: data.maxX, minZ: data.minZ, maxZ: data.maxZ },
         breathe,
         mirror: true,
+        houses: villageKit
+          ? await anchorageMirrorFacades(villageKit, terrain.heightField, breathe)
+          : undefined,
       })
     : null;
   const anchorage = createAnchorageStream({

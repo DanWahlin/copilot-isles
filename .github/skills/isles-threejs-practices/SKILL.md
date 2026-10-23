@@ -164,7 +164,11 @@ hook (release it when the site is freed).
   whole island is a stand-in in one cheap look, drawn by the mirror alone (`HarborMirror.reflectOnly`
   puts it on `MIRROR_ONLY_LAYER`, the warm's mirror precompile builds it, `warmReflectOnly` uploads
   it): Anchorage's hills, village and quay are its silhouette on a 5 m grid with nothing under the
-  water (#31: +4 programs on Ultra WebGPU, none on WebGL2).
+  water (#31: +4 programs on Ultra WebGPU, none on WebGL2). Plain blocks read as boxes even
+  reflected: its houses are their kit houses' faces in vertex colours sampled from the kit's own
+  palette textures (`houseFaces`: each wall in 3 × 3 cells, frontmost part wins), still one look.
+  Bend a reflection by the water's slope times distance (`MIRROR_BEND`), not a fixed uv offset, and
+  weight it by the view angle, or straight edges stay straight.
 - A projected texture lookup (a planar mirror, a decal): check where it samples before tuning its
   strength. The harbour mirror's matrix already held the 0-1 bias and the ocean biased it again, and
   three samples a render target with v flipped, so its reflections landed metres off (the "ghost

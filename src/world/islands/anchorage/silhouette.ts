@@ -4,7 +4,12 @@ import { COVE } from '../../layout';
 import { sunState } from '../../sky/sun';
 import { coveMasks } from '../../terrain/cove-height';
 import { HOUSE_STOREY_HEIGHT } from '../../village/house-builder';
-import { createIslandSilhouetteAsync, mixHex, type SilhouetteBlock } from '../silhouette';
+import {
+  createIslandSilhouetteAsync,
+  mixHex,
+  type SilhouetteBlock,
+  type SilhouetteFace,
+} from '../silhouette';
 import { BUILDINGS } from './buildings';
 import { LIGHTHOUSE } from './lighthouse-stair';
 
@@ -23,15 +28,18 @@ const WEATHERED = 0x9c8c74;
  * draw, in the islands' shared far graph. Built a few grid rows a breath (`ready`).
  *
  * With `mirror`, it's the harbour mirror's stand-in for the island (Ultra, #31): what the harbour
- * reflects (the hills, the village front and the quay) as these big shapes in that one cheap look,
- * on a finer grid, with nothing under the water (the mirror's camera looks up from under it) and
- * no pier (its piles reflect themselves).
+ * reflects (the hills, the village front and the quay) in that one cheap look, on a finer grid,
+ * with nothing under the water (the mirror's camera looks up from under it) and no pier (its piles
+ * reflect themselves). With `houses`, the houses are their kit houses' coloured faces (stone, plaster,
+ * timber, windows, roofs) rather than blocks.
  */
 export function createAnchorageSilhouette(o: {
   heightField: HeightField;
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   breathe: () => Promise<void>;
   mirror?: boolean;
+  /** The houses as they are (`anchorageMirrorFacades`), in place of the blocks (the mirror's). */
+  houses?: readonly SilhouetteFace[];
 }): { group: Group; ready: Promise<void> } {
   const mirror = o.mirror === true;
   /** A block's walls start 0.5 m under its `y0`: in the mirror, at the water. */
@@ -41,7 +49,7 @@ export function createAnchorageSilhouette(o: {
   const ground = (x: number, z: number) => o.heightField.heightAt(x, z);
   const lighthouseBase = ground(L.x, L.z);
   const sun = sunState(ANCHORAGE_SILHOUETTE_SKY.hours, ANCHORAGE_SILHOUETTE_SKY.azimuth).sun;
-  const blocks: SilhouetteBlock[] = BUILDINGS.map((b) => {
+  const blocks: SilhouetteBlock[] = (o.houses ? [] : BUILDINGS).map((b) => {
     const y0 = b.quay ? COVE.quay.height : ground(b.x, b.z);
     return {
       x: b.x,
@@ -97,6 +105,7 @@ export function createAnchorageSilhouette(o: {
       sheen: 0.15,
       light: { dir: sun, sun: [0.85, 0.8, 0.72], ambient: [0.7, 0.74, 0.8], ground: [0.3, 0.34, 0.42] },
       blocks,
+      faces: o.houses,
       towers: [
         {
           x: L.x,
