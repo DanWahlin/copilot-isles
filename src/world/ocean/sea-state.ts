@@ -161,7 +161,7 @@ export const SEA_STATES: Readonly<Record<SeaStateId, SeaState>> = {
   gale: {
     id: 'gale',
     name: 'Gale',
-    blurb: 'Big seas, heavy whitecaps and flying spray. She pitches and heels hard, but she’s safe.',
+    blurb: 'Big seas, heavy whitecaps and spray at the bow. She pitches and heels hard, but she’s safe.',
     params: params({
       amp: [3, 2.6, 2.3, 2.1, 1.8, 1.6],
       steep: [1.45, 1.45, 1.4, 1.35, 1.3, 1.25],

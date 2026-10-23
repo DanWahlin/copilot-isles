@@ -46,7 +46,7 @@ export function SeaStatePicker({ state, bridge }: { state: UiState; bridge: Game
           );
         })}
       </div>
-      <p className="ci-setting-note">
+      <p className="ci-setting-note ci-sea-note">
         {state.settings.reducedMotion
           ? 'Reduced motion is on, so the waves and the ship’s roll stay no bigger than a Breeze’s. You’ll still see and hear the wind and the foam. '
           : ''}
