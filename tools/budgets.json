@@ -49,7 +49,7 @@
     }
   },
   "perf": {
-    "$comment": "tools/perftest.mjs (npm run check:perf), the local perf gate, per tier: main-thread ms per frame (Engine.cpuMs, median of a settled view's frames) with Chrome's CPU throttle at `throttle` (docs/specs/PHASE-0-spike.md \u00a75: 3x on this M3 Max stands in for the UHD 620 floor), GPU ms per frame (WebGPU's pass-timestamp union, uncapped, at the tier's render scale and 1080p), and the Phase 0 flythrough's peak triangles in one frame. `target` is PLAN \u00a712.1 / the spec's budget; `gate` is what the gate fails on: the target where it's met, else the worst reading measured on 2026-10-22 plus ~10 %, so nothing regresses while the target stands (issues.md #29 proposes revised targets, pending Dan).",
+    "$comment": "tools/perftest.mjs (npm run check:perf), the local perf gate, per tier: main-thread ms per frame (Engine.cpuMs, median of a settled view's frames) with Chrome's CPU throttle at `throttle` (docs/specs/PHASE-0-spike.md \u00a75: 3x on this M3 Max stands in for the UHD 620 floor), GPU ms per frame (WebGPU's pass-timestamp union, uncapped, at the tier's render scale and 1080p), and the Phase 0 flythrough's peak triangles in one frame. `target` is PLAN \u00a712.1 / the spec's budget; `gate` is what the gate fails on: the target where it's met, else the worst reading measured on 2026-10-22 plus ~10 %, so nothing regresses while the target stands (Dan accepted these gaps on 2026-10-22, PLAN \u00a712.1 and issues.md #29).",
     "tiers": {
       "low": {
         "throttle": 3,
