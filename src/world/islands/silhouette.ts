@@ -49,6 +49,16 @@ export interface SilhouetteBlock {
   roofRise?: number;
 }
 
+/**
+ * A flat face with its own colour (a façade cell, a roof slope), lit like the blocks. `inside` is a
+ * point behind it (the face's normal points away from it).
+ */
+export interface SilhouetteFace {
+  pts: readonly (readonly [number, number, number])[];
+  color: number;
+  inside: readonly [number, number, number];
+}
+
 /** A round landmark as an eight-sided prism (a lighthouse, a sea stack, a tower), with a cone cap. */
 export interface SilhouetteTower {
   x: number;
@@ -96,6 +106,12 @@ export interface SilhouetteOptions {
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   /** Grid spacing (m). */
   cell: number;
+  /**
+   * The lowest the ground goes (m, default −6: under the sea it's the ocean's). The harbour mirror's
+   * copy stops at the water (0): it's seen from under the water, where anything lower would be in
+   * the way.
+   */
+  floor?: number;
   /** The island's ground (and anything that should read as ground, like a tree's crown). */
   height: (x: number, z: number) => number;
   /** Gentle slopes (the island's green), steep faces (rock), and the shore. */
@@ -124,6 +140,8 @@ export interface SilhouetteOptions {
   sheen?: number;
   light?: SilhouetteLight;
   blocks?: readonly SilhouetteBlock[];
+  /** Faces as they are (a town's façades and roofs in their own colours, `SilhouetteFace`). */
+  faces?: readonly SilhouetteFace[];
   towers?: readonly SilhouetteTower[];
   ribbons?: readonly SilhouetteRibbon[];
 }
@@ -166,6 +184,7 @@ const gndC = new Color();
  */
 function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry, void> {
   const { minX, maxX, minZ, maxZ } = o.bounds;
+  const floor = o.floor ?? -6;
   const nx = Math.max(1, Math.floor((maxX - minX) / o.cell));
   const nz = Math.max(1, Math.floor((maxZ - minZ) / o.cell));
   const positions: number[] = [];
@@ -228,7 +247,7 @@ function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry,
     for (let i = 0; i <= nx; i++) {
       const k = j * (nx + 1) + i;
       const y = at(i, j);
-      positions.push(minX + i * o.cell, Math.max(-6, y), minZ + j * o.cell);
+      positions.push(minX + i * o.cell, Math.max(floor, y), minZ + j * o.cell);
       const gx = (at(i + 1, j) - at(i - 1, j)) / (2 * o.cell);
       const gz = (at(i, j + 1) - at(i, j - 1)) / (2 * o.cell);
       tmp.setRGB(base[k * 3]!, base[k * 3 + 1]!, base[k * 3 + 2]!);
@@ -252,7 +271,7 @@ function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry,
       const a = j * (nx + 1) + i;
       const c = a + nx + 1;
       // Leave out cells wholly under the sea (the ocean covers them).
-      if (Math.max(positions[a * 3 + 1]!, positions[(a + 1) * 3 + 1]!, positions[c * 3 + 1]!) <= -5.9)
+      if (Math.max(positions[a * 3 + 1]!, positions[(a + 1) * 3 + 1]!, positions[c * 3 + 1]!) <= floor + 0.1)
         continue;
       indices.push(a, c, a + 1, a + 1, c, c + 1);
     }
@@ -328,6 +347,7 @@ function* silhouetteSteps(o: SilhouetteOptions): Generator<void, BufferGeometry,
       for (let k = 0; k < 4; k++) face([top[k]!, top[(k + 1) % 4]!, apex], b.roof, mid);
     } else face(top, b.color, mid);
   }
+  for (const f of o.faces ?? []) face(f.pts, f.color, f.inside);
   for (const t of o.towers ?? []) {
     const sides = 8;
     const ringAt = (y: number, r: number) =>

@@ -80,6 +80,8 @@ const SAPPHIRE = vec3(0.005, 0.07, 0.18);
 const NAVY = vec3(0.002, 0.025, 0.075);
 const CREST_SCATTER = vec3(0.12, 0.55, 0.45);
 const FOAM_PATTERN_MEAN = 0.32;
+/** How far the water's slope bends the harbour mirror's image, per metre of distance. */
+const MIRROR_BEND = 0.08;
 
 /**
  * The ocean's polar grid per tier. Lite's rings widen faster and it has fewer spokes (about 21k
@@ -255,15 +257,28 @@ export function createOcean({
       const harborMask = float(1)
         .sub(smoothstep(COVE.harbor.radius * 0.78, COVE.harbor.radius, harborDist))
         .mul(mirror.active);
-      const mirrorClip = mirror.matrix.mul(vec4(positionWorld.x, positionWorld.y, positionWorld.z, 1));
-      const mirrorUv = mirrorClip.xy.div(mirrorClip.w).mul(0.5).add(0.5).add(N.xz.mul(0.008).mul(harborMask));
+      // The water's tilt bends the reflected ray: look the mirror up at a point moved sideways by the
+      // surface's slope times its distance, so a ripple bends the image by the same angle near or far
+      // and the sea's own distance-filtered normal (ripples fade out far off) sets how much.
+      const bent = positionWorld.add(vec3(N.x, 0, N.z).mul(dist.mul(MIRROR_BEND).mul(harborMask)));
+      // The matrix already maps to 0-1 (HarborMirror's bias); three flips v for a render target.
+      const mirrorClip = mirror.matrix.mul(vec4(bent.x, bent.y, bent.z, 1));
+      const mirrorNdc = mirrorClip.xy.div(mirrorClip.w);
+      const mirrorUv = vec2(mirrorNdc.x, float(1).sub(mirrorNdc.y));
       const uvOk = mirrorUv.x
         .greaterThanEqual(0)
         .and(mirrorUv.x.lessThanEqual(1))
         .and(mirrorUv.y.greaterThanEqual(0))
         .and(mirrorUv.y.lessThanEqual(1))
         .select(float(1), float(0));
-      reflRgb = mix(reflRgb, texture(mirror.texture, mirrorUv).rgb, harborMask.mul(uvOk).mul(0.34));
+      // Its share of the reflection follows the Fresnel curve too (the whole reflection is weighted by
+      // F below): strong at grazing angles, faint looking down, where the sky's soft light wins.
+      const grazing = smoothstep(0.7, 0.12, NdV);
+      reflRgb = mix(
+        reflRgb,
+        texture(mirror.texture, mirrorUv).rgb,
+        harborMask.mul(uvOk).mul(mix(float(0.2), float(0.85), grazing)),
+      );
     }
 
     // GGX key-light highlight (sun by day, a moon path at night).

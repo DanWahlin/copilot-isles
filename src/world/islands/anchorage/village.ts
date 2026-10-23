@@ -620,7 +620,8 @@ function buildingFootprint(spec: BuildingSpec): HouseFootprint {
   return buildingHousePlan(spec).footprint;
 }
 
-function houseSpecForBuilding(spec: BuildingSpec, baseY: number, low: boolean): HouseSpec {
+/** The kit house a village building is (its footprint, storeys, walls and roof, tints). */
+export function houseSpecForBuilding(spec: BuildingSpec, baseY: number, low: boolean): HouseSpec {
   const plan = buildingHousePlan(spec);
   return {
     ...plan,
@@ -946,7 +947,8 @@ export function addKitPlacement(
   }
 }
 
-function kitPaintColour(materialKey: MaterialKey, tint?: number): number {
+/** The vertex colour a kit part is painted (`paint`) with: a placement's tint on plaster and roof tiles. */
+export function kitPaintColour(materialKey: MaterialKey, tint?: number): number {
   if (materialKey === 'plaster') return tint ?? 0xffffff;
   if (materialKey === 'roofTile') return tint ?? 0xffffff;
   if (materialKey === 'wood') return 0x9b7651;

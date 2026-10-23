@@ -242,7 +242,25 @@ async function boot(): Promise<void> {
       hdr: hdr && backend === 'webgpu',
       features: webgpu.features,
     },
-    { getCpuMs: () => engine.cpuMs, getGpuMs: () => engine.gpuMs, getGpuRawMs: () => engine.gpuRawMs },
+    {
+      getCpuMs: () => engine.cpuMs,
+      getGpuMs: () => engine.gpuMs,
+      getGpuRawMs: () => engine.gpuRawMs,
+      still: {
+        freeze(on, sim) {
+          engine.clock.paused = on;
+          if (on && sim !== undefined) {
+            engine.clock.sim = sim;
+            flow.holdTitleStill(sim);
+          }
+          engine.setRenderScale(on ? 1 : null);
+          if (on) engine.stop();
+          else engine.start();
+        },
+        still: () => engine.renderStill(),
+        restartJitter: () => post?.restartJitter(),
+      },
+    },
   );
   if (import.meta.env.DEV || q.has('debug')) (window as unknown as { __flow: unknown }).__flow = flow;
 

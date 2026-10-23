@@ -4,7 +4,12 @@ import { COVE } from '../../layout';
 import { sunState } from '../../sky/sun';
 import { coveMasks } from '../../terrain/cove-height';
 import { HOUSE_STOREY_HEIGHT } from '../../village/house-builder';
-import { createIslandSilhouetteAsync, mixHex, type SilhouetteBlock } from '../silhouette';
+import {
+  createIslandSilhouetteAsync,
+  mixHex,
+  type SilhouetteBlock,
+  type SilhouetteFace,
+} from '../silhouette';
 import { BUILDINGS } from './buildings';
 import { LIGHTHOUSE } from './lighthouse-stair';
 
@@ -21,18 +26,30 @@ const WEATHERED = 0x9c8c74;
  * own paint (weathered toward stone) with their roofs, from the same data the village builds, the
  * quay and the pier as a low dark band, and the point lighthouse and the sea stack as prisms. One
  * draw, in the islands' shared far graph. Built a few grid rows a breath (`ready`).
+ *
+ * With `mirror`, it's the harbour mirror's stand-in for the island (Ultra, #31): what the harbour
+ * reflects (the hills, the village front and the quay) in that one cheap look, on a finer grid,
+ * with nothing under the water (the mirror's camera looks up from under it) and no pier (its piles
+ * reflect themselves). With `houses`, the houses are their kit houses' coloured faces (stone, plaster,
+ * timber, windows, roofs) rather than blocks.
  */
 export function createAnchorageSilhouette(o: {
   heightField: HeightField;
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   breathe: () => Promise<void>;
+  mirror?: boolean;
+  /** The houses as they are (`anchorageMirrorFacades`), in place of the blocks (the mirror's). */
+  houses?: readonly SilhouetteFace[];
 }): { group: Group; ready: Promise<void> } {
+  const mirror = o.mirror === true;
+  /** A block's walls start 0.5 m under its `y0`: in the mirror, at the water. */
+  const above = (y0: number) => (mirror ? Math.max(0.5, y0) : y0);
   const L = COVE.lighthouse;
   const S = COVE.seaStack;
   const ground = (x: number, z: number) => o.heightField.heightAt(x, z);
   const lighthouseBase = ground(L.x, L.z);
   const sun = sunState(ANCHORAGE_SILHOUETTE_SKY.hours, ANCHORAGE_SILHOUETTE_SKY.azimuth).sun;
-  const blocks: SilhouetteBlock[] = BUILDINGS.map((b) => {
+  const blocks: SilhouetteBlock[] = (o.houses ? [] : BUILDINGS).map((b) => {
     const y0 = b.quay ? COVE.quay.height : ground(b.x, b.z);
     return {
       x: b.x,
@@ -40,7 +57,7 @@ export function createAnchorageSilhouette(o: {
       hx: b.w / 2,
       hz: b.d / 2,
       rot: b.rot,
-      y0,
+      y0: above(y0),
       y1: y0 + b.floors * HOUSE_STOREY_HEIGHT + 0.4,
       color: mixHex(b.colour, WEATHERED, 0.35),
       roof: mixHex(b.roofColour, 0x8a4630, 0.3),
@@ -55,26 +72,28 @@ export function createAnchorageSilhouette(o: {
     hx: (q.x1 - q.x0) / 2,
     hz: 4,
     rot: 0,
-    y0: -2,
+    y0: above(-2),
     y1: q.height,
     color: 0x6e6255,
   });
   const p = COVE.pier;
-  blocks.push({
-    x: p.x,
-    z: (p.z0 + p.z1) / 2,
-    hx: p.width / 2 + 0.5,
-    hz: Math.abs(p.z1 - p.z0) / 2,
-    rot: 0,
-    y0: -2,
-    y1: p.deck + 0.8,
-    color: 0x5a4a3a,
-  });
+  if (!mirror)
+    blocks.push({
+      x: p.x,
+      z: (p.z0 + p.z1) / 2,
+      hx: p.width / 2 + 0.5,
+      hz: Math.abs(p.z1 - p.z0) / 2,
+      rot: 0,
+      y0: -2,
+      y1: p.deck + 0.8,
+      color: 0x5a4a3a,
+    });
   return createIslandSilhouetteAsync(
     {
-      name: 'anchorage-silhouette',
+      name: mirror ? 'anchorage-mirror-stand-in' : 'anchorage-silhouette',
       bounds: o.bounds,
-      cell: 10,
+      cell: mirror ? 5 : 10,
+      floor: mirror ? 0 : undefined,
       height: ground,
       masks: coveMasks,
       land: 0x74a046,
@@ -86,6 +105,7 @@ export function createAnchorageSilhouette(o: {
       sheen: 0.15,
       light: { dir: sun, sun: [0.85, 0.8, 0.72], ambient: [0.7, 0.74, 0.8], ground: [0.3, 0.34, 0.42] },
       blocks,
+      faces: o.houses,
       towers: [
         {
           x: L.x,
@@ -97,7 +117,15 @@ export function createAnchorageSilhouette(o: {
           color: 0xe8e2d2,
           cap: { color: 0x8c3a2c, height: 2.6 },
         },
-        { x: S.x, z: S.z, r0: S.radius * 0.67, r1: S.radius * 0.95, y0: -2, y1: S.height, color: 0xb4b0a4 },
+        {
+          x: S.x,
+          z: S.z,
+          r0: S.radius * 0.67,
+          r1: S.radius * 0.95,
+          y0: mirror ? 0 : -2,
+          y1: S.height,
+          color: 0xb4b0a4,
+        },
       ],
     },
     o.breathe,

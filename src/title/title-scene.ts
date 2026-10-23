@@ -22,11 +22,18 @@ export interface TitleBackdrop {
   readonly orbit: TitleOrbit;
   /** Resolves once the sky's assets are loaded and on the GPU (the baked keys on the lower tiers). */
   readonly ready: Promise<void>;
+  /**
+   * Frozen shots (tools/shots.mjs): the view, the ship's swing and every animal back to the same start
+   * in every run, for a frame held at sim time `t` (the gull stays away). Not for play.
+   */
+  holdStill(t: number): void;
   dispose(): void;
 }
 
 /** The title's time of day: a low golden-hour sun. */
 const TITLE_HOURS = 17.1;
+/** Where the title's slow orbit starts. */
+const TITLE_YAW = 0.35;
 
 /**
  * The title backdrop (PLAN §13.5, POC §3.1): open ocean, sky, and your brigantine at anchor,
@@ -130,19 +137,22 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
 
   const focus = new Vector3();
   const look = new Vector3();
-  const orbit = new TitleOrbit(0.35);
+  const orbit = new TitleOrbit(TITLE_YAW);
   let interactive = true;
   const unbind = bindTitleDrag(renderer.domElement, orbit, () => interactive);
+  /** Swing on the anchor rope: slow yaw and a little drift around the anchor. */
+  const swing = (dt: number, t: number) => {
+    const pose = ship.dynamics.pose;
+    pose.heading = anchor.heading + Math.sin(t * 0.07) * 0.22 + Math.sin(t * 0.023) * 0.12;
+    pose.x = anchor.x + Math.sin(t * 0.05) * 1.2;
+    pose.z = anchor.z + Math.cos(t * 0.04) * 1.0;
+    shipEnv.t = t;
+    ship.update(dt, t, shipEnv);
+  };
   const remove = engine.add(
     {
       frame(dt, t) {
-        // Swing on the anchor rope: slow yaw and a little drift around the anchor.
-        const pose = ship.dynamics.pose;
-        pose.heading = anchor.heading + Math.sin(t * 0.07) * 0.22 + Math.sin(t * 0.023) * 0.12;
-        pose.x = anchor.x + Math.sin(t * 0.05) * 1.2;
-        pose.z = anchor.z + Math.cos(t * 0.04) * 1.0;
-        shipEnv.t = t;
-        ship.update(dt, t, shipEnv);
+        swing(dt, t);
 
         orbit.update(dt, world.reducedMotion.value > 0.5);
         const r = orbit.radius;
@@ -194,6 +204,14 @@ export function createTitleBackdrop(engine: Engine): TitleBackdrop {
     },
     orbit,
     ready,
+    holdStill(t: number) {
+      orbit.yaw = TITLE_YAW;
+      ship.restartMotion(anchor.x, anchor.z, anchor.heading);
+      for (let k = 30 * 60; k >= 0; k--) swing(1 / 60, t - k / 60);
+      birds?.reset();
+      leaps?.reset(t);
+      wordmarkGull.setEnabled(false);
+    },
     dispose() {
       disposed = true;
       // Behind the opening's veil: the voyage's sea is the setting's from its first frame.

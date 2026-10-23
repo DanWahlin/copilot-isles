@@ -492,7 +492,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A text-only course's caption has a button that moves the conversation on (touch parity with E).
   hud.onNext = () => dialogue.next();
 
-  // Player: stepUp covers the 0.6 m quay-to-pier lip.
+  // Player: stepUp 0.66, over the 0.55 default. It was first for the quay-to-pier lip, which the pier
+  // ramp removed (#22), but a scan and walks at 0.55 (2026-10-22) still stop on Port Meridian's
+  // terrace stairs (x ≈ 610 and 732, z −840 to −891), whose steps rise 0.57–0.6 m. Elsewhere 0.55
+  // only loses side climbs (onto a door stair's flank, a deck's edge). Lower it only with those
+  // stairs rebuilt.
   const player = new PlayerController({ stepUp: 0.66 });
   const hero: Character = o.characters.create({ body: o.body, variant: o.variant ?? 0, tier });
   /** Teleports the player and snaps the hero model with it, so no frame shows the old spot. */

@@ -34,6 +34,8 @@ export interface CreateBirdsOptions {
 export interface BirdsSystem {
   group: Group;
   update(dt: number, t: number, camera: PerspectiveCamera): void;
+  /** Puts every bird back where its seed starts it (frozen shots: the same flock in every run). */
+  reset(): void;
   dispose(): void;
 }
 
@@ -116,40 +118,45 @@ function setMatrix(agent: BirdAgent): Matrix4 {
 export function createBirds(options: CreateBirdsOptions): BirdsSystem {
   const tier = resolveTier(options.tier);
   const count = Math.max(0, tier.birds);
-  const rng = seededRandom(options.seed ?? 0xb17d5);
+  let rng = seededRandom(options.seed ?? 0xb17d5);
   const agents: BirdAgent[] = [];
   const alt = options.altitude ?? DEFAULT_ALTITUDE;
   const perchCount = Math.min(options.perches.length, Math.ceil(count * 0.24));
-  for (let i = 0; i < count; i += 1) {
-    const perched = i < perchCount;
-    const pos = perched
-      ? options.perches[i].clone()
-      : new Vector3(
-          options.center.x + (rng() - 0.5) * options.radius,
-          options.center.y + alt[0] + rng() * (alt[1] - alt[0]),
-          options.center.z + (rng() - 0.5) * options.radius,
-        );
-    const agent: BirdAgent = {
-      pos,
-      vel: new Vector3(Math.sin(rng() * Math.PI * 2), 0, Math.cos(rng() * Math.PI * 2)).multiplyScalar(8),
-      target: new Vector3(),
-      yaw: rng() * Math.PI * 2,
-      bank: 0,
-      pitch: 0,
-      speed: 7.5 + rng() * 4,
-      scale: (1.6 + rng() * 0.35) * (options.scale ?? 1),
-      seed: rng(),
-      flapPhase: rng() * Math.PI * 2,
-      flapAmp: perched ? 0 : 0.25 + rng() * 0.45,
-      fold: perched ? 1 : 0,
-      state: perched ? 'perched' : 'fly',
-      perch: perched ? i : -1,
-      timer: perched ? 16 + rng() * 45 : 0,
-      circleDir: rng() < 0.5 ? -1 : 1,
-    };
-    chooseTarget(agent, options.center, options.radius, rng, alt);
-    agents.push(agent);
-  }
+  const spawn = () => {
+    rng = seededRandom(options.seed ?? 0xb17d5);
+    agents.length = 0;
+    for (let i = 0; i < count; i += 1) {
+      const perched = i < perchCount;
+      const pos = perched
+        ? options.perches[i].clone()
+        : new Vector3(
+            options.center.x + (rng() - 0.5) * options.radius,
+            options.center.y + alt[0] + rng() * (alt[1] - alt[0]),
+            options.center.z + (rng() - 0.5) * options.radius,
+          );
+      const agent: BirdAgent = {
+        pos,
+        vel: new Vector3(Math.sin(rng() * Math.PI * 2), 0, Math.cos(rng() * Math.PI * 2)).multiplyScalar(8),
+        target: new Vector3(),
+        yaw: rng() * Math.PI * 2,
+        bank: 0,
+        pitch: 0,
+        speed: 7.5 + rng() * 4,
+        scale: (1.6 + rng() * 0.35) * (options.scale ?? 1),
+        seed: rng(),
+        flapPhase: rng() * Math.PI * 2,
+        flapAmp: perched ? 0 : 0.25 + rng() * 0.45,
+        fold: perched ? 1 : 0,
+        state: perched ? 'perched' : 'fly',
+        perch: perched ? i : -1,
+        timer: perched ? 16 + rng() * 45 : 0,
+        circleDir: rng() < 0.5 ? -1 : 1,
+      };
+      chooseTarget(agent, options.center, options.radius, rng, alt);
+      agents.push(agent);
+    }
+  };
+  spawn();
 
   const geometry = createBirdGeometry();
   const flapPhase = new InstancedBufferAttribute(new Float32Array(Math.max(1, count)), 1);
@@ -272,6 +279,7 @@ export function createBirds(options: CreateBirdsOptions): BirdsSystem {
       flapAmp.needsUpdate = true;
       birdTint.needsUpdate = true;
     },
+    reset: spawn,
     dispose() {
       geometry.dispose();
       if (Array.isArray(mesh.material)) for (const material of mesh.material) material.dispose();

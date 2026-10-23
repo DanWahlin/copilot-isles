@@ -40,6 +40,11 @@ export interface LeapsSystem {
   setAvoidRects(rects: ScreenRect[]): void;
   force(kind?: LeapKind): boolean;
   update(dt: number, t: number, camera: PerspectiveCamera): void;
+  /**
+   * Nothing in the air, and the next leap scheduled from `t` as at the start, from the seed (frozen
+   * shots: the same sea in every run).
+   */
+  reset(t: number): void;
   dispose(): void;
 }
 
@@ -187,7 +192,7 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
   const tier = resolveTier(options.tier);
   const enabled = tier.leaps > 0 && tier.tier !== 'lite';
   const seed = options.seed ?? seedFromUrl();
-  const rng = seededRandom(seed ^ 0x51a5_f15);
+  let rng = seededRandom(seed ^ 0x51a5_f15);
   const director = new LeapsDirector({
     seed,
     heightField: options.heightField ?? null,
@@ -409,6 +414,13 @@ export function createLeaps(options: CreateLeapsOptions): LeapsSystem {
         if (projected) addPod(agents, projected.arc, t, rng, !!options.titleMode);
         schedule(t);
       }
+      updateMeshes(t);
+    },
+    reset(t) {
+      rng = seededRandom(seed ^ 0x51a5_f15);
+      agents.length = 0;
+      splashes.length = 0;
+      nextAt = t + (options.titleMode ? 2.5 : 12 + rng() * 18);
       updateMeshes(t);
     },
     dispose() {

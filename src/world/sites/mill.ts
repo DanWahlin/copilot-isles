@@ -57,6 +57,8 @@ export interface MillSite {
   readonly top: number;
   readonly rows: number;
   readonly cols: number;
+  /** A channel tile's side (m). */
+  readonly tile: number;
   /** Walkable deck and stairs (null elsewhere). */
   heightAt(x: number, z: number): number | null;
   /** `camera`: camera-only blockers (CollisionWorld.addCameraBox). */
@@ -833,6 +835,7 @@ export function createMill(o: MillOptions): MillSite {
     top,
     rows,
     cols,
+    tile: T,
     heightAt,
     colliders: { circles, boxes, camera },
     anchors,

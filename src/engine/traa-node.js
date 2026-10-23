@@ -1,6 +1,7 @@
 // Adapted from three.js © 2010-2026 three.js authors, MIT, examples/jsm/tsl/display/TRAANode.js@r186 (0.186.1)
-// Copied as-is but for the TAAUtils import path and one fix: `dispose()` also frees the 1x1 depth
-// texture the node draws with until its first depth copy (three's own leaves it on the GPU).
+// Copied as-is but for the TAAUtils import path, one fix and one addition: `dispose()` also frees the
+// 1x1 depth texture the node draws with until its first depth copy (three's own leaves it on the GPU),
+// and `restartJitter()` starts the jitter sequence over (frozen shots, tools/shots.mjs).
 import {
   HalfFloatType,
   Vector2,
@@ -624,6 +625,14 @@ class TRAANode extends TempNode {
    * Frees internal resources. This method should be called
    * when the effect is no longer required.
    */
+  /**
+   * Starts the jitter sequence over at its first offset, so a series of frozen frames ends on the
+   * same jitter whatever ran before it (tools/shots.mjs).
+   */
+  restartJitter() {
+    this._jitterIndex = 0;
+  }
+
   dispose() {
     super.dispose();
 

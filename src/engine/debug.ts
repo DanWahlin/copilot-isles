@@ -17,10 +17,22 @@ interface IslesDebug {
     gpuRawMs: number;
   } & BackendInfo;
   shot?(id: string): void;
+  /** Freeze-frame for screenshots (tools/shots.mjs), like the cove dev page's `freeze`/`still`. */
+  still?: StillShot;
   hitches(): Hitch[];
   /** Frames over 50 ms apart after warm-up (main-thread stalls the hitch guard can't see). */
   stalls(): Stall[];
   state(): string;
+}
+
+/** Holds a page still for deterministic screenshots (tools/shots.mjs). */
+export interface StillShot {
+  /** Pauses the clock (at `sim` seconds if given), stops the frame loop and fixes the render scale at 1; `false` resumes. */
+  freeze(on: boolean, sim?: number): void;
+  /** Draws one frame with time held (`Engine.renderStill`). */
+  still(): void;
+  /** Starts temporal AA's jitter over. */
+  restartJitter(): void;
 }
 
 declare global {
@@ -50,6 +62,7 @@ export function installDebug(
     /** The raw timestamp reading (`Engine.gpuRawMs`), for debugging only. */
     getGpuRawMs?: () => number;
     shot?: (id: string) => void;
+    still?: StillShot;
   } = {},
 ): void {
   if (!debugEnabled()) return;
@@ -68,5 +81,6 @@ export function installDebug(
     stalls: () => [...counters.stalls],
     state: getState,
     ...(options.shot ? { shot: options.shot } : {}),
+    ...(options.still ? { still: options.still } : {}),
   };
 }

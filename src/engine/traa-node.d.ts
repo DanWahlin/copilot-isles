@@ -1,8 +1,10 @@
 import type { Camera, Node, TempNode } from 'three/webgpu';
 
-/** three's TRAANode (r186), with its depth stand-in freed on dispose (traa-node.js). */
+/** three's TRAANode (r186), with its depth stand-in freed on dispose and `restartJitter` (traa-node.js). */
 export declare class TRAANode extends TempNode {
   getTextureNode(): Node<'vec4'>;
+  /** Starts the jitter sequence over at its first offset (frozen shots). */
+  restartJitter(): void;
   dispose(): void;
 }
 

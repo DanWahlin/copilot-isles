@@ -167,6 +167,8 @@ export async function warmWorld(o: {
         ]).then(() => undefined),
       frame,
     );
+    // The harbour mirror's stand-ins upload now (only the mirror draws them, wherever you start).
+    cove.mirror?.warmReflectOnly(engine.renderer, engine.scene);
     await o.beforeDraws?.();
     // Small batches: each new shadow or post pipeline is built synchronously on its first draw.
     endShadowWarm = cove.sky.shadowWarm(engine.scene);

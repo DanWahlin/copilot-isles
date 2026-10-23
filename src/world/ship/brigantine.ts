@@ -82,6 +82,7 @@ import {
 import { createShipPipes, type ShipPipes } from './pipes';
 import { DEFAULT_SAIL_PALETTE, sailPalette } from './sail-palettes';
 import { loadLionHeadFigurehead } from './ship-lion';
+import { unreflected } from '../reflection';
 
 export { fitShipNameFontSize } from './brigantine-materials';
 
@@ -116,6 +117,12 @@ export interface Brigantine {
   dynamics: ShipDynamics;
   uniforms: BrigantineUniforms;
   update(dt: number, t: number, env: BrigantineEnv): void;
+  /**
+   * Puts the ship at rest at (x, z, heading) with every motion it integrates (the hull's springs and
+   * fixed-step remainder, the lantern and block, the flags' phase) at its start, so replaying the same
+   * updates gives the same pose (frozen shots, `CoveScene.holdStill`).
+   */
+  restartMotion(x: number, z: number, heading: number): void;
   waterlineTable: Float32Array;
   stations: readonly BuoyancyStation[];
   capsules: readonly HullCapsule[];
@@ -495,8 +502,13 @@ export function createBrigantine({
   // vertices (setGunRecoil), only while a battle runs them out and back.
   const gunGeometry = createDeckGunGeometry(tier);
   const guns = gunGeometry ? new GunRecoil(gunGeometry) : null;
-  if (gunGeometry) addMesh(group, gunGeometry, shipMaterial, 'deck guns');
-  hullParts.push(
+  // What the harbour mirror leaves out (Ultra, #31): it reflects the ship's big shapes in its main
+  // look (hull, deck, trim, spars and furled canvas), not its small parts or the sails', flags' and
+  // rigging's own looks (each would be another set of mirror shaders; the sails are furled at the
+  // mooring, where the mirror sees her).
+  const smallParts: Object3D[] = [];
+  if (gunGeometry) smallParts.push(addMesh(group, gunGeometry, shipMaterial, 'deck guns'));
+  const stern = [
     addMesh(
       group,
       createWindowGeometry(),
@@ -506,9 +518,11 @@ export function createBrigantine({
     ),
     addMesh(group, createSternGoldGeometry(), shipMaterial, 'stern gallery trim and lantern bracket'),
     addMesh(group, createNameBoardGeometry(), shipMaterial, 'christening ship name boards', false),
-  );
+  ];
+  hullParts.push(...stern);
   const lowTier = tier === 'lite' || tier === 'low';
   if (lowTier) mergeStaticParts(group, hullParts, 'hull deck trim and stern (merged)');
+  else smallParts.push(...stern);
   const canvasMaterial = register(makeCanvasMaterial(uniforms));
   const flagHaul = uniform(BRIGANTINE_FLAGS.haulDown);
   const flagMaterial = register(
@@ -531,8 +545,8 @@ export function createBrigantine({
     addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false),
   ];
   if (lowTier) mergeStaticParts(brigRig, spars, 'spars and furled canvas (merged)');
-  addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails');
-  addMesh(
+  smallParts.push(addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails'));
+  const flags = addMesh(
     brigRig,
     createFlagGeometry(raider ? RAIDER_BRIGANTINE_FLAGS : BRIGANTINE_FLAGS),
     flagMaterial,
@@ -542,6 +556,7 @@ export function createBrigantine({
   const rigging = new LineSegments(createRiggingGeometry(tier), riggingLineMaterial);
   rigging.name = 'standing and running rigging lines';
   brigRig.add(rigging);
+  smallParts.push(flags, rigging);
   // The raiders' cutter rig: the same materials, so it adds no pipelines.
   const cutterLayout = raiderCutterFlags(CUTTER_FLAG.z, CUTTER_FLAG.y0, CUTTER_FLAG.y1, CUTTER_FLAG.peak);
   let cutterRig: Group | null = null;
@@ -559,11 +574,13 @@ export function createBrigantine({
   }
   group.add(pipeSystem.group);
   group.add(christening.group);
+  smallParts.push(pipeSystem.group, christening.group);
   const gangway = createGangway(shipMaterial);
   gangway.visible = false;
   // Your ship's plank comes down mid-play: the warm draws it once so it doesn't upload then.
   if (!raider) gangway.userData.prewarm = true;
   group.add(gangway);
+  smallParts.push(gangway);
   const gangwayFoot = new Vector3();
   let disposed = false;
   const flagWind = new Float32Array(2);
@@ -596,6 +613,7 @@ export function createBrigantine({
   // They swing together on one pivot.
   if (lowTier) mergeStaticParts(lanternPivot, [lanternHanger, lantern], 'stern lantern and hanger (merged)');
   group.add(lanternPivot);
+  smallParts.push(lanternPivot);
 
   // A tackle block dangling from the lower mizzen stay, swaying with the ship.
   const blockPivot = new Group();
@@ -609,6 +627,7 @@ export function createBrigantine({
   blockGeo.addBox(0, -0.98, 0.15, 0.18, 0.24, 0.12);
   addMesh(blockPivot, blockGeo.build(), shipMaterial, 'hanging line and block', false);
   group.add(blockPivot);
+  smallParts.push(blockPivot);
 
   const oceanBow = new Float32Array(2);
   const oceanStern = new Float32Array(2);
@@ -763,6 +782,15 @@ export function createBrigantine({
       localToWorldXZ(dynamics.pose, 0, STERN_Z, outWorld, 0);
       return outWorld;
     },
+    restartMotion(x: number, z: number, heading: number): void {
+      dynamics.reset(x, z, heading);
+      accumulator = 0;
+      copyPose(dynamics.pose, previous);
+      lanternX = lanternZ = lanternVx = lanternVz = 0;
+      blockX = blockZ = blockVx = blockVz = 0;
+      uniforms.flagPhase.value = 0;
+      flagEased = false;
+    },
     update(dt: number, t: number, env: BrigantineEnv): void {
       accumulator = Math.min(accumulator + Math.max(0, dt), fixed * 5);
       while (accumulator >= fixed) {
@@ -826,6 +854,7 @@ export function createBrigantine({
     },
     dispose(): void {
       disposed = true;
+      for (const part of smallParts) unreflected.delete(part);
       group.traverse((object) => {
         const mesh = object as Mesh;
         if (mesh.geometry) mesh.geometry.dispose();
@@ -840,6 +869,7 @@ export function createBrigantine({
   };
   api.triangleCount = triangleCount(group);
   api.drawCallCount = drawCallCount(group);
+  for (const part of smallParts) unreflected.add(part);
   if (typeof window !== 'undefined') {
     figurehead = loadLionHeadFigurehead(tier, shipMaterial)
       .then((mesh) => {
@@ -847,6 +877,8 @@ export function createBrigantine({
           mesh.geometry.dispose();
           return;
         }
+        smallParts.push(mesh);
+        unreflected.add(mesh);
         group.add(mesh);
         api.triangleCount = triangleCount(group);
         api.drawCallCount = drawCallCount(group);
