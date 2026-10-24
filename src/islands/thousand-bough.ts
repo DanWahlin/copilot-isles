@@ -81,6 +81,7 @@ export const THOUSAND_BOUGH_ISLAND: IslandEntry = {
   chartLabelDy: -82,
   stream: {
     nearLoads: 'always',
+    courseData: 'chapter-part',
     // The harbour mirror only draws round Anchorage's harbour, a long way from Thousand-Bough.
     reflected: false,
   },

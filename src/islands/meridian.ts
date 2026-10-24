@@ -94,6 +94,7 @@ export const MERIDIAN_ISLAND: IslandEntry = {
     // A course that doesn't use it leaves its silhouette: coming near doesn't stream it in.
     nearLoads: 'in-course',
     reflected: true,
+    courseData: 'chapter-part',
   },
   code: () => import('../game/meridian-island').then((m) => m.MERIDIAN_CODE),
 };

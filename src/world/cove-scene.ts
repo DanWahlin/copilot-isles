@@ -50,6 +50,7 @@ import type { IslandStream, ResidentIsland } from './islands/island-stream';
 import { BLOB_RANGE, BlobShadows } from './blob-shadows';
 import { COURSE, courseIsland } from '../course/catalog';
 import { HOME_ISLAND, ISLAND_REGISTRY, STREAMED_ISLANDS, type IslandId } from '../islands/registry';
+import { loadIslandPart } from '../course/load';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -201,6 +202,11 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       disabled: params.has(`no${island.flag}`),
       island,
       nearLoads: () => island.stream!.nearLoads === 'always' || !!courseIsland(island.id, COURSE),
+      // Its chapter's part of the course pack loads with its terrain (src/course/load.ts).
+      courseData:
+        island.stream!.courseData === 'chapter-part'
+          ? (priority) => loadIslandPart(island.id, priority)
+          : undefined,
     });
     islands[island.id] = stream;
     return stream;

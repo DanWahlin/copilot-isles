@@ -43,7 +43,7 @@ entry must not import the island's world or game code. Import only layout data a
 | `ranges` | `load`, `show`, `unload` and `detail` in metres (`footprintDistance`). Keep `show` < `load` < `unload`. Keep `unload` less than the distance to the next island's berth, so the island is freed while you are there. |
 | `footprint` | The outline, 32 bearings (`measureFootprint`). Add it to `island-silhouettes.test.ts`. |
 | `starfish`, `courseBoard`, `chartLabelDy` | The starfish to find, where the course notice board stands, and the name's offset on the opening's 3D chart. |
-| `stream` | `{ nearLoads, reflected }`. `nearLoads: 'in-course'` streams the island in by distance only when the course uses it. `reflected: false` when the harbour mirror cannot see it. |
+| `stream` | `{ nearLoads, reflected, courseData }`. `nearLoads: 'in-course'` streams the island in by distance only when the course uses it. `reflected: false` when the harbour mirror cannot see it. `courseData: 'chapter-part'` makes the stream wait for the island's chapter part of the course pack (`loadIslandPart`, src/course/load.ts) with its terrain, so its quests, scripts and puzzles are in before its content is made. |
 | `code` | `() => import('../game/<id>-island').then((m) => m.<ID>_CODE)`. Use a dynamic import only. A static import of the same module makes the import ineffective (Vite shows `INEFFECTIVE_DYNAMIC_IMPORT`). |
 
 Then add the **one registry line** in `src/islands/registry.ts`:
@@ -119,7 +119,8 @@ These tables are not in the registry. The reason is in the right column.
 | `ISLAND_WAYS` | `src/world/islands/waypoints.ts` | The walk graphs are a few KB each; the title must not load them. |
 | `SOURCES` (3D chart) | `src/opening/chart-map.ts` | The miniature uses the island's height functions, which stay in the opening's chunk. TypeScript asks for it. |
 | `IslandMusic`, `MUSIC_TRACKS` | `src/audio/music/tracks.ts` | Audio data (the track, its loudness). |
-| `MARKET_STALLS`, `PASSAGE_BATTLES`, `PUZZLE_ISLANDS`, `ISLAND_SIGNS` | `src/game/market/stalls.ts`, `src/game/battles.ts`, `src/course/puzzles.ts`, `src/course/pack.ts` | Optional parts: a market keeper, a sea battle, puzzles and signs with course words. |
+| `MARKET_STALLS`, `PASSAGE_BATTLES`, `ISLAND_SIGNS` | `src/game/market/stalls.ts`, `src/game/battles.ts`, `src/course/pack.ts` | Optional parts: a market keeper, a sea battle, and signs with course words. |
+| `PUZZLE_ISLANDS`, `GAME_PUZZLES`, `SHARED_PUZZLES` | `src/course/puzzle-islands.ts` | The course pack split (`src/course/split.ts`) reads them in Node and in the Vite config, without the world's code. `src/islands/registry.test.ts` holds them on the registry's ids. |
 | The chart place | `src/ui/chart/archipelago.ts` | All eight islands are on the chart already ("coming soon" data). |
 | `NPC_IDS` and the cast specs | `src/world/characters/` | The character library. |
 

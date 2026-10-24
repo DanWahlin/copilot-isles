@@ -69,7 +69,11 @@ The drift report lists bolded UI names you used that the chapter doesn't mention
 ## 4. Wire it in
 
 - Add one line to `COURSES` in `src/course/catalog.ts` (import its `course.json`).
-- Add `course-<id>` (≤ 80 KB gz) to `tools/budgets.json`.
+- Add the pack's load parts to `tools/budgets.json` ([COURSE-PACKS.md](specs/COURSE-PACKS.md) §2):
+  `course-<id>` (its core chunk, ≤ 48 KB gz) and one row per chapter part,
+  `{ "asset": "course-<id>-<chapter>", "maxGzipKB": 28 }`. `npm run content:check -- --course=<id>`
+  shows each part's size, and fails on a part without a row. Add a row each time a chapter gets its
+  `chapters/<chapter>.json` or its island its `quests/<island>.json`.
 - `npm run build` writes the service worker's allow-list from every pack's `source.repo`; the weekly
   refresh picks the pack up by itself (`tools/course-pack/list.mjs`).
 

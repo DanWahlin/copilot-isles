@@ -76,6 +76,13 @@ export interface IslandStreamSpec {
   nearLoads: 'always' | 'in-course';
   /** Whether the harbour mirror (Anchorage's) can see it, so its warm compiles for the mirror too. */
   reflected: boolean;
+  /**
+   * The course data its stream waits for with its terrain (`IslandStreamContext.courseData`):
+   * `'chapter-part'` loads its chapter's part of the course pack (`loadIslandPart`,
+   * src/course/load.ts), so its quests, scripts and puzzles are in before anything on it is made;
+   * `'none'` loads nothing more (the core and the home island's part load with the voyage).
+   */
+  courseData: 'chapter-part' | 'none';
 }
 
 /**

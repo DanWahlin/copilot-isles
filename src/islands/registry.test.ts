@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import TOOLS from '../../tools/lib/islands.json';
+import { GAME_PUZZLES, PUZZLE_ISLANDS, SHARED_PUZZLES } from '../course/puzzle-islands';
 import { islandAt } from '../game/islands';
 import { CHART_ISLANDS } from '../opening/chart-map';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
@@ -49,6 +50,15 @@ describe('the island registry', () => {
       expect(r.show, `${e.id} show < load`).toBeLessThan(r.load);
       expect(r.load, `${e.id} load < unload`).toBeLessThan(r.unload);
     }
+  });
+
+  it('puts every puzzle on an island in the registry, and names only real puzzles', () => {
+    // The course pack split (src/course/split.ts) reads PUZZLE_ISLANDS in Node and in the Vite
+    // config, without the world's code, so the list stays there; this keeps it on the registry's ids.
+    for (const [puzzle, island] of Object.entries(PUZZLE_ISLANDS))
+      expect(ISLAND_IDS as readonly string[], `${puzzle} on ${island}`).toContain(island);
+    expect(Object.keys(PUZZLE_ISLANDS).sort()).toEqual(Object.keys(GAME_PUZZLES).sort());
+    for (const p of SHARED_PUZZLES) expect(GAME_PUZZLES[p], p).toBeDefined();
   });
 
   it('loads each island as code of its own, with a stream for every streamed island', async () => {

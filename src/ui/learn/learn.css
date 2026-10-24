@@ -1961,3 +1961,14 @@
   margin: 0 0 0.4rem;
   padding: 0.35rem 0.9rem;
 }
+
+/* A Logbook page whose chapter part is loading: about a short page's height, so the text doesn't jump in. */
+.ci-page-loading {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  min-height: 18rem;
+  text-align: center;
+  opacity: 0.85;
+}

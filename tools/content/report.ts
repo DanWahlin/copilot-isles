@@ -4,14 +4,19 @@
  *   npm run content:check -- [--course=<id>] [--previous=<old lock.json>] [--out=<report.md>] [--report-only]
  *
  * Prints every issue (file, JSON path, what to change) and each course notice board's topics, with
- * what changed since `--previous` (the weekly course refresh passes the lock from before its sync).
+ * what changed since `--previous` (the weekly course refresh passes the lock from before its sync),
+ * and the size of the pack's load parts (its core and each chapter's part, src/course/split.ts)
+ * against their budgets in tools/budgets.json: a part over its budget, or without one, is an issue.
  * Writes `broken=true|false` to $GITHUB_OUTPUT. Exits 1 on an issue unless `--report-only`.
  */
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { gzipSync } from 'node:zlib';
 import type { CourseMeta } from '../../src/course/catalog';
 import type { CourseBoardsData } from '../../src/content/course-boards';
 import type { CourseLock } from '../../src/learn/course/lock';
+import { splitFromDisk } from '../course-pack/files';
 import { coursePaths, DEFAULT_COURSE, ROOT as root } from '../course-pack/read';
 import { boardChanges, checkBoardSpots, checkContent, courseBoardIslands } from './check';
 
@@ -33,6 +38,37 @@ const issues = [
     message: s.message,
   })),
 ];
+
+// The pack's load parts (gzip -9, as tools/check-budgets.mjs measures the build) and their budgets.
+type Budget = { name?: string; asset?: string; maxGzipKB: number };
+const sizes: { label: string; kb: number; max: number | null }[] = [];
+try {
+  const budgets = Object.values(
+    (await readJson<{ chunks: Record<string, Budget> }>(join(root, 'tools/budgets.json'))).chunks,
+  );
+  const kb = (o: unknown) => gzipSync(JSON.stringify(o), { level: 9 }).length / 1024;
+  const { core, parts } = splitFromDisk(join(root, 'courses'), course);
+  const max = (b?: Budget) => b?.maxGzipKB ?? null;
+  sizes.push({ label: 'core', kb: kb(core), max: max(budgets.find((b) => b.name === `course-${course}`)) });
+  for (const [chapter, part] of Object.entries(parts))
+    sizes.push({
+      label: chapter,
+      kb: kb(part),
+      max: max(budgets.find((b) => b.asset === `course-${course}-${chapter}`)),
+    });
+  for (const z of sizes)
+    if (z.max === null || z.kb > z.max)
+      issues.push({
+        file: 'tools/budgets.json',
+        path: z.label === 'core' ? `course-${course}` : `course-${course}-${z.label}`,
+        message:
+          z.max === null
+            ? `The pack's ${z.label} part (${z.kb.toFixed(1)} KB gz) has no budget: add a row for it (docs/specs/COURSE-PACKS.md §2).`
+            : `The pack's ${z.label} part is ${z.kb.toFixed(1)} KB gz, over its ${z.max} KB budget: move content to another chapter, or raise the budget and say why.`,
+      });
+} catch {
+  // checkContent already reported the broken file.
+}
 
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
@@ -79,6 +115,19 @@ if (boards && lock && meta) {
       `- **${b.island}** (${b.chapter}, ${b.topics.length} topics): ${b.topics.map((t) => t.title).join(' · ') || '(none)'}${previous ? (changes.length ? `. **Changed:** ${changes.join(', ')}` : '. No change.') : ''}`,
     );
   }
+  say();
+}
+
+if (sizes.length) {
+  say('### Load parts');
+  say();
+  say(
+    'The voyage loads the core; each chapter part loads when its island streams in (docs/specs/COURSE-PACKS.md §2):',
+  );
+  say();
+  say('| Part | KB gz | Budget |');
+  say('| --- | --- | --- |');
+  for (const z of sizes) say(`| ${z.label} | ${z.kb.toFixed(1)} | ${z.max ?? '(none)'} |`);
   say();
 }
 
