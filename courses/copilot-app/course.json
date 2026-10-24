@@ -172,7 +172,7 @@
     "repoName": "copilot-app-for-beginners"
   },
   "setup": {
-    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch}, {os} and {keys} are filled in. `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
+    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch} (the practice branch: a session's base branch), {os} and {keys} are filled in. `branch.hint` and `branch.example` follow the course's appendices/git-worktrees.md, Worktree, branch, and session (the app names a new session branch with your branch prefix and generated words; not in the snapshot). `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
     "os": {
       "label": "Your computer",
       "title": "Change your computer",
@@ -196,13 +196,15 @@
     "branch": {
       "label": "Your session’s branch",
       "title": "Change your session’s branch",
-      "ask": "Which **branch** is your session on?",
-      "intro": "You started it with **Create from** on `{branch}`, in a new worktree. Select the session name at the top of the app’s window to see its working branch, then type it, or keep this one.",
-      "uses": "The Practice Bough’s session terminal, your Logbook, and Pip’s standup will show it.",
+      "ask": "What’s your session’s **working branch**?",
+      "intro": "**Create from** started your session from `{branch}`, its **base branch**, in a new worktree with a working branch of its own. Select the session name at the top of the app’s window to see both, then type the working branch here.",
+      "uses": "The Practice Bough’s session terminal and your Logbook will show it.",
       "field": "Working branch",
-      "read": "Your branch:",
-      "match": "That’s the one",
-      "hint": "Like `{branch}`"
+      "read": "Your working branch:",
+      "hint": "The app names it with your branch prefix and a few words, like `octocat-bookish-invention`.",
+      "example": "octocat-bookish-invention",
+      "base": "That’s the **base branch**, where your session started. Your session works on a branch of its own: select the session name at the top of the window to see it.",
+      "skip": "I haven’t done it yet"
     },
     "model": {
       "label": "Your model",

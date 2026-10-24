@@ -15,6 +15,7 @@ import {
   COURSE_ISSUE,
   COURSE_ISSUE_TITLE,
   formatKeys,
+  isBaseBranch,
   ISSUE_INPUT_MAX,
   MODEL_NAME_MAX,
   modelLabel,
@@ -286,13 +287,18 @@ function IssueForm({ store, from, setup }: FormProps) {
   );
 }
 
+/**
+ * The session's working branch. The practice branch is only where the session started (its base
+ * branch: the app gives a new worktree a branch of its own), so the field starts empty and refuses it.
+ */
 function BranchForm({ store, from, setup }: FormProps) {
-  const [text, setText] = useState(setup.branch ?? COURSE_BRANCH);
+  const [text, setText] = useState(setup.branch ?? '');
   const [tried, setTried] = useState(false);
   const input = useFocus<HTMLInputElement>();
   const parsed = text.trim() ? parseBranch(text) : null;
-  const ok = parsed?.ok ? parsed.value : null;
-  const error = parsed && !parsed.ok && tried ? parsed.error : null;
+  const base = parsed?.ok === true && isBaseBranch(parsed.value);
+  const ok = parsed?.ok && !base ? parsed.value : null;
+  const error = !tried ? null : base ? copy().branch.base : parsed && !parsed.ok ? parsed.error : null;
   const save = () => {
     setTried(true);
     if (ok !== null) store.saveSetup({ branch: ok });
@@ -308,7 +314,8 @@ function BranchForm({ store, from, setup }: FormProps) {
       uses={copy().branch.uses}
       save={save}
       canSave={ok !== null}
-      saveLabel={ok === COURSE_BRANCH ? copy().branch.match : 'Save'}
+      saveLabel="Save"
+      skipLabel={from === 'logbook' ? undefined : copy().branch.skip}
       forget={setup.branch !== null}
     >
       {(ids) => (
@@ -326,7 +333,7 @@ function BranchForm({ store, from, setup }: FormProps) {
             autoCorrect="off"
             spellCheck={false}
             maxLength={BRANCH_INPUT_MAX}
-            placeholder={COURSE_BRANCH}
+            placeholder={copy().branch.example ?? ''}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onBlur={() => text.trim() && setTried(true)}
@@ -339,8 +346,12 @@ function BranchForm({ store, from, setup }: FormProps) {
                 <span aria-hidden>✓</span> {copy().branch.read} <strong>{ok}</strong>
               </p>
             )}
-            {error && <p className="ci-fork-error">{error}</p>}
-            {!parsed && (
+            {error && (
+              <p className="ci-fork-error">
+                <Rich text={error} />
+              </p>
+            )}
+            {!parsed && copy().branch.hint && (
               <p className="ci-fork-hint">
                 <Rich text={copy().branch.hint!} />
               </p>

@@ -293,7 +293,8 @@
               "$ref": "#/$defs/id"
             },
             "when": {
-              "enum": ["model:auto", "model:picked"]
+              "description": "Only for players whose setup fits: their model pick, or a value they gave (`branch:given`: they did the practice exercise in the app).",
+              "enum": ["model:auto", "model:picked", "branch:given", "issue:given"]
             }
           }
         },
@@ -395,6 +396,10 @@
             },
             "line": {
               "$ref": "#/$defs/id"
+            },
+            "when": {
+              "description": "Only asks players whose setup fits (`branch:given`: they gave their session's branch).",
+              "enum": ["model:auto", "model:picked", "branch:given", "issue:given"]
             }
           }
         },

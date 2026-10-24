@@ -2,8 +2,8 @@
   "$schema": "../../schemas/puzzle-checklist.schema.json",
   "id": "tb.practice-session",
   "mechanic": "checklist",
-  "$comment": "The Practice Bough's session terminal near Rook (Chapter 02 · Exercise: Start a Session from a Branch). {branch} and {issue} are the player's own values from Your setup (or the course's practice values); a line with \"you\" is inked as theirs once they've given that value.",
-  "title": "Session · {branch}",
+  "$comment": "The Practice Bough's session terminal near Rook (Chapter 02 · Exercise: Start a Session from a Branch). {courseBranch} is the practice branch: the session's base branch, where Create from starts it in a new worktree. {branch} and {issue} are the player's own values from Your setup (or the course's practice values); a line with \"you\" is inked as theirs once they've given that value, and \"show\" keeps it for once they have (\"given\") or until then (\"missing\"). The working branch is the app's (Where a session runs: a new worktree gets its own branch; the session details show it).",
+  "title": "Session from {courseBranch}",
   "readout": [
     {
       "text": "Create from › Branches › {courseBranch}",
@@ -13,8 +13,17 @@
       "text": "New worktree"
     },
     {
+      "text": "Base branch: {courseBranch}"
+    },
+    {
       "text": "Working branch: {branch}",
-      "you": "branch"
+      "you": "branch",
+      "show": "given"
+    },
+    {
+      "text": "Working branch: its own (select the session name)",
+      "you": "branch",
+      "show": "missing"
     },
     {
       "text": "Attached: #{issue} {issueTitle}",
