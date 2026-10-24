@@ -777,6 +777,17 @@ function booths(buckets: Buckets, out: StructureOut): void {
         5,
         PAINT.weathered,
       );
+      // The wall colliders hold the posts in the wall. The posts at the opening stand free: give them
+      // their own colliders, so the camera can't go through them.
+      if (Math.abs(a - open) < 0.85)
+        out.circles.push({
+          x: b.x + Math.sin(a) * wallR,
+          z: b.z + Math.cos(a) * wallR,
+          r: 0.15,
+          y0: y - 0.5,
+          y1: y + 2.6,
+          height: 2.6,
+        });
     }
     cone(buckets, 'thatch', b.x, y + 2.35, b.z, b.r * 1.3, 1.9, 10, PAINT.thatch);
     out.cameraBoxes.push({

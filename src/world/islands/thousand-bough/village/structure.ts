@@ -321,8 +321,12 @@ function limbBrackets(buckets: Buckets, r: Rect, y: number): void {
   }
 }
 
-/** Knee braces from a deck's inner edge down to the trunk's pillars, so it reads as carried by the tree. */
-function deckBraces(buckets: Buckets, r: Rect, y: number): void {
+/**
+ * Knee braces from a deck's inner edge down to the trunk's pillars, so it reads as carried by the tree.
+ * Each brace has four short camera boxes down its length (as the stair's brackets), so the camera
+ * can't go through it from the walks under the deck.
+ */
+function deckBraces(buckets: Buckets, out: StructureOut, r: Rect, y: number): void {
   for (const v of [-r.hv * 0.7, 0, r.hv * 0.7]) {
     const top = rectWorld(r, -r.hu + 0.6, v);
     const foot = rectWorld(r, -r.hu - 4.6, v * 0.75);
@@ -335,6 +339,22 @@ function deckBraces(buckets: Buckets, r: Rect, y: number): void {
       0.24,
       PAINT.teakDark,
     );
+    for (let k = 0; k < 4; k++) {
+      const ax = top.x + ((foot.x - top.x) * k) / 4;
+      const az = top.z + ((foot.z - top.z) * k) / 4;
+      const bx = top.x + ((foot.x - top.x) * (k + 1)) / 4;
+      const bz = top.z + ((foot.z - top.z) * (k + 1)) / 4;
+      const y0 = y - 0.4 - (4.8 * (k + 1)) / 4;
+      out.cameraBoxes.push({
+        x: (ax + bx) / 2,
+        z: (az + bz) / 2,
+        hx: Math.hypot(bx - ax, bz - az) / 2 + 0.15,
+        hz: 0.2,
+        rot: Math.atan2(-(bz - az), bx - ax),
+        y0: y0 - 0.2,
+        y1: y0 + 4.8 / 4 + 0.2,
+      });
+    }
   }
 }
 
@@ -600,7 +620,7 @@ function treeDecks(buckets: Buckets, out: StructureOut, clear: (x: number, z: nu
     const d = DECKS[id];
     deckBoards(buckets, d.rect, d.y);
     deckRails(buckets, out, d.rect, d.y, open[id], id === 'L2S' ? 0 : 9);
-    deckBraces(buckets, d.rect, d.y);
+    deckBraces(buckets, out, d.rect, d.y);
     deckJoists(buckets, d.rect, d.y);
     limbBrackets(buckets, d.rect, d.y);
     if (id === 'L1E') deckStilts(buckets, out, d.rect, d.y, clear);
