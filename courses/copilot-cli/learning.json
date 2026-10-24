@@ -1,0 +1,179 @@
+{
+  "$schema": "../schemas/learning.schema.json",
+  "$comment": "The learning systems for Chapter 00 (docs/content-data.md, COURSE-PACKS.md §11): what you do in your own terminal, the chapter's objectives (quoted) and what covers them, and the reflection before the Seal (the Key Takeaways).",
+  "labels": {
+    "kicker": "Do this in your terminal",
+    "checklist": "Terminal checklist",
+    "tool": "your terminal"
+  },
+  "appTasks": [
+    {
+      "id": "A0.1",
+      "chapter": "00-quick-start",
+      "quest": "Q0.4",
+      "title": "Install GitHub Copilot CLI",
+      "steps": [
+        "In a GitHub Codespace, skip this: Copilot CLI is already installed there.",
+        "On your own machine, install it one way: `npm install -g @github/copilot` (if you have Node.js), `brew install copilot-cli`, `winget install GitHub.Copilot`, or the install script."
+      ],
+      "why": "Not sure which to pick? Use `npm` if you have Node.js installed; otherwise the option that matches your system.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "local-installation",
+        "hash": "6a259a0064c2"
+      }
+    },
+    {
+      "id": "A0.2",
+      "chapter": "00-quick-start",
+      "quest": "Q0.7",
+      "title": "Trust the folder and sign in",
+      "steps": [
+        "Open a terminal at the root of the `copilot-cli-for-beginners` repository and run `copilot`.",
+        "Trust the folder: one time, or across all future sessions.",
+        "Type `/login`, select `Sign in with your browser (recommended)`, and select **Authorize** in your browser."
+      ],
+      "why": "The sign-in persists across sessions: you only do it once, unless your token expires or you sign out.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "authentication",
+        "hash": "29ec3f8246ba"
+      },
+      "seen": {
+        "prompt": "What does Copilot CLI ask you before you sign in?",
+        "options": [
+          {
+            "id": "trust",
+            "text": "To trust the folder"
+          },
+          {
+            "id": "token",
+            "text": "To paste a token"
+          },
+          {
+            "id": "model",
+            "text": "To pick a model"
+          }
+        ],
+        "answer": "trust",
+        "explain": "You’ll be asked to trust the folder containing the repository. You can trust it one time or across all future sessions."
+      }
+    },
+    {
+      "id": "A0.3",
+      "chapter": "00-quick-start",
+      "quest": "Q0.8",
+      "title": "Check that it works",
+      "steps": [
+        "At Copilot CLI’s prompt, type `Say hello and tell me what you can help with`.",
+        "When it answers, type `/exit`."
+      ],
+      "why": "A quick test that you’re installed and signed in before the demos.",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "step-1-test-copilot-cli",
+        "hash": "649949ce4cdf"
+      },
+      "seen": {
+        "prompt": "What did Copilot CLI answer?",
+        "options": [
+          {
+            "id": "hello",
+            "text": "A friendly response listing what it can help with"
+          },
+          {
+            "id": "error",
+            "text": "`command not found`"
+          },
+          {
+            "id": "login",
+            "text": "A request to sign in again"
+          }
+        ],
+        "answer": "hello",
+        "explain": "Expected output: a friendly response listing Copilot CLI’s capabilities."
+      }
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O0.1",
+      "chapter": "00-quick-start",
+      "text": "Installed GitHub Copilot CLI",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-learning-objectives",
+        "hash": "ebc41219c3d0"
+      },
+      "covers": {
+        "quests": ["Q0.4"],
+        "quizzes": ["S0.4", "T0.2", "T0.4"],
+        "appTasks": ["A0.1"]
+      }
+    },
+    {
+      "id": "O0.2",
+      "chapter": "00-quick-start",
+      "text": "Signed in with your GitHub account",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-learning-objectives",
+        "hash": "ebc41219c3d0"
+      },
+      "covers": {
+        "quests": ["Q0.7"],
+        "quizzes": ["S0.5", "T0.3", "T0.6", "T0.7"],
+        "appTasks": ["A0.2"]
+      }
+    },
+    {
+      "id": "O0.3",
+      "chapter": "00-quick-start",
+      "text": "Verified it works with a simple test",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-learning-objectives",
+        "hash": "ebc41219c3d0"
+      },
+      "covers": {
+        "quests": ["Q0.8"],
+        "quizzes": ["S0.2", "S0.6", "T0.1"],
+        "appTasks": ["A0.3"]
+      }
+    }
+  ],
+  "reflections": [
+    {
+      "chapter": "00-quick-start",
+      "prompt": "Before your Seal: which of these will you use first?",
+      "source": {
+        "chapter": "00-quick-start",
+        "anchor": "-key-takeaways",
+        "hash": "0a07c38450ab"
+      },
+      "choices": [
+        {
+          "id": "codespace",
+          "text": "A GitHub Codespace, with everything already installed"
+        },
+        {
+          "id": "install",
+          "text": "The install method that fits my system"
+        },
+        {
+          "id": "login",
+          "text": "Signing in once: it lasts until the token expires"
+        },
+        {
+          "id": "bookapp",
+          "text": "`samples/book-app-project`, the book app the course uses"
+        }
+      ]
+    }
+  ],
+  "learned": {
+    "Q0.4": "You know the ways to install Copilot CLI, and that a Codespace already has it.",
+    "Q0.7": "You know to trust the folder, then sign in with /login.",
+    "Q0.8": "You know how to check it works: ask in plain words at Copilot CLI’s prompt."
+  }
+}

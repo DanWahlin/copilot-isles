@@ -17,6 +17,7 @@
 //                                    [--reduced] [--from=elder|rook] [--setup=enter|skip]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerCard, cardOpen, cardState } from './lib/learning-cards.mjs';
 import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
@@ -103,11 +104,26 @@ const captions = new Set();
 const terminals = new Set();
 const seen = new Set();
 /** Drives dialogue, quizzes and reveals until `done(state)`; `every` runs each tick. */
+/** App tasks the run puts off with Later (the rest it confirms with I did it). */
+const cardPlan = { later: [] };
 async function drive(label, done, ms = 180000, every = null) {
   const t0 = Date.now();
   note(`drive ${label}`);
   while (Date.now() - t0 < ms) {
     const s = await learnState();
+    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off) first: one
+    // open means the game's still busy, whatever `done` reads.
+    const card = await page.evaluate(cardState);
+    if (cardOpen(card)) {
+      await answerCard(page, card, {
+        shot,
+        fail: (m) => logs.push(`[thousandboughtest] ${m}`),
+        seen,
+        plan: cardPlan,
+      });
+      await page.waitForTimeout(300);
+      continue;
+    }
     if (done(s)) return s;
     if (every && (await every(s)) === 'handled') {
       await page.waitForTimeout(250);

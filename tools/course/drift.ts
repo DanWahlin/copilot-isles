@@ -3,7 +3,8 @@
  * images against its `lock.json` (`--course=<id>`, default copilot-app) and lists everything the
  * course moved underneath:
  *
- * - quizzes, Logbook pages, and voiced lines (and cited puzzle text) whose source section changed or disappeared,
+ * - quizzes, Logbook pages, and voiced lines (and cited puzzle text, and learning.json's app tasks,
+ *   objectives and reflections) whose source section changed or disappeared,
  * - pinned screenshots (hotspot rects, captions) whose upstream file changed, with before/after
  *   montages when `sync.mjs --report=<dir>` saved the upstream copies,
  * - the UI-term check: bolded UI names the course dropped since the previous lock that authored
@@ -42,7 +43,7 @@ const voice = JSON.parse(await readFile(paths.lines, 'utf8')) as {
 const voiceText = new Map(voice.lines.map((l) => [l.id, l.text]));
 
 interface Item {
-  kind: 'quiz' | 'page' | 'voiced' | 'cited';
+  kind: 'quiz' | 'page' | 'voiced' | 'cited' | 'appTask' | 'objective' | 'reflection';
   id: string;
   ref: SourceRef;
   text: string;
@@ -59,6 +60,13 @@ for (const c of CHAPTERS)
 for (const c of CHAPTERS)
   for (const [id, { text, source }] of Object.entries(c.cited ?? {}))
     items.push({ kind: 'cited', id, ref: source, text });
+// The learning systems (learning.json): the app tasks' steps (their UI names too), objectives, reflections.
+for (const t of pack.learning.appTasks)
+  items.push({ kind: 'appTask', id: t.id, ref: t.source, text: JSON.stringify(t) });
+for (const o of pack.learning.objectives)
+  items.push({ kind: 'objective', id: o.id, ref: o.source, text: o.text });
+for (const r of pack.learning.reflections)
+  items.push({ kind: 'reflection', id: r.chapter, ref: r.source, text: JSON.stringify(r) });
 
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
@@ -89,7 +97,7 @@ for (const it of items) {
 say(`### Authored content whose course section changed`);
 say();
 if (!changed.size && !missing.length)
-  say('None. Every quiz, page, voiced line, and cited teaching line matches its section.');
+  say('None. Every quiz, page, voiced line, cited teaching line and learning item matches its section.');
 for (const [key, list] of changed) {
   const [chapter, anchor] = key.split('#');
   say(

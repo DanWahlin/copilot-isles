@@ -603,7 +603,11 @@
         "quiz": "K2.4"
       },
       {
-        "quiz": "K2.6"
+        "appTask": "A2.1"
+      },
+      {
+        "quiz": "K2.6",
+        "when": "app:A2.1"
       },
       {
         "quiz": "H2.1"
@@ -827,6 +831,10 @@
         "say": "tb.rook.go"
       },
       {
+        "appTask": "A2.2",
+        "quiet": true
+      },
+      {
         "quest": "Q2.7",
         "step": "app"
       }
@@ -885,6 +893,10 @@
       },
       {
         "say": "tb.pip.go"
+      },
+      {
+        "appTask": "A2.3",
+        "quiet": true
       },
       {
         "quest": "Q2.8",
@@ -956,7 +968,11 @@
         "say": "tb.rook.back"
       },
       {
-        "askSetup": "branch"
+        "appTask": "A2.2"
+      },
+      {
+        "askSetup": "branch",
+        "when": "app:A2.2"
       },
       {
         "askSetup": "issue",
@@ -983,8 +999,11 @@
         "say": "tb.pip.back"
       },
       {
+        "appTask": "A2.3"
+      },
+      {
         "quiz": "K2.7",
-        "when": "branch:given"
+        "when": "app:A2.3"
       },
       {
         "say": "tb.pip.next"
@@ -1010,6 +1029,10 @@
         "say": "tb.elder.assignment.go"
       },
       {
+        "appTask": "A2.4",
+        "quiet": true
+      },
+      {
         "quest": "Q2.A",
         "step": "try"
       }
@@ -1017,6 +1040,10 @@
     "elder.assignment.back": [
       {
         "say": "tb.elder.assignment.back"
+      },
+      {
+        "appTask": "A2.4",
+        "orStop": true
       },
       {
         "quiz": "K2.8"

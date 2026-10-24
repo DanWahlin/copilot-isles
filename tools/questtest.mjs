@@ -9,6 +9,7 @@
 // are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerCard, cardOpen, cardState } from './lib/learning-cards.mjs';
 import { answerSetupForm } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
@@ -46,6 +47,7 @@ const learnState = () =>
       forkForm: l.forkForm?.from ?? null,
       dialogue: st.dialogue,
       quests: window.__dev.learn.progress.data.quests,
+      recapRuns: window.__dev.learn.progress.data.recap.runs,
       pages: l.pages.length,
       doubloons: l.doubloons,
     };
@@ -108,10 +110,25 @@ async function answerFork(from) {
 
 const seen = new Set();
 /** Drives dialogue, quizzes, and reveals until `done(state)` or the timeout. */
+/** App tasks the run puts off with Later (the rest it confirms with I did it). */
+const cardPlan = { later: ['A0.2'] };
 async function drive(label, done, ms = 120000) {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) {
     const s = await learnState();
+    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off) first: one
+    // open means the game's still busy, whatever `done` reads.
+    const card = await page.evaluate(cardState);
+    if (cardOpen(card)) {
+      await answerCard(page, card, {
+        shot,
+        fail: (m) => logs.push(`[questtest] ${m}`),
+        seen,
+        plan: cardPlan,
+      });
+      await page.waitForTimeout(300);
+      continue;
+    }
     if (done(s)) return s;
     if (s.forkForm) await answerFork(s.forkForm);
     else if (s.quiz) {
@@ -525,6 +542,21 @@ if (cs) {
     const card = await page.evaluate(() => document.querySelector('.ci-fork-card')?.textContent ?? '');
     if (!card.includes(FORK)) logs.push(`[questtest] fork: the Logbook card reads ${JSON.stringify(card)}`);
     await shot('fork-logbook');
+    // Honest ticks: the fork was put off with Later at Ezra, so the quest's line doesn't claim it;
+    // ticking it in the App checklist does.
+    const q03 = () => page.evaluate(() => document.querySelector('[data-quest="Q0.3"]')?.textContent ?? '');
+    const before = await q03();
+    if (!/Not ticked/.test(before) || /added under Sessions\./.test(before))
+      logs.push(`[questtest] the Logbook claims the fork before it's ticked: ${JSON.stringify(before)}`);
+    await page.click('.ci-logbook-tabs button:has-text("App checklist")');
+    await page.waitForSelector('.ci-lj-checklist');
+    await shot('app-checklist');
+    await page.click('.ci-lj-task[data-task="A0.2"] button:has-text("I did it")');
+    await page.click('.ci-logbook-tabs button:has-text("Quests")');
+    await page.waitForTimeout(250);
+    const after = await q03();
+    if (!/Done in the app/.test(after))
+      logs.push(`[questtest] ticking the fork didn't tick the quest's app work: ${JSON.stringify(after)}`);
     // Your setup, next to the fork: change the computer (entered), skip the practice issue (Cancel), and
     // add a branch, then forget it. Each opens from its row's button, like a player would.
     const setupFail = (m) => logs.push(`[questtest] ${m}`);
@@ -796,6 +828,11 @@ const final = await learnState();
   await shot('meridian-approach');
   if (!afloat.prompt?.includes('Port Meridian'))
     logs.push(`[questtest] no dock prompt off Port Meridian (${afloat.prompt})`);
+  // Two hours on, so Chapter 00's quizzes are due for Wingman's recap at the landfall.
+  await page.evaluate(() => {
+    const later = Date.now() + 2 * 3600 * 1000;
+    window.__dev.learn.now = () => later;
+  });
   await tap('KeyE');
   await page.waitForFunction(
     () => window.__dev.session().island === 'meridian' && window.__dev.state().mode === 'walk',
@@ -879,6 +916,19 @@ const final = await learnState();
   await shot('meridian-plaza');
   await page.evaluate(() => window.__dev.session().camera.frame(null));
   results.meridian = { ...ashore.st };
+  // Wingman's recap once the landfall's welcome is over: earlier islands' quizzes, answered.
+  const recapped = await drive('meridian recap', (s) => s.recapRuns > 0 && !s.quiz && !s.dialogue, 120000);
+  const items = await page.evaluate(() => {
+    const d = window.__dev.learn.progress.data;
+    return Object.entries(d.recap.items)
+      .filter(([, i]) => i.right + i.wrong > 0)
+      .map(([id]) => id);
+  });
+  if (recapped.recapRuns !== 1 || !items.length || items.some((id) => !/^[A-Z]0\./.test(id)))
+    logs.push(
+      `[questtest] Meridian's landfall recap asked ${JSON.stringify(items)} (${recapped.recapRuns} runs)`,
+    );
+  results.recap = items;
 }
 
 await browser.close();

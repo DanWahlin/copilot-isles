@@ -65,6 +65,9 @@
         "doubloons": 10
       },
       {
+        "appTask": "A0.8"
+      },
+      {
         "say": "juno.reply.03"
       },
       {

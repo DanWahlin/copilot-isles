@@ -119,12 +119,14 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
   it('sends you to do each exercise in the app, and asks what you saw when you come back', () => {
     const q: Record<string, string> = {};
     for (const npc of ORDER.slice(0, 6)) visit(npc, q);
-    for (const [npc, quest, saw] of [
-      ['rook', 'Q2.7', 'K2.5'],
-      ['pip', 'Q2.8', 'K2.7'],
+    for (const [npc, quest, saw, task, when] of [
+      ['rook', 'Q2.7', 'K2.5', 'A2.2', 'branch:given'],
+      ['pip', 'Q2.8', 'K2.7', 'A2.3', 'app:A2.3'],
     ] as const) {
       const brief = talk(npc, q);
       expect(q[quest], `${npc}'s brief ends at the app step`).toBe(APP);
+      // The brief hands the exercise off quietly (it joins the App checklist); the card comes back with you.
+      expect(brief).toContainEqual({ appTask: task, quiet: true });
       // The brief's cards hold what you'll need at the keyboard; nothing asks what you saw yet.
       expect(brief.filter((s) => 'page' in s).length, npc).toBeGreaterThanOrEqual(3);
       expect(brief.some((s) => 'askSetup' in s || ('quiz' in s && s.quiz === saw))).toBe(false);
@@ -136,14 +138,16 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
       const next = ORDER[ORDER.indexOf(npc) + 1]!;
       expect(thousandBoughNpcScript(next, q)!.steps).toEqual([{ say: `tb.${next}.wait` }]);
       const back = talk(npc, q);
-      // What you saw is asked only of players who did it (they gave their session's branch).
-      expect(back).toContainEqual({ quiz: saw, when: 'branch:given' });
+      // One prompt: the "Do this in the app" card (I did it, or Later for not yet), then what you saw,
+      // only for players who did it.
+      expect(back[1]).toEqual({ appTask: task });
+      expect(back).toContainEqual({ quiz: saw, when });
       expect(q[quest]).toBe('done');
     }
     // Rook's return asks for the session's working branch (Skip: not done it yet), then the issue.
     const rookBack = thousandBoughNpcScript('rook', { ...q, 'Q2.7': APP })!.steps;
     expect(rookBack.filter((s) => 'askSetup' in s)).toEqual([
-      { askSetup: 'branch' },
+      { askSetup: 'branch', when: 'app:A2.2' },
       { askSetup: 'issue', when: 'branch:given' },
     ]);
   });
@@ -161,6 +165,8 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     expect(brief).toContainEqual({ page: 'pg2.assignment', doubloons: 15 });
     expect(q['Q2.A']).toBe('try');
     const report = talk('elder', q);
+    // The card first: Later ends the talk with Q2.A still open (one way to finish it: here).
+    expect(report[1]).toEqual({ appTask: 'A2.4', orStop: true });
     expect(report).toContainEqual({ quiz: 'K2.8' });
     expect(q['Q2.A']).toBe('done');
     expect(thousandBoughTracker(q).tasks.at(-1)).toMatchObject({ id: 'Q2.A', status: 'done' });

@@ -1,4 +1,4 @@
-import { CHESTS, GLOSSARY, PAGES, QUIZZES, TRIALS } from './content/index';
+import { CHAPTERS, CHESTS, GLOSSARY, PAGES, QUIZZES, TRIALS } from './content/index';
 import type { ForkRef } from './fork';
 import { grade, type Answer, type Grade } from './grade';
 import { Progress } from './progress';
@@ -20,8 +20,27 @@ import {
 import type { Page, Quiz, SourceRef } from './types';
 import { coveredTopics } from './course-board';
 import type { ChapterId } from './course/chapters';
+import { COURSE } from '../course/catalog';
+import { APP_TASKS, questLogLine, REFLECTIONS, type AppTask, type Reflection } from './learning';
+import type { AppTaskRecord } from './progress';
+import { pickRecap, recapCandidates, recapGapOk } from './recap';
+import { runCheck, type CheckResult } from './github-check';
+import { badgeData, courseComplete, type BadgeData } from './badge';
+import { resumeSummary, type ResumeSummary } from './resume';
 
-export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'starfish';
+export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'map' | 'app' | 'starfish';
+
+/** A GitHub check's state for a task: not run, running, or its last result. */
+export type CheckState = { status: 'running' } | CheckResult;
+
+/**
+ * A script step's condition: the player's setup (`model:auto`, `branch:given`…), or `app:<task>`, a
+ * real-app task they've confirmed (learning.json).
+ */
+export type StepWhen = SetupWhen | `app:${string}`;
+
+/** How a real-app task card ended: confirmed, put off, or closed without either (the Logbook's Cancel). */
+export type AppTaskOutcome = 'done' | 'later' | 'closed';
 
 export interface Tracker {
   island: string;
@@ -56,6 +75,8 @@ export interface ActiveQuiz {
   /** Shuffle seed for ordering/matching, stable for the quiz instance. */
   seed: number;
   earned: number;
+  /** Set while Wingman's recap runs: its question number, and how many it asks. */
+  recap: { index: number; total: number } | null;
 }
 
 export interface LearnState {
@@ -107,6 +128,31 @@ export interface LearnState {
   calm: boolean;
   /** What Wingman's pointing out right now (the task list, the starfish count), lit on screen. */
   spotlight: { tracker: boolean; starfish: boolean };
+  /**
+   * A "Do this in the app" card (src/learn/learning.ts): the task, who opened it (a quest beat or the
+   * Logbook's checklist), and where it's got to (`ask`: I did it or Later; `seen`: what did you see?;
+   * `answered`: the answer's feedback).
+   */
+  appTask: {
+    task: AppTask;
+    from: 'script' | 'logbook';
+    phase: 'ask' | 'seen' | 'answered';
+    answer: string | null;
+  } | null;
+  /** What the player said about each real-app task (the checklist's ticks). */
+  appTasks: Readonly<Record<string, AppTaskRecord>>;
+  /** The opt-in GitHub checks are on (Settings). */
+  githubChecks: boolean;
+  /** Each task's GitHub check, while running or once run this session. */
+  checks: Readonly<Record<string, CheckState>>;
+  /** The reflection before a chapter's Seal, while it's open. */
+  reflection: Reflection | null;
+  /** Chapter → the takeaway picked before its Seal (null: skipped). */
+  reflections: Readonly<Record<string, { choice: string | null; at: number }>>;
+  /** A Seal card or the course certificate, while it's open. */
+  badge: BadgeData | null;
+  /** The "where you left off" card on Continue, while it's open. */
+  resume: ResumeSummary | null;
 }
 
 export interface QuizOutcome {
@@ -123,6 +169,23 @@ export interface QuizOutcome {
  */
 const NO_SPOTLIGHT = { tracker: false, starfish: false } as const;
 
+/**
+ * The course's charted islands (a chapter with content in the pack) in voyage order, each with the
+ * Seal its Trial awards: the Course map's chapters and the certificate's list.
+ */
+export function chartedIslands(): { island: string; chapter: string; label: string; seal: string | null }[] {
+  return COURSE.islands.flatMap((i) => {
+    const c = CHAPTERS.find((ch) => ch.chapter === i.chapter);
+    return c
+      ? [{ island: i.island, chapter: i.chapter, label: i.label, seal: c.trials[0]?.reward.seal ?? null }]
+      : [];
+  });
+}
+
+function badgeIslands(): { label: string; seal: string }[] {
+  return chartedIslands().flatMap((i) => (i.seal ? [{ label: i.label, seal: i.seal }] : []));
+}
+
 export class LearnStore {
   readonly progress: Progress;
   private state: LearnState;
@@ -133,7 +196,14 @@ export class LearnStore {
   private paletteDone: ((id: string | null) => void) | null = null;
   private forkDone: ((fork: ForkRef | null) => void) | null = null;
   private setupDone: ((saved: boolean) => void) | null = null;
+  private appTaskDone: ((o: AppTaskOutcome) => void) | null = null;
+  private reflectionDone: (() => void) | null = null;
+  private badgeDone: (() => void) | null = null;
+  private resumeDone: (() => void) | null = null;
   private seed = 1;
+  /** Tests: GitHub's API (a stand-in fetch) and the clock. */
+  fetchFn: ((url: string, init?: RequestInit) => Promise<Response>) | undefined = undefined;
+  now: () => number = () => Date.now();
 
   constructor(progress = new Progress()) {
     this.progress = progress;
@@ -163,6 +233,14 @@ export class LearnStore {
       cinematic: false,
       calm: false,
       spotlight: NO_SPOTLIGHT,
+      appTask: null,
+      appTasks: { ...progress.data.appTasks },
+      githubChecks: false,
+      checks: {},
+      reflection: null,
+      reflections: { ...progress.data.reflections },
+      badge: null,
+      resume: null,
     };
   }
 
@@ -185,19 +263,37 @@ export class LearnStore {
       s.setupForm ||
       s.courseBoard ||
       s.logbook.open ||
-      s.spyglass?.full
+      s.spyglass?.full ||
+      s.appTask ||
+      s.reflection ||
+      s.badge ||
+      s.resume
     );
   }
 
   // ---- Quizzes ----
 
   /** Asks a quiz and resolves once the player gets it right (unlimited retries) or closes it. */
-  ask = (quizId: string, trial: ActiveQuiz['trial'] = null): Promise<QuizOutcome> => {
+  ask = (
+    quizId: string,
+    trial: ActiveQuiz['trial'] = null,
+    recap: ActiveQuiz['recap'] = null,
+  ): Promise<QuizOutcome> => {
     const quiz = QUIZZES.get(quizId);
     if (!quiz) return Promise.reject(new Error(`unknown quiz ${quizId}`));
     this.quizDone?.({ correct: false, attempts: 0, completed: false });
     this.set({
-      quiz: { quiz, trial, attempts: 0, hintTier: 0, hint: null, last: null, seed: this.seed++, earned: 0 },
+      quiz: {
+        quiz,
+        trial,
+        attempts: 0,
+        hintTier: 0,
+        hint: null,
+        last: null,
+        seed: this.seed++,
+        earned: 0,
+        recap,
+      },
     });
     return new Promise((resolve) => (this.quizDone = resolve));
   };
@@ -206,7 +302,15 @@ export class LearnStore {
     const a = this.state.quiz;
     if (!a || a.last?.correct) return null;
     const g = grade(a.quiz, answer);
-    const earned = this.progress.recordQuiz(a.quiz.id, g.correct);
+    // A recap answer moves the quiz in Wingman's schedule (its first try only) and leaves its record be.
+    let earned = 0;
+    if (a.recap) {
+      if (a.attempts === 0) {
+        this.progress.recordRecap(a.quiz.id, g.correct, this.now());
+        earned = g.correct ? (COURSE.recap?.reward?.doubloons ?? 0) : 0;
+        if (earned) this.progress.addDoubloons(earned);
+      }
+    } else earned = this.progress.recordQuiz(a.quiz.id, g.correct);
     this.set({
       quiz: { ...a, attempts: a.attempts + 1, last: g, earned: a.earned + earned },
       doubloons: this.progress.data.doubloons,
@@ -268,6 +372,10 @@ export class LearnStore {
     }
     const ratio = firstTry / t.items.length;
     const stars = ratio >= 1 ? 3 : ratio >= 0.75 ? 2 : 1;
+    // A moment to reflect before the Seal (once per chapter, skippable).
+    const chapter = CHAPTERS.find((c) => c.trials.some((x) => x.id === t.id))?.chapter;
+    if (chapter) await this.askReflection(chapter);
+    const wasComplete = this.courseComplete();
     this.progress.data.trials[t.id] = { passed: true, stars };
     this.progress.add('seals', t.reward.seal);
     this.progress.addDoubloons(t.reward.doubloons);
@@ -276,6 +384,12 @@ export class LearnStore {
       t.reward.seal,
       `${'★'.repeat(stars)}${'☆'.repeat(3 - stars)} · +${t.reward.doubloons} doubloons`,
     );
+    await this.badgeClosed();
+    // The last charted chapter's Seal: the course certificate.
+    if (!wasComplete && this.courseComplete()) {
+      this.openBadge('course');
+      await this.badgeClosed();
+    }
     return { passed: true, stars };
   };
 
@@ -469,7 +583,10 @@ export class LearnStore {
   }
 
   /** Whether a step or quiz meant for some answers fits this player's (`model:auto`…). */
-  setupIs = (when: SetupWhen): boolean => setupMatches(this.state.setup, when);
+  setupIs = (when: StepWhen): boolean =>
+    when.startsWith('app:')
+      ? this.progress.data.appTasks[when.slice(4)]?.status === 'done'
+      : setupMatches(this.state.setup, when as SetupWhen);
 
   /**
    * Opens a setup form. Resolves true once the player saves, or false if they skip (nothing changes:
@@ -545,6 +662,281 @@ export class LearnStore {
     this.set({ starfishPurse: this.progress.data.starfishPurse, doubloons: this.progress.data.doubloons });
   };
 
+  // ---- "Do this in the app" (src/learn/learning.ts) ----
+
+  /**
+   * Hands a real-app task to the player: a card with its steps, I did it and Later. From a quest beat
+   * it's skipped once the task's done (Later brings it back next time); it never holds the story up.
+   */
+  askAppTask = (id: string, from: 'script' | 'logbook' = 'script'): Promise<AppTaskOutcome> => {
+    const task = APP_TASKS.get(id);
+    if (!task) return Promise.reject(new Error(`unknown app task ${id}`));
+    if (from === 'script' && this.progress.data.appTasks[id]?.status === 'done')
+      return Promise.resolve('done');
+    this.appTaskDone?.('closed');
+    this.set({ appTask: { task, from, phase: 'ask', answer: null } });
+    return new Promise((resolve) => (this.appTaskDone = resolve));
+  };
+
+  /**
+   * Hands a task off with no card (the NPC sends you off to do it, and asks when you're back): it joins
+   * the App checklist as Later, unless it's done already.
+   */
+  noteAppTask = (id: string): void => {
+    if (!APP_TASKS.has(id) || this.progress.data.appTasks[id]) return;
+    this.progress.setAppTask(id, { status: 'later' });
+    this.set({ appTasks: { ...this.progress.data.appTasks } });
+  };
+
+  /** I did it: saved as done, then "What did you see?" if the task asks. */
+  appTaskDid = (): void => {
+    const a = this.state.appTask;
+    if (!a || a.phase !== 'ask') return;
+    this.markAppTaskDone(a.task);
+    if (a.task.seen && this.progress.data.appTasks[a.task.id]?.seen === undefined)
+      this.set({ appTask: { ...a, phase: 'seen' } });
+    else this.finishAppTask('done');
+  };
+
+  /** The answer to "What did you see?" (any answer is fine: it shows what the course says you'll see). */
+  appTaskSeen = (option: string): void => {
+    const a = this.state.appTask;
+    if (!a?.task.seen || a.phase !== 'seen') return;
+    const right = option === a.task.seen.answer;
+    this.progress.setAppTask(a.task.id, { seen: right ? 'right' : 'wrong' });
+    this.set({
+      appTask: { ...a, phase: 'answered', answer: option },
+      appTasks: { ...this.progress.data.appTasks },
+    });
+  };
+
+  /** Continue after the answer, or skip the question. */
+  appTaskContinue = (): void => {
+    const a = this.state.appTask;
+    if (!a) return;
+    if (a.phase === 'ask') return this.appTaskLater();
+    this.finishAppTask('done');
+  };
+
+  /** Later (Esc, or B): the story goes on, and the checklist keeps it for later. */
+  appTaskLater = (): void => {
+    const a = this.state.appTask;
+    if (!a) return;
+    if (a.from === 'logbook') return this.finishAppTask('closed');
+    if (this.progress.data.appTasks[a.task.id]?.status !== 'done')
+      this.progress.setAppTask(a.task.id, { status: 'later' });
+    this.finishAppTask('later');
+  };
+
+  /** Ticks a task from the Logbook's checklist (no card), or takes the tick back. */
+  setAppTaskDone = (id: string, done: boolean): void => {
+    const task = APP_TASKS.get(id);
+    if (!task) return;
+    if (done) this.markAppTaskDone(task);
+    else {
+      this.progress.data.appTasks[id] = { status: 'later', at: this.now() };
+      this.progress.save();
+      this.set({ appTasks: { ...this.progress.data.appTasks } });
+    }
+  };
+
+  private markAppTaskDone(task: AppTask, verified = false): void {
+    this.progress.setAppTask(task.id, verified ? { status: 'done', verified } : { status: 'done' });
+    this.set({ appTasks: { ...this.progress.data.appTasks } });
+  }
+
+  private finishAppTask(outcome: AppTaskOutcome): void {
+    const done = this.appTaskDone;
+    this.appTaskDone = null;
+    this.set({ appTask: null, appTasks: { ...this.progress.data.appTasks } });
+    done?.(outcome);
+  }
+
+  /** Settings → GitHub checks. */
+  setGithubChecks = (on: boolean): void => {
+    if (this.state.githubChecks !== on) this.set({ githubChecks: on });
+  };
+
+  /** Whether a task can be checked on GitHub now: the checks are on, it has one, and the fork's given. */
+  canCheck = (id: string): boolean => {
+    const t = APP_TASKS.get(id);
+    return !!(t?.check && this.state.githubChecks && this.state.fork);
+  };
+
+  /**
+   * Asks GitHub's public API whether the task's evidence is there (opt-in, read-only, no token). Found
+   * ticks it (checked); anything else leaves the player's own word as it was.
+   */
+  checkAppTask = async (id: string): Promise<CheckState> => {
+    const t = APP_TASKS.get(id);
+    const fork = this.state.fork;
+    if (!t?.check || !fork || !this.state.githubChecks) return { status: 'unsupported' };
+    if (this.state.checks[id]?.status === 'running') return this.state.checks[id]!;
+    this.set({ checks: { ...this.state.checks, [id]: { status: 'running' } } });
+    const result = await runCheck(
+      t.check,
+      { fork, upstream: COURSE.source.repo, practiceBranch: COURSE.practice?.branch ?? '' },
+      this.fetchFn,
+      this.now(),
+    );
+    if (result.status === 'found') this.markAppTaskDone(t, true);
+    this.set({ checks: { ...this.state.checks, [id]: result } });
+    return result;
+  };
+
+  // ---- Wingman's recap (src/learn/recap.ts) ----
+
+  /**
+   * The quizzes a recap would ask now (none when the course has no recap, it's too soon since the
+   * last, or nothing's due). `exceptChapter` leaves out a chapter (the island you just landed on).
+   */
+  recapDue = (exceptChapter: string | null = null): string[] => {
+    const r = COURSE.recap;
+    if (!r || r.questions <= 0) return [];
+    const now = this.now();
+    const d = this.progress.data;
+    if (!recapGapOk(d.recap.last, now, r.minGapMinutes ?? 20)) return [];
+    const chapters = exceptChapter
+      ? new Set(CHAPTERS.map((c) => c.chapter).filter((c) => c !== exceptChapter))
+      : null;
+    const candidates = recapCandidates(CHAPTERS, d, {
+      types: r.types ?? ['mc', 'scenario', 'multi'],
+      exclude: r.exclude ?? [],
+      chapters,
+    });
+    return pickRecap(candidates, { now, count: Math.min(3, r.questions), seed: d.recap.runs + 1 });
+  };
+
+  /**
+   * Asks a recap's questions in turn. Closing one before answering (Esc, ×, Skip) ends the recap;
+   * after a wrong answer it moves on. There's no fail state.
+   * Returns how many were asked and answered right first time.
+   */
+  runRecap = async (ids: readonly string[]): Promise<{ asked: number; right: number }> => {
+    if (!ids.length) return { asked: 0, right: 0 };
+    this.progress.markRecap(this.now());
+    let asked = 0;
+    let right = 0;
+    for (let i = 0; i < ids.length; i++) {
+      const out = await this.ask(ids[i]!, null, { index: i, total: ids.length });
+      if (out.attempts === 0) break;
+      asked++;
+      if (out.correct && out.attempts === 1) right++;
+    }
+    const starfish = COURSE.recap?.reward?.starfish ?? 0;
+    if (asked === ids.length && right === asked && starfish > 0) {
+      this.progress.earnStarfish(starfish);
+      this.set({ starfishPurse: this.progress.data.starfishPurse });
+    }
+    this.set({ doubloons: this.progress.data.doubloons });
+    return { asked, right };
+  };
+
+  // ---- The reflection before a Seal ----
+
+  /** The chapter's reflection, once (skipping counts): resolves when the player picks or skips. */
+  askReflection = (chapter: string): Promise<void> => {
+    const r = REFLECTIONS.get(chapter);
+    if (!r || this.progress.data.reflections[chapter]) return Promise.resolve();
+    this.reflectionDone?.();
+    this.set({ reflection: r });
+    return new Promise((resolve) => (this.reflectionDone = resolve));
+  };
+
+  /** The takeaway picked (null: skipped). */
+  chooseReflection = (choice: string | null): void => {
+    const r = this.state.reflection;
+    if (!r) return;
+    this.progress.setReflection(r.chapter, choice);
+    const done = this.reflectionDone;
+    this.reflectionDone = null;
+    this.set({ reflection: null, reflections: { ...this.progress.data.reflections } });
+    done?.();
+  };
+
+  // ---- Seal cards and the course certificate ----
+
+  /** Every charted chapter's Seal is held. */
+  courseComplete = (): boolean => courseComplete(badgeIslands(), this.progress.data.seals);
+
+  /** Opens a Seal card (the seal given, or the last one earned) or the course certificate. */
+  openBadge = (kind: 'seal' | 'course', seal?: string): void => {
+    const d = this.progress.data;
+    this.set({
+      badge: badgeData({
+        kind,
+        seal: seal ?? d.seals[d.seals.length - 1],
+        captain: d.captainName,
+        ship: this.progress.shipName,
+        courseTitle: COURSE.title,
+        courseUrl: `https://github.com/${COURSE.source.repo}`,
+        islands: badgeIslands(),
+        earned: d.seals,
+        date: new Date(this.now()),
+      }),
+    });
+  };
+
+  /** The Seal banner's "Seal card": the card opens as the banner closes. */
+  sealCard = (): void => {
+    const b = this.state.banner;
+    if (!b) return;
+    this.openBadge('seal', b.title);
+    this.closeBanner();
+  };
+
+  closeBadge = (): void => {
+    const done = this.badgeDone;
+    this.badgeDone = null;
+    this.set({ badge: null });
+    done?.();
+  };
+
+  /** Resolves once the badge card is closed, or at once if none is open. */
+  badgeClosed = (): Promise<void> => {
+    if (!this.state.badge) return Promise.resolve();
+    return new Promise((resolve) => {
+      const prev = this.badgeDone;
+      this.badgeDone = () => {
+        prev?.();
+        resolve();
+      };
+    });
+  };
+
+  // ---- Where you left off (Continue) ----
+
+  /** The "where you left off" card's summary, from the tracker and the last thing learned. */
+  resumeSummary = (): ResumeSummary | null =>
+    resumeSummary(this.state.tracker, this.lastLearnedText(), {
+      previousSave: this.progress.previousSave,
+      now: this.now(),
+      later: Object.values(this.progress.data.appTasks).filter((r) => r.status === 'later').length,
+    });
+
+  /** Shows the "where you left off" card; resolves when the player moves on. */
+  showResume = (summary: ResumeSummary): Promise<void> => {
+    this.resumeDone?.();
+    this.set({ resume: summary });
+    return new Promise((resolve) => (this.resumeDone = resolve));
+  };
+
+  closeResume = (): void => {
+    const done = this.resumeDone;
+    this.resumeDone = null;
+    this.set({ resume: null });
+    done?.();
+  };
+
+  /** The last thing learned, in words: a page's title, or a finished quest's honest line. */
+  private lastLearnedText(): string | null {
+    const l = this.progress.data.lastLearned;
+    if (!l) return null;
+    if (l.kind === 'page') return PAGES.get(l.id)?.title ?? null;
+    const q = this.state.quests.find((x) => x.id === l.id);
+    return q ? `${q.title}: ${questLogLine(q.id, q.detail, this.progress.data.appTasks).line}` : null;
+  }
+
   // ---- Logbook ----
 
   openLogbook = (tab: LogbookTab = this.state.logbook.tab, page: string | null = null): void => {
@@ -581,8 +973,14 @@ export class LearnStore {
     this.paletteDone?.(null);
     this.forkDone?.(null);
     this.setupDone?.(false);
+    this.appTaskDone?.('closed');
+    this.reflectionDone?.();
+    this.badgeDone?.();
+    this.resumeDone?.();
     this.quizDone = this.revealDone = this.bannerDone = this.paletteDone = this.forkDone = null;
     this.setupDone = null;
+    this.appTaskDone = null;
+    this.reflectionDone = this.badgeDone = this.resumeDone = null;
     this.set({
       quiz: null,
       reveal: null,
@@ -594,6 +992,11 @@ export class LearnStore {
       logbook: { open: false, tab: 'pages', page: null },
       cinematic: false,
       calm: false,
+      appTask: null,
+      reflection: null,
+      badge: null,
+      resume: null,
+      checks: {},
     });
   };
 
@@ -631,6 +1034,8 @@ export class LearnStore {
       fork: d.fork,
       setup: d.setup,
       logbookOpened: d.logbookOpened,
+      appTasks: { ...d.appTasks },
+      reflections: { ...d.reflections },
     });
   };
 
@@ -649,6 +1054,8 @@ export class LearnStore {
       fork: null,
       setup: { ...EMPTY_SETUP },
       logbookOpened: false,
+      appTasks: {},
+      reflections: {},
     });
   };
 

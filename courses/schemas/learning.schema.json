@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "learning.schema.json",
+  "title": "A course pack's learning systems (learning.json)",
+  "description": "Real-app tasks (\"Do this in the app\" cards and the Logbook's App checklist), each chapter's learning objectives and what covers them (the mastery map), the reflection before each Seal, and the Logbook's line for a finished quest whose app tasks aren't confirmed yet. Optional: a course without it has none of these (docs/content-data.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["labels", "appTasks", "objectives", "reflections", "learned"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kicker", "checklist", "tool"],
+      "description": "The real tool's names: the card's kicker (\"Do this in the Copilot app\"), the Logbook checklist's title, and the tool in a sentence (\"the Copilot app\").",
+      "properties": {
+        "kicker": {
+          "$ref": "#/$defs/text"
+        },
+        "checklist": {
+          "$ref": "#/$defs/text"
+        },
+        "tool": {
+          "$ref": "#/$defs/text"
+        }
+      }
+    },
+    "appTasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/appTask"
+      }
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/objective"
+      }
+    },
+    "reflections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reflection"
+      }
+    },
+    "learned": {
+      "type": "object",
+      "description": "Quest id → its Logbook line once it's done but its app tasks aren't all confirmed (its `done` step says what you did in the app).",
+      "additionalProperties": {
+        "$ref": "#/$defs/text"
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$"
+    },
+    "chapterId": {
+      "type": "string",
+      "pattern": "^\\d{2}-[a-z0-9-]+$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}$"
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "anchor", "hash"],
+      "description": "The course section it comes from: chapter, README heading anchor, and the section's hash in lock.json (npm run course:refs).",
+      "properties": {
+        "chapter": {
+          "$ref": "#/$defs/chapterId"
+        },
+        "anchor": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "hash": {
+          "$ref": "#/$defs/hash"
+        }
+      }
+    },
+    "appTask": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "chapter", "title", "steps", "why", "source"],
+      "description": "A step the player takes in the real tool, handed off by a script's {\"appTask\": id} on a card with I did it and Later (never blocking).",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "chapter": {
+          "$ref": "#/$defs/chapterId"
+        },
+        "quest": {
+          "description": "The quest it belongs to: that quest's Logbook line claims the app work only once every one of its tasks is confirmed.",
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "description": "One to four short steps (**bold** UI names, `code` commands, setup tokens like {issue})."
+        },
+        "why": {
+          "$ref": "#/$defs/text"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "link": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["label", "url"],
+          "properties": {
+            "label": {
+              "$ref": "#/$defs/text"
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https://"
+            }
+          }
+        },
+        "seen": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["prompt", "options", "answer", "explain"],
+          "description": "\"What did you see?\" after I did it: any answer is fine, and `explain` says what the course says you'll see.",
+          "properties": {
+            "prompt": {
+              "$ref": "#/$defs/text"
+            },
+            "options": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "text"],
+                "properties": {
+                  "id": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "text": {
+                    "$ref": "#/$defs/text"
+                  }
+                }
+              }
+            },
+            "answer": {
+              "$ref": "#/$defs/id"
+            },
+            "explain": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        },
+        "check": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "description": "An opt-in, read-only check on GitHub's public API: repoExists (the fork, a fork of the course), branchExists (branch in the fork), prOpened (a pull request in the fork, from branch when given). {practiceBranch} is course.json's practice.branch.",
+          "properties": {
+            "kind": {
+              "enum": ["repoExists", "branchExists", "prOpened"]
+            },
+            "branch": {
+              "$ref": "#/$defs/text"
+            }
+          }
+        }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "chapter", "text", "source", "covers"],
+      "description": "A learning objective as the chapter states it (word for word in its section), and what in the game covers it. Empty covers: the course only.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "chapter": {
+          "$ref": "#/$defs/chapterId"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "covers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "quests": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              },
+              "uniqueItems": true
+            },
+            "puzzles": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$"
+              },
+              "uniqueItems": true
+            },
+            "quizzes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              },
+              "uniqueItems": true
+            },
+            "appTasks": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/id"
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      }
+    },
+    "reflection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "prompt", "choices", "source"],
+      "description": "The short, skippable reflection before the chapter's Seal: pick a takeaway to use first.",
+      "properties": {
+        "chapter": {
+          "$ref": "#/$defs/chapterId"
+        },
+        "prompt": {
+          "$ref": "#/$defs/text"
+        },
+        "source": {
+          "$ref": "#/$defs/sourceRef"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "text": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

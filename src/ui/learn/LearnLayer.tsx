@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { CHAPTERS } from '../../learn/content/index';
 import { loadGlossary, prefetchChapter } from '../../learn/course/source';
-import type { LearnStore } from '../../learn/store';
+import { chartedIslands, type LearnState, type LearnStore } from '../../learn/store';
+import { usePadFocus } from '../hooks/pad-focus';
 import { SoundButton } from '../SoundButton';
 import { CourseBoardPanel } from './CourseBoard';
 import { ForkForm } from './ForkForm';
@@ -13,6 +14,7 @@ import { ForkContext, SetupContext } from './Rich';
 import { SetupForm } from './SetupForm';
 import { StarfishCount, StarfishPurse } from './Starfish';
 import { ThemePicker } from './ThemePicker';
+import { AppTaskCard, BadgeCard, ReflectionCard, ResumeCard } from './LearningCards';
 import './learn.css';
 
 /**
@@ -66,7 +68,12 @@ function LearnLayer({
     const key = (e: KeyboardEvent) => {
       if (e.repeat) return;
       const st0 = store.getState();
-      if (st0.banner && !st0.quiz && (e.code === 'KeyE' || e.key === 'Enter' || e.key === 'Escape')) {
+      const onButton = (e.target as HTMLElement | null)?.tagName === 'BUTTON';
+      if (
+        st0.banner &&
+        !st0.quiz &&
+        (e.code === 'KeyE' || (e.key === 'Enter' && !onButton) || e.key === 'Escape')
+      ) {
         e.preventDefault();
         store.closeBanner();
         return;
@@ -109,28 +116,19 @@ function LearnLayer({
           !s.setupForm &&
           !s.courseBoard &&
           !s.banner &&
+          !s.appTask &&
+          !s.reflection &&
+          !s.badge &&
+          !s.resume &&
           !s.spyglass && <QuestTracker tracker={s.tracker} calm={s.calm} spot={s.spotlight.tracker} />}
-        {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && (
+        {s.spyglass && !s.spyglass.full && !s.quiz && !s.logbook.open && !s.appTask && (
           <Spyglass store={store} spy={s.spyglass} />
         )}
         {s.quiz && <QuizPanel key={`${s.quiz.quiz.id}:${s.quiz.seed}`} store={store} active={s.quiz} />}
         {s.palette && !s.quiz && !s.reveal && <ThemePicker store={store} selected={s.palette.selected} />}
         {s.reveal && !s.quiz && <PageReveal store={store} reveal={s.reveal} firstTime={!s.logbookOpened} />}
         {s.logbook.open && !s.quiz && !s.reveal && <Logbook store={store} state={s} />}
-        {s.banner && !s.quiz && (
-          <div className="ci-learn-backdrop">
-            <div className="ci-seal" role="dialog" aria-modal="true" aria-labelledby="ci-seal-title">
-              <div className="ci-seal-medal" aria-hidden>
-                ⚓
-              </div>
-              <h2 id="ci-seal-title">{s.banner.title}</h2>
-              <p>{s.banner.body}</p>
-              <button type="button" className="ci-btn primary" onClick={store.closeBanner} autoFocus>
-                <kbd>E</kbd> Onward
-              </button>
-            </div>
-          </div>
-        )}
+        {s.banner && !s.quiz && <SealBanner store={store} banner={s.banner} />}
         {s.forkForm && !s.quiz && !s.reveal && (
           <ForkForm store={store} from={s.forkForm.from} fork={s.fork} />
         )}
@@ -152,9 +150,42 @@ function LearnLayer({
             covered={s.courseBoard.covered}
           />
         )}
+        {s.appTask && !s.quiz && !s.reveal && !s.forkForm && !s.setupForm && (
+          <AppTaskCard key={`${s.appTask.task.id}:${s.appTask.from}`} store={store} state={s} />
+        )}
+        {s.reflection && !s.quiz && <ReflectionCard store={store} state={s} />}
+        {s.badge && !s.quiz && !s.banner && <BadgeCard key={s.badge.heading} store={store} badge={s.badge} />}
+        {s.resume && !s.quiz && !s.appTask && <ResumeCard store={store} resume={s.resume} />}
         {s.spyglass?.full && <Spyglass store={store} spy={s.spyglass} />}
       </SetupContext.Provider>
     </ForkContext.Provider>
+  );
+}
+
+/** The Seal banner (and other short banners): Onward, and a Seal card for one of the course's Seals. */
+function SealBanner({ store, banner }: { store: LearnStore; banner: NonNullable<LearnState['banner']> }) {
+  const root = useRef<HTMLDivElement>(null);
+  usePadFocus(root, store.closeBanner);
+  return (
+    <div className="ci-learn-backdrop">
+      <div ref={root} className="ci-seal" role="dialog" aria-modal="true" aria-labelledby="ci-seal-title">
+        <div className="ci-seal-medal" aria-hidden>
+          ⚓
+        </div>
+        <h2 id="ci-seal-title">{banner.title}</h2>
+        <p>{banner.body}</p>
+        <span className="ci-seal-actions">
+          <button type="button" className="ci-btn primary" onClick={store.closeBanner} autoFocus>
+            <kbd>E</kbd> Onward
+          </button>
+          {chartedIslands().some((i) => i.seal === banner.title) && (
+            <button type="button" className="ci-btn ghost" onClick={store.sealCard}>
+              Seal card
+            </button>
+          )}
+        </span>
+      </div>
+    </div>
   );
 }
 

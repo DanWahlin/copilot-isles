@@ -15,8 +15,9 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 | --- | --- | --- | --- |
 | `course.json` | The course's id, title, tagline, description and language; its source (repository, license, copyright, chapters); the islands it uses (each one's chapter, chart label, minutes, Seal, topics, and arrival-card lines); its practice values (issue, branch, repository name); the "Your setup" forms' words (`setup`); the lines and questions the game asks for by id (`hooks`); and how older saves move to today's ids (`migrations`, `legacySaves`) | You, by hand | `src/course/catalog.ts` |
 | `chapters/<chapter>.json` | A chapter's course images, quizzes, Logbook pages, chests, glossary terms, Trials, and the course sections voiced (`voiced`) and unvoiced (`cited`) teaching lines paraphrase ([course-content-authoring.md](course-content-authoring.md)) | You, by hand | `src/learn/content/index.ts` |
-| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step, every named script its NPCs and puzzles play, which script or line each NPC offers when (`beats`), what the game's story conditions and events mean in its quests (`story`), and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/beats.ts`, `src/game/story.ts`, `src/game/*-quests.ts` |
+| `quests/<island>.json` | An island's quests (title, task, link, what each step says), the tracker's header, where the compass points for each step (an optional quest's steps get the compass's paler marker once it's started; once the island's main quests are done the compass is on your ship), every named script its NPCs and puzzles play, which script or line each NPC offers when (`beats`), what the game's story conditions and events mean in its quests (`story`), and its NPCs' barks | You, by hand | `src/course/active.ts`, `src/game/beats.ts`, `src/game/story.ts`, `src/game/*-quests.ts` |
 | `puzzles/<name>.json` | One puzzle's content: what you sort, pick or route, the answers and the reasons a wrong pick gets, the course sections they cite, the site's signs, the overlay's and Wingman's words (`text`) and the voice lines it plays (`lines`). Each names its `mechanic` and the `quest` it plays in, and `"disabled": true` turns the puzzle off | You, by hand | `src/course/puzzles.ts`, the puzzle's module |
+| `learning.json` (optional) | The learning systems: the real-app tasks scripts hand off ("Do this in the app" cards and the Logbook's App checklist), each chapter's learning objectives and what covers them (the Course map), the reflection before each Seal, and a finished quest's Logbook line until its app tasks are confirmed (`learned`) | You, by hand | `src/learn/learning.ts` |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
 | `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' own version of each (and a goodbye) | You, by hand | `src/content/market.ts` |
@@ -90,6 +91,11 @@ so VS Code and other editors check your edit as you type and show each field's d
   must exist. `$workflowsOn` is whether the mill's gate lever was pulled (left out without a save).
   `renamed` maps an old Logbook id (a page or glossary term) to today's; `taught` gives saves that finished
   a quest the glossary terms it teaches now. Write each rule so running it twice changes nothing.
+- **`recap`** (optional): Wingman's spaced, interleaved recap. `questions` (1-3) from quizzes the
+  player has met, of the kinds in `types` (`mc`, `scenario`, `multi`; all three by default), never the
+  ones in `exclude`, at most once every `minGapMinutes` (20), when they land on an island (from the
+  other chapters) and on Continue; `reward.doubloons` for each answer right first time,
+  `reward.starfish` for a recap with every answer right. Leave it out for no recap.
 - **`legacySaves`**: `true` on the one course that saves from before course packs belong to (today
   copilot-app).
 
@@ -98,8 +104,13 @@ so VS Code and other editors check your edit as you type and show each field's d
 - A chapter file is named after its `chapter`; a quests file after its `island`.
 - **Scripts** are the steps `src/game/script.ts` runs: `say` (a voice line), `text`, `show`/`hide` (a
   course image in the spyglass), `quiz`, `page`, `file`, `term`, `quest`, `trial`, `cue`, `askFork`,
-  `askSetup`. A `quiz` or `askSetup` with `when` runs only for players whose setup fits (`model:auto`,
-  `model:picked`, `branch:given`, `issue:given`). A `{ "script": "<name>" }` step splices in another script of the same island. `notes`
+  `askSetup`, `appTask` (a "Do this in the app" card from `learning.json`, skipped once confirmed;
+  Later goes straight on; `"quiet": true` hands it off with no card, for an NPC who sends you off and
+  asks when you're back; `"orStop": true` ends the script on Later, for an optional app-only quest's
+  return beat). A `quiz` or `askSetup` with `when` runs only for players whose setup fits
+  (`model:auto`, `model:picked`, `branch:given`, `issue:given`) or who confirmed an app task
+  (`app:A2.2`). A `{ "script": "<name>" }` step
+  splices in another script of the same island. `notes`
   says what each script is for; the game ignores it.
 - **Ids are saved in players' progress** (quests and their steps, pages, chests, quizzes, glossary
   terms, Trials, labels, market jobs): don't rename them.
@@ -166,6 +177,36 @@ so VS Code and other editors check your edit as you type and show each field's d
   tray's `id`, and the flags hang on the mast in order (four halyards at most), painted with your
   symbols. Thousand-Bough's signs with course words are Channel Routing's (`text.hallSign`,
   `scaffoldSign`, `lookout1`, `lookout2`); the top deck's house board is the island's (below).
+
+### `learning.json`
+
+- **`labels`**: the real tool's names, in the course's words: the card's kicker (`"Do this in the
+  Copilot app"`), the Logbook tab and checklist (`"App checklist"`), and the tool in a sentence
+  (`"the Copilot app"`).
+- **`appTasks`**: what the player does in the real tool, one to four short `steps` (`**bold**` UI
+  names, `` `code` `` commands, setup tokens like `{issue}`), `why` in a sentence, the course `source`
+  (its chapter's section: the card's "Open in the course ↗"), an optional `link` (where to download or
+  fork), the `quest` it belongs to, an optional `seen` ("What did you see?": a prompt, two to four
+  options, the `answer` and an `explain` that says what the course says you'll see; any answer is
+  fine), an optional `check` (an opt-in GitHub check: `repoExists` for the fork, `branchExists` with a
+  `branch`, `prOpened`; `{practiceBranch}` is `course.json`'s `practice.branch`). A script hands
+  each one off with `{ "appTask": "<id>" }` right where the NPC teaches it; every task needs one.
+  Where an NPC sends you off to do it and asks when you're back (Thousand-Bough's exercises and
+  assignment), hand it off `quiet` at the brief and show the card at the return beat, with the
+  NPC's own "what did you see?" gated on `app:<id>`: one prompt for one app moment. Task ids are
+  saved in players' progress: don't rename them.
+- **`learned`** (optional): quest → its Logbook line once it's done but its app tasks aren't all
+  confirmed, for a quest whose `done` step says what you did in the app ("Your fork is added under
+  Sessions."). Better: write the `done` step as what you learned ("You know how to fork the course…"),
+  as the Copilot app course does, and leave `learned` empty; the Logbook marks whether the app work is
+  confirmed either way. Only for quests with app tasks.
+- **`objectives`**: each chapter's learning objectives, word for word from its Learning Objectives
+  section (the check holds them to the snapshot), with what in the game `covers` each: `quests` (done
+  means practised), `puzzles` (by file name; their quest's done), `quizzes` (passed means quizzed) and
+  `appTasks` (confirmed). An objective with no `covers` shows as "In the course only".
+- **`reflections`**: one per chapter, asked once after its Trial's last answer and before the Seal:
+  a `prompt` and two to six `choices` (the chapter's Key Takeaways, in short), with the section it
+  comes from. Skippable, never graded; the Course map shows the pick.
 
 ### `market.json`
 
@@ -281,7 +322,13 @@ change. The checks (tools/content/check.ts):
   course's first island (spending what comes back, in the best order);
 - every board's chapter is in the snapshot with at least 5 topics, and every board stands on its island
   (in its waters, on the ground or a deck up to 1 m above it);
-- every category has a model in `models.json`, and no model is listed twice.
+- every category has a model in `models.json`, and no model is listed twice;
+- `learning.json`: every app task is handed off by a script, cites its own chapter's section, and its
+  quest, "seen" answer and check resolve; a step's `when: "app:<id>"` names a task; after an `orStop`
+  hand-off, a script sets only optional quests' steps; every objective is word for
+  word in its section and covers quests, puzzles, quizzes and app tasks that exist; one reflection per
+  chapter, with unique choices; `learned` lines only for quests with app tasks; `course.json`'s
+  `recap.exclude` names quizzes.
 
 `src/learn/course/refs.test.ts` checks the snapshot against the lock section by section, and every
 `SourceRef` and course image against them.

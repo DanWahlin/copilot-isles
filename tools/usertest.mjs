@@ -5,6 +5,7 @@
 // Continue, and resume after a reload.
 // node tools/usertest.mjs [--webgl] [--base=http://localhost:5301] [--out=/tmp/shots/user]
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
+import { passLearningPauses } from './lib/learning-cards.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -284,6 +285,8 @@ await step('quit and continue', async () => {
   await page.waitForTimeout(1500);
   const s = await ui();
   check('Continue restores the captain', s.captain === 'man' && s.learn.captainName === 'Morgan');
+  const pauses = await passLearningPauses(page, 6000);
+  check('Continue shows where you left off', pauses.resume, JSON.stringify(pauses));
 });
 
 await step('continue after reload', async () => {
@@ -294,6 +297,7 @@ await step('continue after reload', async () => {
   await page.waitForTimeout(1500);
   const s = await ui();
   check('the save survives a reload', s.captain === 'man' && s.learn.captainName === 'Morgan');
+  await passLearningPauses(page, 6000);
   await shot('continued');
 });
 
@@ -353,6 +357,7 @@ await step('continue on Port Meridian', async () => {
   await button('Continue').click();
   await screenIs('playing', 90_000);
   await page.waitForTimeout(1500);
+  await passLearningPauses(page, 6000);
   const s = await page.evaluate(() => ({
     island: window.__flow.session.island,
     st: window.__flow.session.debug.state(),

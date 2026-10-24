@@ -16,7 +16,7 @@
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
 // Sail spots sweep the ship's rig over the water round each coast. Before each cluster, it waits
-// until the game draws the cluster's island, not its silhouette (issue 310). An island swaps by the
+// until the game draws the cluster's island, not its silhouette (issue 302). An island swaps by the
 // game camera's distance, and after a teleport that camera needs a few seconds to get there.
 // Exits 1 on a page error, on an island that doesn't draw in 20 s (notShown), or on more bad
 // frames than --max-bad (default 20: the count stands at 8-17 across seeds, so this catches a

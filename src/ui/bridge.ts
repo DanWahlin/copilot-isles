@@ -43,6 +43,11 @@ export interface Settings {
   reducedMotion: boolean;
   /** Settings → Sea state: the waves, wind, foam and sailing at sea (battles and puzzle courses keep their own). */
   seaState: SeaStateId;
+  /**
+   * Opt-in: the App checklist may ask GitHub's public API (no sign-in) whether a task left public
+   * evidence in the player's fork (src/learn/github-check.ts). Off by default.
+   */
+  githubChecks: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -60,6 +65,7 @@ export const DEFAULT_SETTINGS: Settings = {
   subtitleSize: 'm',
   reducedMotion: false,
   seaState: 'breeze',
+  githubChecks: false,
 };
 
 /** Chart coordinates are normalized 0-1 across the chart (x → east, y → south). */
@@ -239,4 +245,6 @@ export interface GameBridge {
   pressOpening(): void;
   /** Skip battle (the pause menu): the sea battle counts as done, and play resumes. */
   skipBattle?(): void;
+  /** Unstuck (the pause menu): play resumes with the captain back on the path, or the ship in open water. */
+  unstuck?(): void;
 }
