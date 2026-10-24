@@ -19,12 +19,12 @@
 // until the game draws the cluster's island, not its silhouette (issue 310). An island swaps by the
 // game camera's distance, and after a teleport that camera needs a few seconds to get there.
 // Exits 1 on a page error, on an island that doesn't draw in 20 s (notShown), or on more bad
-// frames than --max-bad (default 50: the count stands at 24-49 across seeds, so this catches a
+// frames than --max-bad (default 20: the count stands at 8-17 across seeds, so this catches a
 // real regression without failing on sample spread; lower it as colliders tighten).
 // Needs a dev server. A no-HMR one keeps edits elsewhere from reloading the page mid-run:
 //   npx vite --config tools/vite.nohmr.config.mjs --port 5322
 // node tools/cameratest.mjs [--base=http://127.0.0.1:5322] [--samples=160] [--sail=30] (sail spots)
-//   [--seed=7] [--max-bad=50] [--list=25] (hits to print) [--explain] (with the collider nearest each)
+//   [--seed=7] [--max-bad=20] [--list=25] (hits to print) [--explain] (with the collider nearest each)
 //   [--camera=/<path>.ts] (another FollowCamera module under the repo, served by Vite, to compare)
 //   [--near=x,z,r] (only the clusters near a point) [--probe] (what the six axis rays from each
 //   listed hit meet first) [--out=<dir>] (screenshots of the first 8 hits from the camera pose, and
@@ -908,4 +908,4 @@ console.log(
   }),
 );
 await browser.close();
-process.exit(total.badFrames > Number(opt['max-bad'] ?? 50) || total.notShown || errors.length ? 1 : 0);
+process.exit(total.badFrames > Number(opt['max-bad'] ?? 20) || total.notShown || errors.length ? 1 : 0);
