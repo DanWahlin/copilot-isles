@@ -3,7 +3,7 @@ import { COURSE } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
 import { meridianOpen } from './meridian-open';
-import { startedQuests, type QuestTracker, type TrackerStatus } from './quest-list';
+import { optionalTargets, startedQuests, type QuestTracker, type TrackerStatus } from './quest-list';
 import type { ScriptStep } from './script';
 import type { QuestState } from './story';
 
@@ -75,6 +75,11 @@ export function questTarget(q: QuestState): { ids: readonly string[]; label: str
   const c = currentQuest(q);
   if (!c) return null;
   return QUEST_TARGETS[`${c.id}:${c.step ?? 'start'}`] ?? null;
+}
+
+/** The optional quests you've started: where the compass's dimmer marker points for each. */
+export function questOptionalTargets(q: QuestState): QuestTarget[] {
+  return optionalTargets(COVE_QUESTS, QUEST_TARGETS, q);
 }
 
 /** Port Meridian's chest: Lyra's, on the tavern stage beside her (the control-room page). */

@@ -160,6 +160,10 @@
     "Q1.8:exam": {
       "ids": ["npc:admiral"],
       "label": "Admiral Vale"
+    },
+    "Q1.A:start": {
+      "ids": ["market:counter"],
+      "label": "Gilda’s stall"
     }
   },
   "beats": [

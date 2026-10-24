@@ -1,4 +1,4 @@
-import type { QuestDef } from '../course/pack';
+import type { QuestDef, QuestTarget } from '../course/pack';
 import type { QuestState } from './story';
 
 /** A task on the tracker: done, the one to do now, or still to come. */
@@ -64,4 +64,23 @@ export function startedQuests(
       detail: d.steps[q[d.id]!] ?? '',
       done: q[d.id] === 'done',
     }));
+}
+
+/**
+ * Where the compass's dimmer marker points for the optional quests you've started and not finished:
+ * each one's step target (the course pack's `targets`), in story order. Steps with none are skipped.
+ */
+export function optionalTargets(
+  quests: readonly QuestDef[],
+  targets: Readonly<Record<string, QuestTarget>>,
+  q: QuestState,
+): QuestTarget[] {
+  const out: QuestTarget[] = [];
+  for (const d of quests) {
+    const step = q[d.id];
+    if (!d.optional || !step || step === 'done') continue;
+    const t = targets[`${d.id}:${step}`];
+    if (t) out.push(t);
+  }
+  return out;
 }

@@ -160,6 +160,14 @@
     "Q2.9:exam": {
       "ids": ["npc:elder"],
       "label": "Elder Maren"
+    },
+    "Q2.A:start": {
+      "ids": ["npc:rook"],
+      "label": "Rook"
+    },
+    "Q2.A:try": {
+      "ids": ["lantern:lever"],
+      "label": "The Lantern House"
     }
   },
   "beats": [

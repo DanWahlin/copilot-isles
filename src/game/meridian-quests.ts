@@ -2,7 +2,7 @@ import { courseScript, hasIslandQuests, islandQuests, onCourse } from '../course
 import { onCourseSelected, welcomeLines } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
-import { firstOpenQuest, islandTasks, startedQuests, type QuestTracker } from './quest-list';
+import { firstOpenQuest, islandTasks, optionalTargets, startedQuests, type QuestTracker } from './quest-list';
 import type { ScriptStep } from './script';
 import type { QuestState } from './story';
 
@@ -70,6 +70,11 @@ export function meridianTarget(
 ): { ids: readonly string[]; label: string; labels?: Readonly<Record<string, string>> } | null {
   const c = meridianCurrent(q);
   return c ? (MERIDIAN_TARGETS[`${c.id}:${c.step}`] ?? null) : null;
+}
+
+/** The optional quests you've started: where the compass's dimmer marker points for each. */
+export function meridianOptionalTargets(q: QuestState): QuestTarget[] {
+  return optionalTargets(MERIDIAN_QUESTS, MERIDIAN_TARGETS, q);
 }
 
 /** The Meridian task list: the chapter's steps in order, the current one with what to do next (and the optional market once started). */

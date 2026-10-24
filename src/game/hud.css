@@ -429,6 +429,53 @@
     sans-serif;
   letter-spacing: 0.06em;
 }
+.hud-compass-label .level {
+  color: var(--gold);
+  font-size: 0.8rem;
+}
+.hud-compass-label .level:empty {
+  display: none;
+}
+/* An optional quest you've started: a smaller, paler marker and a quiet line under the label. */
+.hud-compass-marker.optional {
+  width: 0.46rem;
+  height: 0.46rem;
+  margin: -0.23rem 0 0 -0.23rem;
+  background: linear-gradient(135deg, #e9f3ff, #8fb4d8);
+  box-shadow: 0 0 0 2px rgba(10, 22, 32, 0.5);
+}
+.hud-compass-marker.optional.show {
+  opacity: 0.8;
+}
+.hud-compass-marker.optional.edge-left,
+.hud-compass-marker.optional.edge-right {
+  background: none;
+  box-shadow: none;
+  filter: none;
+}
+.hud-compass-marker.optional.edge-left {
+  border-right-color: #a9c6e4;
+}
+.hud-compass-marker.optional.edge-right {
+  border-left-color: #a9c6e4;
+}
+.hud-compass-second {
+  padding: 0.1em 0.7em 0.14em;
+  border-radius: 999px;
+  background: rgba(10, 22, 32, 0.32);
+  color: rgba(226, 238, 250, 0.85);
+  font-size: 0.74rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.hud-compass.has-second .hud-compass-second {
+  opacity: 1;
+}
+/* The toast steps down below the optional line while it's up. */
+.hud:has(.hud-compass.show.has-second) .hud-toast {
+  top: max(7vh, 6.9rem);
+}
 
 .hud-toast {
   position: absolute;

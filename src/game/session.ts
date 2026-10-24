@@ -50,7 +50,7 @@ import { FlyoverPath } from './flyover';
 import { world as worldUniforms } from '../world/uniforms';
 import { Helm } from './helm';
 import { Hud } from './hud';
-import { Interactions } from './interaction';
+import { Interactions, type Interactable } from './interaction';
 import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
 import type { LearnStore } from '../learn/store';
@@ -62,13 +62,16 @@ import {
   currentQuest,
   npcScript,
   questLog,
-  questTarget,
   questTracker,
 } from './cove-quests';
 import { bearingOf, type CompassTarget } from './compass';
-import { meridianLog, meridianNpcScript, meridianTarget, meridianTracker } from './meridian-quests';
+import { compassGoals, type CompassGoals } from './compass-goals';
+import { CompassRoute, Wayfinder, type CompassLeg } from './wayfinding/compass-route';
+import type { WalkRoute } from './wayfinding/walk-graph';
+import { ISLAND_WAYS } from '../world/islands/waypoints';
+import { meridianLog, meridianNpcScript, meridianTracker } from './meridian-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
-import { thousandBoughLog, thousandBoughTarget, thousandBoughTracker } from './thousand-bough-quests';
+import { thousandBoughLog, thousandBoughTracker } from './thousand-bough-quests';
 import { createThousandBoughContent, type ThousandBoughContent } from './thousand-bough-session';
 import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contract';
 import { noteMeridianSeal } from './thousand-bough-open';
@@ -170,6 +173,11 @@ export interface GameSession {
   readonly island: IslandId;
   /** Freezes the player, helm, and HUD prompts while menus are open (the world keeps living). */
   setPaused(on: boolean): void;
+  /**
+   * Puts a wedged captain back on the nearest point of the island's routes, or warps the ship off
+   * into open water (the pause menu's Unstuck). False when there's nothing to do (a battle, a ride).
+   */
+  unstuck(): boolean;
   /** The game's on screen (the loading card has gone): a first landfall's flyover takes off. */
   begin(): void;
   /** Seconds until the arrival flyover reaches the captain (0 when there's none, or it's done). */
@@ -235,7 +243,11 @@ export interface GameSession {
     /** Where to stand to read each island's course notice board, facing it (tests). */
     courseBoards(): { island: IslandId; x: number; y: number; z: number; heading: number }[];
     /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
-    near(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[];
+    near(
+      x: number,
+      z: number,
+      r: number,
+    ): { id: string; x: number; y: number; z: number; d: number; on: boolean }[];
     /** The lift's raw anchors (tests: tx/ty/tz are the car's ends). */
     liftAnchors(): { liftBottom: unknown; liftTop: unknown };
     /** The lift ride's camera spot and how many of its samples are blocked (tests). */
@@ -583,6 +595,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     seatPlank();
     publishQuests();
     applySky(berth.sky);
+    goalsStale = true;
   };
   const applySky = (sky: { hours: number; azimuth: number }) => {
     if (
@@ -613,11 +626,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     noteMeridianSeal(storyHolds('meridian', 'sealed', quests()));
     publishQuests();
   };
-  const publishQuests = () =>
+  const publishQuests = () => {
+    goalsStale = true;
     learn?.setQuests(
       [...questLog(quests()), ...meridianLog(quests()), ...thousandBoughLog(quests())],
       trackerHere(),
     );
+  };
+  /** Where the compass points on this island for the quest state (refreshed when either changes). */
+  let goals: CompassGoals = { main: null, optional: [] };
+  let goalsStale = true;
   /** The task list for the island you're on (Anchorage's points on to Meridian once it's open). */
   const trackerHere = () => {
     if (island === 'meridian') return meridianTracker(quests());
@@ -948,6 +966,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     await learn?.openChest(id);
     input.enabled = !paused;
   }
+
+  // Routes for the compass, the crew and Unstuck: each island's walks and the sea lanes between them.
+  const wayfinder = new Wayfinder(ISLAND_WAYS);
 
   // Puzzles (POC §4.5): each registers its own interactions and saves its own state.
   const puzzleHost: PuzzleHost = {
@@ -1918,8 +1939,20 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           : questLog(quests()).find((q) => !q.done);
     void dialogue.say(
       'Wingman',
-      open?.detail ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.',
+      (open?.detail ? `Logbook says: ${open.detail}` : 'Nothing pressing, Captain. Enjoy the view.') +
+        wayfindingNudge(),
     );
+  }
+
+  /** Wingman's word on getting there: Unstuck when you're wedged, the Chart's Travel here when it's far. */
+  function wayfindingNudge(): string {
+    if (stuckOffer)
+      return ' Wedged? Press E, or pick Unstuck in the pause menu, and I’ll put you back on the path.';
+    if (mode !== 'walk' || !compassAim) return '';
+    if (mainLeg.length > 120 && island === 'anchorage')
+      return ' It’s a fair walk: follow the compass, or open the Chart (M), pick a landmark and Travel here.';
+    if (mainLeg.length > 120) return ' It’s a fair walk, so follow the compass. It keeps to the paths.';
+    return '';
   }
 
   // Metres: keep the captain's head clear of the lens and the shoulder at the frame edge.
@@ -2266,13 +2299,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   const firstLandfall = () => !!learn && !learn.progress.has('arrivals', berth.id);
 
   /**
-   * The compass, top centre: where the camera looks, and a gold marker on the current task ashore (the
-   * nearest usable part of it) or on the pier while you're sailing. Hidden in conversations.
+   * The compass, top centre: where the camera looks, a gold marker on the current task ashore (the
+   * nearest usable part of it; your ship once the island's done) and a paler one on an optional
+   * quest you've started, or on the berth or a puzzle's mark while you're sailing. Each marker aims at
+   * the next waypoint of the route there (src/game/wayfinding/), and its distance is the route's.
+   * Hidden in conversations.
    */
   const compassDir = new Vector3();
+  const mainRoute = new CompassRoute();
+  const optionalRoute = new CompassRoute();
+  const mainLeg: CompassLeg = { x: 0, z: 0, length: 0, level: null };
+  const optionalLeg: CompassLeg = { x: 0, z: 0, length: 0, level: null };
+  const mainMarker: CompassTarget = { bearing: 0, label: '', distance: 0, level: null };
+  const optionalMarker: CompassTarget = { bearing: 0, label: '', distance: 0, level: null };
+  /** What the gold marker's on ashore (for Unstuck's facing and Wingman's nudge), or null. */
+  let compassAim: Interactable | null = null;
   function updateCompass(): void {
     const ashore = mode === 'walk';
     const afloat = mode === 'sail' || mode === 'docking';
+    compassAim = null;
     // In a sea battle the battle's own HUD has the top of the screen.
     if (
       (!ashore && !afloat) ||
@@ -2287,34 +2332,202 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     camera.getWorldDirection(compassDir);
     let target: CompassTarget | null = null;
+    let optional: CompassTarget | null = null;
     if (ashore) {
-      const goal =
-        island === 'anchorage'
-          ? questTarget(quests())
-          : island === 'thousand-bough'
-            ? thousandBoughTarget(quests())
-            : meridianTarget(quests());
+      if (goalsStale) {
+        goals = compassGoals(island, quests());
+        goalsStale = false;
+      }
+      const goal = goals.main;
       const it = goal ? interactions.nearest(goal.ids, player.x, player.z) : null;
       if (goal && it) {
-        const dx = it.x - player.x;
-        const dz = it.z - player.z;
-        const labels = (goal as { labels?: Readonly<Record<string, string>> }).labels;
-        const label = labels?.[it.id] ?? goal.label;
-        target = { bearing: bearingOf(dx, dz), label, distance: Math.hypot(dx, dz) };
+        compassAim = it;
+        mainRoute.ashore(wayfinder, island, it.id, player.x, player.y, player.z, it.x, it.y, it.z, mainLeg);
+        mainMarker.bearing = bearingOf(mainLeg.x - player.x, mainLeg.z - player.z);
+        mainMarker.label = goal.labels?.[it.id] ?? goal.label;
+        mainMarker.distance = mainLeg.length;
+        mainMarker.level = mainLeg.level;
+        target = mainMarker;
+      }
+      // The nearest optional quest you've started (not the same spot as the gold marker).
+      let best: Interactable | null = null;
+      let bestLabel = '';
+      for (let i = 0; i < goals.optional.length; i++) {
+        const g = goals.optional[i]!;
+        const o = interactions.nearest(g.ids, player.x, player.z);
+        if (!o || o === it) continue;
+        if (
+          !best ||
+          Math.hypot(o.x - player.x, o.z - player.z) < Math.hypot(best.x - player.x, best.z - player.z)
+        ) {
+          best = o;
+          bestLabel = g.labels?.[o.id] ?? g.label;
+        }
+      }
+      if (best) {
+        optionalRoute.ashore(
+          wayfinder,
+          island,
+          best.id,
+          player.x,
+          player.y,
+          player.z,
+          best.x,
+          best.y,
+          best.z,
+          optionalLeg,
+        );
+        optionalMarker.bearing = bearingOf(optionalLeg.x - player.x, optionalLeg.z - player.z);
+        optionalMarker.label = bestLabel;
+        optionalMarker.distance = optionalLeg.length;
+        optionalMarker.level = optionalLeg.level;
+        optional = optionalMarker;
       }
     } else {
       // A puzzle out on the water first (the Three Helms' next buoy or mark), else the berth you're
-      // bound for once out past docking range (inside it, the dock prompt takes over).
-      const mark = puzzles.map((p) => p.sailTarget?.() ?? null).find((m) => m !== null) ?? null;
+      // bound for once out past docking range (inside it, the dock prompt takes over). The route
+      // keeps to the sea lanes: round headlands and in through a harbour's mouth.
+      let mark: { x: number; z: number; label: string } | null = null;
+      for (let i = 0; i < puzzles.length && !mark; i++) mark = puzzles[i]!.sailTarget?.() ?? null;
       const goal = sailTarget();
-      const to = mark ?? { x: goal.mooring.x, z: goal.mooring.z, label: goal.berthLabel };
-      const dx = to.x - dyn.pose.x;
-      const dz = to.z - dyn.pose.z;
-      const distance = Math.hypot(dx, dz);
-      if (mark || (!crewAtHelm && distance > DOCK_RANGE))
-        target = { bearing: bearingOf(dx, dz), label: to.label, distance };
+      const tx = mark ? mark.x : goal.mooring.x;
+      const tz = mark ? mark.z : goal.mooring.z;
+      const straight = Math.hypot(tx - dyn.pose.x, tz - dyn.pose.z);
+      if (mark || (!crewAtHelm && straight > DOCK_RANGE)) {
+        mainRoute.afloat(wayfinder, mark ? mark.label : goal.id, dyn.pose.x, dyn.pose.z, tx, tz, mainLeg);
+        mainMarker.bearing = bearingOf(mainLeg.x - dyn.pose.x, mainLeg.z - dyn.pose.z);
+        mainMarker.label = mark ? mark.label : goal.berthLabel;
+        mainMarker.distance = mainLeg.length;
+        mainMarker.level = null;
+        target = mainMarker;
+      }
     }
-    hud.setCompass(bearingOf(compassDir.x, compassDir.z), target);
+    hud.setCompass(bearingOf(compassDir.x, compassDir.z), target, optional);
+  }
+
+  /**
+   * Unstuck (PLAN §9's "never trapped"): pushing against something for a few seconds without getting
+   * anywhere, on foot or at the helm, offers a hop back onto the island's routes (E, or the pause
+   * menu's Unstuck at any time).
+   */
+  const STUCK_AFTER = 4;
+  const STUCK_RADIUS = 1.2;
+  const SHIP_STUCK_AFTER = 12;
+  let pushFor = 0;
+  const pushFrom = { x: 0, z: 0 };
+  let stuckOffer = false;
+  const stuckSpot = { x: 0, y: 0, z: 0 };
+  const unstuckRoute: WalkRoute = { x: 0, y: 0, z: 0, length: 0, node: -1 };
+  const offerUnstuck = (afloat: boolean) => {
+    stuckOffer = true;
+    hud.toast(
+      afloat
+        ? 'Stuck fast? Press E and the crew will warp her off into open water.'
+        : 'Stuck? Press E to hop back onto the path. Unstuck’s in the pause menu too.',
+      6,
+    );
+  };
+  interactions.add({
+    id: 'unstuck',
+    label: () => 'Unstuck: back onto the path',
+    get x() {
+      return player.x;
+    },
+    get y() {
+      return player.y;
+    },
+    get z() {
+      return player.z;
+    },
+    radius: 1,
+    // It takes the E from whatever you're pressed up against.
+    bias: -50,
+    enabled: () => stuckOffer && mode === 'walk' && !dialogue.active && !scriptRunning,
+    onInteract: () => void unstuck(),
+  });
+  /** Watches for a walker or a ship that's trying to move and can't (called each frame). */
+  function watchStuck(dt: number, s: InputState): void {
+    if (mode === 'walk') {
+      const pushing = Math.hypot(s.moveX, s.moveY) > 0.5 && !dialogue.active && !scriptRunning && !liftRide;
+      const moved = Math.hypot(player.x - pushFrom.x, player.z - pushFrom.z);
+      if (!pushing || moved > STUCK_RADIUS) {
+        pushFrom.x = player.x;
+        pushFrom.z = player.z;
+        pushFor = 0;
+        if (stuckOffer && Math.hypot(player.x - stuckSpot.x, player.z - stuckSpot.z) > 4) stuckOffer = false;
+      } else if ((pushFor += dt) > STUCK_AFTER && !stuckOffer) {
+        stuckSpot.x = player.x;
+        stuckSpot.z = player.z;
+        offerUnstuck(false);
+      }
+    } else if (mode === 'sail' && !crewAtHelm && !battles.active) {
+      const trying = helm.trim > 0.3 || Math.abs(s.moveX) > 0.5 || Math.abs(s.moveY) > 0.5;
+      const speed = Math.abs(dyn.forwardSpeed);
+      if (speed > 1.5 || !trying || berthInRange()) {
+        pushFor = 0;
+        if (speed > 1.5) stuckOffer = false;
+      } else if (speed < 0.6 && (pushFor += dt) > SHIP_STUCK_AFTER && !stuckOffer) offerUnstuck(true);
+    } else {
+      pushFor = 0;
+      stuckOffer = false;
+    }
+  }
+  async function unstuck(): Promise<boolean> {
+    if (mode === 'walk' && !liftRide && !scriptRunning) {
+      const g = wayfinder.walk(island);
+      const i = g ? g.nearest(player.x, player.y, player.z) : -1;
+      if (!g || i < 0) return false;
+      mode = 'transition';
+      input.enabled = false;
+      hud.setPrompt(null);
+      await hud.fade(true, 260);
+      g.point(i, stuckSpot);
+      // Face along the route toward whatever the compass is on.
+      let heading = player.heading;
+      const aim = compassAim;
+      if (aim) {
+        g.route(stuckSpot.x, stuckSpot.y, stuckSpot.z, aim.x, aim.y, aim.z, unstuckRoute);
+        if (Math.hypot(unstuckRoute.x - stuckSpot.x, unstuckRoute.z - stuckSpot.z) > 0.5)
+          heading = Math.atan2(unstuckRoute.x - stuckSpot.x, unstuckRoute.z - stuckSpot.z);
+      }
+      player.teleport(world, stuckSpot.x, stuckSpot.z, heading, stuckSpot.y + 0.5);
+      hero.group.position.set(player.x, player.y, player.z);
+      hero.group.rotation.y = player.heading;
+      cam.snapBehind(heading);
+      stuckOffer = false;
+      pushFor = 0;
+      mainRoute.reset();
+      optionalRoute.reset();
+      mode = 'walk';
+      input.enabled = !paused;
+      await hud.fade(false, 260);
+      hud.toast('Back on the path. Follow the compass from here.', 3.5);
+      return true;
+    }
+    if (mode === 'sail' && !crewAtHelm && !battles.active) {
+      const chart = wayfinder.sea;
+      const i = chart.nearest(dyn.pose.x, dyn.pose.z);
+      if (i < 0) return false;
+      mode = 'transition';
+      input.enabled = false;
+      hud.setPrompt(null);
+      await hud.fade(true, 300);
+      const p = chart.point(i);
+      const goal = sailTarget();
+      const next = chart.path(p.x, p.z, goal.mooring.x, goal.mooring.z)[0]!;
+      const heading = Math.atan2(next.x - p.x, next.z - p.z);
+      dyn.reset(p.x, p.z, heading);
+      cam.snapBehind(heading);
+      stuckOffer = false;
+      pushFor = 0;
+      mainRoute.reset();
+      mode = 'sail';
+      input.enabled = !paused;
+      await hud.fade(false, 300);
+      hud.toast('The crew warped her off into open water. Follow the compass from here.', 4);
+      return true;
+    }
+    return false;
   }
 
   // Footsteps and ship sounds.
@@ -2775,6 +2988,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           else if (cooldown <= 0 && mode === 'sail' && !battles.ownsKeys) {
             const act = sailAction();
             if (act) act.fire();
+            else if (stuckOffer && !berthInRange()) void unstuck();
             else dock();
           } else if (cooldown <= 0 && mode === 'walk' && !tbModal) interactions.fire(s.run);
         }
@@ -2861,7 +3075,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
           const near = mode === 'sail' && !crewAtHelm ? berthInRange() : null;
           const act = mode === 'sail' && !dialogue.active ? sailAction() : null;
-          hud.setPrompt(act?.label ?? near?.dockLabel ?? null);
+          hud.setPrompt(
+            act?.label ?? near?.dockLabel ?? (stuckOffer && mode === 'sail' ? 'Unstuck: warp her off' : null),
+          );
           windAt(pose.x, pose.z, t, windHere);
           const bow = windOnBow(pose.heading, windHere[0], windHere[1]);
           hud.updateSail(helm.trim, helm.rudder, Math.abs(dyn.forwardSpeed), bow);
@@ -2892,6 +3108,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           }
         }
 
+        watchStuck(dt, s);
         if (liftRide) updateLift(dt, s, t);
         updateResidency(dt, t);
         for (const site of meridianSites) site.update(dt, t);
@@ -2981,6 +3198,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     get island() {
       return island;
+    },
+    unstuck() {
+      if (battles.active || (mode !== 'walk' && mode !== 'sail')) return false;
+      void unstuck();
+      return true;
     },
     setPaused(on) {
       paused = on;
