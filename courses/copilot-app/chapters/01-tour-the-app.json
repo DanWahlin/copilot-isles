@@ -16,7 +16,7 @@
       "hash": "37be111c3c45",
       "width": 1920,
       "height": 1080,
-      "alt": "The New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with the course project, and the prompt box with the mode and model controls, the project picker and Current checkout"
+      "alt": "The New view, from an older app version (the sidebar’s Projects is now Sessions, and More is gone): New, Pull requests, Issues, Automations, Customize and More in the sidebar, Projects with the course project, and the prompt box with the mode and model controls, the project picker and Current checkout"
     },
     {
       "id": "ch01/app-pull-requests-page",
@@ -56,7 +56,7 @@
       "hash": "0e15d445340b",
       "width": 1920,
       "height": 1080,
-      "alt": "The Projects menu open: callout 1 on the + next to Projects and callout 2 on Chat, above the course project, Add GitHub repository, Clone repository and Open folder"
+      "alt": "From an older app version (Projects is now Sessions, and More is gone): the Projects menu open, callout 1 on the + next to Projects and callout 2 on Chat, above the course project, Add GitHub repository, Clone repository and Open folder"
     },
     {
       "id": "ch01/session-mode-decision-ladder",
@@ -151,7 +151,10 @@
       "id": "H1.1",
       "type": "hotspot",
       "image": "ch01/app-new-page",
-      "mask": [],
+      "mask": [
+        [0.0083, 0.2778, 0.1823, 0.037],
+        [0.0094, 0.3426, 0.0406, 0.0278]
+      ],
       "prompt": "The setup script made practice issues in your fork and assigned them to you. Where do you find them in the app?",
       "targets": [
         {
@@ -208,7 +211,10 @@
       "id": "H1.2",
       "type": "hotspot",
       "image": "ch01/app-new-page",
-      "mask": [],
+      "mask": [
+        [0.0083, 0.2778, 0.1823, 0.037],
+        [0.0094, 0.3426, 0.0406, 0.0278]
+      ],
       "prompt": "Before you send, where do you check whether your prompt goes to a chat or to a project?",
       "targets": [
         {
@@ -310,7 +316,10 @@
       "id": "H1.3",
       "type": "hotspot",
       "image": "ch01/app-new-page",
-      "mask": [],
+      "mask": [
+        [0.0083, 0.2778, 0.1823, 0.037],
+        [0.0094, 0.3426, 0.0406, 0.0278]
+      ],
       "prompt": "Where do you choose the model and its reasoning effort?",
       "targets": [
         {
@@ -906,7 +915,10 @@
       "id": "A1.8",
       "type": "hotspot",
       "image": "ch01/app-new-page",
-      "mask": [],
+      "mask": [
+        [0.0083, 0.2778, 0.1823, 0.037],
+        [0.0094, 0.3426, 0.0406, 0.0278]
+      ],
       "prompt": "You want the agent to show you a plan before it changes anything. What do you select?",
       "targets": [
         {
@@ -982,6 +994,70 @@
         "anchor": "models-and-reasoning-effort",
         "hash": "84d625491118"
       }
+    },
+    {
+      "id": "A1.10",
+      "type": "scenario",
+      "situation": "You’re about to step away from your computer. While you’re gone, the agent shouldn’t run a terminal command without asking you first.",
+      "prompt": "Which **Tool permissions** setting fits?",
+      "options": [
+        {
+          "id": "always",
+          "text": "**Always ask**"
+        },
+        {
+          "id": "approve",
+          "text": "**Approve all**",
+          "feedback": "**Approve all** runs tools without asking, so commands would run while you’re away."
+        },
+        {
+          "id": "assisted",
+          "text": "**Assisted**",
+          "feedback": "**Assisted** asks only when a tool request fails an AI safety check. Other commands would run without you."
+        }
+      ],
+      "answer": "always",
+      "explain": {
+        "correct": "Right. **Always ask** checks with you before each tool, such as a terminal command. You’ll find **Tool permissions** in the mode menu.",
+        "wrong": "Pick the setting that asks every time."
+      },
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "modes",
+        "hash": "4a1370424345"
+      }
+    },
+    {
+      "id": "A1.11",
+      "type": "scenario",
+      "situation": "You want the agent to give you a tour of the book app sample, file by file. It shouldn’t change any files.",
+      "prompt": "What do you start?",
+      "options": [
+        {
+          "id": "project",
+          "text": "A project session"
+        },
+        {
+          "id": "chat",
+          "text": "A chat session",
+          "feedback": "No files change, but the agent needs your repository to read the sample. A chat doesn’t give it your repository."
+        },
+        {
+          "id": "automation",
+          "text": "An automation",
+          "feedback": "Automations are for work you repeat. This tour is a one-off."
+        }
+      ],
+      "answer": "project",
+      "explain": {
+        "correct": "Right. Use a project session when the agent needs repository context, even if it only reads and changes nothing.",
+        "wrong": "Reading your repository still needs your repository: that’s a project session."
+      },
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      }
     }
   ],
   "pages": [
@@ -1010,7 +1086,7 @@
       "id": "pg1.new",
       "title": "New",
       "image": "ch01/app-new-page",
-      "caption": "The landing view. Start a chat without a project, pick a connected project for a project session, choose a mode and model, or start from one of the suggested prompts.",
+      "caption": "The landing view. Start a chat without a project, pick a connected project for a project session, choose a mode and model, or start from one of the suggested prompts. (The picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "new",
@@ -1095,7 +1171,7 @@
       "id": "pg1.chat",
       "title": "Start a chat",
       "image": "ch01/app-quick-chat",
-      "caption": "Select **+** next to **Sessions**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat.",
+      "caption": "Select **+** next to **Sessions**, then **Chat**. Check that the project picker below the prompt box shows **Chat**, then send the prompt. The reply should say chats suit general questions and project sessions bring repository context. It shouldn’t change any files, and the app doesn’t create a branch or worktree for a chat. (The picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)",
       "code": "In the GitHub Copilot app, explain when I should use a chat and when I should use a project session. Do not create or change files.",
       "source": {
         "chapter": "01-tour-the-app",
@@ -1303,7 +1379,7 @@
     {
       "id": "A1",
       "title": "The Admiral’s Exam",
-      "items": ["A1.1", "A1.2", "A1.3", "A1.4", "A1.5", "A1.6", "A1.7", "A1.8", "A1.9"],
+      "items": ["A1.1", "A1.2", "A1.3", "A1.4", "A1.11", "A1.10", "A1.7", "A1.8", "A1.9"],
       "reward": {
         "seal": "Seal of Meridian",
         "doubloons": 60

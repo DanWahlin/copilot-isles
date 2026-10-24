@@ -22,7 +22,7 @@
       "task": "Tour the app’s work surfaces",
       "steps": {
         "start": "Mina Solé, the harbour guide, is by the fountain in the plaza.",
-        "done": "New, Pull requests, Issues, Automations and Customize are the app’s work surfaces."
+        "done": "New, Pull requests, Issues, Automations and Customize are the app’s work surfaces, and Sessions lists your projects and chats."
       }
     },
     {
@@ -465,7 +465,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "**New**: the landing view. Start a chat or a project session, and choose a mode and model."
+        "caption": "**New**: the landing view. Start a chat or a project session, and choose a mode and model. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.mina.new"
@@ -502,7 +502,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "**Customize**: skills, MCP servers, plugins, extensions and canvases. You don’t need any yet."
+        "caption": "**Customize**: skills, MCP servers, plugins, extensions and canvases. You don’t need any yet. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.mina.customize"
@@ -580,7 +580,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "① Select **+** next to **Sessions** · ② then select **Chat**."
+        "caption": "① Select **+** next to **Sessions** · ② then select **Chat**. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.lyra.04"
@@ -592,8 +592,8 @@
         "quiz": "H1.2"
       },
       {
-        "show": "ch01/app-quick-chat",
-        "caption": "Below the prompt box, the project picker shows **Chat**."
+        "show": "shared/app-github-copilot-app",
+        "caption": "Below the prompt box, the project picker shows **Chat**. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.lyra.05"
@@ -635,7 +635,7 @@
       },
       {
         "show": "ch00/app-current-checkout-workspace-selector",
-        "caption": "Most project sessions should use **New worktree**."
+        "caption": "Most project sessions should use **New worktree**. The callout marks **Current checkout**, your Chapter 00 exception."
       },
       {
         "say": "mer.anders.03"
@@ -670,7 +670,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "A question: **+** next to **Sessions**, then **Chat**. Work that needs your repository: the **+** next to your project."
+        "caption": "A question: **+** next to **Sessions**, then **Chat**. Work that needs your repository: the **+** next to your project. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.anders.solved.02"
@@ -732,6 +732,9 @@
         "term": "tool-permissions"
       },
       {
+        "quiz": "N1.1"
+      },
+      {
         "page": "pg1.modes",
         "doubloons": 15
       },
@@ -753,7 +756,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "The model control is below the prompt, next to the mode selector."
+        "caption": "The model control is below the prompt, next to the mode selector. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
       },
       {
         "say": "mer.oren.02"
@@ -1011,7 +1014,7 @@
     "mer_kid_a": ["Catch me if you can!", "Did you sail the three helms? I want to!"],
     "mer_kid_b": ["Nico, wait for me!", "The lighthouse lights up when someone earns the Seal!"],
     "mer_guard": [
-      "The Hall of Records is through the gate. Settings, all nine areas.",
+      "The Hall of Records is through the gate. Settings, all ten areas.",
       "Mind the drop, Captain."
     ],
     "mer_dockhand": ["Mind the ropes, Captain!", "Your ship’s the talk of the quay."]

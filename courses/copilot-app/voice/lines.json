@@ -639,7 +639,7 @@
     {
       "id": "mer.mina.customize",
       "speaker": "Mina",
-      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins and canvases. You won’t need those until later chapters.",
+      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins, extensions and canvases. You won’t need those until later chapters.",
       "sub": {
         "MCP": "M C P"
       }
@@ -662,7 +662,7 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!"
+      "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!"
     },
     {
       "id": "mer.lyra.wait",
@@ -1024,7 +1024,7 @@
     {
       "id": "mer.admiral.next",
       "speaker": "Admiral",
-      "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are."
+      "text": "Chapter 02 is sessions, worktrees and context. Thousand-Bough Isle’s to the north-east, and your ship’s ready when you are."
     },
     {
       "id": "mer.admiral.done",

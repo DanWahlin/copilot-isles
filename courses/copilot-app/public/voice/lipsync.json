@@ -819,13 +819,13 @@
       "v": "XBCBHDBCEBEFCBCBXCBCBCDCADCBDCGFBFCBCABCACBEBCAX"
     },
     "mer.mina.customize": {
-      "h": "e09917c83d7cde18",
+      "h": "676b804db6c0a8ea",
       "e": "neutral",
       "t": [
-        0, 8, 5, 19, 7, 14, 7, 28, 21, 14, 8, 10, 21, 21, 82, 9, 9, 19, 8, 27, 7, 42, 16, 28, 14, 21, 49, 42,
-        86, 8, 8, 7, 41, 7, 7, 7, 7, 14, 21, 28, 7, 10, 6, 19, 14, 78
+        0, 8, 6, 19, 7, 14, 7, 28, 21, 14, 8, 9, 42, 6, 6, 73, 9, 8, 19, 8, 29, 14, 7, 28, 20, 23, 21, 14, 20,
+        18, 21, 7, 21, 18, 33, 56, 86, 8, 8, 7, 41, 7, 7, 7, 7, 14, 21, 28, 7, 10, 6, 19, 14, 78
       ],
-      "v": "XCBCBGBCBACBXBCABABCBXBCBCBXFACBEFBCBHBCABEBX"
+      "v": "XCBCBGBCBACBGEBCABABCGBXBCBXBCBCBCBXFACBEFBCBHBCABEBX"
     },
     "mer.mina.projects": {
       "h": "3a8ac57019c3f554",
@@ -855,13 +855,13 @@
       "v": "XHCBAHCBCBCABCXBCBFBGBXBEFCECBCBFCBX"
     },
     "mer.mina.done": {
-      "h": "417950f5bcffc5c2",
+      "h": "a45942e2d6a24192",
       "e": "happy",
       "t": [
-        0, 8, 37, 11, 11, 17, 21, 7, 14, 28, 20, 5, 40, 16, 5, 11, 8, 5, 18, 14, 33, 18, 21, 8, 10, 21, 87,
-        11, 7, 7, 7, 14, 7, 7, 7, 7, 14, 7, 7, 7, 28, 14, 82
+        0, 8, 38, 11, 10, 15, 21, 7, 14, 40, 41, 15, 5, 12, 8, 6, 12, 21, 25, 23, 14, 8, 10, 46, 7, 14, 14, 7,
+        14, 7, 7, 14, 11, 6, 5, 7, 7, 35, 7, 35, 88, 11, 7, 7, 7, 14, 7, 7, 7, 7, 14, 7, 7, 7, 28, 14, 83
       ],
-      "v": "XFXAFBFCBXBFXBCACBCBCBACBXFCEFCEFCBECEBCEX"
+      "v": "XFXAFBFCBFXBCACBCBCBACBCBCBCBGFABDBCBCBXFCEFCEFCBECEBCEX"
     },
     "mer.lyra.wait": {
       "h": "27de534aa627dee2",
@@ -1318,13 +1318,13 @@
       "v": "XFCHBCBXBCBHCGAEBCXCEFDBHBCEBX"
     },
     "mer.admiral.next": {
-      "h": "af75306a2f21a6ed",
+      "h": "fe153fdb62243922",
       "e": "neutral",
       "t": [
-        0, 14, 7, 6, 10, 7, 13, 7, 14, 7, 7, 28, 42, 7, 14, 21, 44, 6, 5, 66, 11, 7, 21, 35, 28, 48, 9, 21, 7,
-        14, 7, 35, 8, 37, 14, 59, 14, 15, 7, 21, 49, 21, 7, 21, 35, 33
+        0, 14, 7, 6, 10, 21, 7, 14, 14, 45, 26, 7, 14, 21, 41, 6, 6, 14, 21, 21, 21, 7, 21, 35, 28, 55, 6, 12,
+        7, 14, 8, 13, 7, 8, 13, 21, 21, 7, 7, 14, 56, 28, 10, 7, 7, 21, 9, 42, 7, 7, 21, 7, 28, 35
       ],
-      "v": "XBCABEBCBCFBCBCBFCBCBDCBXBCBHCBABDBABCEBCBFDX"
+      "v": "XBCABGCBFBCBCBFCBFBCBDCBXBCEBACEADBFBCEBXBCEBABFBFDBX"
     },
     "mer.admiral.done": {
       "h": "ba89779d8731fd80",
