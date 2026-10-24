@@ -64,8 +64,9 @@ the awning, so the follow camera never folds in at the counter). All come off wi
 island scope in `session.ts`).
 
 **Reload:** a stall is part of its island's town, so it comes back with it. The signs and the counter are rebuilt
-with the island's setup (`setupMeridian`; Anchorage's with the session, sleeping with its cast while the island's
-dormant; Thousand-Bough's after `tb.setup`, taken down with it). The jobs board's notes, the purse and the quest
+with the island's setup (the session adds each streamed island's stall after its content's `setup`, from its
+`IslandContent.market`, and takes it down with it; Anchorage's with the session, sleeping with its cast while the
+island's dormant). The jobs board's notes, the purse and the quest
 come from the save (`progress.market`, `progress.starfishPurse`, `quests['Q1.A']`), never from scene objects.
 
 **The other stalls' cost:** the booths add no material or shader either (wood, cloth, plaster, metal, glow and

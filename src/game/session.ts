@@ -347,6 +347,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** The streamed islands' content (cast, chests, sites, puzzles), made below; each sets up with its world. */
   const contents = new Map<IslandId, IslandContent>();
   const contentList: IslandContent[] = [];
+  /** Each content's island (`contentList[i]` is `contentIds[i]`'s). */
+  const contentIds: IslandId[] = [];
 
   const pierKind = (x: number, z: number): SurfaceKind => (onPierDeck(x, z) ? 'wood' : 'stone');
   const villageSurface: WalkSurface = { heightAt: village.walkable, kind: pierKind };
@@ -1265,6 +1267,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     });
     contents.set(e.id, content);
     contentList.push(content);
+    contentIds.push(e.id);
   }
   /** A ride of an island's (the lift) has the walker. */
   const riding = () => contentList.some((c) => c.busy?.() ?? false);
@@ -2613,7 +2616,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         // An island's mooring lines only run to the hull while she's tied up at its berth.
         const moored = mode !== 'sail' && mode !== 'docking' && shipDocked();
-        for (const [id, c] of contents) c.moored?.(moored && island === id);
+        for (let i = 0; i < contentList.length; i++)
+          contentList[i]!.moored?.(moored && island === contentIds[i]);
         ship.setGangway(gangwayDown ? plank.foot : null);
         if (gangwayDown) {
           ship.gangwayTopWorld(plankTop);

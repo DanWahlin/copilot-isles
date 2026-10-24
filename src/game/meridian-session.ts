@@ -18,7 +18,7 @@ import type { CameraShot } from './follow-camera';
 import type { IslandContent, IslandContentHost, IslandSetup } from './island-code';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
 import { meridianNpcScript } from './meridian-quests';
-import { NpcCrowd } from './npcs';
+import { NpcCrowd, type Npc } from './npcs';
 import { createCrateYard } from './puzzles/crate-yard';
 import { ALCOVES, LETTERS, lettersContent } from './puzzles/hall-letters';
 import { createLostLetters, LETTERS_ID, type LettersHost } from './puzzles/lost-letters';
@@ -30,6 +30,7 @@ import { storyHolds } from './story';
 const NEAR = 700;
 
 type LiftCam = { x: number; y: number; z: number; blocked: number };
+const NO_CAST: readonly Npc[] = [];
 
 /**
  * Port Meridian's content in the play session (Chapter 01): the cast at the town's anchors and
@@ -480,7 +481,7 @@ export function createMeridianContent(host: IslandContentHost): IslandContent {
 
   return {
     get npcs() {
-      return crowd?.list ?? [];
+      return crowd?.list ?? NO_CAST;
     },
     owns: (id) => castIds.has(id),
     script: (id) =>

@@ -374,6 +374,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     : null;
   const anchorage = createAnchorageStream({
     scene,
+    island: ISLAND_REGISTRY[HOME_ISLAND],
     terrain,
     silhouette: anchorageFar.group,
     parts: () =>
