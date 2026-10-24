@@ -11,6 +11,7 @@ import {
 import { extname, join, resolve, sep } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { coursePackSplit } from './tools/course-pack/vite-plugin.mjs';
 
 // The Credits screen reads asset authors from ASSETS.md (dev serves it from the root); ship a copy
 // next to index.html so it also loads from a sub-path deploy such as GitHub Pages.
@@ -98,7 +99,7 @@ function coursePackAssets(): Plugin {
 // and game systems load later through dynamic import().
 export default defineConfig({
   base: './',
-  plugins: [react(), assetCredits(), coursePackAssets()],
+  plugins: [react(), assetCredits(), coursePackAssets(), coursePackSplit(COURSES_DIR)],
   build: {
     target: 'es2022',
     manifest: true,
@@ -112,9 +113,10 @@ export default defineConfig({
           if (id.includes('node_modules/three/examples/')) return undefined;
           if (id.includes('node_modules/three/')) return 'vendor-three';
           if (/node_modules\/(react|react-dom|scheduler)\//.test(id)) return 'vendor-ui';
-          // A course pack's data (everything but its course.json, which the title reads) is one lazy
-          // chunk per course (COURSE-PACKS.md §2; budget in tools/budgets.json).
-          const pack = /\/courses\/([a-z0-9-]+)\/(?!course\.json$)[^?]+\.json$/.exec(id);
+          // A course pack's core (its data but course.json, which the title reads, and its chapters'
+          // parts, which load as their islands do) is one lazy chunk per course (COURSE-PACKS.md §2,
+          // tools/course-pack/vite-plugin.mjs; budgets in tools/budgets.json).
+          const pack = /^\0virtual:course-pack\/([a-z0-9-]+)$/.exec(id);
           if (pack) return `course-${pack[1]}`;
           return undefined;
         },

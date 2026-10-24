@@ -51,6 +51,7 @@ import { FarCull } from './far-cull';
 import { createThousandBoughStream, type ThousandBoughStream } from './islands/thousand-bough/stream';
 import { BLOB_RANGE, BlobShadows } from './blob-shadows';
 import { COURSE, courseIsland } from '../course/catalog';
+import { loadIslandPart } from '../course/load';
 
 export interface CoveScene {
   sky: SkySystem;
@@ -192,6 +193,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     skipShadows: skipIslandShadows,
     disabled: meridianDisabled,
     nearLoads: () => !!courseIsland('meridian', COURSE),
+    courseData: (priority) => loadIslandPart('meridian', priority),
   });
   const thousandBough = createThousandBoughStream({
     scene,
@@ -206,6 +208,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     birds: o.birds !== false,
     skipShadows: skipIslandShadows,
     disabled: params.has('nothousandbough'),
+    courseData: (priority) => loadIslandPart('thousand-bough', priority),
   });
   report(0.5, 'Building the harbor');
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();

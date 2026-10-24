@@ -21,16 +21,20 @@ import { isSeaStateId, seaState, type SeaStateId } from '../world/ocean/sea-stat
 const COURSE_ID = () => COURSE.id;
 
 // The course pack the page's content comes from (a voyage loads it the same way): `?pack=<id>`
-// (`?course=` already pins the course's commit).
-const PACK = new URLSearchParams(location.search).get('pack') ?? undefined;
-await activateCourse(PACK);
+// (`?course=` already pins the course's commit). Like a voyage, the page waits for the core and
+// Anchorage's chapter part only, and the other parts load as their islands stream in; `?allparts`
+// loads every part first.
+const PAGE_Q = new URLSearchParams(location.search);
+const PACK = PAGE_Q.get('pack') ?? undefined;
+await activateCourse(PACK, PAGE_Q.has('allparts') ? {} : { islands: ['anchorage'] });
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
  * and dock. ?webgl, ?tier=, ?noveg, ?body=man|woman, ?auto (skip the start card), ?shot, ?time=,
  * ?nolearn (plain dialogue, no quizzes/chests), ?keep (keep learning progress in localStorage),
- * ?pack=<course id> (another course pack, e.g. copilot-cli), ?sea=calm|breeze|fresh|gale (the Sea
- * state setting, from the first frame).
+ * ?pack=<course id> (another course pack, e.g. copilot-cli), ?allparts (every chapter part of the
+ * pack before the page starts), ?sea=calm|breeze|fresh|gale (the Sea state setting, from the first
+ * frame).
  */
 const { q, backend, tier, canvas, renderer, engine } = await createDevHarness();
 const seaParam = q.get('sea');

@@ -137,7 +137,11 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
   let priority: RequestPriority = 'auto';
 
   const buildParts = async (): Promise<MeridianTownSystem | null> => {
-    const data = await loadTerrainPack(`${ctx.packBase}/meridian/terrain`, priority);
+    // The island's course data (its chapter part) loads with its terrain, at the same priority.
+    const [data] = await Promise.all([
+      loadTerrainPack(`${ctx.packBase}/meridian/terrain`, priority),
+      ctx.courseData?.(priority),
+    ]);
     if (disposed) return null;
     const terrain = await createTerrainAsync(
       {

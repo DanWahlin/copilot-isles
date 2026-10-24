@@ -13,6 +13,7 @@ import {
 import { validate } from '../../tools/content/json-schema';
 import { coursePack } from '../course/active';
 import { withoutMeta } from '../course/pack';
+import { trimLock } from '../course/split';
 import { COURSE, COURSES } from '../course/catalog';
 import { readCoursePack } from '../../tools/course-pack/read';
 import type { CourseMeta } from '../course/catalog';
@@ -90,7 +91,18 @@ describe('course pack files (docs/content-data.md, COURSE-PACKS.md §3)', () => 
     expect(MARKET).toEqual(withoutMeta(market()));
     expect(COURSE_BOARDS_DATA).toEqual(withoutMeta(boards()));
     expect(COURSE).toEqual(withoutMeta(meta()));
-    expect(coursePack()).toEqual(readCoursePack());
+    // The browser's pack leaves out what the game never reads (src/course/split.ts, `trim`).
+    const whole = readCoursePack();
+    expect(coursePack()).toEqual({
+      ...whole,
+      lock: trimLock(whole.lock),
+      quests: Object.fromEntries(
+        Object.entries(whole.quests).map(([island, q]) => [
+          island,
+          Object.fromEntries(Object.entries(q).filter(([k]) => k !== 'notes')),
+        ]),
+      ),
+    });
     expect(JOBS.map((j) => j.id)).toEqual(market().jobs.map((j) => j.id));
     for (const j of JOBS) expect(j.why).toBe(QUOTES[market().jobs.find((x) => x.id === j.id)!.why]);
     for (const [k, g] of Object.entries(market().gilda)) {

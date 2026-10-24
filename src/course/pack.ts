@@ -6,7 +6,7 @@ import type { ScriptStep } from '../game/script';
 import type { ModelsFile } from '../game/market/catalog';
 import type { ChartLabelText } from '../learn/content/labels';
 import type { CourseLock } from '../learn/course/lock';
-import type { ChapterContent } from '../learn/types';
+import type { ChapterContent, ChapterId, Quiz, SourceRef } from '../learn/types';
 import type { LearningFile } from '../learn/learning';
 import type { CourseMeta } from './catalog';
 
@@ -75,6 +75,51 @@ export interface IslandQuests extends Omit<IslandQuestsFile, 'scripts'> {
   scripts: Readonly<Record<string, readonly ScriptStep[]>>;
 }
 
+/** The course section an item cites, without the hash (what the game's boards and links read). */
+export type SourceAnchor = Pick<SourceRef, 'chapter' | 'anchor'>;
+
+/** A quiz in a chapter's index: enough for the recap to pick it and a board to tick its topic. */
+export interface QuizIndex {
+  id: string;
+  type: Quiz['type'];
+  source: SourceAnchor;
+}
+
+/** A page in a chapter's index: enough for the Logbook's tiles, the Continue card and the boards. */
+export interface PageIndex {
+  id: string;
+  title: string;
+  /** The page's picture (an image id; every chapter's images are in the core). */
+  image?: string;
+  source: SourceAnchor;
+}
+
+/**
+ * A chapter's light index (docs/specs/COURSE-PACKS.md §2): it loads with the voyage, so the recap,
+ * the Logbook and the course boards know every chapter's quizzes and pages before the chapter's
+ * part (their full text) has loaded.
+ */
+export interface ChapterIndex {
+  chapter: ChapterId;
+  quizzes: readonly QuizIndex[];
+  pages: readonly PageIndex[];
+}
+
+/** A chapter's index, from its full content. */
+export function chapterIndex(c: Pick<ChapterContent, 'chapter' | 'quizzes' | 'pages'>): ChapterIndex {
+  const anchor = (s: SourceRef): SourceAnchor => ({ chapter: s.chapter, anchor: s.anchor });
+  return {
+    chapter: c.chapter,
+    quizzes: c.quizzes.map((q) => ({ id: q.id, type: q.type, source: anchor(q.source) })),
+    pages: c.pages.map((p) => ({
+      id: p.id,
+      title: p.title,
+      ...(p.image ? { image: p.image } : {}),
+      source: anchor(p.source),
+    })),
+  };
+}
+
 /**
  * The signs each island's dressing asks the course for (`quests/<island>.json` → `signs`): Thousand-
  * Bough's `loft`, the board over the top deck's house. Blank without a course.
@@ -119,8 +164,13 @@ export interface PuzzleFile {
 export interface CoursePack {
   id: string;
   meta: CourseMeta;
-  /** In the course's order. */
+  /**
+   * In the course's order. A chapter whose part hasn't loaded yet (src/course/load.ts) has no
+   * quizzes or pages here: its `index` entry lists them.
+   */
   chapters: readonly ChapterContent[];
+  /** Each chapter's index (same order as `chapters`), complete from the start. */
+  index: readonly ChapterIndex[];
   /** Island id → its quests. */
   quests: Readonly<Record<string, IslandQuests>>;
   labels: Readonly<Record<string, ChartLabelText>>;
@@ -162,7 +212,13 @@ const NO_MARKET: MarketData = {
 const NO_MODELS: ModelsFile = { source: { repo: '', path: '', commit: '', fetchedAt: '' }, models: [] };
 
 /** The pack's files the game reads, by path in the pack ("chapters/00-setup.json"). */
-type PackFiles = Readonly<Record<string, unknown>>;
+export type PackFiles = Readonly<Record<string, unknown>>;
+
+/**
+ * A chapter file as the voyage first has it: the core part of `chapters/<chapter>.json` (src/course/
+ * split.ts), with its index and without the parts' fields. The whole file has no `index`.
+ */
+type ChapterFile = Partial<ChapterContent> & Pick<ChapterContent, 'chapter'> & { index?: ChapterIndex };
 
 /** A pack file less its `$schema` and `$comment` (they're for editors, not the game). */
 export function withoutMeta<T extends object>(o: T): T {
@@ -200,16 +256,37 @@ function need<T>(files: PackFiles, path: string, id: string): T {
 /** Builds a pack from its files (the browser's lazy chunk, or the tools' reads from disk). */
 export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
   const id = meta.id;
-  const chapters = Object.keys(files)
-    .filter((p) => /^chapters\/[^/]+\.json$/.test(p))
-    .sort()
-    .map((p) => withoutMeta(files[p] as ChapterContent));
+  const chapters: ChapterContent[] = [];
+  const index: ChapterIndex[] = [];
+  for (const p of Object.keys(files).sort()) {
+    if (!/^chapters\/[^/]+\.json$/.test(p)) continue;
+    // A chapter whose part isn't in yet has its index and no quizzes or pages.
+    const { index: core, ...file } = withoutMeta(files[p] as ChapterFile);
+    const c: ChapterContent = {
+      chests: [],
+      glossary: [],
+      trials: [],
+      ...file,
+      images: file.images ?? [],
+      quizzes: file.quizzes ?? [],
+      pages: file.pages ?? [],
+    };
+    chapters.push(c);
+    index.push(file.quizzes || !core ? chapterIndex(c) : core);
+  }
   const quests: Record<string, IslandQuests> = {};
   for (const p of Object.keys(files).sort()) {
     const m = /^quests\/([^/]+)\.json$/.exec(p);
     if (!m) continue;
+    // An island whose chapter part isn't in yet has its tracker, quests, story and signs only.
     const file = withoutMeta(files[p] as IslandQuestsFile);
-    quests[file.island] = { ...file, scripts: expandScripts(file.island, file.scripts) };
+    quests[file.island] = {
+      ...file,
+      targets: file.targets ?? {},
+      beats: file.beats ?? [],
+      barks: file.barks ?? {},
+      scripts: expandScripts(file.island, file.scripts ?? {}),
+    };
   }
   const puzzles: Record<string, PuzzleFile> = {};
   for (const p of Object.keys(files).sort()) {
@@ -220,6 +297,7 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     id,
     meta,
     chapters,
+    index,
     quests,
     puzzles,
     labels: need<{ labels: Record<string, ChartLabelText> }>(files, 'labels.json', id).labels,

@@ -775,13 +775,14 @@ export class GameFlow implements GameBridge {
       setSailVeil.style.opacity = '1';
       document.documentElement.classList.add('ci-opening-active');
       this.o.input.enabled = true;
-      // The island's code and the course's data (its lazy chunk: chapters, quests, labels, boards,
-      // market, lock; the title only has its course.json) load behind the cabin: the cabin only
-      // waits for itself and the fade. The course pack is active before the session reads any of it.
+      // The island's code and the course's data (its core chunk and Anchorage's chapter part; the
+      // title only has its course.json) load behind the cabin: the cabin only waits for itself and
+      // the fade. The course pack is active before the session reads any of it. The other islands'
+      // chapter parts load as those islands stream in (src/course/load.ts).
       const islandCode = Promise.all([
         import('../world/cove-scene'),
         import('./session'),
-        activateCourse(this.course),
+        activateCourse(this.course, { islands: ['anchorage'] }),
       ]);
       islandCode.catch(() => undefined);
       const [ready] = await Promise.all([

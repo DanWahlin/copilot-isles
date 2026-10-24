@@ -140,7 +140,11 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
   const detail = new FarCull(TB.center.x, TB.center.z, THOUSAND_BOUGH_RANGE.detail, tier.detailCullRatio);
 
   const buildParts = async (): Promise<ThousandBoughWorld | null> => {
-    const data = await loadTerrainPack(`${ctx.packBase}/thousand-bough/terrain`, priority);
+    // The island's course data (its chapter part) loads with its terrain, at the same priority.
+    const [data] = await Promise.all([
+      loadTerrainPack(`${ctx.packBase}/thousand-bough/terrain`, priority),
+      ctx.courseData?.(priority),
+    ]);
     if (disposed) return null;
     // The island's own boulders and the Spire ride with the terrain (shown and warmed with it).
     let rocks: ThousandBoughRocks | null = null;
