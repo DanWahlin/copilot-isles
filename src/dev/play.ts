@@ -106,6 +106,8 @@ async function begin(unlock: boolean): Promise<void> {
     audio: unlock ? audio : null,
     body,
     quiet: q.has('quiet'),
+    // `?resume`: as a Continue does, the "where you left off" card and a due recap once ashore.
+    resume: q.has('resume'),
     learn,
   });
   // Warmed like the game (game/island-warm.ts): the world before play, each island as it streams in

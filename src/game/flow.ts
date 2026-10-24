@@ -649,6 +649,7 @@ export class GameFlow implements GameBridge {
     world.reducedMotion.value = s.reducedMotion ? 1 : 0;
     seaState.setSetting(s.seaState);
     seaState.setReducedMotion(s.reducedMotion);
+    this.learn.setGithubChecks(s.githubChecks);
     this.o.engine.setRenderScale(s.renderScale === 'auto' ? null : s.renderScale);
   }
 
@@ -865,6 +866,7 @@ export class GameFlow implements GameBridge {
         audio: this.audioReady ? this.o.audio : null,
         body: captain,
         quiet: !!save,
+        resume: !!save,
         fromChart: true,
         start: save ? { x: save.x, z: save.z, heading: save.heading } : undefined,
         onMenu: () => this.pause(),
@@ -1126,6 +1128,7 @@ function sanitizeSettings(s: Settings): Settings {
   const out = { ...s };
   if (!QUALITIES.has(out.quality)) out.quality = DEFAULT_SETTINGS.quality;
   if (!isSeaStateId(out.seaState)) out.seaState = DEFAULT_SETTINGS.seaState;
+  out.githubChecks = out.githubChecks === true;
   if (out.renderScale !== 'auto' && !(typeof out.renderScale === 'number' && out.renderScale >= 0.5))
     out.renderScale = DEFAULT_SETTINGS.renderScale;
   return out;

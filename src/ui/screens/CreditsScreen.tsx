@@ -88,7 +88,10 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
           device, and the game never looks it up on GitHub. The same goes for the rest of Your setup: your
           computer (the game asks your browser which system it’s on, to show the right shortcut keys), your
           practice issue’s number, your session’s branch, and the model you picked. None of it is sent
-          anywhere, and you can change or forget it in the Logbook.
+          anywhere, and you can change or forget it in the Logbook. The one exception is yours to choose: with
+          Settings → GitHub checks on, selecting Check on GitHub in the Logbook asks GitHub’s public API (no
+          sign-in, no token) whether your fork, a branch or a pull request is there, so GitHub sees your
+          fork’s public name and your IP address. It’s off unless you turn it on.
         </p>
         {COURSES.map(
           (c) =>
