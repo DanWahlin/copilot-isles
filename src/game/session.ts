@@ -798,9 +798,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   interactions.add({
     id: 'ship:board',
     label: () => 'Board your ship',
-    x: plank.foot.x,
-    y: plank.foot.y,
-    z: plank.foot.z,
+    // Wherever she's moored now (after a voyage, a chart jump or a reload), not where she started.
+    get x() {
+      return plank.foot.x;
+    },
+    get y() {
+      return plank.foot.y;
+    },
+    get z() {
+      return plank.foot.z;
+    },
     radius: 2.4,
     enabled: () => mode === 'walk' && shipDocked(),
     onInteract: () => {
