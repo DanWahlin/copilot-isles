@@ -8,6 +8,7 @@ import type { CircleObstacle } from '../world/contracts';
 import type { FarCull } from '../world/far-cull';
 import type { IslandStream, IslandStreamFactory } from '../world/islands/island-stream';
 import type { Brigantine } from '../world/ship';
+import type { IslandWays } from '../world/islands/waypoints';
 import type { VillageAnchor } from '../world/village/kit';
 import type { MarketStallLayout } from '../world/market-stall/layout';
 import type { InlandWater, WalkSurface } from './collision';
@@ -35,6 +36,8 @@ export interface IslandCode {
   walk?(ctx: IslandWalkContext): IslandWalk;
   /** The island's content in the session (a streamed island); the home island's is the session's own. */
   content?(host: IslandContentHost): IslandContent;
+  /** Its routes for the compass, the crew and Unstuck: its walking graph ashore and its waters. */
+  ways: IslandWays;
   /** The chests and message bottles the island places (their ids; what's in them is the course's). */
   chests: readonly string[];
   /**

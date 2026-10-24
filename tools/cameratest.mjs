@@ -43,36 +43,8 @@ const cfg = {
   seed: Number(opt.seed ?? 7),
   // Each island's terrain (tools/lib/islands.json): its box is where the spots go.
   islands: ISLANDS.map((i) => ({ id: i.id, terrain: i.terrain })),
-  // Walk surfaces above the ground, by island: spots on them too.
-  decks: {
-    // Thousand-Bough's tree village: its stair, decks, bridges and lookouts.
-    'thousand-bough': [
-      [1994.2, -1574.6, 18.6],
-      [1990.8, -1563.4, 20.2],
-      [1994.4, -1544.0, 22.5],
-      [2004.6, -1537.4, 24.3],
-      [2037.5, -1554.5, 26.9],
-      [2024.8, -1587.2, 28.9],
-      [1991.3, -1540.6, 31.4],
-      [2022, -1531, 32.6],
-      [2030.5, -1543.5, 40.2],
-      [1985.6, -1558.8, 43.4],
-      [2010, -1546, 50.6],
-      [2004, -1566, 50.6],
-      [2018.6, -1561.3, 50.6],
-      [2066.5, -1597, 27.1],
-      [2008, -1596, 22.5],
-      [2120, -1606, 16.1],
-      [2146, -1645, 19.1],
-      [1947, -1434, 2.7],
-      [1939.2, -1376, 2.3],
-      [1939, -1400, 2.3],
-      // The Fern Walk under the Signal Deck at the Root Gate (the camera must stay under the deck).
-      [1988.5, -1534.6, 17.6],
-      [1990.6, -1537.4, 17.9],
-      [1993.4, -1540.4, 18.3],
-    ],
-  },
+  // Walk surfaces above the ground, by island (its `decks`): spots on them too.
+  decks: Object.fromEntries(ISLANDS.filter((i) => i.decks).map((i) => [i.id, i.decks])),
 };
 const list = Number(opt.list ?? 25);
 // --near=x,z,r runs only the clusters within r m of (x, z); --match=<regex> picks which hits get screenshots.

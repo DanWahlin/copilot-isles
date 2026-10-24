@@ -1,8 +1,6 @@
 import type { SeaChartSpec } from '../../game/wayfinding/sea-chart';
 import type { WalkGraphSpec } from '../../game/wayfinding/walk-graph';
-import { ANCHORAGE_WAYS } from './anchorage/waypoints';
-import { MERIDIAN_WAYS } from './meridian-waypoints';
-import { THOUSAND_BOUGH_WAYS } from './thousand-bough/waypoints';
+import { ISLAND_LIST } from '../../islands/registry';
 
 /** An island's routes for the compass and the crew: its walking graph ashore and its waters. */
 export interface IslandWays {
@@ -10,9 +8,11 @@ export interface IslandWays {
   readonly sea: SeaChartSpec;
 }
 
-/** Every island's routes, by island id (one line per island). */
-export const ISLAND_WAYS: Readonly<Record<string, IslandWays>> = {
-  anchorage: ANCHORAGE_WAYS,
-  meridian: MERIDIAN_WAYS,
-  'thousand-bough': THOUSAND_BOUGH_WAYS,
-};
+/**
+ * Every island's routes, by island id, in voyage order: each island's code has its own
+ * (`IslandCode.ways`, loaded with the island's chunk).
+ */
+export async function loadIslandWays(): Promise<Readonly<Record<string, IslandWays>>> {
+  const codes = await Promise.all(ISLAND_LIST.map((e) => e.code()));
+  return Object.fromEntries(ISLAND_LIST.map((e, i) => [e.id, codes[i]!.ways]));
+}

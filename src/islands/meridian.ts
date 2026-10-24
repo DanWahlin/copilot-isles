@@ -1,5 +1,7 @@
-import { MERIDIAN } from '../world/islands/meridian';
+import { MERIDIAN } from '../world/islands/meridian-layout';
+import { MERIDIAN_FLORA_PALETTE } from '../world/islands/meridian-flora-palette';
 import { MERIDIAN_STARFISH } from '../world/islands/meridian-starfish';
+import { meridianTerrainRegions } from '../world/islands/meridian-terrain-regions';
 import { arrivalCard, type IslandArrival } from './arrival';
 import type { IslandEntry } from './types';
 
@@ -90,6 +92,32 @@ export const MERIDIAN_ISLAND: IslandEntry = {
     rot: 0,
   },
   chartLabelDy: 98,
+  chart: {
+    cx: 915,
+    cz: -893,
+    scale: 1 / 3400,
+    minX: 480,
+    maxX: 1350,
+    minZ: -1200,
+    maxZ: -585,
+    cell: 8,
+    pack: 'meridian/terrain',
+    terrain: () => import('../world/islands/meridian-chart').then((m) => m.MERIDIAN_CHART_TERRAIN),
+  },
+  // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
+  theme: { file: 'music_sunset_plains', lufs: -16.1 },
+  terrainRegions: meridianTerrainRegions,
+  floraPalette: MERIDIAN_FLORA_PALETTE,
+  // The market's content is the core's (its stalls are on every island, SHARED_PUZZLES); its file
+  // is needed in a course that uses Port Meridian.
+  puzzles: {
+    'crate-yard': 'classify',
+    'three-helms': 'choose-tool',
+    'lost-letters': 'classify',
+    market: 'budget',
+  },
+  // Gilda's stall on the plaza runs the pack's `market` puzzle, with her own lines.
+  market: { puzzle: 'market', keeper: { npc: 'gilda', name: 'Gilda' }, lines: 'gilda' },
   stream: {
     // A course that doesn't use it leaves its silhouette: coming near doesn't stream it in.
     nearLoads: 'in-course',

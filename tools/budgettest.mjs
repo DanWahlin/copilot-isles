@@ -48,7 +48,7 @@
 // for a known gap), when an island doesn't settle, or on a page error.
 import { writeFileSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
-import { HOME, ISLAND_IDS } from './lib/islands.mjs';
+import { HOME, ISLAND_IDS, ISLANDS as TOOL_ISLANDS } from './lib/islands.mjs';
 
 /** PLAN §12.1: draw calls (whole frame incl. mirror + post) and triangles (all scene passes), per tier. */
 const BUDGET = {
@@ -60,50 +60,18 @@ const BUDGET = {
 };
 
 /**
- * Walkable areas to seed spots in, and named spots (x, z) that are known to be heavy views, for each
- * island in tools/lib/islands.json (a new island adds its own).
+ * Walkable areas to seed spots in, and named spots (x, z) that are known to be heavy views: each
+ * island's `budget` in tools/lib/islands.json.
  */
-const ISLANDS = {
-  anchorage: {
-    box: [-230, -230, 260, 230],
-    named: [
-      ['quay', -112, -82],
-      ['village', -130, -40],
-      ['mill', -58, -62],
-      ['beach', 20, 96],
-    ],
-  },
-  meridian: {
-    box: [430, -1000, 940, -560],
-    named: [
-      ['quay', 'quay'],
-      ['plaza', 660, -800],
-      ['town', 760, -850],
-      ['fort', 800, -772],
-    ],
-  },
-  // Thousand-Bough Isle: the wharf, the Booth Pools, and the tree's decks (spots with a height stand
-  // on that deck; the stair and decks stack).
-  'thousand-bough': {
-    box: [1720, -1760, 2320, -1260],
-    named: [
-      ['wharf', 'quay'],
-      ['booths', 1934, -1488],
-      ['roothall', 1997, -1550, 18.5],
-      ['landings', 2037, -1560, 26.83],
-      ['flume', 2024, -1618, 26],
-      ['crown', 2010, -1546, 50.5],
-      ['spire', 2066, -1595, 27],
-    ],
-  },
-};
+const ISLANDS = Object.fromEntries(TOOL_ISLANDS.map((i) => [i.id, i.budget]));
 
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353');
 const tiers = String(opt.tiers || 'lite,low,medium,high,ultra').split(',');
 const islands = String(opt.islands || ISLAND_IDS.join(',')).split(',');
 for (const id of islands)
-  if (!ISLANDS[id]) throw new Error(`budgettest: no spots for island "${id}" (add them to ISLANDS)`);
+  if (!ISLANDS[id])
+    throw new Error(`budgettest: no spots for island "${id}" (add its budget to tools/lib/islands.json)`);
 const SPOTS = Number(opt.spots ?? 12);
 const YAWS = Number(opt.yaws ?? 4);
 const FRAMES = Number(opt.frames ?? 8);

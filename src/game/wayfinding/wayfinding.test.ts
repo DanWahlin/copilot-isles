@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ISLAND_WAYS } from '../../world/islands/waypoints';
+import { loadIslandWays } from '../../world/islands/waypoints';
 import { SeaChart, cornerWaypoints, type SeaRoute } from './sea-chart';
 import { WalkGraph, type WalkRoute } from './walk-graph';
+
+const ISLAND_WAYS = await loadIslandWays();
 
 const route = (): WalkRoute => ({ x: 0, y: 0, z: 0, length: 0, node: -1 });
 

@@ -79,7 +79,7 @@ if (only.includes('legs')) {
   for (const id of ISLAND_IDS) {
     await ashore(id);
     const r = await S(async (id) => {
-      const { ISLAND_WAYS } = await import('/src/world/islands/waypoints.ts');
+      const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
       const s = window.__dev.session();
       const w = s.world;
       const spec = ISLAND_WAYS[id].walk;
@@ -125,7 +125,7 @@ if (only.includes('legs')) {
 // ---- 2. Sea lanes ----------------------------------------------------------------------------
 if (only.includes('sea')) {
   const r = await S(async (streamed) => {
-    const { ISLAND_WAYS } = await import('/src/world/islands/waypoints.ts');
+    const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
     const { SeaChart } = await import('/src/game/wayfinding/sea-chart.ts');
     const s = window.__dev.session();
     s.debug.keepResident(true);

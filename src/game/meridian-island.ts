@@ -5,6 +5,7 @@ import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { MERIDIAN_CHESTS, currentQuest } from './cove-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
 import type { IslandCode } from './island-code';
+import { MERIDIAN_WAYS } from '../world/islands/meridian-waypoints';
 import { createMeridianStream } from '../world/islands/meridian-stream';
 import { createMeridianContent } from './meridian-session';
 import {
@@ -23,6 +24,7 @@ export const MERIDIAN_CODE: IslandCode = {
   stream: createMeridianStream,
   chests: MERIDIAN_CHESTS.map((c) => c.id),
   cast: (anchors) => [...MERIDIAN_NPCS, ...meridianExtras(anchors)],
+  ways: MERIDIAN_WAYS,
   quests: {
     log: meridianLog,
     tracker: meridianTracker,

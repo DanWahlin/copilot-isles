@@ -63,7 +63,7 @@ import type { ChapterContent, SourceRef } from '../../src/learn/types';
 import type { LearningFile } from '../../src/learn/learning';
 import { ARCHIPELAGO } from '../../src/ui/chart/archipelago';
 import { COURSE_BOARDS, type CourseBoardPlacement } from '../../src/world/islands/course-boards';
-import { CHART_ISLANDS } from '../../src/opening/chart-map';
+import { loadChartIslands } from '../../src/opening/chart-map';
 import { starfishOn } from '../../src/world/starfish/spots';
 import { DEFAULT_COURSE } from '../course-pack/read';
 import { at, validate, type JsonSchema } from './json-schema';
@@ -140,7 +140,7 @@ const CHEST_SPOTS = Object.fromEntries(ISLAND_LIST.map((e, i) => [e.id, CODES[i]
 >;
 
 /** The ground under a board: each island's own height function (the 3D chart's, the board may stand on a deck). */
-const GROUND = Object.fromEntries(CHART_ISLANDS.map((c) => [c.id, c.height])) as Readonly<
+const GROUND = Object.fromEntries((await loadChartIslands()).map((c) => [c.id, c.height])) as Readonly<
   Record<IslandId, (x: number, z: number) => number>
 >;
 

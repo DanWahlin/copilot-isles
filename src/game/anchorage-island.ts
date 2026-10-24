@@ -9,6 +9,7 @@ import {
   questTracker,
 } from './cove-quests';
 import { COVE_BOTTLES } from '../world/sites/bottles';
+import { ANCHORAGE_WAYS } from '../world/islands/anchorage/waypoints';
 import type { IslandCode } from './island-code';
 import { COVE_NPCS } from './npcs';
 
@@ -19,6 +20,7 @@ import { COVE_NPCS } from './npcs';
 export const ANCHORAGE_CODE: IslandCode = {
   chests: [...COVE_CHESTS, ...COVE_BOTTLES].map((c) => c.id),
   cast: () => COVE_NPCS,
+  ways: ANCHORAGE_WAYS,
   quests: {
     log: questLog,
     // The task list points on to Port Meridian once it's open.

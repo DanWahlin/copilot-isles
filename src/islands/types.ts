@@ -1,4 +1,7 @@
-import type { IslandMusic } from '../audio/music/tracks';
+import type { IslandMusic, MusicTrack } from '../audio/music/tracks';
+import type { PuzzleMechanic } from '../course/pack';
+import type { FloraPalette } from '../world/flora/types';
+import type { TerrainRegions } from '../world/terrain/terrain-regions';
 import type { CourseBoardPose } from '../world/sites/course-board';
 import type { IslandFootprint } from '../world/islands/footprint';
 import type { StarfishSpot } from '../world/starfish/spots';
@@ -70,6 +73,46 @@ export interface IslandRanges {
   byCentre?: boolean;
 }
 
+/** An island's Model Market stall (docs/specs/MODEL-MARKET.md §2). */
+export interface IslandMarket {
+  /** The stall's puzzle id; `market@<id>` when not given (Gilda's is the pack's `market`). */
+  puzzle?: string;
+  /** Their id in the island's cast and the name the work order calls them (and their lines' speaker). */
+  keeper: { npc: string; name: string };
+  /** Whose lines the keeper says: Gilda's (`gilda` in the pack's market.json) or their own (`keepers.<island>`). */
+  lines: 'gilda' | 'keepers';
+}
+
+/** What the opening's 3D chart samples for an island's miniature (`ChartIslandSource`). */
+export interface IslandChart {
+  /** World point drawn at the island's archipelago position (the middle of its land). */
+  cx: number;
+  cz: number;
+  /** Chart metres per world metre. */
+  scale: number;
+  /** The world box sampled for the miniature (land plus its shallows), and the sample spacing. */
+  minX: number;
+  maxX: number;
+  minZ: number;
+  maxZ: number;
+  cell: number;
+  /** The island's baked terrain pack (under the packs base), resampled for the miniature. */
+  pack: string;
+  /**
+   * Its terrain functions, a dynamic import (they are the world's own, so they stay out of the
+   * registry's chunk): the opening waits for them with the terrain packs.
+   */
+  terrain(): Promise<IslandChartTerrain>;
+}
+
+/** An island's terrain functions for its chart miniature (and the content check's ground). */
+export interface IslandChartTerrain {
+  height(x: number, z: number): number;
+  masks(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
+  /** Height added over the baked terrain for a landmark it doesn't hold (a raised canopy dome). */
+  relief?(x: number, z: number): number;
+}
+
 /** How a streamed island's world comes in and goes out (its `IslandCode.stream`, world/islands/island-stream.ts). */
 export interface IslandStreamSpec {
   /** Coming near streams it in always, or only in a course that teaches a chapter there. */
@@ -111,6 +154,24 @@ export interface IslandEntry extends IslandBerth {
   courseBoard: CourseBoardPose & { where: string };
   /** The name's offset (px at the chart's scale) below its point on the opening's 3D chart. */
   chartLabelDy: number;
+  /** Its miniature on the opening's 3D chart (src/opening/chart-map.ts). */
+  chart: IslandChart;
+  /** Its theme: the track `music` plays (src/audio/music/tracks.ts derives `MUSIC_TRACKS` from it). */
+  theme: MusicTrack;
+  /**
+   * Where its ground looks different (its town, hills, bluffs): masks the shared terrain material
+   * combines in voyage order (src/world/islands/terrain-regions.ts).
+   */
+  terrainRegions: TerrainRegions;
+  /** Its grass and flower colours and species, for the shared flora graphs (src/world/islands/flora-palettes.ts). */
+  floraPalette: FloraPalette;
+  /**
+   * The puzzles on it, by the pack's file name, and the mechanic each runs. Their content goes in the
+   * island's chapter part of the course pack (src/course/puzzle-islands.ts, src/course/split.ts).
+   */
+  puzzles: Readonly<Record<string, PuzzleMechanic>>;
+  /** Its Model Market stall's keeper, if it has a stall (src/game/market/stalls.ts). */
+  market?: IslandMarket;
   /** A streamed island (null: the home island, built with the world, which goes dormant instead). */
   stream: IslandStreamSpec | null;
   /**

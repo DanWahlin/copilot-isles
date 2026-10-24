@@ -17,8 +17,8 @@ Read these first:
 
 | Part | Where | What it holds |
 | --- | --- | --- |
-| Registry entry | `src/islands/<id>.ts` | Small data that the title can load: the berth, the arrival, the sky, the gate, the ranges, the outline, the starfish, the course board, the chart label. |
-| Island code | `src/game/<id>-island.ts` | One module that the entry loads with a dynamic `import()`: the stream, the quests, the walks, the content, the chests and the cast. Vite makes it a chunk of its own. |
+| Registry entry | `src/islands/<id>.ts` | Data that the title and the course split can load: the berth, the arrival, the sky, the gate, the ranges, the outline, the starfish, the course board, the chart miniature, the theme, the terrain regions, the flora palette, the puzzles, the market stall, the course data its stream waits for. |
+| Island code | `src/game/<id>-island.ts` | One module that the entry loads with a dynamic `import()`: the stream, the quests, the walks, the content, the routes, the chests and the cast. Vite makes it a chunk of its own. |
 | World package | `src/world/islands/<id>/` | Layout data, height, terrain regions, flora, silhouette, the stream, the town or village. |
 | Content | `src/game/<id>-session.ts` | The cast, chests, sites, puzzles and set pieces in the play session. |
 | Course pack | `courses/<id>/` | Every course word: quests, scripts, barks, pages, quizzes, labels, voice. |
@@ -29,20 +29,29 @@ and Thousand-Bough Isle (`src/islands/thousand-bough.ts`, `src/game/thousand-bou
 
 ## 2. The registry entry (`IslandEntry`, `src/islands/types.ts`)
 
-Keep the entry small. The title loads the registry (the chart asks which islands are open), so the
-entry must not import the island's world or game code. Import only layout data and the starfish list.
+Keep the entry small. The title loads the registry (the chart asks which islands are open), and the
+course pack split reads it in Node and in the Vite config (the puzzle list). So the entry imports
+only data: the island's layout (no three.js objects, no terrain code), its starfish, its terrain
+regions (TSL masks), and its flora palette. Put layout data in a file of its own
+(`meridian-layout.ts`, `thousand-bough/layout.ts`). Reach code through a dynamic import (`code`,
+`chart.terrain`).
 
 | Field | What it is |
 | --- | --- |
 | `id`, `name`, `flag` | The id (the same id in the course pack), the name, and the URL name: `?<flag>` opens the island in a built game, and `?no<flag>` leaves it out of the world. |
 | `berthLabel`, `dockLabel`, `mooring`, `landingHeading`, `quay` | Where the ship moors, the compass and dock labels, and the fast-travel spot on the quay. |
-| `music`, `sky`, `mood` | The island's theme (`IslandMusic` in `src/audio/music/tracks.ts`), its time of day, and its air (fog and haze). |
+| `music`, `sky`, `mood` | The music cue (the island's id; its track is `theme`), its time of day (solar hours and the sun path's rotation), and its air (fog and haze). |
 | `arrival` | The first-landfall flyover (`IslandArrival`, `src/islands/arrival.ts`). Test its clearance. |
 | `contains(x, z)`, `center`, `skyReach` | Which waters are the island's (`islandAt`), the middle of its land, and how far its light goes over the sea (`passageSky`). |
 | `open` | The gate (`src/islands/open.ts`). `{}`: open in the dev build and with `?<flag>`. `{ after: { island, condition: 'sealed' } }`: also open once that island's Seal is won. |
 | `ranges` | `load`, `show`, `unload` and `detail` in metres (`footprintDistance`). Keep `show` < `load` < `unload`. Keep `unload` less than the distance to the next island's berth, so the island is freed while you are there. |
 | `footprint` | The outline, 32 bearings (`measureFootprint`). Add it to `island-silhouettes.test.ts`. |
 | `starfish`, `courseBoard`, `chartLabelDy` | The starfish to find, where the course notice board stands, and the name's offset on the opening's 3D chart. |
+| `chart` | Its miniature on the opening's 3D chart: position, scale, the sampled box and cell, the terrain pack, and `terrain()`, a dynamic import of its height and masks (`<id>/chart.ts`). |
+| `theme` | Its music track (`{ file, lufs }`). `MUSIC_TRACKS` comes from it. |
+| `terrainRegions`, `floraPalette` | Where its ground looks different (TSL masks for the shared terrain material) and its grass and flower palette (for the shared flora graphs). |
+| `puzzles` | The puzzles on it, by the course pack's file name, and the mechanic each runs. `GAME_PUZZLES` and `PUZZLE_ISLANDS` come from it, so the course split puts their content in the island's chapter part. |
+| `market` | Its Model Market stall's keeper (`{ keeper: { npc, name }, lines }`), if it has one. |
 | `stream` | `{ nearLoads, reflected, courseData }`. `nearLoads: 'in-course'` streams the island in by distance only when the course uses it. `reflected: false` when the harbour mirror cannot see it. `courseData: 'chapter-part'` makes the stream wait for the island's chapter part of the course pack (`loadIslandPart`, src/course/load.ts) with its terrain, so its quests, scripts and puzzles are in before its content is made. |
 | `code` | `() => import('../game/<id>-island').then((m) => m.<ID>_CODE)`. Use a dynamic import only. A static import of the same module makes the import ineffective (Vite shows `INEFFECTIVE_DYNAMIC_IMPORT`). |
 
@@ -68,6 +77,7 @@ shows each table that still needs a row for the new island (section 6).
 | `quests` | The quest line as the session reads it: `log`, `tracker`, `target`, `current`, `optionalTargets`, `hintTask`, and `sailHere` (the compass sends you here once the island before is done). |
 | `walk(ctx)` | The walk surfaces, the colliders that stand from the start, and the water that you can wade (`inland`). Read the streamed world through `ctx.stream` or the content through `ctx.content()`: both are live only after the island streams in. |
 | `content(host)` | Makes the island's content (section 5). |
+| `ways` | Its walk graph ashore and its sea lanes, for the compass, the crew and Unstuck. |
 | `chests` | The ids of the chests and message bottles that the island places. The course pack fills them. |
 | `cast(anchors)` | Every NPC that can be on the island, with all extras. The content check uses it. |
 
@@ -107,30 +117,27 @@ The session makes one content object for each streamed island when the voyage st
 - Never write a quest id. Ask the island's story by name (`storyHolds`, `storyEvent`), and read a
   puzzle's quest with `puzzleQuest()`.
 
-## 6. Tables that still have one line for each island
+## 6. What is not in the registry
 
-These tables are not in the registry. The reason is in the right column.
+Only these still need a line outside the island's package. TypeScript asks for the first two when you
+add the registry line.
 
 | Table | Where | Why it is not in the registry |
 | --- | --- | --- |
-| `STORY_CONDITIONS`, `STORY_EVENTS` | `src/game/story.ts` | The story's typed contract with the course pack (`StoryCondition<'<id>'>`). TypeScript asks for it. |
-| `ISLAND_TERRAIN_REGIONS` | `src/world/islands/terrain-regions.ts` | The terrain material puts every island's regions in one shader at world creation. |
-| `ISLAND_FLORA_PALETTES` | `src/world/islands/flora-palettes.ts` | The flora's species table and drift rows are built once, in this order. |
-| `ISLAND_WAYS` | `src/world/islands/waypoints.ts` | The walk graphs are a few KB each; the title must not load them. |
-| `SOURCES` (3D chart) | `src/opening/chart-map.ts` | The miniature uses the island's height functions, which stay in the opening's chunk. TypeScript asks for it. |
-| `IslandMusic`, `MUSIC_TRACKS` | `src/audio/music/tracks.ts` | Audio data (the track, its loudness). |
-| `MARKET_STALLS`, `PASSAGE_BATTLES`, `ISLAND_SIGNS` | `src/game/market/stalls.ts`, `src/game/battles.ts`, `src/course/pack.ts` | Optional parts: a market keeper, a sea battle, and signs with course words. |
-| `PUZZLE_ISLANDS`, `GAME_PUZZLES`, `SHARED_PUZZLES` | `src/course/puzzle-islands.ts` | The course pack split (`src/course/split.ts`) reads them in Node and in the Vite config, without the world's code. `src/islands/registry.test.ts` holds them on the registry's ids. |
+| `STORY_CONDITIONS`, `STORY_EVENTS` | `src/game/story.ts` | The story's typed contract with the course pack: game code asks for `StoryCondition<'<id>'>` names, and TypeScript checks each name. Generic code (`storyHolds(island, 'sealed')`) makes TypeScript ask for the island's row. |
+| `NPC_IDS` and the cast specs | `src/world/characters/` | The character library (rigs, palettes, props). |
+| A sea battle | `src/world/battle/battle.ts`, `src/game/battles.ts` | A battle is on the passage between two islands, not on one. |
+| Signs with course words | `ISLAND_SIGNS` in `src/course/pack.ts` | Course data (optional). |
 | The chart place | `src/ui/chart/archipelago.ts` | All eight islands are on the chart already ("coming soon" data). |
-| `NPC_IDS` and the cast specs | `src/world/characters/` | The character library. |
 
 ## 7. The tools
 
-- Add the island to `tools/lib/islands.json` (id, URL flag, name, terrain and silhouette object
-  names). `src/islands/registry.test.ts` fails until it matches the registry.
+- Add the island to `tools/lib/islands.json`: id, URL flag, name, the terrain and silhouette object
+  names, and the tools' data for it (`budget`: budgettest's box and heavy spots; `decks`: cameratest's
+  walk surfaces above the ground; `perf`: perftest's views; `flicker`: flickertest's views).
+  `src/islands/registry.test.ts` fails until it matches the registry.
 - The tools read that list: `budgettest`, `memorytest`, `perftest`, `cameratest`, `wayfindtest`,
-  `flickertest`, `starfishtest` and `audiotest`. Some tools also keep data for each island (the
-  budget's spots, the views for perf and flicker, cameratest's decks). Add the island's data there.
+  `flickertest`, `starfishtest` and `audiotest`.
 - Scripted routes (the audio route, the wayfinding story path) name the islands in voyage order. Add
   the new leg.
 

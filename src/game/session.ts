@@ -57,7 +57,6 @@ import { bearingOf, type CompassTarget } from './compass';
 import { compassGoals, type CompassGoals } from './compass-goals';
 import { CompassRoute, Wayfinder, type CompassLeg } from './wayfinding/compass-route';
 import type { WalkRoute } from './wayfinding/walk-graph';
-import { ISLAND_WAYS } from '../world/islands/waypoints';
 import { TIP_SPOTS } from './island-tips';
 import { puzzleOn } from '../course/puzzles';
 import { createModelMarketSigns, type ModelMarketSite } from '../world/sites/model-market';
@@ -944,7 +943,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
 
   // Routes for the compass, the crew and Unstuck: each island's walks and the sea lanes between them.
-  const wayfinder = new Wayfinder(ISLAND_WAYS);
+  const wayfinder = new Wayfinder(Object.fromEntries(ISLAND_LIST.map((e) => [e.id, gameOf(e.id).ways])));
 
   // Puzzles (POC §4.5): each registers its own interactions and saves its own state.
   const puzzleHost: PuzzleHost = {

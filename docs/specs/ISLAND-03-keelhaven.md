@@ -1244,13 +1244,19 @@ Thousand-Bough added hand-written branches in about 40 places (the checklist lis
 `island-warm.ts`, `starfish/spots.ts`, `chart-map.ts`, `chart-art.ts`, `play.ts`, `content/check.ts`, and
 eight tools). Keelhaven is built on a **generic island registry** instead:
 
-- `src/game/island-registry.ts`: one entry per streamed island: `id`, `berth` (today's `ISLANDS` row),
-  `arrival`, `range`, `footprint`, `open()` (the open gate), `stream(ctx)` (a dynamic `import()` of the
-  island's `index.ts`; it sets `courseData` for the island's chapter part once PR #19 lands, §10.2), `content(host)` (its session content), `quests` (target, tracker, log, NPC
-  script), `chart` (the 3D chart entry and its label offset), `starfish`, `ways`, `regions`, `palette`,
-  `budget` (budgettest's box and named spots), `music`.
-- `cove-scene.ts`, `session.ts` and `flow.ts` loop over the registry. Each island's code becomes its own
-  chunk (`island-<id>`, PLAN §13.1); check the build for `INEFFECTIVE_DYNAMIC_IMPORT`.
+- **As built (issue 303, docs/adding-an-island.md):** `src/islands/registry.ts` has one line for each
+  island. The entry `src/islands/keelhaven.ts` (`KEELHAVEN_ISLAND: IslandEntry`) holds the data: berth,
+  `arrival`, `sky`, `mood`, `skyReach`, `open: { after: { island: 'thousand-bough', condition: 'sealed' } }`,
+  `ranges`, `footprint`, `starfish`, `courseBoard`, `chart` (the miniature; `terrain()` is a dynamic
+  import of `keelhaven/chart.ts`), `theme` (Salty Sway), `terrainRegions`, `floraPalette`, `puzzles`
+  (`'two-circuits': 'circuit'`, `retake: 'ceremony'`), `market` (Bram's booth), and
+  `stream: { nearLoads, reflected: false, courseData: 'chapter-part' }`. Its code
+  `src/game/keelhaven-island.ts` (`KEELHAVEN_CODE: IslandCode`, a dynamic import, its own chunk) has
+  `stream`, `quests`, `walk`, `content`, `ways`, `chests` and `cast`. Outside the package only
+  `STORY_CONDITIONS`/`STORY_EVENTS` (TypeScript asks), the cast specs (`NPC_IDS`), battle 3 and
+  `tools/lib/islands.json` (one line: the tools' ids, scene names and spots) need a line.
+- `cove-scene.ts`, `session.ts` and `flow.ts` loop over the registry; each island's code is its own
+  chunk (`<id>-island`); the build shows no `INEFFECTIVE_DYNAMIC_IMPORT` for them.
 - Tools read the registry's island list (`budgettest`, `memorytest`, `perftest`, `cameratest`,
   `wayfindtest`, `flickertest`, `starfishtest`, `audiotest`) and its URL flags (`?<id>`).
 - **Proof that nothing changed:** the three bake hashes (Anchorage `1aac2f2a`, Port Meridian `8d32083a`,
@@ -1267,13 +1273,14 @@ does the split. Keelhaven builds on it:
   quests, story and signs. One **part per chapter** (`course-<id>-<chapter>`, budget 28 KB gz each)
   loads with its island: quizzes, pages, voiced and cited lines, the island's compass targets, beats,
   scripts and barks, and its puzzles' content.
-- PR #19 adds `IslandStreamContext.courseData(priority)`. **Keelhaven's stream must set it** and wait
+- PR #19 adds `IslandStreamContext.courseData(priority)`. Keelhaven's entry sets
+  `stream.courseData: 'chapter-part'` (cove-scene passes `loadIslandPart('keelhaven', p)`); its stream waits
   for Chapter 03's part together with its terrain pack, at the same priority (low for a prefetch), as
   Port Meridian's and Thousand-Bough's streams do. A failed part fails the stream, which retries through
   `StreamLifecycle`.
-- **Keelhaven's puzzles go in `PUZZLE_ISLANDS`** (`src/course/puzzles.ts`) as `'keelhaven'`
-  (`two-circuits`, `retake`), with `two-circuits` → `circuit` in `GAME_PUZZLES`, so their content goes into
-  Chapter 03's part.
+- **Keelhaven's puzzles go in its registry entry's `puzzles`** (`two-circuits` → `circuit`, and
+  `retake` → `ceremony`): `GAME_PUZZLES` and `PUZZLE_ISLANDS` (src/course/puzzle-islands.ts) come from the registry,
+  so their content goes into Chapter 03's part.
 - `onCourse` hooks that read a part run again when it arrives; a read outside a hook logs an error.
   The recap, the Logbook and battles load a part on demand (battle 3 loads Chapter 02's part).
 - Chapter 03's part must stay ≤ 28 KB gz (it is the longest chapter); `check:budgets` gates it. If it
@@ -1489,8 +1496,8 @@ Each phase is its own PR, merged before the next starts unless noted. "A" = worl
 | 2 | **Course pack per chapter: PR #19** (D3, §10.2), rebased on phase 1: a core chunk plus one part per chapter; `IslandStreamContext.courseData` | B | PR #19's gates; its `courseData` wiring is in the registry entry, so a new island gets it from its registry row; Lite heap measured |
 | 3 | **Shared prerequisites:** `paliWall` (O5), the ocean floor tile registry (O6), the shared mist material, the shared wreck builder, coast-foam exposure, the per-island bake light radius, the `passageMood` blend, the chart pack (O7) | A | other islands unchanged (screenshot diff); census unchanged; Thousand-Bough gets its shallows |
 | 4 | **Look prototype** (look study §5): `layout.ts`, `height.ts`, the bake, `devpages/terrain.html` views `sea-700`, `sea-400`, `cove`, `aerial`; the time of day (flute contrast at 9:30, 9:45, 10:00; §2.4) | A | the look study's measurable checks pass on Lite and High (flutes, skyline, green share, sea-cliff band, pops, Lite terrain budget); the time is chosen |
-| 5 | **The island:** water, vegetation, town, shipyard, locks, gatehouse, wrecks, silhouette, stream (it sets `courseData` for Chapter 03's part, §10.2), arrival, registry entry, sea lanes; `contract.ts` and the stub first (step 0, half a day, merged first so B can start) | A | §11's A tests; the whole-frame gates and the island share; census; `kh-ring` under the perf target |
-| 6 | **Content:** Chapter 03 snapshot (`node tools/course/sync.mjs --chapters=00,01,02,03`, `npm run course:refs -- 03`), the chapter file, quests, puzzles (in `PUZZLE_ISLANDS` as `'keelhaven'`, so they go into Chapter 03's part), `learning.json` rows, labels, market keeper, the `circuit` mechanic and its UI, hotspot rectangles in the Hotspot Editor | B (starts after phase 5's step 0, on the stub) | `content:check`, `course:drift`, B's tests |
+| 5 | **The island:** water, vegetation, town, shipyard, locks, gatehouse, wrecks, silhouette, stream (its entry's `courseData: 'chapter-part'`, §10.2), arrival, registry entry and code, sea lanes; `contract.ts` and the stub first (step 0, half a day, merged first so B can start) | A | §11's A tests; the whole-frame gates and the island share; census; `kh-ring` under the perf target |
+| 6 | **Content:** Chapter 03 snapshot (`node tools/course/sync.mjs --chapters=00,01,02,03`, `npm run course:refs -- 03`), the chapter file, quests, puzzles (in the registry entry's `puzzles`, so they go into Chapter 03's part), `learning.json` rows, labels, market keeper, the `circuit` mechanic and its UI, hotspot rectangles in the Hotspot Editor | B (starts after phase 5's step 0, on the stub) | `content:check`, `course:drift`, B's tests |
 | 7 | **Cast and voice:** NPC specs, palettes, props; auditions, Dan's picks, generation, lipsync | B | every line voiced; no shared voice |
 | 8 | **Audio:** Salty Sway wired, new beds and SFX, emitters | B | `check:audio`; `ASSETS.md`, `ART_PROVENANCE.md` rows |
 | 9 | **Battle 3** (§9.1): N2.1–N2.3, the battle data and plan | B | `battletest` with Keelhaven resident ≤ 140 programs |

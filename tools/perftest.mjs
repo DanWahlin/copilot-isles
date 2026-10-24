@@ -48,7 +48,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus, loadavg } from 'node:os';
 import { join } from 'node:path';
 import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
-import { HOME } from './lib/islands.mjs';
+import { HOME, ISLANDS } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353').replace(/\/$/, '');
@@ -71,16 +71,13 @@ const viewport = parseSize(String(opt.size || '1920x1080'));
 const profileDir = opt.profile ? String(opt.profile) : null;
 if (profileDir) mkdirSync(profileDir, { recursive: true });
 
-/** Settled views: a spot to stand (x, z, facing) or an island's quay, or sailing out of Anchorage. */
-const VIEWS = {
-  anchorage: { island: 'anchorage', at: [-112, -66, Math.PI] },
-  'a-town': { island: 'anchorage', at: [-130, -40, -0.6] },
-  sailing: { island: 'anchorage', sail: true },
-  meridian: { island: 'meridian', quay: true },
-  'm-plaza': { island: 'meridian', at: [660, -800, 0.8] },
-  'thousand-bough': { island: 'thousand-bough', quay: true },
-  'tb-booths': { island: 'thousand-bough', at: [1934, -1488, 2.4] },
-};
+/**
+ * Settled views: a spot to stand (x, z, facing) or an island's quay, or sailing out of Anchorage
+ * (each island's `perf` in tools/lib/islands.json, island by island).
+ */
+const VIEWS = Object.fromEntries(
+  ISLANDS.flatMap((i) => Object.entries(i.perf).map(([id, v]) => [id, { island: i.id, ...v }])),
+);
 const viewIds = list(opt.views, Object.keys(VIEWS).join(','));
 
 const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toFixed(d) : '-');

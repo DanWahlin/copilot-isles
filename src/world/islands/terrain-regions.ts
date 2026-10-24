@@ -1,11 +1,8 @@
+import { ISLAND_LIST } from '../../islands/registry';
 import type { TerrainRegions } from '../terrain/terrain-regions';
-import { anchorageTerrainRegions } from './anchorage/terrain-regions';
-import { meridianTerrainRegions } from './meridian-terrain-regions';
-import { thousandBoughTerrainRegions } from './thousand-bough/terrain-regions';
 
-/** Every island's terrain regions; a new island adds its own here (the terrain material stays as is). */
-export const ISLAND_TERRAIN_REGIONS: readonly TerrainRegions[] = [
-  anchorageTerrainRegions,
-  meridianTerrainRegions,
-  thousandBoughTerrainRegions,
-];
+/**
+ * Every island's terrain regions, in voyage order (each registry entry's `terrainRegions`): the
+ * terrain material combines them, and stays as it is when an island is added.
+ */
+export const ISLAND_TERRAIN_REGIONS: readonly TerrainRegions[] = ISLAND_LIST.map((e) => e.terrainRegions);

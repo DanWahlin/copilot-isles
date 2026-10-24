@@ -31,45 +31,15 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
-import { HOME } from './lib/islands.mjs';
+import { HOME, ISLANDS } from './lib/islands.mjs';
 
-/** [name, island, camera position, orbit target, what it covers]. */
-const VIEWS = [
-  ['harbor', 'anchorage', [-40, 14, -150], [-112, 3, -80], 'harbour, quay, village roofs'],
-  ['pier', 'anchorage', [-110, 3.6, -92], [-108, 2.6, -124], 'pier planks to the pier head'],
-  ['quay', 'anchorage', [-104, 4.5, -82], [-117, 3, -62], 'quay paving, doors, chart table'],
-  ['fishing-dock', 'anchorage', [-67, 2.6, -158], [-76, 0.8, -167], 'fishing jetty close up'],
-  ['fishing-pier', 'anchorage', [-108, 4, -122], [-76, 1, -167], 'jetty and shore foam'],
-  ['mill', 'anchorage', [-54, 5.5, -59], [-62, 1.6, -64], 'mill race terrace and tiles'],
-  ['village', 'anchorage', [-150, 9, -10], [-112, 5, -50], 'houses, roofs, paths'],
-  ['roofs', 'anchorage', [-95, 18, -40], [-118, 6, -62], 'roofs and chimneys from above'],
-  ['ridge', 'anchorage', [-116, 21, -47], [-125.4, 17.2, -55.8], 'roof ridges and tiles close up'],
-  ['lighthouse', 'anchorage', [-158, 23, -82], [-168, 20.4, -93], 'lighthouse gallery and lantern'],
-  ['beach', 'anchorage', [-10, 2.4, 92], [40, 1.2, 100], 'south beach, shoreline foam'],
-  ['headland', 'anchorage', [300, 30, -30], [160, 25, -5], 'terrain and rock seams'],
-  ['stack', 'anchorage', [330, 12, 290], [270, 18, 210], 'sea stack rocks'],
-  ['approach', 'anchorage', [-330, 10, -330], [-100, 8, -80], 'island from the sea, far ranges'],
-  ['m-harbor', 'meridian', [570, 24, -610], [700, 10, -735], 'Meridian harbour and mole'],
-  ['m-quay', 'meridian', [692, 6, -762], [650, 2.4, -754], 'Meridian quay paving close up'],
-  ['m-town', 'meridian', [610, 82, -610], [855, 32, -875], 'terraced town, roofs, roads'],
-  ['m-plaza', 'meridian', [690, 22, -770], [660, 8, -800], 'plaza paving and houses'],
-  ['m-market', 'meridian', [669.6, 9.9, -789.6], [679, 9.7, -787.3], 'Model Market: boards, awning, counter'],
-  ['m-fort', 'meridian', [786, 50, -760], [806, 41, -780], 'Meridian fort: walls, towers, roofs'],
-  ['m-citadel', 'meridian', [890, 105, -855], [1028, 64, -1002], 'citadel walls'],
-  ['m-ridge', 'meridian', [910, 118, -780], [1110, 92, -1078], 'ridge rocks, distant ranges'],
-  [
-    'tb-wharf',
-    'thousand-bough',
-    [1925, 8, -1395],
-    [1945, 2.4, -1430],
-    'Root Wharf, Bough Landing, boathouse',
-  ],
-  ['tb-roothall', 'thousand-bough', [1985, 24, -1600], [2010, 19, -1560], 'Root Hall, stair foot, plinth'],
-  ['tb-stair', 'thousand-bough', [1978, 31, -1578], [2008, 26, -1560], 'Great Stair, rails, decks'],
-  ['tb-bridge', 'thousand-bough', [1984, 38, -1522], [2016, 31, -1527], 'rope bridge R1 and decks'],
-  ['tb-flume', 'thousand-bough', [2010, 36, -1596], [2008, 21, -1626], 'Flume Terrace tiles and gates'],
-  ['tb-crown', 'thousand-bough', [2035, 58, -1530], [2010, 51, -1556], 'Crown Deck, beacon, rail'],
-];
+/**
+ * [name, island, camera position, orbit target, what it covers]: each island's `flicker` views in
+ * tools/lib/islands.json, island by island.
+ */
+const VIEWS = ISLANDS.flatMap((i) =>
+  i.flicker.map(([name, cam, target, what]) => [name, i.id, cam, target, what]),
+);
 
 const opt = parseFlags(process.argv.slice(2));
 if (opt.list) {

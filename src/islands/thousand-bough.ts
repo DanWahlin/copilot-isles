@@ -1,5 +1,7 @@
 import { THOUSAND_BOUGH, insideThousandBough } from '../world/islands/thousand-bough/layout';
+import { THOUSAND_BOUGH_FLORA_PALETTE } from '../world/islands/thousand-bough/flora-palette';
 import { THOUSAND_BOUGH_STARFISH } from '../world/islands/thousand-bough/starfish';
+import { thousandBoughTerrainRegions } from '../world/islands/thousand-bough/terrain-regions';
 import { arrivalCard, type IslandArrival } from './arrival';
 import type { IslandEntry } from './types';
 
@@ -79,6 +81,31 @@ export const THOUSAND_BOUGH_ISLAND: IslandEntry = {
     rot: -1.0,
   },
   chartLabelDy: -82,
+  chart: {
+    cx: 2050,
+    cz: -1510,
+    // A little smaller than true to its neighbours, so its outline stays clear of Port Meridian's.
+    scale: 1 / 6000,
+    minX: 1690,
+    maxX: 2410,
+    minZ: -1840,
+    maxZ: -1180,
+    cell: 8,
+    pack: 'thousand-bough/terrain',
+    terrain: () =>
+      import('../world/islands/thousand-bough/chart').then((m) => m.THOUSAND_BOUGH_CHART_TERRAIN),
+  },
+  // "Misty Jungle Dusk", made for Thousand-Bough Isle by Dan with Suno.
+  theme: { file: 'music_thousand_boughs', lufs: -15.5 },
+  terrainRegions: thousandBoughTerrainRegions,
+  floraPalette: THOUSAND_BOUGH_FLORA_PALETTE,
+  puzzles: {
+    'channel-routing': 'route',
+    workspaces: 'match',
+    'flag-hoist': 'classify',
+    'practice-session': 'checklist',
+  },
+  market: { keeper: { npc: 'lani', name: 'Lani' }, lines: 'keepers' },
   stream: {
     nearLoads: 'always',
     courseData: 'chapter-part',

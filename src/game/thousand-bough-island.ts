@@ -3,6 +3,7 @@ import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contra
 import type { IslandContent, IslandCode } from './island-code';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { createThousandBoughStream } from '../world/islands/thousand-bough/stream';
+import { THOUSAND_BOUGH_WAYS } from '../world/islands/thousand-bough/waypoints';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
 import { storyHolds } from './story';
 import {
@@ -26,6 +27,7 @@ export const THOUSAND_BOUGH_CODE: IslandCode = {
   chests: [...THOUSAND_BOUGH.chests, ...THOUSAND_BOUGH.bottles].map((c) => c.id),
   // The extras after the Spire's twist too (they all can appear).
   cast: (anchors) => [...THOUSAND_BOUGH_NPCS, ...thousandBoughExtras(anchors, true)],
+  ways: THOUSAND_BOUGH_WAYS,
   quests: {
     log: thousandBoughLog,
     tracker: thousandBoughTracker,

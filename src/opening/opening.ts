@@ -38,7 +38,7 @@ import { createCabin, type Cabin } from './cabin';
 import { createCutsceneOutput } from './cutscene-output';
 import { warmProgressively } from '../engine/warm';
 import { drawChartArt } from './chart-art';
-import { CHART_ISLANDS, chartIsland, worldToPaper, type ChartIslandId } from './chart-map';
+import { CHART_ISLANDS, chartIsland, loadChartIslands, worldToPaper, type ChartIslandId } from './chart-map';
 import { createChartPaper, rollRadius, type ChartPaper } from './chart-paper';
 import { createIslandProps, type IslandProps } from './chart-props';
 import {
@@ -699,11 +699,15 @@ export function createOpening(o: OpeningOptions): Opening {
     // Each island's own baked terrain (Anchorage's is already coming in for the title); if a pack
     // can't be had, the island's functions are sampled instead (coarser, and slower).
     const base = o.packBase ?? '/packs';
-    const baked = await Promise.all(
-      // Low priority: it builds on the title, where the song's stream (also low) must keep its share.
-      CHART_ISLANDS.map((src) => loadTerrainPack(`${base}/${src.pack}`, 'low').catch(() => null)),
-    );
-    for (const [i, src] of CHART_ISLANDS.entries()) {
+    // Each island's terrain functions (its own small chunk) load alongside.
+    const [baked, sources] = await Promise.all([
+      Promise.all(
+        // Low priority: it builds on the title, where the song's stream (also low) must keep its share.
+        CHART_ISLANDS.map((src) => loadTerrainPack(`${base}/${src.pack}`, 'low').catch(() => null)),
+      ),
+      loadChartIslands(),
+    ]);
+    for (const [i, src] of sources.entries()) {
       const data = baked[i];
       grids.push(
         await runSliced(

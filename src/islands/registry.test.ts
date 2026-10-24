@@ -1,4 +1,10 @@
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { dirname, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { MUSIC_TRACKS } from '../audio/music/tracks';
+import { MARKET_STALLS } from '../game/market/stalls';
+import { ISLAND_FLORA_PALETTES } from '../world/islands/flora-palettes';
+import { ISLAND_TERRAIN_REGIONS } from '../world/islands/terrain-regions';
 import TOOLS from '../../tools/lib/islands.json';
 import { GAME_PUZZLES, PUZZLE_ISLANDS, SHARED_PUZZLES } from '../course/puzzle-islands';
 import { islandAt } from '../game/islands';
@@ -68,5 +74,44 @@ describe('the island registry', () => {
       expect(!!code.content, `${e.id} content`).toBe(!!e.stream);
       expect(code.quests.log({}), `${e.id} quest log`).toBeInstanceOf(Array);
     }
+  });
+
+  it('derives the shared tables from the entries, in voyage order', () => {
+    expect(ISLAND_TERRAIN_REGIONS).toEqual(ISLAND_LIST.map((e) => e.terrainRegions));
+    expect(ISLAND_FLORA_PALETTES).toEqual(ISLAND_LIST.map((e) => e.floraPalette));
+    for (const e of ISLAND_LIST) expect(MUSIC_TRACKS[e.music], e.id).toBe(e.theme);
+    expect(MARKET_STALLS.map((m) => m.island)).toEqual(ISLAND_LIST.filter((e) => e.market).map((e) => e.id));
+  });
+
+  it('imports only data: no three.js objects and no world code (the course split reads it in Node)', () => {
+    // Follows the registry's runtime imports (not `import type`, not the dynamic `code` and `chart`).
+    const seen = new Set<string>();
+    const bare = new Set<string>();
+    const walk = (file: string) => {
+      if (seen.has(file)) return;
+      seen.add(file);
+      const src = readFileSync(file, 'utf8');
+      for (const m of src.matchAll(/^(?:import|export)\s+(?!type\b)[^;]*?from\s+['"]([^'"]+)['"]/gms)) {
+        const spec = m[1]!;
+        if (!spec.startsWith('.')) {
+          bare.add(spec);
+          continue;
+        }
+        const base = resolve(dirname(file), spec);
+        const hit = ['', '.ts', '.tsx', '/index.ts']
+          .map((x) => base + x)
+          .find((f) => existsSync(f) && statSync(f).isFile());
+        if (hit) walk(hit);
+      }
+    };
+    walk(resolve(__dirname, 'registry.ts'));
+    const files = [...seen].map((f) => relative(resolve(__dirname, '../..'), f));
+    expect(
+      [...bare].filter((b) => b !== 'three/tsl'),
+      'bare imports',
+    ).toEqual([]);
+    expect(
+      files.filter((f) => /terrain-material|world\/islands\/meridian\.ts$|stream|session|cove-scene/.test(f)),
+    ).toEqual([]);
   });
 });

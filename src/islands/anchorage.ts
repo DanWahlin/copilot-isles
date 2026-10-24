@@ -1,4 +1,6 @@
+import { ANCHORAGE_FLORA_PALETTE } from '../world/islands/anchorage/flora-palette';
 import { ANCHORAGE_STARFISH } from '../world/islands/anchorage/starfish';
+import { anchorageTerrainRegions } from '../world/islands/anchorage/terrain-regions';
 import { COVE } from '../world/layout';
 import { arrivalCard, type IslandArrival } from './arrival';
 import type { IslandEntry } from './types';
@@ -83,6 +85,32 @@ export const ANCHORAGE: IslandEntry = {
     rot: -2.16,
   },
   chartLabelDy: 92,
+  chart: {
+    cx: 58,
+    cz: 54,
+    scale: 1 / 2200,
+    minX: -190,
+    maxX: 300,
+    minZ: -135,
+    maxZ: 240,
+    cell: 5,
+    pack: 'testcove/terrain',
+    terrain: () => import('../world/islands/anchorage/chart').then((m) => m.ANCHORAGE_CHART_TERRAIN),
+  },
+  // "Medieval: The Bard's Tale" by RandomMind (OpenGameArt, CC0).
+  theme: { file: 'music_bards_tale', lufs: -17.6 },
+  terrainRegions: anchorageTerrainRegions,
+  floraPalette: ANCHORAGE_FLORA_PALETTE,
+  puzzles: {
+    'gear-rack': 'checklist',
+    palette: 'ceremony',
+    bard: 'ceremony',
+    christening: 'ceremony',
+    sluice: 'route',
+    crane: 'procedure',
+    'first-words': 'choose-tool',
+  },
+  market: { keeper: { npc: 'desmond', name: 'Desmond' }, lines: 'keepers' },
   stream: null,
   code: () => import('../game/anchorage-island').then((m) => m.ANCHORAGE_CODE),
 };
