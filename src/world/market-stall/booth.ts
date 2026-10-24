@@ -53,6 +53,8 @@ const COUNTER: StallCounter = {
   step: { x0: -1.2, x1: 1.2, z0: -1.5, z1: -2.75, h: 0.22 },
 };
 const FRONT = counterFront(COUNTER);
+/** The striped awning over the counter. */
+const AWNING = { x0: -2.95, x1: 2.95, zFront: -0.72, zBack: -2.3, yFront: 2.45, yBack: 2.8 } as const;
 
 /** Where things are in a booth (as Gilda's stall's MARKET_LAYOUT; the signs and the market read it). */
 export const BOOTH_LAYOUT: MarketStallLayout = {
@@ -177,9 +179,9 @@ function addFrame(l: StallBuckets, style: BoothStyle, lite: boolean): void {
 
 /**
  * Builds a market booth into the island's buckets (world space) with its colliders: the posts, walls
- * and counter stop the walker, and the camera keeps out of the roof, the walls, the counter and the
- * shelves. `roof` and `dress` add the island's own parts in the booth's frame (and their colliders,
- * through `at`).
+ * and counter stop the walker, and the camera keeps out of the roof, the walls, the counter, the
+ * shelves, the hanging boards and the awning. `roof` and `dress` add the island's own parts in the
+ * booth's frame (and their colliders, through `at`).
  */
 export function addMarketBooth(
   into: StallBuckets,
@@ -205,7 +207,7 @@ export function addMarketBooth(
   });
   addStallCounter(l, COUNTER, BOOTH_LAYOUT.plaque, style);
   addTill(l, BOOTH_LAYOUT.jar, COUNTER.h, { x: -0.35, z: COUNTER.z + 0.05 }, lite, style);
-  addStallAwning(l, { x0: -2.95, x1: 2.95, zFront: -0.72, zBack: -2.3, yFront: 2.45, yBack: 2.8 }, style, 10);
+  addStallAwning(l, AWNING, style, 10);
   addStallShelves(
     l,
     { back: BACK, units: [[-3.25, -0.9]], curtain: { x: 0.05, w: 1.3, h: 2.3 } },
@@ -246,5 +248,16 @@ export function addMarketBooth(
     ),
     at(cx, COUNTER.z, cw / 2, COUNTER.d / 2, 0, COUNTER.h + 0.1),
     at(-2.05, BACK + 0.2, 1.2, 0.22, 1.2, 2.8),
+    // The hanging boards under the sign beam (the biggest board's rim comes down to 2.29 m), and
+    // the awning over the counter (its scallops hang to 2.25 m).
+    at(0, BOOTH_LAYOUT.boardZ - 0.02, HALF, 0.1, 2.25, BEAM_Y),
+    at(
+      0,
+      (AWNING.zFront + AWNING.zBack) / 2,
+      AWNING.x1 + 0.05,
+      (AWNING.zFront - AWNING.zBack) / 2 + 0.06,
+      2.2,
+      AWNING.yBack + 0.06,
+    ),
   );
 }
