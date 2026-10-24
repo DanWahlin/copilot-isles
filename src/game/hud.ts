@@ -88,10 +88,16 @@ export class Hud {
   private readonly compassMarker: HTMLDivElement;
   private readonly compassName: HTMLSpanElement;
   private readonly compassDist: HTMLSpanElement;
+  private readonly compassLevel: HTMLSpanElement;
+  /** The dimmer marker and line for an optional quest you've started. */
+  private readonly compassMarker2: HTMLDivElement;
+  private readonly compassSecond: HTMLDivElement;
   private compassShown = false;
   private lastStripX = NaN;
   private lastMarker = '';
+  private lastMarker2 = '';
   private lastCompassLabel = '';
+  private lastSecondLabel = '';
   private readonly cine: HTMLDivElement;
   private readonly card: HTMLDivElement;
   private readonly cardEyebrow: HTMLSpanElement;
@@ -164,12 +170,20 @@ export class Hud {
       }
     }
     this.compassMarker = el('div', 'hud-compass-marker');
-    window_.append(this.compassStrip, el('div', 'hud-compass-lubber'), this.compassMarker);
+    this.compassMarker2 = el('div', 'hud-compass-marker optional');
+    window_.append(
+      this.compassStrip,
+      el('div', 'hud-compass-lubber'),
+      this.compassMarker2,
+      this.compassMarker,
+    );
     const label = el('div', 'hud-compass-label');
     this.compassName = text('span', 'name', '');
     this.compassDist = text('span', 'dist', '');
-    label.append(this.compassName, this.compassDist);
-    this.compass.append(window_, label);
+    this.compassLevel = text('span', 'level', '');
+    label.append(this.compassName, this.compassDist, this.compassLevel);
+    this.compassSecond = el('div', 'hud-compass-second');
+    this.compass.append(window_, label, this.compassSecond);
     this.cine = el('div', 'hud-cine');
     this.card = el('div', 'hud-card');
     this.cardEyebrow = text('span', 'hud-card-eyebrow', '');
@@ -396,7 +410,11 @@ export class Hud {
    * from north) and `target` the gold marker for what to do next. Null hides it (dialogue, overlays).
    * Only touches the DOM when something visible changes.
    */
-  setCompass(heading: number | null, target: CompassTarget | null = null): void {
+  setCompass(
+    heading: number | null,
+    target: CompassTarget | null = null,
+    optional: CompassTarget | null = null,
+  ): void {
     const show = heading !== null;
     if (show !== this.compassShown) {
       this.compassShown = show;
@@ -409,30 +427,32 @@ export class Hud {
       this.lastStripX = x;
       this.compassStrip.style.transform = `translateX(${x}px)`;
     }
-    let marker = 'none';
-    if (target) {
-      const rel = (relativeBearing(target.bearing, heading) * 180) / Math.PI;
-      const half = COMPASS_SPAN_DEG / 2 - 4;
-      const edge = rel < -half ? 'left' : rel > half ? 'right' : '';
-      const left = Math.round(COMPASS_W / 2 + Math.max(-half, Math.min(half, rel)) * COMPASS_PX);
-      marker = `${left}|${edge}`;
-    }
+    const marker = markerAt(target, heading);
     if (marker !== this.lastMarker) {
       this.lastMarker = marker;
-      this.compassMarker.classList.toggle('show', marker !== 'none');
-      if (marker !== 'none') {
-        const [left, edge] = marker.split('|');
-        this.compassMarker.style.left = `${left}px`;
-        this.compassMarker.classList.toggle('edge-left', edge === 'left');
-        this.compassMarker.classList.toggle('edge-right', edge === 'right');
-      }
+      placeMarker(this.compassMarker, marker);
     }
-    const label = target ? `${target.label}|${formatDistance(target.distance)}` : '';
+    const marker2 = markerAt(optional, heading);
+    if (marker2 !== this.lastMarker2) {
+      this.lastMarker2 = marker2;
+      placeMarker(this.compassMarker2, marker2);
+    }
+    const label = target ? `${target.label}|${formatDistance(target.distance)}|${target.level ?? ''}` : '';
     if (label !== this.lastCompassLabel) {
       this.lastCompassLabel = label;
       this.compass.classList.toggle('has-target', !!target);
       this.compassName.textContent = target?.label ?? '';
       this.compassDist.textContent = target ? formatDistance(target.distance) : '';
+      this.compassLevel.textContent = target?.level ? LEVEL_CUE[target.level] : '';
+      this.compassLevel.title = target?.level ? LEVEL_TITLE[target.level] : '';
+    }
+    const second = optional
+      ? `Optional: ${optional.label} · ${formatDistance(optional.distance)}${optional.level ? ` ${LEVEL_CUE[optional.level]}` : ''}`
+      : '';
+    if (second !== this.lastSecondLabel) {
+      this.lastSecondLabel = second;
+      this.compassSecond.textContent = second;
+      this.compass.classList.toggle('has-second', !!optional);
     }
   }
 
@@ -469,6 +489,29 @@ export class Hud {
     clearTimeout(this.subtitleTimer);
     this.root.remove();
   }
+}
+
+/** The up/down cue beside a marker's distance, and what it means (its tooltip). */
+const LEVEL_CUE = { up: '▲', down: '▼' } as const;
+const LEVEL_TITLE = { up: 'Up a level from here', down: 'Down a level from here' } as const;
+
+/** A marker's place on the strip ("left px|edge"), or 'none'. */
+function markerAt(target: CompassTarget | null, heading: number): string {
+  if (!target) return 'none';
+  const rel = (relativeBearing(target.bearing, heading) * 180) / Math.PI;
+  const half = COMPASS_SPAN_DEG / 2 - 4;
+  const edge = rel < -half ? 'left' : rel > half ? 'right' : '';
+  const left = Math.round(COMPASS_W / 2 + Math.max(-half, Math.min(half, rel)) * COMPASS_PX);
+  return `${left}|${edge}`;
+}
+
+function placeMarker(m: HTMLDivElement, at: string): void {
+  m.classList.toggle('show', at !== 'none');
+  if (at === 'none') return;
+  const [left, edge] = at.split('|');
+  m.style.left = `${left}px`;
+  m.classList.toggle('edge-left', edge === 'left');
+  m.classList.toggle('edge-right', edge === 'right');
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string): HTMLElementTagNameMap[K] {

@@ -85,6 +85,7 @@ const BRIDGE_METHODS = [
   'skipOpening',
   'pressOpening',
   'skipBattle',
+  'unstuck',
 ] as const satisfies readonly (keyof GameBridge)[];
 
 interface SaveData {
@@ -344,6 +345,13 @@ export class GameFlow implements GameBridge {
     this.session.battle.skip();
     this.set({ battle: false });
     this.resume();
+  }
+
+  /** The pause menu's Unstuck: back to the game, and back onto the path (or the ship into open water). */
+  unstuck(): void {
+    if (!this.session) return;
+    this.resume();
+    this.session.unstuck();
   }
 
   openChart(): void {

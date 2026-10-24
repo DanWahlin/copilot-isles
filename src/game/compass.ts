@@ -19,7 +19,10 @@ export function relativeBearing(target: number, heading: number): number {
 export interface CompassTarget {
   bearing: number;
   label: string;
+  /** Metres along the route there (not the straight line). */
   distance: number;
+  /** The target's a level above or below you: an up or down cue beside the distance. */
+  level?: 'up' | 'down' | null;
 }
 
 /** A short distance for the marker's label ("8 m", "240 m", "1.2 km"). */

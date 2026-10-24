@@ -245,4 +245,6 @@ export interface GameBridge {
   pressOpening(): void;
   /** Skip battle (the pause menu): the sea battle counts as done, and play resumes. */
   skipBattle?(): void;
+  /** Unstuck (the pause menu): play resumes with the captain back on the path, or the ship in open water. */
+  unstuck?(): void;
 }

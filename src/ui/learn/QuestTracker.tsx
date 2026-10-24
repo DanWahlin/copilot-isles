@@ -56,7 +56,13 @@ export function QuestTracker({
   const total = required.length;
   const done = required.filter((t) => t.status === 'done').length;
   const complete = done === total;
-  const shown = collapsed ? tracker.tasks.filter((t) => t.status === 'active') : tracker.tasks;
+  // Collapsed, the main task leads (the compass's gold marker is on it) and optional ones follow.
+  const shown = collapsed
+    ? [
+        ...tracker.tasks.filter((t) => t.status === 'active' && !t.optional),
+        ...tracker.tasks.filter((t) => t.status === 'active' && t.optional),
+      ]
+    : tracker.tasks;
 
   return (
     <section

@@ -3,7 +3,7 @@ import { COURSE, islandHooks, onCourseSelected, welcomeLines } from '../course/c
 import { PUZZLE_ISLANDS, puzzleMaybe, voiceLinesOf } from '../course/puzzles';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
-import { firstOpenQuest, islandTasks, startedQuests, type QuestTracker } from './quest-list';
+import { firstOpenQuest, islandTasks, optionalTargets, startedQuests, type QuestTracker } from './quest-list';
 import type { ScriptStep } from './script';
 import type { QuestState } from './story';
 
@@ -45,6 +45,11 @@ export function thousandBoughCurrent(q: QuestState): { id: string; task: string;
 export function thousandBoughTarget(q: QuestState): QuestTarget | null {
   const c = thousandBoughCurrent(q);
   return c ? (THOUSAND_BOUGH_TARGETS[`${c.id}:${c.step}`] ?? null) : null;
+}
+
+/** The optional quests you've started: where the compass's dimmer marker points for each. */
+export function thousandBoughOptionalTargets(q: QuestState): QuestTarget[] {
+  return optionalTargets(THOUSAND_BOUGH_QUESTS, THOUSAND_BOUGH_TARGETS, q);
 }
 
 /** The task list: the chapter's steps in order (the optional one once started). */

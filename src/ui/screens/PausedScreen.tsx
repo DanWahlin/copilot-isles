@@ -17,6 +17,7 @@ export function PausedScreen({ state, bridge }: { state: UiState; bridge: GameBr
         {state.battle && bridge.skipBattle && (
           <MenuButton onClick={bridge.skipBattle}>Skip battle</MenuButton>
         )}
+        {!state.battle && bridge.unstuck && <MenuButton onClick={bridge.unstuck}>Unstuck</MenuButton>}
         <MenuButton onClick={bridge.openChart}>Chart</MenuButton>
         <MenuButton onClick={bridge.openLogbook}>Logbook</MenuButton>
         <MenuButton onClick={bridge.openSettings}>Settings</MenuButton>
