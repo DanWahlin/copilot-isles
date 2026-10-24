@@ -180,6 +180,12 @@ describe('your setup in the save', () => {
       ).setup,
     ).toEqual({ os: null, issue: null, branch: null, model: { pick: 'other', name: 'x' } });
     expect(parseProgress('{"v":1,"setup":"linux"}').setup).toEqual(EMPTY_SETUP);
+    // The old branch form offered the practice branch (the session's base branch) as the working
+    // branch: a save that kept it is asked again, and anything else stays.
+    expect(
+      parseProgress(JSON.stringify({ v: 1, setup: { issue: 7, branch: 'practice-empty-state-copy' } })).setup,
+    ).toEqual({ ...EMPTY_SETUP, issue: 7 });
+    expect(cleanSetup({ branch: 'octocat-bookish-invention' }).branch).toBe('octocat-bookish-invention');
     expect(cleanSetup({ issue: 3.5, model: { pick: 'gpt' } })).toEqual(EMPTY_SETUP);
     // The export code carries it.
     expect(importCode(exportCode(new Progress(storage).data))?.progress.setup).toEqual({
@@ -239,15 +245,16 @@ describe('content with your setup', () => {
       'Press **Ctrl+R** for your prompt history',
     );
     expect(fillSetup(PAGES.get('pg2.plan')!.caption, YOURS, 'mac')).toContain('type `#7` and pick');
-    expect(fillSetup(PAGES.get('pg2.chronicle')!.caption, YOURS, 'mac')).toContain(
-      '`copilot/empty-state-copy`',
-    );
+    // The practice branch is a session's base branch: no caption calls it the session's own (the
+    // pages that show the player's branch note it under the caption, once they've given it).
+    expect(PAGES.get('pg2.chronicle')!.setup).toContain('branch');
     expect(PAGES.get('B2.2')!.setup).toContain('branch');
     expect(PAGES.get('pg1.try-controls')!.setup).toContain('model');
     // No authored text still writes a shortcut for one computer only, or the course's #3 by hand.
     const authored = [...PAGES.values()].map((p) => p.caption).join('\n');
     expect(authored).not.toMatch(/\b(Cmd|Ctrl)\+[A-Z]\b/);
     expect(authored).not.toMatch(/`#3`/);
+    expect(authored).not.toContain('{branch}');
     // The Flag Hoist's `#12` is the course's own example, not the practice issue: it stays.
     expect(PAGES.get('pg2.context-syntax')!.caption).toContain('`#12`');
   });
@@ -260,16 +267,31 @@ describe('content with your setup', () => {
     expect(setupMatches({ ...EMPTY_SETUP, model: { pick: 'current' } }, 'model:picked')).toBe(true);
     expect(setupMatches(EMPTY_SETUP, 'model:auto')).toBe(false);
     expect(setupMatches(EMPTY_SETUP, 'model:picked')).toBe(false);
+    expect(setupMatches(EMPTY_SETUP, 'branch:given')).toBe(false);
+    expect(setupMatches(YOURS, 'branch:given')).toBe(true);
+    expect(setupMatches(EMPTY_SETUP, 'issue:given')).toBe(false);
+    expect(setupMatches(YOURS, 'issue:given')).toBe(true);
   });
 
-  it('shows the session terminal with the player’s branch and issue', () => {
-    expect(practiceSessionReadout(EMPTY_SETUP)).toMatchObject({
-      title: 'Session · practice-empty-state-copy',
-      lines: expect.arrayContaining([{ text: 'Attached: #3 Improve the empty state copy', tone: undefined }]),
+  it('shows the session terminal with its base branch, and the player’s working branch and issue', () => {
+    const blank = practiceSessionReadout(EMPTY_SETUP);
+    expect(blank).toMatchObject({
+      title: 'Session from practice-empty-state-copy',
+      lines: expect.arrayContaining([
+        { text: 'Base branch: practice-empty-state-copy', tone: undefined },
+        { text: 'Attached: #3 Improve the empty state copy', tone: undefined },
+      ]),
     });
+    // Until they give it, the working branch isn't the practice branch: it's the session's own.
+    expect(blank.lines.filter((l) => l.text.startsWith('Working branch'))).toEqual([
+      { text: 'Working branch: its own (select the session name)', tone: undefined },
+    ]);
     const yours = practiceSessionReadout(YOURS);
-    expect(yours.title).toBe('Session · copilot/empty-state-copy');
-    expect(yours.lines).toContainEqual({ text: 'Working branch: copilot/empty-state-copy', tone: 'you' });
+    expect(yours.title).toBe('Session from practice-empty-state-copy');
+    expect(yours.lines.filter((l) => l.text.startsWith('Working branch'))).toEqual([
+      { text: 'Working branch: copilot/empty-state-copy', tone: 'you' },
+    ]);
+    expect(yours.lines).toContainEqual({ text: 'Base branch: practice-empty-state-copy', tone: undefined });
     expect(yours.lines).toContainEqual({ text: 'Attached: #7 Improve the empty state copy', tone: 'you' });
   });
 });
@@ -309,5 +331,38 @@ describe('setup steps in a script', () => {
     fresh.skipSetup();
     expect(await run2).toBe(true);
     expect(fresh.progress.data.quizzes).toEqual({});
+  });
+
+  it('asks what you saw only after you’ve given your session’s branch (Skip: not done it yet)', async () => {
+    const steps = [
+      { askSetup: 'branch' },
+      { askSetup: 'issue', when: 'branch:given' },
+      { quiz: 'K2.5', when: 'branch:given' },
+      { say: 'after' },
+    ] as const;
+    // Skipped: no issue form, no question, and the story carries on.
+    const skipped = new LearnStore(new Progress(null));
+    const said: string[] = [];
+    const run = runScript(steps, { dialogue: dialogue(said), learn: skipped, speaker: 'Rook' });
+    for (let i = 0; i < 5 && !skipped.getState().setupForm; i++) await Promise.resolve();
+    expect(skipped.getState().setupForm).toEqual({ kind: 'branch', from: 'script' });
+    skipped.skipSetup();
+    expect(await run).toBe(true);
+    expect(said).toEqual(['after']);
+    expect(skipped.progress.data.quizzes).toEqual({});
+    // Given: the issue's number, then what the empty state says now.
+    const done = new LearnStore(new Progress(null));
+    const run2 = runScript(steps, { dialogue: dialogue([]), learn: done, speaker: 'Rook' });
+    for (let i = 0; i < 5 && !done.getState().setupForm; i++) await Promise.resolve();
+    done.saveSetup({ branch: 'octocat-bookish-invention' });
+    for (let i = 0; i < 5 && done.getState().setupForm?.kind !== 'issue'; i++) await Promise.resolve();
+    expect(done.getState().setupForm).toEqual({ kind: 'issue', from: 'script' });
+    done.skipSetup();
+    for (let i = 0; i < 5 && !done.getState().quiz; i++) await Promise.resolve();
+    expect(done.getState().quiz?.quiz.id).toBe('K2.5');
+    done.submit({ type: 'mc', option: 'suggests' });
+    done.closeQuiz();
+    expect(await run2).toBe(true);
+    expect(done.progress.data.quizzes['K2.5']).toMatchObject({ passed: true });
   });
 });

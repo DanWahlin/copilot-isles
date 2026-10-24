@@ -55,6 +55,35 @@
         "type": "string",
         "pattern": "^[\\w.-]+$"
       }
+    },
+    "lesson": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taught"],
+      "description": "The course's model lesson and the market. `taught`: every stall grades from then on (before it, its keeper says their `early` line and the work order stays shut). `practice`: while it holds, the quest's stall (Gilda's) runs the lesson's practice (a quick look right-sized, then a hard job and a Retry of it), staking you the starfish. `practiced`: the steps it sets when the practice is done.",
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "taught": {
+          "type": "object",
+          "description": "Quest ids (this course's) and the step each must be at (a step, null for not started, a list of either, or {\"not\": …}), as in a beat's `when`.",
+          "additionalProperties": true
+        },
+        "practice": {
+          "type": "object",
+          "description": "Quest ids (this course's) and the step each must be at (a step, null for not started, a list of either, or {\"not\": …}), as in a beat's `when`.",
+          "additionalProperties": true
+        },
+        "practiced": {
+          "type": "object",
+          "description": "Quest id → the step it's set to once the practice is done.",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   },
   "$defs": {

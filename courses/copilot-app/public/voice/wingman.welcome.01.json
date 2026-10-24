@@ -1,62 +1,57 @@
 {
   "id": "wingman.welcome.01",
   "speaker": "Wingman",
-  "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate.",
+  "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and navigator.",
   "words": [
     {
       "word": "Ahoy",
       "start": 0,
-      "end": 0.47
+      "end": 0.59
     },
     {
       "word": "Captain",
-      "start": 0.47,
-      "end": 1.173
+      "start": 0.59,
+      "end": 0.987
     },
     {
       "word": "Up",
-      "start": 1.173,
-      "end": 1.344
+      "start": 0.987,
+      "end": 1.264
     },
     {
       "word": "here",
-      "start": 1.344,
-      "end": 1.96
+      "start": 1.264,
+      "end": 1.92
     },
     {
       "word": "I'm",
-      "start": 1.96,
-      "end": 2.368
+      "start": 1.92,
+      "end": 2.384
     },
     {
       "word": "Wingman",
-      "start": 2.368,
-      "end": 2.992
+      "start": 2.384,
+      "end": 3.088
     },
     {
       "word": "your",
-      "start": 2.992,
-      "end": 3.18
+      "start": 3.088,
+      "end": 3.34
     },
     {
       "word": "parrot",
-      "start": 3.18,
-      "end": 3.54
+      "start": 3.34,
+      "end": 3.84
     },
     {
       "word": "and",
-      "start": 3.54,
-      "end": 3.667
+      "start": 3.84,
+      "end": 4.152
     },
     {
-      "word": "first",
-      "start": 3.667,
-      "end": 4.064
-    },
-    {
-      "word": "mate",
-      "start": 4.064,
-      "end": 4.314
+      "word": "navigator",
+      "start": 4.152,
+      "end": 4.402
     }
   ]
 }

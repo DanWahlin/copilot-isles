@@ -6,15 +6,19 @@ import type { Puzzle, PuzzleTerminal } from './types';
 /** `puzzles/practice-session.json`: the readout, a checklist. */
 interface PracticeSessionFile extends PuzzleFile {
   title: string;
-  /** `you`: the line shows the player's own value (once given) for that setup field. */
-  readout: readonly { text: string; tone?: 'cmd'; you?: 'branch' | 'issue' }[];
+  /**
+   * `you`: the line shows the player's own value (once given) for that setup field. `show`: the line
+   * is there only once they've given it (`given`), or only until they have (`missing`).
+   */
+  readout: readonly { text: string; tone?: 'cmd'; you?: 'branch' | 'issue'; show?: 'given' | 'missing' }[];
 }
 
 /**
  * The Practice Bough's session terminal (Chapter 02 · Exercise: Start a Session from a Branch): near
  * Rook, the HUD terminal shows the exercise's session with the player's own values from Your setup:
  * the working branch the app gave it and the number of the practice issue they attached. Until they
- * give them, it shows the course's practice values. The readout is the course pack's
+ * give them, it shows the course's practice values (the practice branch is only the session's base
+ * branch, so a line can wait for theirs with `show`). The readout is the course pack's
  * (`puzzles/practice-session.json`).
  */
 export function practiceSessionReadout(s: SetupData): PuzzleTerminal {
@@ -28,10 +32,12 @@ export function practiceSessionReadout(s: SetupData): PuzzleTerminal {
   const given = { branch: !!s.branch, issue: s.issue !== null };
   return {
     title: fill(c.title, values),
-    lines: c.readout.map((l) => ({
-      text: fill(l.text, values),
-      tone: l.tone ?? (l.you && given[l.you] ? 'you' : undefined),
-    })),
+    lines: c.readout
+      .filter((l) => !l.you || !l.show || (l.show === 'given') === given[l.you])
+      .map((l) => ({
+        text: fill(l.text, values),
+        tone: l.tone ?? (l.you && given[l.you] ? 'you' : undefined),
+      })),
   };
 }
 

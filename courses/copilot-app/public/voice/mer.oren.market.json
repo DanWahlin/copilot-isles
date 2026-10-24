@@ -1,0 +1,132 @@
+{
+  "id": "mer.oren.market",
+  "speaker": "Oren",
+  "text": "Now try it yourself, at Gilda's Model Market in the plaza: a quick look, then a hard job, and Retry it. She'll cover the starfish.",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0.055541,
+      "end": 0.333333
+    },
+    {
+      "word": "try",
+      "start": 0.333333,
+      "end": 0.625
+    },
+    {
+      "word": "it",
+      "start": 0.625,
+      "end": 0.777791
+    },
+    {
+      "word": "yourself",
+      "start": 0.777791,
+      "end": 1.541666
+    },
+    {
+      "word": "at",
+      "start": 1.541666,
+      "end": 1.680541
+    },
+    {
+      "word": "Gilda's",
+      "start": 1.680541,
+      "end": 2.125
+    },
+    {
+      "word": "Model",
+      "start": 2.125,
+      "end": 2.472208
+    },
+    {
+      "word": "Market",
+      "start": 2.472208,
+      "end": 2.888875
+    },
+    {
+      "word": "in",
+      "start": 2.888875,
+      "end": 3
+    },
+    {
+      "word": "the",
+      "start": 3,
+      "end": 3.111125
+    },
+    {
+      "word": "plaza",
+      "start": 3.111125,
+      "end": 3.861125
+    },
+    {
+      "word": "a",
+      "start": 3.861125,
+      "end": 3.930541
+    },
+    {
+      "word": "quick",
+      "start": 3.930541,
+      "end": 4.222208
+    },
+    {
+      "word": "look",
+      "start": 4.222208,
+      "end": 4.722208
+    },
+    {
+      "word": "then",
+      "start": 4.722208,
+      "end": 4.916666
+    },
+    {
+      "word": "a",
+      "start": 4.916666,
+      "end": 4.972208
+    },
+    {
+      "word": "hard",
+      "start": 4.972208,
+      "end": 5.402791
+    },
+    {
+      "word": "job",
+      "start": 5.402791,
+      "end": 5.986125
+    },
+    {
+      "word": "and",
+      "start": 5.986125,
+      "end": 6.111125
+    },
+    {
+      "word": "Retry",
+      "start": 6.111125,
+      "end": 6.597208
+    },
+    {
+      "word": "it",
+      "start": 6.597208,
+      "end": 7.819458
+    },
+    {
+      "word": "She'll",
+      "start": 7.819458,
+      "end": 8.138875
+    },
+    {
+      "word": "cover",
+      "start": 8.138875,
+      "end": 8.430541
+    },
+    {
+      "word": "the",
+      "start": 8.430541,
+      "end": 8.555541
+    },
+    {
+      "word": "starfish",
+      "start": 8.555541,
+      "end": 8.805541
+    }
+  ]
+}

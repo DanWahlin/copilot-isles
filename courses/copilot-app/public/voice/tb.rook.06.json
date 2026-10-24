@@ -1,87 +1,127 @@
 {
   "id": "tb.rook.06",
   "speaker": "Rook",
-  "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare.",
+  "text": "Then ask Copilot to implement the plan, check the Changes tab and reload. It should suggest changing the search term, genre or reading status.",
   "words": [
     {
       "word": "Then",
       "start": 0,
-      "end": 0.22
+      "end": 0.24
     },
     {
       "word": "ask",
-      "start": 0.22,
-      "end": 0.427
+      "start": 0.24,
+      "end": 0.56
     },
     {
-      "word": "it",
-      "start": 0.427,
-      "end": 0.533
+      "word": "Copilot",
+      "start": 0.56,
+      "end": 1.067
     },
     {
       "word": "to",
-      "start": 0.533,
-      "end": 0.68
+      "start": 1.067,
+      "end": 1.16
     },
     {
       "word": "implement",
-      "start": 0.68,
-      "end": 1.06
+      "start": 1.16,
+      "end": 1.54
     },
     {
       "word": "the",
-      "start": 1.06,
-      "end": 1.184
+      "start": 1.54,
+      "end": 1.68
     },
     {
       "word": "plan",
-      "start": 1.184,
-      "end": 1.893
+      "start": 1.68,
+      "end": 2.533
     },
     {
       "word": "check",
-      "start": 1.893,
-      "end": 2.18
-    },
-    {
-      "word": "the",
-      "start": 2.18,
-      "end": 2.3
-    },
-    {
-      "word": "Changes",
-      "start": 2.3,
+      "start": 2.533,
       "end": 2.82
     },
     {
-      "word": "tab",
+      "word": "the",
       "start": 2.82,
-      "end": 3.173
+      "end": 2.93
     },
     {
-      "word": "or",
-      "start": 3.173,
-      "end": 3.376
+      "word": "Changes",
+      "start": 2.93,
+      "end": 3.36
     },
     {
-      "word": "pill",
-      "start": 3.376,
-      "end": 4.309
-    },
-    {
-      "word": "reload",
-      "start": 4.309,
-      "end": 4.92
+      "word": "tab",
+      "start": 3.36,
+      "end": 3.66
     },
     {
       "word": "and",
-      "start": 4.92,
-      "end": 5.11
+      "start": 3.66,
+      "end": 3.909
     },
     {
-      "word": "compare",
-      "start": 5.11,
-      "end": 5.36
+      "word": "reload",
+      "start": 3.909,
+      "end": 4.773
+    },
+    {
+      "word": "It",
+      "start": 4.773,
+      "end": 5.074
+    },
+    {
+      "word": "should",
+      "start": 5.074,
+      "end": 5.34
+    },
+    {
+      "word": "suggest",
+      "start": 5.34,
+      "end": 5.804
+    },
+    {
+      "word": "changing",
+      "start": 5.804,
+      "end": 6.18
+    },
+    {
+      "word": "the",
+      "start": 6.18,
+      "end": 6.286
+    },
+    {
+      "word": "search",
+      "start": 6.286,
+      "end": 6.624
+    },
+    {
+      "word": "term",
+      "start": 6.624,
+      "end": 7.267
+    },
+    {
+      "word": "genre",
+      "start": 7.267,
+      "end": 7.76
+    },
+    {
+      "word": "or",
+      "start": 7.76,
+      "end": 8.13
+    },
+    {
+      "word": "reading",
+      "start": 8.13,
+      "end": 8.571
+    },
+    {
+      "word": "status",
+      "start": 8.571,
+      "end": 8.821
     }
   ]
 }

@@ -51,7 +51,7 @@ export function createCrane(host: PuzzleHost, site: CraneSite): Puzzle {
 
   const started = () => {
     const q = host.quests()[quest];
-    return q === S.gate || q === S.crane || q === S.solved || q === 'done';
+    return q === S.gate || q === S.brief || q === S.crane || q === S.solved || q === 'done';
   };
   /** The gate's up: Suri's gate lever moves the job past its `gate` step (the sluice does). */
   const actionsOn = () => host.quests()[quest] !== S.gate;

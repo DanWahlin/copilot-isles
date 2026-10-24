@@ -242,7 +242,7 @@
         "branch": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["label", "title", "ask", "intro", "uses", "read", "match"],
+          "required": ["label", "title", "ask", "intro", "uses", "read"],
           "properties": {
             "label": {
               "$ref": "#/$defs/text"
@@ -268,7 +268,17 @@
             "hint": {
               "$ref": "#/$defs/text"
             },
-            "match": {
+            "example": {
+              "description": "The field's placeholder: what a session's working branch looks like.",
+              "type": "string",
+              "pattern": "^[\\w./+-]+$"
+            },
+            "base": {
+              "description": "Shown when the player types the practice branch: it's the session's base branch, not its working branch.",
+              "$ref": "#/$defs/text"
+            },
+            "skip": {
+              "description": "The Skip button's label when a script asks (the Logbook's is Cancel).",
               "$ref": "#/$defs/text"
             }
           }

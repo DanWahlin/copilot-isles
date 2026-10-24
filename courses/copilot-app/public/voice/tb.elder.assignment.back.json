@@ -1,0 +1,42 @@
+{
+  "id": "tb.elder.assignment.back",
+  "speaker": "Maren",
+  "text": "Back with your theme, Captain? Show me.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.176
+    },
+    {
+      "word": "with",
+      "start": 0.176,
+      "end": 0.272
+    },
+    {
+      "word": "your",
+      "start": 0.272,
+      "end": 0.467
+    },
+    {
+      "word": "theme",
+      "start": 0.467,
+      "end": 0.94
+    },
+    {
+      "word": "Captain",
+      "start": 0.94,
+      "end": 1.696
+    },
+    {
+      "word": "Show",
+      "start": 1.696,
+      "end": 2
+    },
+    {
+      "word": "me",
+      "start": 2,
+      "end": 2.25
+    }
+  ]
+}

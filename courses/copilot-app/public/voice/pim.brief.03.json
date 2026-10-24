@@ -1,112 +1,97 @@
 {
   "id": "pim.brief.03",
   "speaker": "Pim",
-  "text": "Same here: Actions first. Pull the gate lever at Suri’s mill, then aim our crane at your ship, Dry-Run, and --yes.",
+  "text": "Actions first, Captain! Pull the gate lever at Suri’s mill, along the quay, then come back to us.",
   "words": [
     {
-      "word": "Same",
-      "start": 0.044625,
-      "end": 0.346
-    },
-    {
-      "word": "here",
-      "start": 0.346,
-      "end": 0.881708
-    },
-    {
       "word": "Actions",
-      "start": 0.881708,
-      "end": 1.261166
+      "start": 0.044625,
+      "end": 0.412958
     },
     {
       "word": "first",
-      "start": 1.261166,
-      "end": 2.511166
+      "start": 0.412958,
+      "end": 0.971
+    },
+    {
+      "word": "Captain",
+      "start": 0.971,
+      "end": 2.176333
     },
     {
       "word": "Pull",
-      "start": 2.511166,
-      "end": 2.700875
+      "start": 2.176333,
+      "end": 2.37725
     },
     {
       "word": "the",
-      "start": 2.700875,
-      "end": 2.8125
+      "start": 2.37725,
+      "end": 2.488833
     },
     {
       "word": "gate",
-      "start": 2.8125,
-      "end": 3.024541
+      "start": 2.488833,
+      "end": 2.700875
     },
     {
       "word": "lever",
-      "start": 3.024541,
-      "end": 3.348208
+      "start": 2.700875,
+      "end": 3.069208
     },
     {
       "word": "at",
-      "start": 3.348208,
-      "end": 3.459833
+      "start": 3.069208,
+      "end": 3.180791
     },
     {
       "word": "Suri’s",
-      "start": 3.459833,
-      "end": 3.761166
+      "start": 3.180791,
+      "end": 3.482125
     },
     {
       "word": "mill",
-      "start": 3.761166,
-      "end": 4.285708
+      "start": 3.482125,
+      "end": 3.995541
+    },
+    {
+      "word": "along",
+      "start": 3.995541,
+      "end": 4.241083
+    },
+    {
+      "word": "the",
+      "start": 4.241083,
+      "end": 4.3415
+    },
+    {
+      "word": "quay",
+      "start": 4.3415,
+      "end": 4.821416
     },
     {
       "word": "then",
-      "start": 4.285708,
-      "end": 4.453125
+      "start": 4.821416,
+      "end": 5.0335
     },
     {
-      "word": "aim",
-      "start": 4.453125,
-      "end": 4.609375
+      "word": "come",
+      "start": 5.0335,
+      "end": 5.223208
     },
     {
-      "word": "our",
-      "start": 4.609375,
-      "end": 4.787958
+      "word": "back",
+      "start": 5.223208,
+      "end": 5.446416
     },
     {
-      "word": "crane",
-      "start": 4.787958,
-      "end": 5.055791
+      "word": "to",
+      "start": 5.446416,
+      "end": 5.558041
     },
     {
-      "word": "at",
-      "start": 5.055791,
-      "end": 5.178583
-    },
-    {
-      "word": "your",
-      "start": 5.178583,
-      "end": 5.301333
-    },
-    {
-      "word": "ship",
-      "start": 5.301333,
-      "end": 5.770083
-    },
-    {
-      "word": "Dry-Run",
-      "start": 5.770083,
-      "end": 6.473208
-    },
-    {
-      "word": "and",
-      "start": 6.473208,
-      "end": 6.796875
-    },
-    {
-      "word": "-yes",
-      "start": 6.796875,
-      "end": 7.046875
+      "word": "us",
+      "start": 5.558041,
+      "end": 5.808041
     }
   ]
 }

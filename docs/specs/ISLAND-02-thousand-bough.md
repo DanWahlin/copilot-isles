@@ -3,7 +3,9 @@
 > Status: **design spec, ready to build** (2026-10-13). Written for two builders working in parallel:
 > **A (world)** and **B (content)**. Every decision here is made; where a number must be tuned in the
 > game, the spec gives the target and the test that proves it. Course source: `github/copilot-app-for-beginners`
-> `02-sessions-worktrees-context/README.md` at commit `86bb298` (2026-10-13).
+> `02-sessions-worktrees-context/README.md` at commit `86bb298` (2026-10-13); the pack's snapshot and
+> every `source` hash are at `a5cdf7d` (2026-10-17). The learning-journey rework of 2026-10-23 (§4.6)
+> changed Rook's and Pip's stops, the assignment, the Trial and the branch form.
 >
 > Diagrams: [top-down layout](island-02/top-down-layout.svg) · [tree village elevation](island-02/tree-elevation.svg) ·
 > [Channel Routing grids](island-02/channel-routing-grids.svg). All are hand-drawn SVG (no AI art), generated
@@ -65,15 +67,15 @@ snapshot them to `courses/copilot-app/public/course/ch02/`; ids below are `ch02/
 | What a session holds (intro, `learning-objectives`) | Bough Landing, Tamsin | **K2.1** multi-select | `pg2.session` |
 | Booth analogy (`from-the-studio-…`) | Booth Pools, Lyra | **K2.2** MC | `pg2.booths` (chest C2.1) |
 | Worktree + why (`what-is-a-git-worktree`, `why-the-github-copilot-app-uses-worktrees`) | Root Hall, Saffi | **M2.1** matching (the table) | `pg2.worktree`, `pg2.why` |
-| Where a session runs, Base branch, switch back, Create from (`where-a-session-runs`) | Three Landings, Oak | **H2.1** hotspot | `pg2.where` |
+| Where a session runs, Base branch, switch back, Create from (`where-a-session-runs`) | Three Landings, Oak | **K2.4**, **K2.6** (switch back now, in the app), **H2.1** hotspot | `pg2.where` |
 | Parallel without collisions; not ports (`why-…`, `where-a-session-runs`, `two-previews-collided`, `key-takeaways`) | Flume Terrace + Spire, Fen | **P2.1** Channel Routing, **P2.2** Spire twist | `pg2.parallel`, `pg2.ports` |
 | Decide between current checkout, a new worktree, or a cloud sandbox (`learning-objectives`, `where-a-session-runs`) | Oak; Flume Terrace round 3, Fen | **P2.1** round 3 (a place for each crew), **K2.4** (switch back to New worktree) | `pg2.where`, `pg2.parallel` |
 | `@ # / &`, less is more, drag and drop, the `/` palette (`context-syntax`, `attaching-files`, `slash-commands`) | Signal Deck, Ines | **P2.3** Flag Hoist (six orders), then **K2.3** | `pg2.context-syntax`, `pg2.attach`, `pg2.slash`, `pg2.more-commands` (chest C2.2) |
-| Exercise 1 (`exercise-start-…`) | Practice Bough, Rook | **H2.3** hotspot | `pg2.create-from`, `pg2.plan`, `pg2.preview` |
-| Exercise 2 (`exercise-check-…`) | Chronicle Loft, Pip | **H2.6** hotspot | `pg2.chronicle`, `pg2.context`, `pg2.details` |
+| Exercise 1 (`exercise-start-…`) | Practice Bough, Rook: brief, do it in the app, come back | **K2.9** (how you start it), **H2.3** hotspot; on the return, your working branch and issue, then **K2.5** (what you saw) | `pg2.create-from`, `pg2.plan`, `pg2.preview` (cards) |
+| Exercise 2 (`exercise-check-…`) | Chronicle Loft, Pip: brief, do it in the app, come back | **H2.6** hotspot; on the return, **K2.7** (what you saw) | `pg2.chronicle`, `pg2.context`, `pg2.details` (cards) |
 | Key takeaways (`key-takeaways`) | Crown Deck, Elder Maren | **Trial T2** (9 items) | `pg2.takeaways` |
 | Troubleshooting (`troubleshooting` subsections) | Three message bottles + the Spire twist | — | `B2.1`–`B2.3` |
-| Assignment (`assignment`) | Lantern House (optional, after the Seal) | "Try it in the app ↗" | `pg2.assignment` |
+| Assignment (`assignment`) | Crown Deck, Elder Maren (optional, after the Seal); the Lantern House shows the idea | "Do the assignment in the app ↗", then **K2.8** (the success criteria) | `pg2.assignment` |
 | What's next (`whats-next`) | Elder's farewell + Chart | — | — |
 
 ### 1.3 Screenshot hotspot geometry (measured on the course images, pixels `x, y, w, h`)
@@ -504,8 +506,8 @@ carries it.
 | Q2.4 | **The Three Landings** | Oak · L1E | Choose where a session runs; send a crate up the Cloud gondola | **+**, the workspace selector, **New worktree** / **Current checkout** / **Cloud**, **Base branch**, **Create from** | **H2.1** | `pg2.where` | Fen at the Flume Gallery |
 | Q2.5 | **Channel Routing** | Fen · Flume Gallery, then the Spire | Route three crews' water so they never mix; then the ports twist | Parallel sessions; worktrees don't separate ports | **P2.1**, **P2.2** | `pg2.parallel`, `pg2.ports` | Ines on the Signal Deck |
 | Q2.6 | **Four Flags** | Ines · Signal Deck (L2SW) | Hoist the right flag for each need; pack light; drop a file on the session | `@`, `#`, `/`, `&` in the prompt box; drag and drop onto a session; type `/` for the palette | P2.3 Flag Hoist, then **K2.3** | `pg2.context-syntax`, `pg2.attach`, `pg2.slash` | Rook across the Signal Bridge |
-| Q2.7 | **The Practice Bough** | Rook · L2S | Walk through Exercise 1 with the screenshots | **Create from** → **Branches** → **Plan** → `#3` → **Review plan** → **Exit plan mode and I will prompt myself** → preview → **Changes** | **H2.3** | `pg2.create-from`, `pg2.plan`, `pg2.preview` | Pip at the Chronicle Loft |
-| Q2.8 | **The Chronicle Loft** | Pip · L3SE | Read the crew's day back; check the session's usage | `/chronicle standup`, `/context`, the usage popup, the session name menu | **H2.6** | `pg2.chronicle`, `pg2.context`, `pg2.details` | The Elder at the Crown |
+| Q2.7 | **The Practice Bough** | Rook · L2S | Hear Exercise 1, do it in the app, come back and say what you saw | **Create from** → **Branches** → **Plan** → `#3` → **Review plan** → **Exit plan mode and I will prompt myself** → preview → **Changes** | **K2.9**, **H2.3**; back: **K2.5** | `pg2.create-from`, `pg2.plan`, `pg2.preview` | Pip at the Chronicle Loft |
+| Q2.8 | **The Chronicle Loft** | Pip · L3SE | Hear Exercise 2, run both commands in the app, come back and say what you saw | `/chronicle standup`, `/context`, the usage popup, the session name menu | **H2.6**; back: **K2.7** | `pg2.chronicle`, `pg2.context`, `pg2.details` | The Elder at the Crown |
 | Q2.9 | **The Canopy Trial** | Elder Maren · Crown Deck (L4) | Pass the Trial; light the Crown Beacon | key takeaways | **Trial T2** | `pg2.takeaways` | Keelhaven (Chapter 03) |
 
 Quest data (B, `src/game/thousand-bough-quests.ts`), modelled on `MERIDIAN_QUESTS`:
@@ -518,8 +520,8 @@ Quest data (B, `src/game/thousand-bough-quests.ts`), modelled on `MERIDIAN_QUEST
 | Q2.4 | Choose where a session runs | Climb the Great Stair to Oak at the Three Landings. | New worktree is the safe default. Base branch sets where it starts. Create from always makes a new worktree. |
 | Q2.5 | Run crews in parallel | Fen Marrow's at the Flume Gallery, along the boardwalk from the Three Landings. (`channels`: Route each crew's water to its own wheel. · `twist`: Both crews want the Lookout. · `solved`: Talk to Fen.) | Worktrees separate files and branches, not ports. Use different ports for parallel previews. |
 | Q2.6 | Add context to a prompt | Ines Calloway runs the Signal Deck, higher up the stair. | `@` files and folders, `#` issues and pull requests, `/` commands, `&` other sessions. Less is often more. |
-| Q2.7 | Start a session from a branch | Cross the Signal Bridge to Rook on the Practice Bough. | Create from, Branches, Plan, attach #3, then review the plan and the diff. |
-| Q2.8 | Check a session | Pip Hollow keeps the Chronicle Loft, near the top. | /chronicle standup recaps your day. /context shows tokens, context and AI credits. |
+| Q2.7 | Start a session from a branch | Cross the Signal Bridge to Rook on the Practice Bough. (`app`: Do Exercise 1 in the app: start a session from the practice branch and attach #3. Then tell Rook what you saw.) | Create from, Branches, Plan, attach #3, review the plan, then check the diff and the preview. |
+| Q2.8 | Check a session | Pip Hollow keeps the Chronicle Loft, near the top. (`app`: Do Exercise 2 in the app: send /chronicle standup and /context in that session. Then tell Pip what you saw.) | /chronicle standup recaps your day. /context shows tokens, context and AI credits. |
 | Q2.9 | Pass the Trial to earn the Seal | Elder Maren waits on the Crown Deck. (`exam`: The Elder's Trial is ready whenever you are.) | The Seal of Thousand-Bough is yours. |
 
 `THOUSAND_BOUGH_ISLAND.next`: "Keelhaven is next, and she's still being charted. Until then these waters
@@ -590,8 +592,8 @@ house on a fresh bough, the Great Hall's upper door, the gondola.
 **Q2.5 Fen (Flume Gallery → Spire).** See §5 for the puzzle. Outline: Fen's demo of the shared trough
 (Without isolation), three rounds, then the twist. Closing lines:
 - "Three crews, three channels, one spring. You can run sessions side by side without mixing their changes." `[§why-the-github-copilot-app-uses-worktrees]`
-- "Mind, the course has you work one session at a time in this chapter." `[§why-…]`
-- After the twist: "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide." `[§where-a-session-runs]` "So give parallel previews different ports." `[§key-takeaways]`
+- ~~"Mind, the course has you work one session at a time in this chapter."~~ (cut 2026-10-23, §4.6: Saffi says it)
+- ~~After the twist: "Worktrees separate files and branches, not everything…"~~ (cut 2026-10-23: the twist's answer lines and Wingman's `wingman.tb.ports` already say it; `pg2.ports` keeps it)
 - Back to the app, over `app-where-sessions-run`: "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch." `[§where-a-session-runs]`
 → "Ines wants a word about what you pack. Signal Deck, up the stair."
 
@@ -607,8 +609,9 @@ house on a fresh bough, the Great Hall's upper door, the gondola.
 8. **P2.3 Flag Hoist** (after line 5; lines 6 and 7 follow the check), then check **K2.3**. Grants the
    glossary terms **Context** and **Context syntax**. → "Rook's crew is on the Practice Bough. Mind the bridge, it sways."
 
-**Q2.7 Rook (Practice Bough).** A spyglass walk-through, one screenshot per step, each with an "Open in
-the course ↗" link; nothing is clicked in the real app.
+**Q2.7 Rook (Practice Bough).** *(Reworked 2026-10-23, §4.6: a brief, then you do it in the app and come
+back. The outline below is the first build's.)* A spyglass walk-through, one screenshot per step, each
+with an "Open in the course ↗" link.
 1. "This bough's a branch: `practice-empty-state-copy`. Its empty-state message got worse on purpose." `[§exercise-start-a-session-from-a-branch-and-attach-an-issue]`
 2. "Point to the project, select **Create from**, open **Branches**, pick our branch. New worktree, every time." (`app-create-from-icon`) `[§exercise-start-…]`
 3. "Set **Mode** to **Plan**, type `#3`, pick **Improve the empty state copy**, and ask for a plan." `[§exercise-start-…]`
@@ -618,7 +621,7 @@ the course ↗" link; nothing is clicked in the real app.
 7. "Say `Implement the plan`, then check the **Changes** tab or the **Changes** pill, reload, and compare." `[§exercise-start-…]`
 8. Check **H2.3**. "Try it in the app ↗" side quest. → "Pip's got the day's log. Up you go."
 
-**Q2.8 Pip (Chronicle Loft).** Spyglass: `app-chronicle-standup-output`, then `app-context-information`.
+**Q2.8 Pip (Chronicle Loft).** *(Reworked 2026-10-23, §4.6.)* Spyglass: `app-chronicle-standup-output`, then `app-context-information`.
 1. "`/chronicle standup` reports your work from the last day. It should list this session and its changes." `[§exercise-check-the-session-with-slash-commands]`
 2. "`/context` opens the usage popup below the prompt box. Or select the AI credits icon by the microphone." `[§exercise-check-…]`
 3. "**Session** shows the AI credits it used, **Tokens** what went to the model and back, and **Plan** your plan's use." `[§exercise-check-…]`
@@ -646,13 +649,68 @@ the course ↗" link; nothing is clicked in the real app.
    **Keelhaven** ("Coming soon" until it's built).
 5. Reduced motion: lanterns fade on together over 2 s, no firefly spiral, no camera move.
 
-### 4.5 Optional: the Lantern House (assignment)
+### 4.5 Optional: the assignment, and the Lantern House
 
-After the Seal, the L1E scaffold is a finished little house. Rook: "Your turn: a light and dark theme for
-the Book App, in its own worktree." A lever switches its shutters between **day** (open, warm light) and
-**night** (closed, lanterns on). "Try it in the app ↗" links to `[§assignment]`; Logbook `pg2.assignment`
-paraphrases the success criteria (identify the branch and worktree, the context you attached, the change
-and its evidence, `main` unchanged).
+After the Seal, Elder Maren has one more job (Q2.A, given at the Crown so there's nothing to walk back
+down for; it was Rook's, ~220 m back down the tree, and it never finished): "One more job, Captain: a
+light and dark theme for the Book App, in its own worktree, without touching main." `[§assignment]`, the
+card `pg2.assignment`, and "Do it in the app, then come back and show me what you've got." When you come
+back she asks **K2.8**, the assignment's success criteria as a checklist (the branch and worktree path,
+the context you attached, a diff with only the theme's changes, the tests, build and preview; not a merge
+into `main`, not a pull request), then "Main's untouched, and the theme's safe in its own worktree."
+`[§assignment]` and the quest is done. Leaving the checklist keeps the quest open for later. The tracker
+and the compass point at her for both steps; "Do the assignment in the app ↗" links to `[§assignment]`.
+
+After the Seal, the L1E scaffold is a finished little house: a lever switches its shutters between
+**day** (open, warm light) and **night** (closed, lanterns on), the idea in wood. It's on the stair, so
+it's optional scenery, not a step.
+
+### 4.6 The learning-journey rework (2026-10-23)
+
+From the learning-journey review (Chapter 02 audit R1-R9, and the new-player playthrough):
+
+- **The exercises gate the story (R3).** Rook and Pip each brief their exercise, then send you to do it
+  in the app: the quest's `app` step ("Do Exercise 1 in the app… Then tell Rook what you saw"), with the
+  course one click away (R1: "Do Exercise 1 in the app ↗", "Do Exercise 2 in the app ↗", and Q2.4's
+  "Switch back to New worktree in the app ↗"). Pip waits until Rook's done. Talk to them again when
+  you're back: Rook asks your session's **working branch** (the form's Skip is "I haven't done it yet",
+  for players without the app), then, only if you gave it (`when: "branch:given"`), your issue's number
+  and **K2.5** ("What does the empty state say now?"); Pip asks **K2.7** ("What did `/chronicle standup`
+  report?") on the same condition. Without the app you skip once and the story carries on.
+  *For the learning-systems "Do this in the app" card (I did it / Later) and the Logbook's app
+  checklist:* wrap the `Q2.7:app` and `Q2.8:app` steps (and `Q2.A:try`): the card opens where the brief
+  ends (`{ "quest": "Q2.7", "step": "app" }`), "I did it" leads into the return beat (`rook.back`,
+  `pip.back`, `elder.assignment.back`), and "Later" leaves the step as it is.
+- **Base branch vs working branch (R2).** `practice-empty-state-copy` is where the session starts (its
+  base branch); a new worktree gets a branch of its own (`[§where-a-session-runs]`: "New worktree: the
+  session gets its own folder and branch"; the session details list both, `[§exercise-check-…]`). The
+  branch form starts empty, refuses the practice branch ("That's the base branch…"), and its hint and
+  placeholder follow the course's `appendices/git-worktrees.md` (the app names a session branch with your
+  prefix and generated words, like `octocat-bookish-invention`; not in the snapshot). Rook says it
+  (`tb.rook.branch`), the terminal shows **Base branch** and the working branch only once you've given it,
+  and no caption or page calls the practice branch the session's. A save that kept the practice branch
+  as its working branch (the old form's default) forgets it, so Rook asks again.
+- **The keyboard details as cards (R4).** `pg2.create-from`, `pg2.plan` (with the prompt to send and the
+  scope tip), `pg2.preview` (the prompts and the expected result), `pg2.chronicle`, `pg2.context` (the
+  Context breakdown's parts) and `pg2.details` (why no pull request) are reveal cards, not silent pages.
+  Rook says the scope tip (`tb.rook.scope`) and the expected result (`tb.rook.06`).
+- **A real switch back (R5).** After K2.4, **K2.6**: "Do it now in the app… What does it show?"; Current
+  checkout or Cloud loops back with how to switch.
+- **The Trial and checks test understanding (R6).** **K2.9** (how you start the session: **Create from**,
+  not **+** with whatever the selector remembers, a terminal switch or **Cloud**) opens Rook's stop. It's
+  a choice, not a hotspot: `app-create-from-icon` has the pointer on the icon and its tooltip, so the
+  chapter test keeps it out of hotspots. **T2.10** (the session edited the wrong folder → its details' path and
+  branch, `[§the-session-edited-the-wrong-folder]`) and **T2.11** (why check `/context` → to see when a
+  session is getting overloaded) replace T2.7 and T2.8, the screenshot lookups. M2.1's and H2.6's hints
+  no longer give the answer by its words.
+- **Trims (R7).** Fen's close drops `tb.fen.close` (the twist's lines and Wingman already say it) and
+  `tb.fen.oneatatime` (Saffi says it); **K2.2** asks why each musician gets a booth.
+- **Accuracy (R9).** Cloud is in public preview (`pg2.where`, the `cloud-sandbox` term); the Context
+  breakdown's parts (`pg2.context`); the intentional regression (`pg2.details`); bottle B2.3 covers
+  `/chronicle` and links the official list; new term `usage-popup`; Oak teaches `current-checkout`.
+- **Saves.** No quest step was renamed or removed: `app` is new between `start` and `done`, so saves keep
+  their steps (a save at `start` hears the brief; Q2.A at `start` or `try` from Rook is the Elder's now),
+  and `course.json` needs no quest migration. Tests: `thousand-bough-quests.test.ts`, `setup.test.ts`.
 
 ---
 
@@ -886,13 +944,18 @@ hotspot, `T2.x` = Trial items, `C2.x` chests, `B2.x` bottles, `pg2.*` pages. Eve
 | Id | Type | Prompt | Answer | Distractors (feedback) | Source |
 |---|---|---|---|---|---|
 | **K2.1** | multi | "What can a project session have of its own?" | its own **branch**; its own **working folder**; a **plan** and a **diff**; **terminal output** and a **browser preview**; **GitHub context** | "Its own GitHub account" ("You sign in once. The chapter's list is branch, folder, plan, diff, terminal output, preview and GitHub context.") · "A new fork of your repository" ("A fork is your own copy on GitHub, from Chapter 00. A session works on a branch and folder of your project.") | `learning-objectives` (intro) |
-| **K2.2** | mc | "In Lyra's studio, what's a recording booth like?" | **A worktree: the same song, its own folder and branch** | "A chat: a quick question, nothing recorded" · "The model: who sings" · "A pull request: the final mix" | `from-the-studio-one-studio-many-recording-booths` |
+| **K2.2** | mc | "Why does each musician in Lyra's studio get a booth of their own?" | **So each part is recorded apart, and parallel work doesn't collide** | "So the song takes less time to play" · "So each musician can play a different song" · "So the takes never get mixed" | `from-the-studio-one-studio-many-recording-booths` |
 | **M2.1** | matching | "Match each problem to what a worktree-backed session gives you." | Multiple tasks edit the same folder ↔ Each task gets a separate folder · Easy to lose track of branch state ↔ The session branch is visible in the app · Tests and diffs mix together ↔ Diffs stay tied to the session · Hard to compare work ↔ Easier to inspect and approve | — | `why-the-github-copilot-app-uses-worktrees` |
 | **H2.1** | hotspot `app-where-sessions-run` | "Where do you set the branch that a new worktree starts from?" | `base-branch` | `new-worktree` ("That box is the course's highlight. **New worktree** says *where*; the starting branch is set further down.") · `current-checkout` · `cloud` · `workspace-selector` ("This opens the menu. The setting you want is inside it.") | `where-a-session-runs` |
 | **P2.1/P2.2** | puzzle | §5 | — | — | §5.1 |
 | **K2.4** | mc | "Your workspace selector still says **Current checkout**, your pick from Chapter 00. What do you do before your next session?" | **Open the workspace selector and choose New worktree** | "Nothing. Each new session starts on New worktree" ("The app remembers your last choice, so it would stay on Current checkout.") · "Choose Cloud" ("Cloud runs the session off your machine. The course switches back to New worktree.") · "Keep Current checkout. It's quicker" ("Quick, but it works right in your clone…") | `where-a-session-runs` |
+| **K2.6** | mc | "Do it now in the app: point to the project, select **+**, and open the workspace selector. What does it show?" | **New worktree** | Current checkout ("That's your Chapter 00 choice, still remembered. Choose New worktree…") · Cloud · "I'm not at the app right now" (how to switch before Rook's exercise) | `where-a-session-runs` |
 | **K2.3** | mc | "Your turn: Copilot's adding a light and dark theme to the Book App. What context do you attach?" | **`@samples/book-app-web/src`: the code it needs** | "`@` every folder in the repository" · "Every open issue, with `#`" · "Nothing. Copilot will search everything" | `context-syntax` (the tip; the scenario is the chapter's assignment) |
 | **H2.3** | hotspot `app-plan-from-issue` | "The course has you leave plan mode and write your own prompts. Which option?" | `exit-plan` | `approve` ("That approves the plan and implements it in **Autopilot**.") · `suggest` ("That asks for changes to the plan.") · `continue` ("Pick an option first; **Continue** confirms it.") · `plan-tab` ("That's where the plan opens.") | `exercise-start-a-session-from-a-branch-and-attach-an-issue` |
+| **K2.9** | mc | "Rook's exercise starts your session from the practice branch. How do you start it?" | **Point to the project, select Create from, then pick the branch on Branches** | "Select + and keep whatever the workspace selector says" (it may still say Current checkout) · "Switch your clone to the branch in a terminal" · "Set Base branch, then pick Cloud" | `exercise-start-a-session-from-a-branch-and-attach-an-issue` |
+| **K2.5** | mc (back from the app, `branch:given`) | "You reloaded the preview and searched `zzzz-no-match` again. What does the empty state say now?" | **It suggests changing the search term, genre or reading status** | "Still No results and Try again" (check the diff, finish the plan, reload) · "The Hobbit shows up" · "The preview didn't open" (the prompt to send) | `exercise-start-…` |
+| **K2.7** | mc (back from the app, `branch:given`) | "What did `/chronicle standup` report?" | **My work from the last day, with this session and its changes** | "Every session I've ever run" · "Tokens, context and AI credits" (that's `/context`) · "Nothing: `/chronicle` wasn't there" (read the palette) | `exercise-check-…` |
+| **K2.8** | multi (the assignment, at the Crown) | "Your light and dark theme: what can you show?" | branch and worktree path · `@samples/book-app-web/src` · a diff with only the theme's changes · tests, build and both themes in the preview | "The theme merged into `main`" · "A pull request" | `assignment` |
 | **H2.6** | hotspot `app-context-information` | "Where do you see how many AI credits this session has used?" | `session` | `plan` ("**Plan** is the share of your plan used.") · `tokens` ("**Tokens** counts what went to the model and back.") · `context` (course highlight; "That's how the context window is divided.") · `view-usage` ("That opens your account's usage and billing.") | `exercise-check-the-session-with-slash-commands` |
 
 ### 6.2 Optional extras (spyglass moments, not required)
@@ -921,8 +984,11 @@ Nine items, pass with all correct, retries allowed, hint tier 3 off. Covers the 
 | T2.4 | scenario | "Two sessions in separate worktrees both start the Book App's preview on port 5173." → "What happens?" | "They can collide: worktrees separate files and branches, not ports" (vs "Nothing; worktrees separate everything" · "The second session's files overwrite the first") | `key-takeaways`, `two-previews-collided` |
 | T2.5 | matching | "Match each example to its symbol." | `@samples/book-app-web/src` ↔ files or folders · `#12` ↔ issues or pull requests · `/chronicle standup` ↔ slash commands · `&` + a session from the list ↔ other sessions | `context-syntax` |
 | T2.6 | ordering | "Put the first steps of the exercise in order." | Point to the project, select **Create from** → open **Branches** and pick `practice-empty-state-copy` → set **Mode** to **Plan** → type `#3` and pick the issue → send the prompt → review the plan | `exercise-start-a-session-from-a-branch-and-attach-an-issue` |
-| T2.7 | hotspot `app-where-sessions-run` | "Your Chapter 00 session worked straight in your existing clone. Which option was that?" | `current-checkout` (distractors `new-worktree`, `cloud`, `base-branch`) | `where-a-session-runs` |
-| T2.8 | hotspot `app-context-information` | "Where do you see the tokens the session sent to the model and got back?" | `tokens` (distractors `session`, `plan`, `context`, `credits-icon`) | `exercise-check-the-session-with-slash-commands` |
+| T2.10 | scenario | "Your session's changes turned up in the wrong folder." → "What do you check first?" | "The session details: its worktree path and branch name" (vs "Reinstall the app" · "Start a chat instead of a session" · "Its preview's port") | `the-session-edited-the-wrong-folder` |
+| T2.11 | mc | "Why check `/context` before you add more files, issues or instructions?" | "To see when the session is getting overloaded" (vs "To recap your last day's work" · "To find the session's branch" · "To send the last prompt again") | `exercise-check-the-session-with-slash-commands` |
+
+T2.10 and T2.11 replaced T2.7 (a hotspot for Current checkout, repeating T2.3) and T2.8 (a hotspot for
+Tokens, repeating H2.6) on 2026-10-23: the Trial asks for moves you'll need, not rows to find.
 | T2.9 | mc | "What does `/chronicle standup` do?" | "Summarizes your work from the last day" (vs "Shows the session's token use" · "Starts a new session on a branch" · "Lists every slash command") | `slash-commands` |
 
 Reward: `{ seal: 'Seal of Thousand-Bough', doubloons: 60 }`.
@@ -955,7 +1021,7 @@ nothing authored (PLAN §8.1).
 | `pg2.assignment` | Your turn: light and dark | — | the assignment's success criteria | `assignment` |
 | `B2.1` | No practice branches? | — | rerun the setup script, or connect your fork, not the upstream repo | `i-dont-see-the-practice-branches` |
 | `B2.2` | Wrong folder? | — | check the worktree path and branch in session details; prefer a new worktree | `the-session-edited-the-wrong-folder` |
-| `B2.3` | No `/context`? | — | it works after one sent prompt; type `/` for the palette | `context-or-chronicle-is-missing` |
+| `B2.3` | No /context or /chronicle? | — | `/context` works after one sent prompt; type `/` for the palette, or the official list | `context-or-chronicle-is-missing` |
 
 Chests: `{ id: 'C2.1', page: 'pg2.booths', doubloons: 10 }`, `{ id: 'C2.2', page: 'pg2.more-commands',
 doubloons: 15 }`; bottles `B2.1`–`B2.3` (5 each, `kind: 'bottle'`).
@@ -973,7 +1039,7 @@ Workspace selector · Context · Context syntax (`@ # / &`) · Slash command · 
 | **P2.3 Flag Hoist** | Signal Deck | Ines calls six orders. Four are needs, never the symbol: "Copilot needs the Book App's source folder" (`@`), "Get a recap of your last day's work" (`/`), "Attach the bug report about the empty state" (`#`), "Use what Rook's crew's session found" (`&`); you hoist the flag that brings it. Then **Pack light**: "Copilot's fixing one empty-state message. What do you bring?" → `#` just the empty-state issue (vs `@` every folder, nothing, `#` every open issue). Last, **A letter from ashore**: "A letter's on your computer, not in the repository. Get it into the session." → drag it onto the session in the sidebar (vs `@`, `#`, `/context`). The flag runs up the mast and snaps in the wind; a wrong pick drops back with Ines's reason. Then check **K2.3** (a new job, the same tip) | keys 1–4 / tap the flag or choice (≥ 48 px; ≥ 44 px in the landscape-phone layout) | `context-syntax`, `attaching-files`, `exercise-start-…` |
 | **Booth Pools** | Q2.2 | Step into each of the three booths: the island music ducks and that booth's instrument plays close (kalimba, flute, rain-stick), muffled outside it. Stepping back out lets the full song in | walk | the analogy, felt |
 | **Cloud gondola** | Q2.4 | Pull the bell rope: a crate rides the gondola into the mist on Thunder Crown and comes back sealed 60 s later. Oak: "Done somewhere else, and your own deck stayed untouched." `[§where-a-session-runs]` | E at the bell | Cloud |
-| **Lantern House** | §4.5 | day/night shutters | E at the lever | the assignment |
+| **Lantern House** | §4.5 | day/night shutters (the assignment's idea; the quest is the Elder's) | E at the lever | the assignment |
 | **Life** | everywhere | the Fernrun rope swing (kids), parrots that flush when you pass the Booth Pools, blue butterflies, frogs that go quiet as you approach the pools, dragonflies, the Sky Basket operator's wave | — | — |
 
 ---
@@ -1347,7 +1413,7 @@ Run it on the screenshots and a full play-through. **Any "no" sends the island b
 | **Triangles in shadow passes** (the tree is big) | Low/Medium over budget | only trunk, limbs and clusters cast; LOD by distance; cached shadows; measure early on Low |
 | **Music mismatch** | the island sounds like a tavern | D7: new Suno track from Dan; placeholder blocks acceptance |
 | **New audio** (waterfall, rain drips, frogs, parrots, booth loops) | missing files block the soundscape | source CC0 first; ElevenLabs/Firefly for the rest; log each |
-| **Course drift** (the chapter or screenshots change after 86bb298) | stale rects or names | anchors + filenames only; tests against the ch02 snapshot; the weekly refresh flags drift |
+| **Course drift** (the chapter or screenshots change after a5cdf7d) | stale rects or names | anchors + filenames only; tests against the ch02 snapshot; the weekly refresh flags drift |
 | **The live-course agent** is changing `SourceRef` and course assets tonight | merge conflict in `src/learn/types.ts` | B rebases on it before adding `'02-sessions-worktrees-context'` (D10) |
 | **Course images with built-in highlights** (`new-worktree`, `context`) and the pointer in `app-create-from-icon` | a give-away answer | never the correct target; the test checks it |
 | **Voice casting** | accents that read as caricature, or ElevenLabs credits | three auditions per character, Dan approves, natural direction only |

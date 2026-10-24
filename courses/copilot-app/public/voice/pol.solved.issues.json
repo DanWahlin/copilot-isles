@@ -1,0 +1,107 @@
+{
+  "id": "pol.solved.issues",
+  "speaker": "Pol",
+  "text": "And if your fork’s issues are missing afterwards, turn on Issues under Settings, then Features, and run the script again.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.05,
+      "end": 0.228583
+    },
+    {
+      "word": "if",
+      "start": 0.228583,
+      "end": 0.340166
+    },
+    {
+      "word": "your",
+      "start": 0.340166,
+      "end": 0.418291
+    },
+    {
+      "word": "fork’s",
+      "start": 0.418291,
+      "end": 0.786625
+    },
+    {
+      "word": "issues",
+      "start": 0.786625,
+      "end": 1.166083
+    },
+    {
+      "word": "are",
+      "start": 1.166083,
+      "end": 1.210708
+    },
+    {
+      "word": "missing",
+      "start": 1.210708,
+      "end": 1.512041
+    },
+    {
+      "word": "afterwards",
+      "start": 1.512041,
+      "end": 2.36025
+    },
+    {
+      "word": "turn",
+      "start": 2.36025,
+      "end": 2.628125
+    },
+    {
+      "word": "on",
+      "start": 2.628125,
+      "end": 2.762041
+    },
+    {
+      "word": "Issues",
+      "start": 2.762041,
+      "end": 3.163833
+    },
+    {
+      "word": "under",
+      "start": 3.163833,
+      "end": 3.353583
+    },
+    {
+      "word": "Settings",
+      "start": 3.353583,
+      "end": 4.212958
+    },
+    {
+      "word": "then",
+      "start": 4.212958,
+      "end": 4.413833
+    },
+    {
+      "word": "Features",
+      "start": 4.413833,
+      "end": 5.284375
+    },
+    {
+      "word": "and",
+      "start": 5.284375,
+      "end": 5.462958
+    },
+    {
+      "word": "run",
+      "start": 5.462958,
+      "end": 5.652666
+    },
+    {
+      "word": "the",
+      "start": 5.652666,
+      "end": 5.697333
+    },
+    {
+      "word": "script",
+      "start": 5.697333,
+      "end": 6.021
+    },
+    {
+      "word": "again",
+      "start": 6.021,
+      "end": 6.271
+    }
+  ]
+}

@@ -172,7 +172,7 @@
     "repoName": "copilot-app-for-beginners"
   },
   "setup": {
-    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch}, {os} and {keys} are filled in. `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
+    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch} (the practice branch: a session's base branch), {os} and {keys} are filled in. `branch.hint` and `branch.example` follow the course's appendices/git-worktrees.md, Worktree, branch, and session (the app names a new session branch with your branch prefix and generated words; not in the snapshot). `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
     "os": {
       "label": "Your computer",
       "title": "Change your computer",
@@ -196,20 +196,22 @@
     "branch": {
       "label": "Your session’s branch",
       "title": "Change your session’s branch",
-      "ask": "Which **branch** is your session on?",
-      "intro": "You started it with **Create from** on `{branch}`, in a new worktree. Select the session name at the top of the app’s window to see its working branch, then type it, or keep this one.",
-      "uses": "The Practice Bough’s session terminal, your Logbook, and Pip’s standup will show it.",
+      "ask": "What’s your session’s **working branch**?",
+      "intro": "**Create from** started your session from `{branch}`, its **base branch**, in a new worktree with a working branch of its own. Select the session name at the top of the app’s window to see both, then type the working branch here.",
+      "uses": "The Practice Bough’s session terminal and your Logbook will show it.",
       "field": "Working branch",
-      "read": "Your branch:",
-      "match": "That’s the one",
-      "hint": "Like `{branch}`"
+      "read": "Your working branch:",
+      "hint": "The app names it with your branch prefix and a few words, like `octocat-bookish-invention`.",
+      "example": "octocat-bookish-invention",
+      "base": "That’s the **base branch**, where your session started. Your session works on a branch of its own: select the session name at the top of the window to see it.",
+      "skip": "I haven’t done it yet"
     },
     "model": {
       "label": "Your model",
       "title": "Change your model",
       "ask": "Which **model** did you pick?",
       "intro": "For this exercise the course says you can keep **Auto** or your current model. What does your model control show?",
-      "uses": "Your Logbook will note it, and Oren will ask one question about your choice.",
+      "uses": "Your Logbook will note it on the Try the controls page.",
       "field": "Your model control",
       "choices": {
         "auto": {
@@ -242,14 +244,7 @@
     },
     "islands": {
       "anchorage": {
-        "welcome": [
-          "wingman.welcome.01",
-          "wingman.welcome.02",
-          "wingman.welcome.03",
-          "@nav",
-          "@starfish",
-          "wingman.welcome.05"
-        ],
+        "welcome": ["wingman.welcome.01", "wingman.welcome.03", "@nav", "@starfish", "wingman.welcome.05"],
         "welcomeBack": ["wingman.welcome.back"],
         "tips": {
           "nav": "wingman.welcome.04",
@@ -292,8 +287,8 @@
             "raiders": ["Unchecked", "No Dry Run"]
           },
           {
-            "quiz": "N0.2",
-            "raiders": ["Wrong Fork", "Wrong Account"]
+            "quiz": "N0.3",
+            "raiders": ["Missing Tool", "Stale Version"]
           }
         ]
       },
@@ -319,13 +314,15 @@
   },
   "legacySaves": true,
   "migrations": {
-    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; the crane follows Bo, and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues; app 1.1.30 dropped More (Edit sidebar...) and named Projects Sessions, so the More page became Sessions and chats. taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
+    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; Suri's gate lever (Actions) follows Bo, then Pim and Pol's briefing (`brief`) and the crane, so the old first step (`start`, Pim and Pol before the lever) goes to `actions` (or `brief` if the lever's already pulled), and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues; app 1.1.30 dropped More (Edit sidebar...) and named Projects Sessions, so the More page became Sessions and chats. taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
     "quests": [
       { "when": { "Q0.2": "chest" }, "set": { "Q0.2": "palette" } },
       { "when": { "Q0.5": "done", "Q0.4": { "not": "done" } }, "set": { "Q0.4": "done" } },
       { "when": { "Q0.5": { "not": [null, "done"] }, "Q0.4": "done" }, "set": { "Q0.4": "start" } },
       { "when": { "Q0.3": "done", "Q0.4": null }, "set": { "Q0.4": "start" } },
-      { "when": { "Q0.4": "done", "Q0.7": null }, "set": { "Q0.7": "start" } },
+      { "when": { "Q0.4": "done", "Q0.7": null }, "set": { "Q0.7": "actions" } },
+      { "when": { "Q0.7": "start", "$workflowsOn": true }, "set": { "Q0.7": "brief" } },
+      { "when": { "Q0.7": "start" }, "set": { "Q0.7": "actions" } },
       { "when": { "Q0.7": "crane", "$workflowsOn": false }, "set": { "Q0.7": "actions" } },
       { "when": { "Q0.7": "done", "Q0.8": null }, "set": { "Q0.8": "start" } },
       { "when": { "Q0.7": "done", "Q0.6": null }, "set": { "Q0.6": "start" } },

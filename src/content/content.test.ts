@@ -253,6 +253,7 @@ describe('the content checks report broken edits by entry', () => {
       'quest',
       'quest',
       'quest',
+      'quest',
     ]);
     expect(paths(issuesWith('puzzles/crane.json', { ...crane, quest: 'Q9.9' }))).toEqual(['quest']);
     const noQuest = { ...crane };

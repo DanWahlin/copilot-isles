@@ -1,0 +1,102 @@
+{
+  "id": "mer.oren.market.wait",
+  "speaker": "Oren",
+  "text": "Gilda's market is down in the plaza, Captain. A quick look first, then a hard job and its Retry.",
+  "words": [
+    {
+      "word": "Gilda's",
+      "start": 0.055541,
+      "end": 0.541666
+    },
+    {
+      "word": "market",
+      "start": 0.541666,
+      "end": 0.972208
+    },
+    {
+      "word": "is",
+      "start": 0.972208,
+      "end": 1.152791
+    },
+    {
+      "word": "down",
+      "start": 1.152791,
+      "end": 1.458333
+    },
+    {
+      "word": "in",
+      "start": 1.458333,
+      "end": 1.555541
+    },
+    {
+      "word": "the",
+      "start": 1.555541,
+      "end": 1.652791
+    },
+    {
+      "word": "plaza",
+      "start": 1.652791,
+      "end": 2.388875
+    },
+    {
+      "word": "Captain",
+      "start": 2.388875,
+      "end": 3.930541
+    },
+    {
+      "word": "A",
+      "start": 3.930541,
+      "end": 4.027791
+    },
+    {
+      "word": "quick",
+      "start": 4.027791,
+      "end": 4.305541
+    },
+    {
+      "word": "look",
+      "start": 4.305541,
+      "end": 4.513875
+    },
+    {
+      "word": "first",
+      "start": 4.513875,
+      "end": 5.277791
+    },
+    {
+      "word": "then",
+      "start": 5.277791,
+      "end": 5.458333
+    },
+    {
+      "word": "a",
+      "start": 5.458333,
+      "end": 5.513875
+    },
+    {
+      "word": "hard",
+      "start": 5.513875,
+      "end": 5.916666
+    },
+    {
+      "word": "job",
+      "start": 5.916666,
+      "end": 6.291666
+    },
+    {
+      "word": "and",
+      "start": 6.291666,
+      "end": 6.444458
+    },
+    {
+      "word": "its",
+      "start": 6.444458,
+      "end": 6.611125
+    },
+    {
+      "word": "Retry",
+      "start": 6.611125,
+      "end": 6.861125
+    }
+  ]
+}

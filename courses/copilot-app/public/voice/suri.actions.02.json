@@ -1,7 +1,7 @@
 {
   "id": "suri.actions.02",
   "speaker": "Suri",
-  "text": "Gate’s up, so your workflows are on! Back to the crane, Captain. Come see me once your practice items are in.",
+  "text": "Gate’s up, so your workflows are on! Now Pim and Pol’s crane, at the end of the pier. Come see me once your practice items are in.",
   "words": [
     {
       "word": "Gate’s",
@@ -26,87 +26,117 @@
     {
       "word": "workflows",
       "start": 1.11,
-      "end": 1.63
+      "end": 1.59
     },
     {
       "word": "are",
-      "start": 1.63,
-      "end": 1.83
+      "start": 1.59,
+      "end": 1.79
     },
     {
       "word": "on",
-      "start": 1.83,
-      "end": 2.63
+      "start": 1.79,
+      "end": 2.389
     },
     {
-      "word": "Back",
-      "start": 2.63,
-      "end": 2.949
+      "word": "Now",
+      "start": 2.389,
+      "end": 2.789
     },
     {
-      "word": "to",
-      "start": 2.949,
-      "end": 3.03
+      "word": "Pim",
+      "start": 2.789,
+      "end": 2.989
     },
     {
-      "word": "the",
-      "start": 3.03,
-      "end": 3.19
+      "word": "and",
+      "start": 2.989,
+      "end": 3.15
+    },
+    {
+      "word": "Pol’s",
+      "start": 3.15,
+      "end": 3.469
     },
     {
       "word": "crane",
-      "start": 3.19,
-      "end": 3.51
+      "start": 3.469,
+      "end": 3.869
     },
     {
-      "word": "Captain",
-      "start": 3.51,
-      "end": 4.19
+      "word": "at",
+      "start": 3.869,
+      "end": 3.949
     },
     {
-      "word": "Come",
-      "start": 4.19,
+      "word": "the",
+      "start": 3.949,
+      "end": 4.07
+    },
+    {
+      "word": "end",
+      "start": 4.07,
+      "end": 4.23
+    },
+    {
+      "word": "of",
+      "start": 4.23,
+      "end": 4.31
+    },
+    {
+      "word": "the",
+      "start": 4.31,
       "end": 4.43
     },
     {
-      "word": "see",
+      "word": "pier",
       "start": 4.43,
-      "end": 4.59
+      "end": 5.23
+    },
+    {
+      "word": "Come",
+      "start": 5.23,
+      "end": 5.47
+    },
+    {
+      "word": "see",
+      "start": 5.47,
+      "end": 5.63
     },
     {
       "word": "me",
-      "start": 4.59,
-      "end": 4.71
+      "start": 5.63,
+      "end": 5.75
     },
     {
       "word": "once",
-      "start": 4.71,
-      "end": 4.91
+      "start": 5.75,
+      "end": 5.95
     },
     {
       "word": "your",
-      "start": 4.91,
-      "end": 5.07
+      "start": 5.95,
+      "end": 6.11
     },
     {
       "word": "practice",
-      "start": 5.07,
-      "end": 5.51
+      "start": 6.11,
+      "end": 6.51
     },
     {
       "word": "items",
-      "start": 5.51,
-      "end": 5.79
+      "start": 6.51,
+      "end": 6.79
     },
     {
       "word": "are",
-      "start": 5.79,
-      "end": 5.99
+      "start": 6.79,
+      "end": 6.99
     },
     {
       "word": "in",
-      "start": 5.99,
-      "end": 6.24
+      "start": 6.99,
+      "end": 7.24
     }
   ]
 }

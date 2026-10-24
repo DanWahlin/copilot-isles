@@ -1,0 +1,92 @@
+{
+  "id": "nell.takeaways.01",
+  "speaker": "Nell",
+  "text": "Before you sail, three things to keep. The app’s your desktop control center for agent-driven coding work.",
+  "words": [
+    {
+      "word": "Before",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "you",
+      "start": 0.28,
+      "end": 0.496
+    },
+    {
+      "word": "sail",
+      "start": 0.496,
+      "end": 1.24
+    },
+    {
+      "word": "three",
+      "start": 1.24,
+      "end": 1.486
+    },
+    {
+      "word": "things",
+      "start": 1.486,
+      "end": 1.813
+    },
+    {
+      "word": "to",
+      "start": 1.813,
+      "end": 2.016
+    },
+    {
+      "word": "keep",
+      "start": 2.016,
+      "end": 2.78
+    },
+    {
+      "word": "The",
+      "start": 2.78,
+      "end": 3.5
+    },
+    {
+      "word": "app’s",
+      "start": 3.5,
+      "end": 3.776
+    },
+    {
+      "word": "your",
+      "start": 3.776,
+      "end": 3.91
+    },
+    {
+      "word": "desktop",
+      "start": 3.91,
+      "end": 4.45
+    },
+    {
+      "word": "control",
+      "start": 4.45,
+      "end": 4.857
+    },
+    {
+      "word": "center",
+      "start": 4.857,
+      "end": 5.28
+    },
+    {
+      "word": "for",
+      "start": 5.28,
+      "end": 5.573
+    },
+    {
+      "word": "agent-driven",
+      "start": 5.573,
+      "end": 6.297
+    },
+    {
+      "word": "coding",
+      "start": 6.297,
+      "end": 6.736
+    },
+    {
+      "word": "work",
+      "start": 6.736,
+      "end": 6.986
+    }
+  ]
+}

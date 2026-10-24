@@ -4,25 +4,38 @@
   "mechanic": "budget",
   "quest": "Q1.A",
   "page": "pg1.market",
-  "$comment": "The Model Market (a stall on every island; Gilda's on Port Meridian runs Q1.A): a Copilot-app-only mechanic. You hire a model (Auto, or a category's model with an effort) for each job on her board, paying starfish; the grade (right-sized, over, short) is the game's, against the course's guidance on models and reasoning effort. The jobs, prices, refunds, stamps, quotes and the keepers' lines are the pack's market.json; the model list is models.json; this file is the market's words: the overlay, the hire's name, each outcome's summary, the stall's signs and Wingman's hints.",
+  "lesson": {
+    "$comment": "Oren (Q1.6) teaches models and effort, then sends you here: until then every stall's keeper says their `early` line. While Q1.6 is at `market`, Gilda's stall runs his practice (a quick look right-sized, then a hard job and a Retry of it) and stakes you the starfish; then Q1.6 goes to `practiced` and you tell Oren.",
+    "taught": {
+      "Q1.6": ["market", "practiced", "done"]
+    },
+    "practice": {
+      "Q1.6": "market"
+    },
+    "practiced": {
+      "Q1.6": "practiced"
+    }
+  },
+  "$comment": "The Model Market (a stall on every island; Gilda's on Port Meridian runs Q1.A): a Copilot-app-only mechanic. You hire a model (Auto, or a category's model with an effort) for each job on her board, paying starfish; the grade (right-sized, over, short) is the game's, against the course's guidance on models and reasoning effort. The jobs, prices, refunds, stamps, quotes and the keepers' lines are the pack's market.json; the model list is models.json; this file is the market's words (the overlay, the hire's name, each outcome's summary, the stall's signs and Wingman's hints) and its `lesson`: when the course has taught models (the stalls grade from then on), and the practice Gilda's stall runs for that lesson.",
   "text": {
     "auto": "Auto",
     "savedCategory": "a {category} model",
     "savedModel": "a model",
     "hireName": "{model} on {effort}",
     "summary.quick-right": "{who} did the job for {paid} starfish: right-sized.",
-    "summary.quick-over-model": "{who} did the job, but it cost {paid} starfish for a {fair}-starfish job.",
+    "summary.quick-keep": "{who} did the job, right-sized: a quick look needs no extra effort. It cost {paid} starfish, where {fair} would do.",
     "summary.quick-over-effort": "{who} did the job, but High effort cost {paid} starfish for a {fair}-starfish job.",
     "summary.hard-right": "{who} got it done: right-sized for a hard job.",
-    "summary.hard-short-auto": "Auto made a start, but with its effort hidden, the job isn’t done.",
+    "summary.hard-auto": "Auto chose a model for the job and got it done. On a job this hard, you can also turn Auto off and choose a model and more effort: Retry it to compare.",
     "summary.hard-short-model": "{who} made a start, but a Lightweight model isn’t enough for this job.",
-    "summary.hard-short-effort": "{who} made a start, but it needs more effort for this job.",
+    "summary.hard-short-effort": "{who} made a start, but this job wants a model suited to complex coding, or more effort.",
     "interact": "Hire a model at {keeper}’s Model Market",
+    "interactEarly": "Ask {keeper} about the Model Market",
     "retryModelNotice": "Retry with a different model: same job, and you don’t write it again. {model} fell short, so you pick another.",
     "retryEffortNotice": "Retry with more effort: same job, same model, and you don’t write it again. You choose the effort.",
-    "hint1": "Read the job first, Captain. A quick look doesn’t need a big model. A hard job wants more muscle and effort.",
+    "hint1": "Read the job first, Captain. A quick look needs no extra effort: Auto, or your model on its default. A hard job may want a stronger model and more effort.",
     "hint2": "I’ll mark a hire that fits each job. Open {keeper}’s work order and look for the glow.",
-    "hint3": "Quick looks: Auto, or a Lightweight model on its default effort. Hard jobs: a Powerful model, or a Versatile one on High effort.",
+    "hint3": "Quick looks: Auto, or any model on its default effort (High is more than it needs). Hard jobs: Auto, a Powerful model, or a Versatile one on High effort.",
     "boardHead": "{category} · {price} ★",
     "more": "+{n} more",
     "plaque": "House special: Auto · {price} ★",
@@ -86,7 +99,7 @@
     "retryPickFirst": "Pick a model first (1–4), then its name.",
     "retryChooseModel": "Choose a different model first.",
     "retryChooseEffort": "Choose an effort first.",
-    "retryPickModel": "{model} fell short last time. Pick a size, then a different model.",
+    "retryPickModel": "You hired {model} last time. Pick a size, then a different model.",
     "retryPickAfterAuto": "Auto’s off for this Retry. Pick a model, then set the effort dial.",
     "chooseModel": "Choose a model",
     "chooseEffort": "Choose an effort",
@@ -99,6 +112,14 @@
     "fair": "Right-sized: you paid a fair price{doubloons}.",
     "fairDoubloons": ", and here’s {n} doubloons",
     "announceRetryModel": "{title}. Retry: choose a different model. You have {purse} starfish.",
-    "announceRetryEffort": "{title}. Retry: choose the effort. You have {purse} starfish."
+    "announceRetryEffort": "{title}. Retry: choose the effort. You have {purse} starfish.",
+    "retryAgain": "Retry: a different model",
+    "retryAgainNotice": "Retry with a different model: same job, and you don’t write it again. You hired {model} last time, so pick another to compare.",
+    "keepPaid": "Right-sized. No starfish back: Auto or a Lightweight model costs less here{doubloons}.",
+    "practiceHead": "Oren’s practice",
+    "practiceQuick": "Hire a model for a quick look, right-sized",
+    "practiceRetry": "Take a hard job, then Retry it",
+    "practiceDone": " (done)",
+    "practiceStake": "{keeper}’s staked you {n} starfish for Oren’s practice."
   }
 }

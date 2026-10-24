@@ -55,6 +55,18 @@ function talk(npc: string, q: Record<string, string>): readonly ScriptStep[] {
   }
   return beat.steps;
 }
+/** A stop as you'd play it: talk, and talk again after each exercise you're sent to do in the app. */
+function visit(npc: string, q: Record<string, string>): readonly ScriptStep[] {
+  const steps: ScriptStep[] = [];
+  let last: readonly ScriptStep[];
+  do {
+    last = talk(npc, q);
+    steps.push(...last);
+  } while (last.some((s) => 'quest' in s && s.step === APP));
+  return steps;
+}
+/** The step an exercise waits on while you do it in the app (the course pack's quest step). */
+const APP = 'app';
 
 describe('Thousand-Bough quests (Chapter 02)', () => {
   it('plays the nine stops in the course’s order, each pointing on to the next', () => {
@@ -63,7 +75,7 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     for (const npc of ORDER) {
       const before = thousandBoughCurrent(q)!.id;
       order.push(before);
-      talk(npc, q);
+      visit(npc, q);
       expect(q[before], `${npc} finishes ${before}`).toBe('done');
     }
     expect(order).toEqual(['Q2.1', 'Q2.2', 'Q2.3', 'Q2.4', 'Q2.5', 'Q2.6', 'Q2.7', 'Q2.8', 'Q2.9']);
@@ -81,13 +93,78 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     const q: Record<string, string> = {};
     const asked: string[] = [];
     for (const npc of ORDER) {
-      const steps = talk(npc, q);
+      const steps = visit(npc, q);
       for (const s of steps) {
         if ('quiz' in s) asked.push(s.quiz);
         if ('trial' in s) asked.push(s.trial);
       }
     }
-    expect(asked).toEqual(['K2.1', 'K2.2', 'M2.1', 'K2.4', 'H2.1', 'K2.3', 'H2.3', 'H2.6', 'T2']);
+    expect(asked).toEqual([
+      'K2.1',
+      'K2.2',
+      'M2.1',
+      'K2.4',
+      'K2.6',
+      'H2.1',
+      'K2.3',
+      'K2.9',
+      'H2.3',
+      'K2.5',
+      'H2.6',
+      'K2.7',
+      'T2',
+    ]);
+  });
+
+  it('sends you to do each exercise in the app, and asks what you saw when you come back', () => {
+    const q: Record<string, string> = {};
+    for (const npc of ORDER.slice(0, 6)) visit(npc, q);
+    for (const [npc, quest, saw] of [
+      ['rook', 'Q2.7', 'K2.5'],
+      ['pip', 'Q2.8', 'K2.7'],
+    ] as const) {
+      const brief = talk(npc, q);
+      expect(q[quest], `${npc}'s brief ends at the app step`).toBe(APP);
+      // The brief's cards hold what you'll need at the keyboard; nothing asks what you saw yet.
+      expect(brief.filter((s) => 'page' in s).length, npc).toBeGreaterThanOrEqual(3);
+      expect(brief.some((s) => 'askSetup' in s || ('quiz' in s && s.quiz === saw))).toBe(false);
+      // The tracker and the compass send you back to them, with the course one click away.
+      expect(thousandBoughCurrent(q)).toMatchObject({ id: quest, step: APP });
+      expect(thousandBoughTarget(q)).toMatchObject({ ids: [`npc:${npc}`] });
+      expect(THOUSAND_BOUGH_QUESTS.find((d) => d.id === quest)!.link?.url).toMatch(/#exercise-/);
+      // The next stop waits.
+      const next = ORDER[ORDER.indexOf(npc) + 1]!;
+      expect(thousandBoughNpcScript(next, q)!.steps).toEqual([{ say: `tb.${next}.wait` }]);
+      const back = talk(npc, q);
+      // What you saw is asked only of players who did it (they gave their session's branch).
+      expect(back).toContainEqual({ quiz: saw, when: 'branch:given' });
+      expect(q[quest]).toBe('done');
+    }
+    // Rook's return asks for the session's working branch (Skip: not done it yet), then the issue.
+    const rookBack = thousandBoughNpcScript('rook', { ...q, 'Q2.7': APP })!.steps;
+    expect(rookBack.filter((s) => 'askSetup' in s)).toEqual([
+      { askSetup: 'branch' },
+      { askSetup: 'issue', when: 'branch:given' },
+    ]);
+  });
+
+  it('gives the assignment at the Crown, and finishes it there with your report', () => {
+    const q: Record<string, string> = {};
+    for (const npc of ORDER) visit(npc, q);
+    expect(q['Q2.A']).toBe('start');
+    expect(thousandBoughTarget(q)).toBeNull();
+    expect(THOUSAND_BOUGH_TARGETS['Q2.A:start']).toMatchObject({ ids: ['npc:elder'] });
+    expect(THOUSAND_BOUGH_TARGETS['Q2.A:try']).toMatchObject({ ids: ['npc:elder'] });
+    // Rook has nothing more to give: no walk back down the tree.
+    expect(thousandBoughNpcScript('rook', q)!.steps).toEqual([{ say: 'tb.rook.done' }]);
+    const brief = talk('elder', q);
+    expect(brief).toContainEqual({ page: 'pg2.assignment', doubloons: 15 });
+    expect(q['Q2.A']).toBe('try');
+    const report = talk('elder', q);
+    expect(report).toContainEqual({ quiz: 'K2.8' });
+    expect(q['Q2.A']).toBe('done');
+    expect(thousandBoughTracker(q).tasks.at(-1)).toMatchObject({ id: 'Q2.A', status: 'done' });
+    expect(thousandBoughNpcScript('elder', q)!.steps).toEqual([{ say: 'tb.elder.done' }]);
   });
 
   it('sends anyone ahead of the story back, and gives everyone a line once they’re done', () => {
@@ -98,10 +175,12 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
       expect('say' in beat.steps[0]! && beat.steps[0].say.endsWith('.wait'), npc).toBe(true);
     }
     const all: Record<string, string> = {};
-    for (const npc of ORDER) talk(npc, all);
-    // After the Seal, Rook offers the assignment once.
-    expect(talk('rook', all).some((st) => 'page' in st && st.page === 'pg2.assignment')).toBe(true);
+    for (const npc of ORDER) visit(npc, all);
+    // After the Seal, the Elder offers the assignment once, and takes your report.
+    expect(talk('elder', all).some((st) => 'page' in st && st.page === 'pg2.assignment')).toBe(true);
     expect(all['Q2.A']).toBe('try');
+    talk('elder', all);
+    expect(all['Q2.A']).toBe('done');
     for (const npc of ORDER) {
       const beat = thousandBoughNpcScript(npc, all)!;
       expect(beat.steps.length, npc).toBeLessThanOrEqual(2);
@@ -137,8 +216,8 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
   it('only uses content that exists', () => {
     const steps = ORDER.flatMap((npc) => {
       const q: Record<string, string> = {};
-      for (const prev of ORDER.slice(0, ORDER.indexOf(npc))) talk(prev, q);
-      return [...thousandBoughNpcScript(npc, q)!.steps];
+      for (const prev of ORDER.slice(0, ORDER.indexOf(npc))) visit(prev, q);
+      return [...visit(npc, q), ...visit('elder', q)];
     });
     for (const s of [...steps, ...FEN_SOLVED]) {
       if ('quiz' in s) expect(QUIZZES.has(s.quiz), s.quiz).toBe(true);
@@ -175,7 +254,7 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     for (const id of teaching) expect(THOUSAND_BOUGH_LINES, id).toContain(id);
     // Every scripted line of the stops' teaching beats is cited, except greetings, directions and banter.
     const untaught =
-      /\.(wait|done|next|chest|01|channels|deadend|round1|retry|pass|flag\.ok|order\.\d|twist\.0\d)$|^juno\.tb\.|^wingman\.tb\.0|^wingman\.starfish|^tb\.elder\.0[12]$|^tb\.saffi\.01$|^tb\.tamsin\.01$|^tb\.fen\.03$/;
+      /\.(wait|done|next|chest|01|channels|deadend|round1|retry|pass|flag\.ok|order\.\d|twist\.0\d|go|back)$|^juno\.tb\.|^wingman\.tb\.0|^wingman\.starfish|^tb\.elder\.0[12]$|^tb\.saffi\.01$|^tb\.tamsin\.01$|^tb\.fen\.03$/;
     for (const id of THOUSAND_BOUGH_LINES)
       if (!untaught.test(id)) expect(teaching, `${id} cites its section`).toContain(id);
   });
@@ -211,6 +290,24 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
     );
     expect(mid.quests['P2.1']).toBe('r3');
     expect(thousandBoughNpcScript('fen', mid.quests)!.steps).toEqual([{ say: 'tb.fen.channels' }]);
+    // Saves from before the exercises were done in the app keep every step they had: Rook's and
+    // Pip's are the same steps (a save at `start` hears the brief), and the assignment Rook gave
+    // (`start` or `try`) is the Elder's now, at the Crown.
+    const sealed = { 'Q2.6': 'done', 'Q2.7': 'done', 'Q2.8': 'done', 'Q2.9': 'done' };
+    expect(thousandBoughNpcScript('rook', { 'Q2.6': 'done', 'Q2.7': 'start' })!.steps).toContainEqual({
+      quest: 'Q2.7',
+      step: APP,
+    });
+    expect(thousandBoughNpcScript('elder', { ...sealed, 'Q2.A': 'start' })!.steps).toContainEqual({
+      page: 'pg2.assignment',
+      doubloons: 15,
+    });
+    expect(thousandBoughNpcScript('elder', { ...sealed, 'Q2.A': 'try' })!.steps).toContainEqual({
+      quiz: 'K2.8',
+    });
+    expect(thousandBoughNpcScript('rook', { ...sealed, 'Q2.A': 'try' })!.steps).toEqual([
+      { say: 'tb.rook.done' },
+    ]);
   });
 
   it('opens once the Seal of Meridian is won (and always in dev)', () => {

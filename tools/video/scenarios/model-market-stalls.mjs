@@ -3,7 +3,7 @@
 // work order opens with nothing chosen, and you pick Powerful yourself: right-sized), then, after a cut,
 // Lani's booth on Thousand-Bough's landing with the same purse and the same job done on its board.
 import { skipTalk } from '../lib.mjs';
-import { ashore, labelsShown } from '../game.mjs';
+import { ashore, labelsShown, questsDone } from '../game.mjs';
 
 const stall = (api, id) => api.S((id) => window.__dev.session().debug.puzzle(id)?.state() ?? null, id);
 const ANCHORAGE = 'market@anchorage';
@@ -68,6 +68,9 @@ export default {
 
   async setup(page, api) {
     await labelsShown(api);
+    // Oren's lesson (Chapter 01's models and effort) is done: the stalls grade (before it, their keepers
+    // send you to him).
+    await questsDone(api, ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5', 'Q1.6']);
     // Starfish to spend, as if a few had been picked up on the way.
     await api.S(() => window.__dev.learn.refundStarfish(9));
     // Thousand-Bough streamed and warmed once off camera, so the cut there doesn't wait on it.

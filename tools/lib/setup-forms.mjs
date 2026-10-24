@@ -11,6 +11,9 @@ export const SETUP_VALUES = {
   model: { pick: 'other', name: 'Example Model 2' },
 };
 
+/** The Copilot app course's practice branch (its course.json `practice.branch`): a session's base branch. */
+const PRACTICE_BRANCH = 'practice-empty-state-copy';
+
 /** `--setup=skip` skips every form; `--setup=enter` (the default) enters `SETUP_VALUES`. */
 export function setupPlan(flag) {
   if (flag === 'skip') return { os: 'skip', issue: 'skip', branch: 'skip', model: 'skip' };
@@ -76,6 +79,19 @@ export async function answerSetupForm(page, form, plan, { shot, fail }) {
     if (!err) fail(`setup ${kind}: no error for ${JSON.stringify(hostile)}`);
     if (!(await page.$(sel))) fail(`setup ${kind}: a hostile value closed the form`);
     await shot(`setup-${kind}-error`);
+    if (kind === 'branch') {
+      // The practice branch is the session's base branch, never its working branch: it's refused too.
+      await page.fill(`${sel} input[type=text]`, PRACTICE_BRANCH);
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(250);
+      const baseErr = await page.evaluate(
+        (s) => document.querySelector(`${s} .ci-fork-error`)?.textContent ?? '',
+        sel,
+      );
+      if (!/base branch/.test(baseErr)) fail(`setup branch: the base branch wasn't refused ("${baseErr}")`);
+      if (!(await page.$(sel))) fail('setup branch: the base branch closed the form');
+      await shot('setup-branch-base');
+    }
     await page.fill(`${sel} input[type=text]`, '');
     await page.keyboard.type(String(want), { delay: 10 });
     await page.waitForTimeout(250);

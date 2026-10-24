@@ -1,0 +1,67 @@
+{
+  "id": "tb.pip.back",
+  "speaker": "Pip",
+  "text": "Back already? If you ran the chronicle, tell me what it said.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.21
+    },
+    {
+      "word": "already",
+      "start": 0.21,
+      "end": 0.827
+    },
+    {
+      "word": "If",
+      "start": 0.827,
+      "end": 1.24
+    },
+    {
+      "word": "you",
+      "start": 1.24,
+      "end": 1.4
+    },
+    {
+      "word": "ran",
+      "start": 1.4,
+      "end": 1.54
+    },
+    {
+      "word": "the",
+      "start": 1.54,
+      "end": 1.653
+    },
+    {
+      "word": "chronicle",
+      "start": 1.653,
+      "end": 2.352
+    },
+    {
+      "word": "tell",
+      "start": 2.352,
+      "end": 2.533
+    },
+    {
+      "word": "me",
+      "start": 2.533,
+      "end": 2.672
+    },
+    {
+      "word": "what",
+      "start": 2.672,
+      "end": 2.827
+    },
+    {
+      "word": "it",
+      "start": 2.827,
+      "end": 2.96
+    },
+    {
+      "word": "said",
+      "start": 2.96,
+      "end": 3.21
+    }
+  ]
+}

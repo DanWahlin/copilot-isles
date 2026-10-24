@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A course pack's checklist puzzle (courses/<id>/puzzles/<name>.json)",
-  "description": "Check each thing in turn (the gear rack's tools and versions; the practice session's readout). Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
+  "description": "Check each thing in turn (the gear rack's tools and versions, run one per press; the practice session's readout). Every puzzle file has an `id`, its `mechanic`, and may set `disabled` (the site stays as scenery), `text` (its words by key, `{name}` filled in by the game) and `lines` (its voice line ids by what they're for). docs/specs/COURSE-PACKS.md §4.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "mechanic"],
@@ -78,8 +78,55 @@
           "output": {
             "type": "string",
             "minLength": 1
+          },
+          "stale": {
+            "type": "object",
+            "description": "What the check prints the first time you run it instead (an out-of-date version the course wants you to catch), and the script of this file's `scripts` it plays then. The next run prints `output`.",
+            "additionalProperties": false,
+            "required": ["output", "script"],
+            "properties": {
+              "output": {
+                "type": "string",
+                "minLength": 1
+              },
+              "script": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "notes": {
+            "type": "object",
+            "description": "A tip shown with the check's result on one kind of computer (the player's, from Your setup or the browser), as the keeper's caption.",
+            "additionalProperties": false,
+            "properties": {
+              "mac": {
+                "type": "string",
+                "minLength": 1
+              },
+              "windows": {
+                "type": "string",
+                "minLength": 1
+              },
+              "linux": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
+      }
+    },
+    "scripts": {
+      "type": "object",
+      "description": "The gear rack's scripts: `intro` (the first press while its quest is at its checks), `checked` (every check has passed; it moves the quests on), and any a stale check names.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "minItems": 1
       }
     },
     "title": {
@@ -103,6 +150,10 @@
           "you": {
             "enum": ["os", "issue", "branch", "model"],
             "description": "The line shows a Your setup value: the game marks it as yours."
+          },
+          "show": {
+            "enum": ["given", "missing"],
+            "description": "With `you`: the line shows only once the player has given that value (`given`), or only until they have (`missing`)."
           }
         }
       }

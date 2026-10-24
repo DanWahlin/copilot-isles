@@ -168,7 +168,7 @@ Step 1 left puzzle content where it was; this table was the plan for step 2. Wha
 | Puzzle (id) | Island · NPC | Generic mechanic | Content fields | Content today | Step 2 |
 | --- | --- | --- | --- | --- | --- |
 | Palette stand (`Q0.2.palette`) | Anchorage · Nell | Pick one of N (cosmetic) + scripted follow-up | `colors[]`, `scripts.finished`, `scripts.late` | `paint-sails.ts` `PALETTE_FINISHED`, `NEW_VIEW_LATE` | Data-only |
-| Gear rack (`Q0.4`, cue `gear-checks`) | Anchorage · Bo | Checklist / terminal readout | `checks[{id, label, command, output}]` | `world/sites/gear-logic.ts` `GEAR` | Data-only |
+| Gear rack (`Q0.4` `checks`) | Anchorage · Bo | Checklist you run, one check per press | `checks[{id, name, tool, command, output, stale?, notes?}]`, `scripts` | `world/sites/gear-logic.ts`, `game/puzzles/gear-rack.ts` | Data-only |
 | Sluice (`P0.1`, `Q0.6`) | Anchorage · Suri | Routing (rotate tiles to outlets) | `outlets[{id, label, meaning}]`, `layout`, feedback | `sluice-logic.ts` `ANCHORAGE_SLUICE` | Data-only (layout is game geometry; meanings are content) |
 | Dry-Run Crane (`P0.2`, `Q0.7`) | Anchorage · Pim & Pol | Procedure with a dry run and guards | `targets[{id, owner, label}]`, `cargo[]`, `command`, guard messages | `crane-logic.ts` `CRANE_FACINGS`, `CRANE_CARGO`, `SETUP_COMMAND` | **Refactor first**: guards encode the course's setup script rules (fork ownership, Actions on) |
 | First words (`Q0.8.pipes`, quiz `S0.2`) | Anchorage · Juno | Choose the right tool, then send | `choices[{id, label, correct, feedback}]`, `prompt`, `reply[]` | `first-words.ts` `SHORT_PROMPT`, `HATCH_LINES`, `REPLY_LINES`, `JUNO_REPLY` | Data-only |
@@ -302,7 +302,7 @@ its `mechanic` and validated by `courses/schemas/puzzle-<mechanic>.schema.json`.
 
 | File | Mechanic | What moved | What stayed in code |
 | --- | --- | --- | --- |
-| `gear-rack.json` | checklist | the checks (tool, command, output), the terminal's sign-in and title, the prompt | the rack, its order of play |
+| `gear-rack.json` | checklist | the checks (tool, command, output, an out-of-date first `stale` output and its script, per-computer `notes`), the `intro`, `checked` and stale scripts, the terminal's sign-in and title, the prompts and hints | the rack, its order of play (one check per press while its quest is at `checks`) |
 | `practice-session.json` | checklist | the terminal's title and readout (setup tokens) | — |
 | `palette.json` | ceremony | the finished and late scripts, prompts, hints | the colours (game art) |
 | `bard.json`, `christening.json` | ceremony | Wingman's hints (and the bard's announcement) | timing, the ship name board |
@@ -468,13 +468,14 @@ first welcomes, the gangway, the compass on to Thousand-Bough and the Meridian S
 
 **Puzzles' quests.** A puzzle file names the quest it plays in, `"quest": "Q0.7"`, read with
 `puzzleQuest(name)` (`src/course/puzzles.ts`). The steps a mechanic sets and waits on are the game's
-words, `PUZZLE_STEPS` (the crane's `gate`, `crane`, `solved`; the letters' `letters`, `solved`…), and
+words, `PUZZLE_STEPS` (the crane's `gate`, `brief`, `crane`, `solved`; the gear rack's `checks`; the letters' `letters`, `solved`…), and
 that quest must have them, under the same names or the ones the puzzle's file maps them to
 (`"steps"`: the Copilot app course's crane calls `gate` `actions`). Mechanics read them through
 `puzzleSteps(name)`, resolved once per course activation, so every one can be renamed
 (`src/game/puzzles/steps.test.ts` renames them all). Every quest ends at `done`, the game's own step for
 a finished quest: it isn't a mechanic step and can't be mapped. The crane reads the gear rack's quest,
-the mill race the crane's. Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
+the mill race the crane's: its gate lever moves the crane's job from `gate` on to `brief` (the crew's
+briefing at the crane; the crane runs from `gate` on). Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
 its module (`SLUICE_ID`, `LETTERS_ID`, `HOIST_ID`); Channel Routing keeps its rounds under its own key
 in the quests. The palette's late page (`latePage`) and the market's page (`page`) moved to their files.
 

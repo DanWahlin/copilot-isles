@@ -131,37 +131,37 @@
     {
       "id": "K2.2",
       "type": "mc",
-      "prompt": "In Lyra’s studio, what’s a recording booth like?",
+      "prompt": "Why does each musician in Lyra’s studio get a booth of their own?",
       "options": [
         {
-          "id": "worktree",
-          "text": "A worktree: the same song, its own folder and branch"
+          "id": "apart",
+          "text": "So each part is recorded apart, and parallel work doesn’t collide"
         },
         {
-          "id": "chat",
-          "text": "A chat: a quick question, nothing recorded",
-          "feedback": "A booth records a real part of the song. Each musician works apart, on the same song."
+          "id": "shorter",
+          "text": "So the song takes less time to play",
+          "feedback": "It’s the same song. The booth keeps each part apart while it’s recorded."
         },
         {
-          "id": "model",
-          "text": "The model: who sings",
-          "feedback": "The booth isn’t the singer. It’s the separate space they record in."
+          "id": "songs",
+          "text": "So each musician can play a different song",
+          "feedback": "It’s one song, like one repository. Each booth is its own space for one part."
         },
         {
-          "id": "pr",
-          "text": "A pull request: the final mix",
-          "feedback": "The mix comes later. The booth is where each part is recorded on its own."
+          "id": "never",
+          "text": "So the takes never get mixed",
+          "feedback": "They’re mixed later. The booth keeps each part apart while it’s being recorded."
         }
       ],
-      "answer": "worktree",
+      "answer": "apart",
       "explain": {
-        "correct": "Right. A worktree is connected to the same repository, like the same song, but it has its own folder and branch.",
-        "wrong": "Each booth keeps one part apart while the whole band plays the same song."
+        "correct": "Right. A worktree is a booth: the same song (the same repository), with its own folder and branch, so parallel work doesn’t collide.",
+        "wrong": "Picture the band crowded round one microphone. What does a booth stop?"
       },
       "hints": [
-        "What does the booth keep apart?",
+        "What would go wrong round one microphone?",
         "Same song, separate space.",
-        "A worktree: the same song, its own folder and branch."
+        "So each part is recorded apart, and parallel work doesn’t collide."
       ],
       "source": {
         "chapter": "02-sessions-worktrees-context",
@@ -217,11 +217,11 @@
       ],
       "explain": {
         "correct": "That’s the chapter’s table. With a worktree-backed session, you can even run sessions in parallel without mixing their file changes.",
-        "wrong": "Each problem has the fix that answers it directly: folders, branches, diffs, then reviewing."
+        "wrong": "Picture one task in a worktree of its own: where its files live, what the app shows you, where its diff goes, and how you review it."
       },
       "hints": [
-        "Match each problem to the fix that names the same thing.",
-        "The folder problem is fixed by folders, and the diff problem by diffs.",
+        "Picture two tasks sharing one folder. Now give each a worktree of its own: what gets better?",
+        "Each fix is something you can see or do in the app once a task has its own worktree.",
         "Same folder → separate folder · branch state → branch visible · mixed diffs → diffs tied · compare → inspect and approve."
       ],
       "source": {
@@ -329,6 +329,47 @@
       }
     },
     {
+      "id": "K2.6",
+      "type": "mc",
+      "prompt": "Do it now in the app: point to the project, select **+**, and open the workspace selector. What does it show?",
+      "options": [
+        {
+          "id": "new",
+          "text": "**New worktree**"
+        },
+        {
+          "id": "current",
+          "text": "**Current checkout**",
+          "feedback": "That’s your Chapter 00 choice, still remembered. Choose **New worktree** in the menu now. You don’t need to send a prompt."
+        },
+        {
+          "id": "cloud",
+          "text": "**Cloud**",
+          "feedback": "**Cloud** runs the session off your machine. For this course, choose **New worktree** in the menu."
+        },
+        {
+          "id": "later",
+          "text": "I’m not at the app right now",
+          "feedback": "Then do it before Rook’s exercise: point to the project, select **+**, open the workspace selector and choose **New worktree**. That’s what it’ll show."
+        }
+      ],
+      "answer": "new",
+      "explain": {
+        "correct": "That’s the one. You don’t need to send a prompt: the app keeps your choice.",
+        "wrong": "Choose **New worktree** in the workspace selector, then pick what it shows."
+      },
+      "hints": [
+        "The app remembers your last choice.",
+        "Switch it in the menu, then look again.",
+        "**New worktree**."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "where-a-session-runs",
+        "hash": "a55a83c1ff55"
+      }
+    },
+    {
       "id": "K2.3",
       "type": "mc",
       "prompt": "Your turn: Copilot’s adding a light and dark theme to the Book App. What context do you attach?",
@@ -367,6 +408,47 @@
         "chapter": "02-sessions-worktrees-context",
         "anchor": "context-syntax",
         "hash": "e41d9116c6a3"
+      }
+    },
+    {
+      "id": "K2.9",
+      "type": "mc",
+      "prompt": "Rook’s exercise starts your session from the practice branch. How do you start it?",
+      "options": [
+        {
+          "id": "create-from",
+          "text": "Point to the project, select **Create from**, then pick the branch on **Branches**"
+        },
+        {
+          "id": "plus",
+          "text": "Select **+** and keep whatever the workspace selector says",
+          "feedback": "The app remembers your last choice, and yours may still be **Current checkout**. A session started with **Create from** always gets a new worktree."
+        },
+        {
+          "id": "terminal",
+          "text": "Switch your clone to the branch in a terminal, then start a session",
+          "feedback": "That changes your own checkout. **Create from** starts the session from the branch in a new worktree instead."
+        },
+        {
+          "id": "cloud",
+          "text": "Set **Base branch**, then pick **Cloud**",
+          "feedback": "**Cloud** runs the session in a cloud sandbox, off your machine. The exercise starts it with **Create from**, in a new worktree."
+        }
+      ],
+      "answer": "create-from",
+      "explain": {
+        "correct": "Right. On **Branches**, pick `practice-empty-state-copy`: the app starts a new session from it in a new worktree.",
+        "wrong": "The exercise starts the session from the branch itself, with one icon beside the project."
+      },
+      "hints": [
+        "It’s an icon that appears when you point to the project.",
+        "It always gets a new worktree.",
+        "Select **Create from**, then the branch on **Branches**."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
+        "hash": "6db80a8de549"
       }
     },
     {
@@ -427,6 +509,47 @@
       }
     },
     {
+      "id": "K2.5",
+      "type": "mc",
+      "prompt": "You reloaded the preview and searched `zzzz-no-match` again. What does the empty state say now?",
+      "options": [
+        {
+          "id": "suggests",
+          "text": "It suggests changing the search term, genre or reading status"
+        },
+        {
+          "id": "same",
+          "text": "Still **No results** and **Try again**",
+          "feedback": "That’s the baseline from before. Check the diff in the **Changes** tab, ask Copilot to finish the plan if it hasn’t, then reload and search again."
+        },
+        {
+          "id": "hobbit",
+          "text": "**The Hobbit** shows up",
+          "feedback": "That’s what `hobbit` finds. The empty state needs a search that matches nothing, like `zzzz-no-match`."
+        },
+        {
+          "id": "none",
+          "text": "The preview didn’t open",
+          "feedback": "Send `Run the Book App in samples/book-app-web and open the preview.` It opens in the built-in browser panel. Then reload and search again."
+        }
+      ],
+      "answer": "suggests",
+      "explain": {
+        "correct": "That’s the result the course expects: a message that helps you search again.",
+        "wrong": "The course expects the empty state to suggest changing the search term, genre or reading status."
+      },
+      "hints": [
+        "It’s not the message from before.",
+        "The fix makes the empty state more helpful.",
+        "It suggests changing the search term, genre or reading status."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
+        "hash": "6db80a8de549"
+      }
+    },
+    {
       "id": "H2.6",
       "type": "hotspot",
       "image": "ch02/app-context-information",
@@ -470,7 +593,7 @@
       },
       "hints": [
         "Each row of the popup has its own job.",
-        "It’s named after what you’re asking about.",
+        "It isn’t your plan’s use, and it isn’t tokens.",
         "Select **Session**."
       ],
       "source": {
@@ -481,6 +604,95 @@
           "src": "course/ch02/app-context-information.webp",
           "hash": "f4ba435ac73a"
         }
+      }
+    },
+    {
+      "id": "K2.7",
+      "type": "mc",
+      "prompt": "What did `/chronicle standup` report?",
+      "options": [
+        {
+          "id": "recap",
+          "text": "My work from the last day, with this session and its changes"
+        },
+        {
+          "id": "all",
+          "text": "Every session I’ve ever run",
+          "feedback": "It’s a recap of your work from the last day."
+        },
+        {
+          "id": "usage",
+          "text": "Tokens, context and AI credits",
+          "feedback": "That’s the usage popup, from `/context`. `/chronicle standup` is the recap."
+        },
+        {
+          "id": "missing",
+          "text": "Nothing: `/chronicle` wasn’t there",
+          "feedback": "Type `/` and read the palette: commands vary by app version, plugins, skills and policy. Then send it in the session you’ve been using."
+        }
+      ],
+      "answer": "recap",
+      "explain": {
+        "correct": "Right. It should list this session and the changes you made in it.",
+        "wrong": "The course expects a recap of your work from the last day, with this session in it."
+      },
+      "hints": [
+        "A standup is a short daily recap.",
+        "It’s about your recent work, not your usage.",
+        "Your work from the last day, with this session and its changes."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "exercise-check-the-session-with-slash-commands",
+        "hash": "0eb8259b8b60"
+      }
+    },
+    {
+      "id": "K2.8",
+      "type": "multi",
+      "prompt": "Your light and dark theme: what can you show? Select all that apply.",
+      "options": [
+        {
+          "id": "branch",
+          "text": "The session’s working branch and its worktree path"
+        },
+        {
+          "id": "context",
+          "text": "The context I attached: `@samples/book-app-web/src`"
+        },
+        {
+          "id": "diff",
+          "text": "A diff with only the theme toggle’s changes"
+        },
+        {
+          "id": "checks",
+          "text": "The tests and build output, and both themes working in the preview"
+        },
+        {
+          "id": "main",
+          "text": "The theme merged into `main`",
+          "feedback": "The assignment keeps the theme in its worktree. `main` stays as it was."
+        },
+        {
+          "id": "pr",
+          "text": "A pull request",
+          "feedback": "You don’t need an issue or a pull request for this one. Chapter 03 covers that workflow."
+        }
+      ],
+      "answers": ["branch", "context", "diff", "checks"],
+      "explain": {
+        "correct": "That’s the assignment’s success criteria: the branch and worktree, the context you attached, and the change with its evidence, without changing `main`.",
+        "wrong": "Show your work, and leave `main` as it was."
+      },
+      "hints": [
+        "What would convince someone the theme works?",
+        "Two of these change `main` or need Chapter 03.",
+        "Everything except the merge and the pull request."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "assignment",
+        "hash": "a6fd57783531"
       }
     },
     {
@@ -736,103 +948,76 @@
       }
     },
     {
-      "id": "T2.7",
-      "type": "hotspot",
-      "image": "ch02/app-where-sessions-run",
-      "mask": [],
-      "prompt": "Your Chapter 00 session worked straight in your existing clone. Which option was that?",
-      "targets": [
+      "id": "T2.10",
+      "type": "scenario",
+      "situation": "Your session’s changes turned up in the wrong folder.",
+      "prompt": "What do you check first?",
+      "options": [
         {
-          "id": "current-checkout",
-          "rect": [0.262, 0.6041666666666666, 0.292, 0.10833333333333334],
-          "label": "Current checkout",
-          "correct": true
+          "id": "details",
+          "text": "The session details: its worktree path and branch name"
         },
         {
-          "id": "new-worktree",
-          "rect": [0.262, 0.4666666666666667, 0.292, 0.12916666666666668],
-          "label": "New worktree",
-          "feedback": "That’s the course’s highlight, and the safe default. It gives a session its own folder."
+          "id": "reinstall",
+          "text": "Reinstall the app"
         },
         {
-          "id": "cloud",
-          "rect": [0.262, 0.725, 0.292, 0.10833333333333334],
-          "label": "Cloud",
-          "feedback": "**Cloud** runs off your machine, in a cloud sandbox."
+          "id": "chat",
+          "text": "Start a chat instead of a session"
         },
         {
-          "id": "base-branch",
-          "rect": [0.262, 0.8625, 0.292, 0.0875],
-          "label": "Base branch",
-          "feedback": "**Base branch** sets where a new worktree starts. It isn’t a place to work."
+          "id": "port",
+          "text": "Its preview’s port"
         }
       ],
+      "answer": "details",
       "explain": {
-        "correct": "Right. **Current checkout** works directly in your existing clone, with no separate folder.",
-        "wrong": "Which option uses the folder you already have?"
+        "correct": "Right. Open the session details and check the worktree path and branch name. For course exercises, prefer a **New worktree**.",
+        "wrong": "Where would you see which folder and branch a session uses?"
       },
-      "hints": ["It uses the folder you already have.", "It isn’t the highlighted one.", ""],
+      "hints": [
+        "Where does a session show its folder?",
+        "Select the session name at the top of the window.",
+        ""
+      ],
       "source": {
         "chapter": "02-sessions-worktrees-context",
-        "anchor": "where-a-session-runs",
-        "hash": "a55a83c1ff55",
-        "image": {
-          "src": "course/ch02/app-where-sessions-run.webp",
-          "hash": "d975962f610a"
-        }
+        "anchor": "the-session-edited-the-wrong-folder",
+        "hash": "10e8716f1e87"
       }
     },
     {
-      "id": "T2.8",
-      "type": "hotspot",
-      "image": "ch02/app-context-information",
-      "mask": [],
-      "prompt": "Where do you see the tokens the session sent to the model and got back?",
-      "targets": [
+      "id": "T2.11",
+      "type": "mc",
+      "prompt": "Why check `/context` before you add more files, issues or instructions?",
+      "options": [
         {
-          "id": "tokens",
-          "rect": [0.709375, 0.45740740740740743, 0.2791666666666667, 0.07037037037037037],
-          "label": "Tokens",
-          "correct": true
+          "id": "overload",
+          "text": "To see when the session is getting overloaded"
         },
         {
-          "id": "session",
-          "rect": [0.709375, 0.40370370370370373, 0.2791666666666667, 0.04259259259259259],
-          "label": "Session",
-          "feedback": "**Session** shows AI credits, not tokens."
+          "id": "recap",
+          "text": "To recap your last day’s work"
         },
         {
-          "id": "plan",
-          "rect": [0.709375, 0.35185185185185186, 0.2791666666666667, 0.04259259259259259],
-          "label": "Plan",
-          "feedback": "**Plan** is your plan’s use."
+          "id": "branch",
+          "text": "To find the session’s branch"
         },
         {
-          "id": "context",
-          "rect": [0.8098958333333334, 0.5444444444444444, 0.18020833333333333, 0.07592592592592592],
-          "label": "Context",
-          "feedback": "That’s the course’s highlight: how the context window is divided."
-        },
-        {
-          "id": "credits-icon",
-          "rect": [0.8604166666666667, 0.9333333333333333, 0.023958333333333335, 0.037037037037037035],
-          "label": "The AI credits icon",
-          "feedback": "That icon opens this popup. The numbers are inside it."
+          "id": "resend",
+          "text": "To send the last prompt again"
         }
       ],
+      "answer": "overload",
       "explain": {
-        "correct": "Right. **Tokens** shows what went to the model (up arrow) and what came back (down arrow).",
-        "wrong": "Look for the row with arrows."
+        "correct": "Right. Context is what the app is using for the session. Checking it tells you when a session is getting overloaded.",
+        "wrong": "Context is everything the session is holding. What would you want to know before you add more?"
       },
-      "hints": ["Look for arrows up and down.", "It’s between Session and Context.", ""],
+      "hints": ["What does the session hold?", "Pip said: check it before you pile on more files.", ""],
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60",
-        "image": {
-          "src": "course/ch02/app-context-information.webp",
-          "hash": "f4ba435ac73a"
-        }
+        "hash": "0eb8259b8b60"
       }
     },
     {
@@ -917,7 +1102,7 @@
       "id": "pg2.where",
       "title": "Where a session runs",
       "image": "ch02/app-where-sessions-run",
-      "caption": "Start a session with **+**, and the workspace selector below the prompt box picks where it runs: **New worktree** (its own folder and branch, the safe default), **Current checkout** (your existing clone) or **Cloud** (a cloud sandbox on GitHub’s hosted infrastructure). **Base branch** sets where a new worktree starts. The app remembers your last choice, so switch back to **New worktree** now. A session started with **Create from** always gets a new worktree.",
+      "caption": "Start a session with **+**, and the workspace selector below the prompt box picks where it runs: **New worktree** (its own folder and branch, the safe default), **Current checkout** (your existing clone) or **Cloud** (a cloud sandbox on GitHub’s hosted infrastructure, in public preview). **Base branch** sets where a new worktree starts. The app remembers your last choice, so switch back to **New worktree** now. A session started with **Create from** always gets a new worktree.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "where-a-session-runs",
@@ -990,7 +1175,7 @@
       "id": "pg2.create-from",
       "title": "Create from a branch",
       "image": "ch02/app-create-from-icon",
-      "caption": "Point to the project in the sidebar and select the **Create from** icon. On the **Branches** tab, pick `practice-empty-state-copy`: the session starts from that branch in a new worktree.",
+      "caption": "Point to the project in the sidebar and select the **Create from** icon. On the **Branches** tab, pick `practice-empty-state-copy`: the app starts a new session from it in a new worktree. That branch is the worktree’s base branch; the session gets a working branch of its own.",
       "setup": ["branch"],
       "source": {
         "chapter": "02-sessions-worktrees-context",
@@ -1002,52 +1187,56 @@
       "id": "pg2.plan",
       "title": "Review the plan",
       "image": "ch02/app-plan-from-issue",
-      "caption": "Set **Mode** to **Plan**, type `{issue}` and pick **Improve the empty state copy**, and ask for a plan. It opens in the **Plan** tab, and the **Review plan** box replaces the prompt box. Pick **Exit plan mode and I will prompt myself** to return to **Interactive**.",
+      "caption": "Set **Mode** to **Plan**, type `{issue}` and pick **Improve the empty state copy**, then add the prompt below and send it. If Copilot asks about the scope first, pick the recommended answer. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box: pick **Exit plan mode and I will prompt myself** to return to **Interactive**.",
       "setup": ["issue"],
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
         "hash": "6db80a8de549"
-      }
+      },
+      "code": "Investigate the issue and create a plan to address it."
     },
     {
       "id": "pg2.preview",
       "title": "Baseline, then compare",
       "image": "ch02/app-book-app-empty-state-before",
-      "caption": "Run the Book App and open the preview. Search `hobbit`, then `zzzz-no-match`, and note the empty state. Ask to implement the plan, inspect the diff in the **Changes** tab or the **Changes** pill, then reload and compare.",
+      "caption": "Send the prompt below, and the preview opens in the built-in browser panel. Search `hobbit` (**The Hobbit** appears), then `zzzz-no-match`, and note the empty state. Send `Implement the plan`, inspect the diff in the **Changes** tab or the **Changes** pill, then reload and search again: the message should now suggest changing the search term, genre or reading status.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
         "hash": "6db80a8de549"
-      }
+      },
+      "code": "Run the Book App in samples/book-app-web and open the preview."
     },
     {
       "id": "pg2.chronicle",
       "title": "/chronicle standup",
       "image": "ch02/app-chronicle-standup-output",
-      "caption": "A recap of your work from the last day. It should list this session, on `{branch}`, and the changes you made in it.",
+      "caption": "Send it in the session you’ve been using. It recaps your work from the last day, and should list this session and the changes you made in it.",
       "setup": ["branch"],
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
         "hash": "0eb8259b8b60"
-      }
+      },
+      "code": "/chronicle standup"
     },
     {
       "id": "pg2.context",
       "title": "/context",
       "image": "ch02/app-context-information",
-      "caption": "Opens the usage popup below the prompt box (or select the AI credits icon by the microphone). **Plan** is your plan’s use (**Usage hidden** in **Streamer Mode**), **Session** the AI credits used, **Tokens** what went to the model and back, and **Context** how the context window is divided. **View usage and plan...** opens your account’s usage and billing.",
+      "caption": "Opens the usage popup below the prompt box (or select the AI credits icon by the microphone). **Plan** is your plan’s use (**Usage hidden** in **Streamer Mode**), **Session** the AI credits used, and **Tokens** what went to the model and back. Select the **Context** bar to see how the context window is divided: system prompt, system tools, MCP tools, messages, free space and buffer. Check it before you add more files, issues or instructions.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
         "hash": "0eb8259b8b60"
-      }
+      },
+      "code": "/context"
     },
     {
       "id": "pg2.details",
       "title": "Session details",
-      "caption": "Select the session name at the top of the window for its working branch, base branch, **Remote control**, **Path**, **Project**, **Session name** and **Session ID**. Then ask Copilot to stop the session’s development server. No pull request needed.",
+      "caption": "Select the session name at the top of the window for its working branch, base branch, **Remote control**, **Path**, **Project**, **Session name** and **Session ID**. Then ask Copilot to stop the session’s development server. No pull request needed: the practice branch has an intentional regression, and `main` already has the right behavior.",
       "setup": ["branch"],
       "source": {
         "chapter": "02-sessions-worktrees-context",
@@ -1110,8 +1299,8 @@
     },
     {
       "id": "B2.3",
-      "title": "No /context?",
-      "caption": "`/context` works once the session has at least one sent prompt. Send one first, or type `/` and check the palette.",
+      "title": "No /context or /chronicle?",
+      "caption": "`/context` works once the session has at least one sent prompt, so send one first. For either command, type `/` and read the palette, or see [Slash commands for the GitHub Copilot app ↗](https://docs.github.com/en/copilot/reference/github-copilot-app-reference/slash-commands).",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "context-or-chronicle-is-missing",
@@ -1163,7 +1352,7 @@
     {
       "id": "cloud-sandbox",
       "term": "Cloud",
-      "definition": "A session that runs in a cloud sandbox on GitHub’s hosted infrastructure."
+      "definition": "A session that runs in a cloud sandbox on GitHub’s hosted infrastructure, not your machine. In public preview."
     },
     {
       "id": "base-branch",
@@ -1206,6 +1395,11 @@
       "definition": "Opens the usage popup: plan, session AI credits, tokens and the context breakdown."
     },
     {
+      "id": "usage-popup",
+      "term": "Usage popup",
+      "definition": "Below the prompt box, from `/context` or the AI credits icon: plan, session AI credits, tokens and the context breakdown."
+    },
+    {
       "id": "empty-state",
       "term": "Empty state",
       "definition": "The message an app shows when nothing matches, like the Book App with no books found."
@@ -1215,7 +1409,7 @@
     {
       "id": "T2",
       "title": "The Canopy Trial",
-      "items": ["T2.1", "T2.2", "T2.3", "T2.4", "T2.5", "T2.6", "T2.7", "T2.8", "T2.9"],
+      "items": ["T2.1", "T2.2", "T2.3", "T2.4", "T2.5", "T2.6", "T2.10", "T2.11", "T2.9"],
       "reward": {
         "seal": "Seal of Thousand-Bough",
         "doubloons": 60
@@ -1368,11 +1562,6 @@
       "anchor": "where-a-session-runs",
       "hash": "a55a83c1ff55"
     },
-    "tb.fen.oneatatime": {
-      "chapter": "02-sessions-worktrees-context",
-      "anchor": "why-the-github-copilot-app-uses-worktrees",
-      "hash": "b28050c33200"
-    },
     "tb.fen.twist.redig": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "two-previews-collided",
@@ -1392,11 +1581,6 @@
       "chapter": "02-sessions-worktrees-context",
       "anchor": "two-previews-collided",
       "hash": "5140d326c5b7"
-    },
-    "tb.fen.close": {
-      "chapter": "02-sessions-worktrees-context",
-      "anchor": "where-a-session-runs",
-      "hash": "a55a83c1ff55"
     },
     "wingman.tb.ports": {
       "chapter": "02-sessions-worktrees-context",
@@ -1478,7 +1662,17 @@
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
       "hash": "6db80a8de549"
     },
+    "tb.rook.branch": {
+      "chapter": "02-sessions-worktrees-context",
+      "anchor": "where-a-session-runs",
+      "hash": "a55a83c1ff55"
+    },
     "tb.rook.03": {
+      "chapter": "02-sessions-worktrees-context",
+      "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
+      "hash": "6db80a8de549"
+    },
+    "tb.rook.scope": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
       "hash": "6db80a8de549"
@@ -1497,11 +1691,6 @@
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
       "hash": "6db80a8de549"
-    },
-    "tb.rook.assignment": {
-      "chapter": "02-sessions-worktrees-context",
-      "anchor": "assignment",
-      "hash": "a6fd57783531"
     },
     "tb.pip.01": {
       "chapter": "02-sessions-worktrees-context",
@@ -1537,6 +1726,16 @@
       "chapter": "02-sessions-worktrees-context",
       "anchor": "whats-next",
       "hash": "6b31efae2fea"
+    },
+    "tb.elder.assignment": {
+      "chapter": "02-sessions-worktrees-context",
+      "anchor": "assignment",
+      "hash": "a6fd57783531"
+    },
+    "tb.elder.assignment.done": {
+      "chapter": "02-sessions-worktrees-context",
+      "anchor": "assignment",
+      "hash": "a6fd57783531"
     }
   },
   "cited": {
