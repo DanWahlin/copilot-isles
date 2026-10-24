@@ -111,8 +111,8 @@ async function drive(label, done, ms = 180000, every = null) {
   note(`drive ${label}`);
   while (Date.now() - t0 < ms) {
     const s = await learnState();
-    if (done(s)) return s;
-    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off).
+    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off) first: one
+    // open means the game's still busy, whatever `done` reads.
     const card = await page.evaluate(cardState);
     if (cardOpen(card)) {
       await answerCard(page, card, {
@@ -124,6 +124,7 @@ async function drive(label, done, ms = 180000, every = null) {
       await page.waitForTimeout(300);
       continue;
     }
+    if (done(s)) return s;
     if (every && (await every(s)) === 'handled') {
       await page.waitForTimeout(250);
       continue;
