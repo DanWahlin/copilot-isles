@@ -6,6 +6,12 @@ import { FarCull } from '../../far-cull';
 import { skipSunShadows } from '../../sky/cached-sun-shadow';
 import { createCoastFoam } from '../../terrain/coast-foam';
 import { loadTerrainPack } from '../../terrain/bake';
+import {
+  addWaterDepthTile,
+  removeWaterDepthTile,
+  waterDepthTileFromTerrain,
+  type WaterDepthTile,
+} from '../../ocean/water-depth-texture';
 import { createTerrainAsync, type CreatedTerrain } from '../../terrain/terrain-mesh';
 import { LITE_ROCK_ERROR, simplifyInPlace } from '../../village/chunks';
 import { loadVillageKit } from '../../village/kit';
@@ -120,6 +126,17 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
   let birds: BirdsSystem | null = null;
   let obstacles: CircleObstacle[] = [];
   let priority: RequestPriority = 'auto';
+  // Its floor for the ocean's depth colour (turquoise shallows), lent to the ocean while it's in memory.
+  // The ocean's first draw with it uploads it, so it's lent when the warm-up holds the island (an
+  // upload the hitch guard excuses), or when the island first shows without a warm-up.
+  let depthTile: WaterDepthTile | null = null;
+  const lendDepthTile = () => {
+    if (depthTile && self.ready) addWaterDepthTile(depthTile);
+  };
+  const dropDepthTile = () => {
+    if (depthTile) removeWaterDepthTile(depthTile);
+    depthTile = null;
+  };
   const detail = new FarCull(TB.center.x, TB.center.z, THOUSAND_BOUGH_RANGE.detail, tier.detailCullRatio);
 
   const buildParts = async (): Promise<ThousandBoughWorld | null> => {
@@ -153,6 +170,18 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     if (ctx.skipShadows) skipSunShadows(terrain.group);
     const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
     self.foam = foam;
+    const tileBuild = waterDepthTileFromTerrain(data, 'thousand-bough');
+    for (let r = tileBuild.next(); ; r = tileBuild.next()) {
+      if (r.done) {
+        depthTile = r.value;
+        break;
+      }
+      await ctx.breathe();
+    }
+    if (disposed) {
+      dropDepthTile();
+      return null;
+    }
     addIslandGround(ctx, data, terrain, foam);
     self.ready = true;
     const kit = await loadVillageKit();
@@ -200,6 +229,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     birds = null;
     removeIslandGround(ctx, terrain, obstacles);
     obstacles = [];
+    dropDepthTile();
     // Its air goes back to the open sea's.
     resetMood();
     const vegetation = ctx.vegetation();
@@ -272,6 +302,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     },
     hold(on) {
       held = on;
+      if (on) lendDepthTile();
     },
     get held() {
       return held;
@@ -292,6 +323,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
       const near = !swap.update(reach);
       const show = near || held;
       if (self.ready && self.terrain && self.foam && !held) {
+        if (show) lendDepthTile();
         self.terrain.group.visible = show;
         self.foam.visible = show;
         if (self.system) self.system.group.visible = show;
@@ -315,6 +347,7 @@ export function createThousandBoughStream(ctx: ThousandBoughStreamContext): Thou
     dispose() {
       disposed = true;
       life.end();
+      dropDepthTile();
       scene.remove(silhouette);
       disposeTree(silhouette);
       if (self.terrain) {
