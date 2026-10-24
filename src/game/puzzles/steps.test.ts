@@ -203,7 +203,8 @@ describe('a course that renames every mechanic step', () => {
     expect(sorting('letters').engaged()).toBe(false);
     expect(sorting(S('lost-letters', 'letters')).engaged()).toBe(true);
 
-    const market = host({});
+    // After the course's model lesson (the market's `lesson.taught`), Gilda says hello and starts her task.
+    const market = host({ 'Q1.6': 'done' });
     const m = createModelMarket(market.h as never, stub() as never, marketStall('meridian'));
     m.update(1 / 60, 0);
     expect(written(market.set)).toEqual([[Q('market'), S('market', 'start')]]);

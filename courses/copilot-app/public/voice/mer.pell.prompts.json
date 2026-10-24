@@ -1,0 +1,152 @@
+{
+  "id": "mer.pell.prompts",
+  "speaker": "Pell",
+  "text": "And a record of your own. Press Control R, or Command R on a Mac, to see your recent prompts across all your sessions. Search them, and reuse one.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.048083,
+      "end": 0.204333
+    },
+    {
+      "word": "a",
+      "start": 0.204333,
+      "end": 0.264416
+    },
+    {
+      "word": "record",
+      "start": 0.264416,
+      "end": 0.697125
+    },
+    {
+      "word": "of",
+      "start": 0.697125,
+      "end": 0.805291
+    },
+    {
+      "word": "your",
+      "start": 0.805291,
+      "end": 1.009625
+    },
+    {
+      "word": "own",
+      "start": 1.009625,
+      "end": 2.1995
+    },
+    {
+      "word": "Press",
+      "start": 2.1995,
+      "end": 2.463958
+    },
+    {
+      "word": "Control",
+      "start": 2.463958,
+      "end": 2.95675
+    },
+    {
+      "word": "R",
+      "start": 2.95675,
+      "end": 3.4375
+    },
+    {
+      "word": "or",
+      "start": 3.4375,
+      "end": 3.60575
+    },
+    {
+      "word": "Command",
+      "start": 3.60575,
+      "end": 4.0505
+    },
+    {
+      "word": "R",
+      "start": 4.0505,
+      "end": 4.146625
+    },
+    {
+      "word": "on",
+      "start": 4.146625,
+      "end": 4.290875
+    },
+    {
+      "word": "a",
+      "start": 4.290875,
+      "end": 4.338958
+    },
+    {
+      "word": "Mac",
+      "start": 4.338958,
+      "end": 4.891833
+    },
+    {
+      "word": "to",
+      "start": 4.891833,
+      "end": 5
+    },
+    {
+      "word": "see",
+      "start": 5,
+      "end": 5.240375
+    },
+    {
+      "word": "your",
+      "start": 5.240375,
+      "end": 5.444708
+    },
+    {
+      "word": "recent",
+      "start": 5.444708,
+      "end": 5.829333
+    },
+    {
+      "word": "prompts",
+      "start": 5.829333,
+      "end": 6.225958
+    },
+    {
+      "word": "across",
+      "start": 6.225958,
+      "end": 6.598541
+    },
+    {
+      "word": "all",
+      "start": 6.598541,
+      "end": 6.814916
+    },
+    {
+      "word": "your",
+      "start": 6.814916,
+      "end": 6.995208
+    },
+    {
+      "word": "sessions",
+      "start": 6.995208,
+      "end": 8.461541
+    },
+    {
+      "word": "Search",
+      "start": 8.461541,
+      "end": 8.822125
+    },
+    {
+      "word": "them",
+      "start": 8.822125,
+      "end": 9.158666
+    },
+    {
+      "word": "and",
+      "start": 9.158666,
+      "end": 9.266833
+    },
+    {
+      "word": "reuse",
+      "start": 9.266833,
+      "end": 9.663458
+    },
+    {
+      "word": "one",
+      "start": 9.663458,
+      "end": 9.913458
+    }
+  ]
+}

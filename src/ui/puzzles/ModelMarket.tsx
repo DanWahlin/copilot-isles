@@ -80,6 +80,11 @@ export interface MarketView {
   /** The keeper's last line, written on the work order while they say it (the HUD captions step aside). */
   says: string | null;
   reduced: boolean;
+  /**
+   * The course's model lesson's practice at this stall (the quest's), while it runs: a quick look
+   * right-sized, and a Retry of a hard job. Null otherwise.
+   */
+  practice: { quick: boolean; retry: boolean } | null;
 }
 
 export interface MarketActions {
@@ -250,7 +255,9 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
           })}
         </ol>
       </section>
+      {v.practice && <Practice p={v.practice} />}
       <Says text={v.says} keeper={v.keeper} />
+      {v.notice && <p className="ci-mm-notice">{v.notice}</p>}
       {v.purse === 0 && v.says !== v.lines.broke && <p className="ci-mm-notice">{v.lines.broke}</p>}
       <footer className="ci-mm-foot">
         <Quote q={QUOTES.cost} />
@@ -259,6 +266,25 @@ function Board({ v, a }: { v: MarketView; a: MarketActions }) {
         </p>
       </footer>
     </>
+  );
+}
+
+/** The lesson's practice: what's left to do at this stall (a tick and the words, never colour alone). */
+function Practice({ p }: { p: { quick: boolean; retry: boolean } }) {
+  const item = (done: boolean, text: string) => (
+    <li className={done ? 'is-done' : undefined}>
+      <span aria-hidden="true">{done ? '✓' : '○'}</span> {text}
+      {done && <span className="ci-sr">{T('practiceDone')}</span>}
+    </li>
+  );
+  return (
+    <section className="ci-mm-practice" aria-labelledby="ci-mm-practice-title">
+      <h3 id="ci-mm-practice-title">{T('practiceHead')}</h3>
+      <ul>
+        {item(p.quick, T('practiceQuick'))}
+        {item(p.retry, T('practiceRetry'))}
+      </ul>
+    </section>
   );
 }
 
@@ -307,6 +333,9 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
           </article>
           <h3 className="ci-mm-step">{T('courseSays')}</h3>
           <Quote q={job.why} />
+          {job.also.map((q) => (
+            <Quote key={q.text} q={q} />
+          ))}
           <dl className="ci-mm-tally">
             <dt>{d.auto ? T('auto') : noModel ? T('chooseModel') : d.model}</dt>
             <dd>{noModel ? '—' : <Star n={d.auto ? AUTO_PRICE : CATEGORY_PRICE[d.category]} />}</dd>
@@ -507,14 +536,16 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
         <p className="ci-mm-reward">
           {r.refund > 0
             ? T('refund', { n: r.refund, doubloons: r.doubloons ? T('doubloons', { n: r.doubloons }) : '' })
-            : f.outcome === 'right'
-              ? T('fair', { doubloons: r.doubloons ? T('fairDoubloons', { n: r.doubloons }) : '' })
-              : f.outcome === 'over'
-                ? T('noRefundOver')
-                : T('noRefundShort')}
+            : f.key === 'keep'
+              ? T('keepPaid', { doubloons: r.doubloons ? T('fairDoubloons', { n: r.doubloons }) : '' })
+              : f.outcome === 'right'
+                ? T('fair', { doubloons: r.doubloons ? T('fairDoubloons', { n: r.doubloons }) : '' })
+                : f.outcome === 'over'
+                  ? T('noRefundOver')
+                  : T('noRefundShort')}
         </p>
         <div className="ci-mm-actions">
-          {f.outcome === 'short' ? (
+          {f.retry === 'short' ? (
             <>
               <button type="button" className="ci-mm-btn" data-retry="model" onClick={() => a.retry('model')}>
                 <kbd aria-hidden="true">R</kbd> {T('retryModel')}
@@ -530,9 +561,21 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
               </button>
             </>
           ) : (
-            <button type="button" className="ci-mm-btn primary" data-primary onClick={a.back}>
-              <kbd aria-hidden="true">E</kbd> {T('gotIt')}
-            </button>
+            <>
+              {f.retry === 'again' && (
+                <button
+                  type="button"
+                  className="ci-mm-btn"
+                  data-retry="model"
+                  onClick={() => a.retry('model')}
+                >
+                  <kbd aria-hidden="true">R</kbd> {T('retryAgain')}
+                </button>
+              )}
+              <button type="button" className="ci-mm-btn primary" data-primary onClick={a.back}>
+                <kbd aria-hidden="true">E</kbd> {T('gotIt')}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -619,7 +662,7 @@ function Market({ store }: { store: MarketStore }) {
         else if (e.code === 'Enter' || e.code === 'Space' || e.code === 'KeyE') activate();
         else handled = false;
       } else if (s.screen === 'result') {
-        if (e.code === 'KeyR' && s.result?.feedback.outcome === 'short') a.retry('model');
+        if (e.code === 'KeyR' && s.result?.feedback.retry) a.retry('model');
         else if (e.code === 'Enter' || e.code === 'Space' || e.code === 'KeyE') activate();
         else handled = false;
       }

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T14:25:05.402Z",
+  "generatedAt": "2026-10-24T01:55:54.446Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -1168,13 +1168,14 @@
       "v": "XCBGCHXBEFXFBEGBAEBADCBXEBEACBHBCAEBXEBEFBACBADBX"
     },
     "mer.oren.05": {
-      "h": "ddc53b68a477c9a8",
+      "h": "e8c4d4c81402494c",
       "e": "neutral",
       "t": [
-        0, 11, 5, 11, 7, 7, 7, 28, 11, 5, 19, 14, 14, 12, 23, 13, 27, 7, 14, 28, 105, 6, 13, 20, 8, 8, 36, 21,
-        28, 7, 7, 14, 14, 7, 35, 12, 37, 7, 7, 28, 14, 9, 7, 34, 21, 7, 14, 7, 7, 21, 96
+        0, 11, 5, 11, 21, 35, 7, 7, 7, 28, 12, 4, 18, 14, 25, 17, 8, 19, 7, 21, 28, 14, 14, 7, 21, 14, 8, 6,
+        29, 13, 35, 7, 14, 21, 7, 7, 14, 107, 7, 6, 27, 8, 8, 35, 28, 21, 7, 7, 14, 14, 14, 28, 14, 42, 14, 7,
+        10, 5, 19, 21, 14, 14, 14, 8, 12, 7, 7, 21, 28, 24, 10, 8, 13, 14, 7, 7, 21, 95
       ],
-      "v": "XGECBFBAHCBCXBABGEBXGEDCACEBCGBGCBXBCBEBADBCBECGBX"
+      "v": "XGEFECBFBAHCBCBAEBEFBECDBADBEBGECGEBXGEDCACEBCGBGCBXBECADBFBFBAHCBEBXBAEBCGBX"
     },
     "mer.oren.06": {
       "h": "782992448e23513f",
@@ -2553,12 +2554,6 @@
       "t": [0, 3, 44, 19, 5, 32, 23, 35, 8, 12, 21, 7, 7, 14, 8, 24, 21, 7, 25, 7, 38, 8, 27, 21],
       "v": "XBDCBXBABDBGBACBCDCBAEB"
     },
-    "mer.market.over": {
-      "h": "0eb612f5a227648d",
-      "e": "neutral",
-      "t": [0, 12, 21, 14, 21, 28, 14, 7, 14, 7, 14, 7, 7, 7, 35, 14, 62, 7, 6, 21, 14, 14, 14, 28, 4],
-      "v": "XBCBEGCBGECFBFBXEBEFBCBX"
-    },
     "mer.market.over.effort": {
       "h": "4199d8ed7c847be0",
       "e": "neutral",
@@ -2573,15 +2568,6 @@
         6, 5, 7, 21, 21, 14, 9, 15, 7, 14, 7, 21
       ],
       "v": "XCDBFDBXBABAEACBCHXBCBFBECBADBCHBEAEBCGB"
-    },
-    "mer.market.short.auto": {
-      "h": "29bbdf91c8bae501",
-      "e": "neutral",
-      "t": [
-        0, 4, 7, 14, 7, 7, 21, 7, 21, 14, 26, 12, 14, 7, 21, 21, 49, 62, 7, 14, 7, 7, 8, 28, 33, 5, 20, 33,
-        14, 35, 21, 21, 36, 5, 33, 7, 8, 24, 9, 5, 36, 7, 7, 35, 14, 7, 7, 21, 4
-      ],
-      "v": "XFBEBEFDCXBCGBCBXGEBEABDCBCEFEGXBCBABADBCBCECGBX"
     },
     "mer.market.broke": {
       "h": "f62da316838d8419",
@@ -2677,15 +2663,6 @@
       "t": [0, 4, 10, 7, 35, 14, 21, 68, 18, 7, 14, 13, 7, 14, 14, 7, 7, 35, 7, 22, 4],
       "v": "XBCBDBXBGCABCBGEBEAX"
     },
-    "desmond.market.over": {
-      "h": "39a13595d241c626",
-      "e": "neutral",
-      "t": [
-        0, 20, 12, 8, 10, 14, 14, 7, 7, 7, 21, 7, 7, 14, 7, 14, 7, 7, 7, 21, 28, 66, 11, 7, 28, 14, 14, 7, 14,
-        56, 24
-      ],
-      "v": "XBAHCBCGBDBGBGEBFBFBXEBEFCGCBX"
-    },
     "desmond.market.over.effort": {
       "h": "f29a315267e31749",
       "e": "neutral",
@@ -2703,16 +2680,6 @@
         7, 7, 7, 7, 7, 14, 21, 14, 11, 5, 4, 14, 35, 10, 14, 7, 21, 7, 7, 7, 12, 11, 1
       ],
       "v": "XDBFBCABCXCBAHCBAEAEBGBXBXBCBFBCBEBADBCEAEBCGEBXBX"
-    },
-    "desmond.market.short.auto": {
-      "h": "e4153fb4207a033f",
-      "e": "neutral",
-      "t": [
-        0, 13, 20, 14, 7, 21, 10, 10, 21, 19, 21, 14, 7, 7, 21, 7, 42, 21, 28, 28, 83, 7, 7, 7, 25, 7, 24, 7,
-        23, 19, 7, 21, 14, 7, 14, 7, 21, 21, 115, 15, 7, 8, 12, 21, 10, 6, 6, 14, 23, 7, 7, 28, 7, 21, 21, 7,
-        7, 14, 32
-      ],
-      "v": "XBEBEFECXBCGEBCBCBCXGECDCBEABFBEBEFEGXBCABCADBCHCBCBECGEBX"
     },
     "desmond.market.broke": {
       "h": "1acce846b3f55833",
@@ -2763,12 +2730,6 @@
       "t": [0, 4, 37, 14, 49, 38, 36, 22, 14, 21, 16, 97, 4],
       "v": "XBCBXBCGCABX"
     },
-    "tb.lani.market.over": {
-      "h": "d2905accca6e9268",
-      "e": "neutral",
-      "t": [0, 10, 20, 7, 7, 14, 7, 7, 14, 7, 7, 28, 14, 7, 7, 7, 35, 73, 11, 7, 14, 21, 7, 28, 21, 4],
-      "v": "XBCEBGBDBGBECBFBXEBCFBCBX"
-    },
     "tb.lani.market.over.effort": {
       "h": "6c9a91adf9261121",
       "e": "neutral",
@@ -2787,16 +2748,6 @@
       ],
       "v": "XCDBCGBFDCXBAEACBCHBCBDCBFBECBADBCHBEAEBCGBX"
     },
-    "tb.lani.market.short.auto": {
-      "h": "ec50f804a8e1d3c8",
-      "e": "neutral",
-      "t": [
-        0, 3, 9, 7, 42, 14, 8, 32, 17, 7, 7, 28, 35, 21, 35, 43, 33, 14, 7, 7, 21, 7, 23, 32, 42, 14, 20, 9,
-        28, 28, 35, 21, 28, 24, 22, 12, 4, 16, 4, 33, 14, 7, 11, 7, 21, 14, 18, 5, 39, 7, 7, 14, 14, 10, 21,
-        35, 4
-      ],
-      "v": "XEBEBABCGEBCBCXCGECBEABEBXBCEFEGXBXBCEFBCADCHBCBCBCBCGBX"
-    },
     "tb.lani.market.broke": {
       "h": "6c4efbefe4aaa2e8",
       "e": "neutral",
@@ -2814,6 +2765,136 @@
         17, 10, 7, 28, 1
       ],
       "v": "XBCEFAEBXBCBECBXFBCBCEADCHBCABCX"
+    },
+    "mer.oren.market": {
+      "h": "94fafea650fbb7fd",
+      "e": "neutral",
+      "t": [
+        0, 12, 10, 35, 7, 21, 14, 7, 14, 23, 15, 55, 8, 5, 18, 8, 10, 42, 15, 5, 12, 14, 7, 22, 23, 7, 7, 21,
+        14, 26, 6, 13, 25, 7, 24, 7, 41, 54, 7, 21, 104, 21, 21, 7, 14, 7, 7, 21, 7, 7, 28, 96
+      ],
+      "v": "XCBCFBCHBAFAEFADBAHDBCXBFBFBXBCDCBEABCBXBCGBCBDBGBX"
+    },
+    "mer.oren.market.wait": {
+      "h": "927937976b975576",
+      "e": "neutral",
+      "t": [
+        0, 15, 37, 8, 15, 42, 14, 7, 21, 15, 5, 18, 7, 14, 14, 21, 8, 7, 20, 109, 7, 7, 35, 7, 7, 21, 21, 29,
+        5, 12, 25, 7, 24, 7, 10, 15, 70, 14, 21, 95
+      ],
+      "v": "XFADBCEBAHDBCBCABCXCBFBGEBXBCDCBEACBCBX"
+    },
+    "mer.oren.practiced": {
+      "h": "381375d0b719a47a",
+      "e": "neutral",
+      "t": [
+        0, 2, 8, 8, 28, 35, 103, 6, 27, 7, 63, 93, 24, 28, 49, 7, 7, 7, 8, 16, 14, 21, 14, 14, 21, 18, 54, 14,
+        7, 21, 35, 14, 7, 8, 43, 7, 7, 8, 13, 2, 8, 7, 12, 9, 4, 25, 7, 7, 14, 32, 5, 47, 14, 8, 24, 7, 14, 7,
+        28, 94
+      ],
+      "v": "XACEBXBFGBXBFBCEFAECBGEBXBFEFDBEACFBACABAEACEBCGBFBCABCFEBX"
+    },
+    "mer.pell.prompts": {
+      "h": "c49ee0bbfb3ef1bd",
+      "e": "neutral",
+      "t": [
+        0, 9, 21, 7, 21, 14, 7, 7, 7, 7, 7, 7, 21, 78, 15, 7, 6, 21, 21, 7, 7, 14, 37, 10, 14, 8, 18, 7, 21,
+        7, 8, 14, 26, 15, 28, 14, 7, 35, 9, 5, 4, 8, 13, 7, 21, 14, 21, 7, 7, 14, 7, 7, 21, 14, 91, 8, 14, 14,
+        7, 22, 29, 33, 5, 18, 84
+      ],
+      "v": "XCBEBGCEBCECXACBCEFHDBEBADCDBACBFBCEBABDABCEBECEBCBCBXBCBCABFECX"
+    },
+    "mer.market.keep": {
+      "h": "d0c112b313289805",
+      "e": "neutral",
+      "t": [
+        0, 7, 7, 6, 28, 14, 28, 32, 38, 10, 14, 9, 6, 13, 28, 7, 35, 7, 14, 7, 28, 7, 7, 28, 21, 14, 24, 15,
+        7, 7, 7, 7, 28, 14, 46, 7, 8, 28, 7, 35, 40, 8, 7, 7, 28, 28, 10, 15, 14, 7, 14, 7, 28, 4
+      ],
+      "v": "XBCBDBXBCEADBHDBGEBCGEBGDBGECFBFBXCABFCXBCBEBAEBCHGBX"
+    },
+    "mer.market.hard.auto": {
+      "h": "62da75b19683465d",
+      "e": "neutral",
+      "t": [
+        0, 7, 8, 7, 14, 7, 14, 7, 7, 7, 8, 7, 6, 7, 14, 14, 21, 7, 11, 4, 39, 104, 10, 14, 7, 8, 30, 28, 70,
+        7, 7, 21, 28, 14, 28, 28, 21, 23, 27, 8, 27, 9, 6, 6, 7, 21, 22, 6, 13, 28, 7, 7, 7, 14, 7, 14, 4
+      ],
+      "v": "XEBEFBEFBADBCHCBDABCXDCBABEBCEBCEFEGXCABADBCHBCBCBECGEBX"
+    },
+    "mer.market.early": {
+      "h": "0ea27e344a4bf4de",
+      "e": "concerned",
+      "t": [
+        0, 4, 5, 5, 7, 21, 7, 21, 10, 4, 32, 78, 7, 6, 7, 14, 49, 8, 5, 18, 21, 7, 8, 7, 27, 10, 6, 19, 7, 21,
+        49, 27, 8, 17, 7, 7, 7, 35, 14, 21, 21, 7, 7, 4
+      ],
+      "v": "XCDBCBCABCXCEBCBADBHCACBABEGEBCACBFCBCBCECX"
+    },
+    "mer.market.practiced": {
+      "h": "3c82427231f9773f",
+      "e": "neutral",
+      "t": [
+        0, 5, 19, 7, 7, 14, 11, 32, 35, 8, 32, 35, 8, 7, 35, 8, 29, 16, 18, 7, 7, 8, 7, 7, 7, 7, 14, 14, 4
+      ],
+      "v": "XBEBCABCABXBCBACABCBACEBFCBX"
+    },
+    "desmond.market.keep": {
+      "h": "0cf74adfaa723f7d",
+      "e": "neutral",
+      "t": [
+        0, 3, 12, 7, 7, 42, 14, 114, 17, 15, 14, 7, 14, 11, 5, 11, 7, 14, 42, 14, 14, 7, 21, 14, 28, 35, 13,
+        7, 14, 7, 7, 35, 14, 7, 7, 28, 61, 8, 8, 20, 21, 7, 28, 50, 13, 7, 35, 7, 35, 19, 11, 16, 21, 14, 14,
+        7, 21, 5
+      ],
+      "v": "XBCBFBXBXBCBADBCEBGEBCGBXBCBCBFBGCBXCABEFCXCBEBFBAEBCGCBX"
+    },
+    "desmond.market.hard.auto": {
+      "h": "f929f4bae2e05523",
+      "e": "neutral",
+      "t": [
+        0, 5, 6, 5, 14, 8, 38, 9, 5, 5, 49, 7, 14, 28, 28, 129, 7, 7, 14, 7, 7, 8, 31, 19, 5, 47, 33, 14, 7,
+        7, 21, 26, 6, 6, 21, 7, 21, 21, 35, 30, 9, 26, 5, 18, 7, 7, 10, 5, 11, 21, 7, 30, 52, 7, 14, 7, 7, 14,
+        7, 15, 12
+      ],
+      "v": "XEBEABADBCBDBCXGBCBDABDCBCEBEFBEBEFEGXCBCEFBCADBCHBCBECBGEXB"
+    },
+    "desmond.market.early": {
+      "h": "fda132676c15ad14",
+      "e": "neutral",
+      "t": [
+        0, 3, 7, 7, 7, 19, 5, 25, 12, 8, 7, 12, 82, 8, 8, 7, 35, 14, 7, 7, 14, 14, 7, 14, 8, 29, 12, 9, 14,
+        14, 28, 47, 6, 5, 28, 7, 14, 56, 7, 12, 4, 8, 14, 14, 8, 19, 21, 21, 67, 25, 14, 42, 7, 6, 21, 7, 14,
+        35, 4
+      ],
+      "v": "XEFBDEFXBCAXAEBDCBCGEBCABABEFCXCBEBCBCAEAEBAEBCXCADBCBHCBX"
+    },
+    "tb.lani.market.keep": {
+      "h": "225c3860c062d5c0",
+      "e": "neutral",
+      "t": [
+        0, 3, 41, 7, 28, 47, 17, 7, 7, 28, 14, 14, 14, 34, 12, 7, 7, 8, 6, 12, 7, 7, 14, 7, 19, 5, 59, 6, 62,
+        7, 14, 7, 17, 10, 8, 6, 10, 28, 40, 12, 6, 20, 14, 28, 28, 14, 7, 28, 28, 11, 18, 7, 21, 28, 28
+      ],
+      "v": "XBCBXBFBFBGDBECBADCHEFGDCBCBGEFBCBACBXABEFCBCBEBAEBDCB"
+    },
+    "tb.lani.market.hard.auto": {
+      "h": "f6d64d861aa2b6ba",
+      "e": "neutral",
+      "t": [
+        0, 4, 8, 7, 21, 21, 7, 14, 11, 6, 26, 14, 15, 14, 7, 49, 7, 26, 108, 40, 14, 7, 14, 14, 7, 14, 21, 21,
+        7, 21, 14, 7, 7, 7, 42, 21, 28, 14, 28, 14, 21, 42, 10, 5, 5, 21, 14, 14, 7, 7, 8, 11, 7, 14, 7, 35, 5
+      ],
+      "v": "XEBCBCBADCHCBGBEAXDBCHCBCBFBEFBCBCECBEGCBAEBCHBCBAEBCGBX"
+    },
+    "tb.lani.market.early": {
+      "h": "1f1c7cae575b28dd",
+      "e": "neutral",
+      "t": [
+        0, 3, 5, 4, 28, 7, 7, 42, 8, 5, 40, 43, 7, 20, 32, 7, 6, 8, 25, 7, 8, 10, 56, 28, 28, 11, 7, 20, 7,
+        17, 7, 21, 14, 39, 22, 8, 39, 8, 34, 16, 35, 7, 7, 14, 21, 4
+      ],
+      "v": "XCDBCBCABCXEBCECAEBAEBCBADCHBHCGBCABABEBHCBCX"
     }
   }
 }

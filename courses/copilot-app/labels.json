@@ -110,7 +110,7 @@
       "game": "puzzle",
       "k": "Port Meridian · The Model Market",
       "t": "Hire a model that fits the job",
-      "b": "Models differ in capabilities, speed and cost. Keep it light for a quick look; bring more power and effort for hard work.",
+      "b": "For a quick look, keep Auto or your model on its default effort. For hard work, consider a stronger model and more effort.",
       "ch": "01",
       "c": "Models and Reasoning Effort",
       "source": {

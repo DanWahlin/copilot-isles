@@ -1,10 +1,11 @@
-// The Model Market (Gilda's stall on Port Meridian's plaza, docs/specs/MODEL-MARKET.md): walk across
-// the plaza from the fountain as Gilda calls out, open the work order at her counter, then three jobs
-// with the keys: a repo tour with Auto (right-sized, at the fair price), filterBooks with a Powerful
-// model on High (overspent), and a difficult bug with a Lightweight model (fell short), retried with
-// a different model: the work order opens with nothing chosen, and you pick Powerful (right-sized).
-// Ends back at the board.
-import { meridianAshore } from '../game.mjs';
+// The Model Market (Gilda's stall on Port Meridian's plaza, docs/specs/MODEL-MARKET.md), as Oren's
+// practice (Q1.6 at market): walk across the plaza from the fountain as Gilda calls out, open the work
+// order at her counter, then three jobs with the keys: a repo tour with Auto (right-sized, at the fair
+// price), filterBooks with a Powerful model on High (overspent: High effort is more than a quick look
+// needs), and a difficult bug with a Lightweight model (fell short), retried with a different model:
+// the work order opens with nothing chosen, and you pick Powerful (right-sized, and Oren's practice is
+// done). Ends back at the board.
+import { meridianAshore, questsDone } from '../game.mjs';
 
 const market = (api) => api.S(() => window.__dev.session().debug.puzzle('market')?.state() ?? null);
 
@@ -23,12 +24,15 @@ export default {
   island: 'Port Meridian',
   who: 'with Gilda on the plaza',
   subtitle:
-    'Hire a model that fits the job: Auto or a light model for a quick look, a model suited to complex coding and more effort for hard work.',
+    'Hire a model that fits the job: Auto or your model on its default effort for a quick look; for hard work, consider a model suited to complex coding and more effort.',
   chapter: 'Course Chapter 01 · Models and Reasoning Effort · Try Again with a Different Model',
   flags: ['meridian'],
 
   async setup(page, api) {
     await meridianAshore(page, api);
+    // Oren has taught models and effort and sent you down to practise.
+    await questsDone(api, ['Q1.1', 'Q1.2', 'Q1.3', 'Q1.4', 'Q1.5']);
+    await api.S(() => window.__dev.session().debug.quest('Q1.6', 'market'));
     // Starfish to spend, as if a few had been picked up on the way.
     await api.S(() => window.__dev.learn.refundStarfish(9));
     this.stand = await api.S(() => window.__dev.session().debug.puzzle('market').stand());

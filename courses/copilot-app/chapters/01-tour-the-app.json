@@ -1616,6 +1616,16 @@
       "anchor": "try-the-controls",
       "hash": "1a9a4b2f69f1"
     },
+    "mer.oren.market": {
+      "chapter": "01-tour-the-app",
+      "anchor": "try-again-with-a-different-model",
+      "hash": "b0031ded9c4d"
+    },
+    "mer.oren.practiced": {
+      "chapter": "01-tour-the-app",
+      "anchor": "try-again-with-a-different-model",
+      "hash": "b0031ded9c4d"
+    },
     "mer.pell.01": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
@@ -1625,6 +1635,11 @@
       "chapter": "01-tour-the-app",
       "anchor": "settings",
       "hash": "49fadf6d109a"
+    },
+    "mer.pell.prompts": {
+      "chapter": "01-tour-the-app",
+      "anchor": "prompts-and-shortcuts",
+      "hash": "06812f77c4eb"
     },
     "mer.pell.05": {
       "chapter": "01-tour-the-app",
@@ -1681,7 +1696,7 @@
       "anchor": "models-and-reasoning-effort",
       "hash": "84d625491118"
     },
-    "mer.market.over": {
+    "mer.market.keep": {
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
       "hash": "84d625491118"
@@ -1696,7 +1711,7 @@
       "anchor": "try-again-with-a-different-model",
       "hash": "b0031ded9c4d"
     },
-    "mer.market.short.auto": {
+    "mer.market.hard.auto": {
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
       "hash": "84d625491118"
@@ -1857,6 +1872,14 @@
     },
     "market.quote.vary": {
       "text": "Available models, effort levels, and context window sizes vary.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "84d625491118"
+      }
+    },
+    "market.quote.noSpecific": {
+      "text": "You do not need a specific model for this course.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",

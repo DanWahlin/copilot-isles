@@ -62,7 +62,9 @@
       "task": "Pick a model and reasoning effort",
       "steps": {
         "start": "Ride the cliff lift at the top of the east arm, then find Oren Vey at the observatory.",
-        "done": "The model and effort are below the prompt box. Auto picks a model, and it isn’t Autopilot."
+        "market": "Try it at Gilda’s Model Market, at the top of the stair street (ride the lift down): hire a model for a quick look, then take a hard job and Retry it.",
+        "practiced": "Oren’s practice is done. Ride the cliff lift back up and tell Oren how it went.",
+        "done": "The model and effort are below the prompt box. Keep the defaults for a quick look, and Retry with another model or effort."
       }
     },
     {
@@ -93,7 +95,7 @@
       "optional": true,
       "steps": {
         "start": "Gilda’s stall is under the arcade at the top of the stair street. Pick a job from her board and pay in starfish.",
-        "done": "Auto or a light model for a quick look. A model suited to complex coding and more effort for hard work."
+        "done": "Auto, or your model on its default effort, for a quick look. For hard work, consider a model suited to complex coding and more effort."
       }
     }
   ],
@@ -135,6 +137,17 @@
       "label": "Rhea"
     },
     "Q1.6:start": {
+      "ids": ["lift:bottom", "npc:oren"],
+      "label": "The lift to Oren",
+      "labels": {
+        "npc:oren": "Oren"
+      }
+    },
+    "Q1.6:market": {
+      "ids": ["market:counter"],
+      "label": "Gilda’s Model Market"
+    },
+    "Q1.6:practiced": {
       "ids": ["lift:bottom", "npc:oren"],
       "label": "The lift to Oren",
       "labels": {
@@ -290,6 +303,20 @@
         }
       },
       "say": "mer.oren.wait"
+    },
+    {
+      "npc": "oren",
+      "when": {
+        "Q1.6": "market"
+      },
+      "say": "mer.oren.market.wait"
+    },
+    {
+      "npc": "oren",
+      "when": {
+        "Q1.6": "practiced"
+      },
+      "script": "oren.practiced"
     },
     {
       "npc": "oren",
@@ -759,12 +786,6 @@
         "term": "reasoning-effort"
       },
       {
-        "say": "mer.oren.context"
-      },
-      {
-        "term": "context-window"
-      },
-      {
         "file": "pg1.model"
       },
       {
@@ -772,37 +793,34 @@
         "doubloons": 15
       },
       {
+        "askSetup": "model"
+      },
+      {
         "say": "mer.oren.07"
       },
       {
-        "say": "mer.oren.08"
+        "say": "mer.oren.market"
+      },
+      {
+        "quest": "Q1.6",
+        "step": "market"
+      }
+    ],
+    "oren.practiced": [
+      {
+        "say": "mer.oren.practiced"
+      },
+      {
+        "say": "mer.oren.context"
+      },
+      {
+        "term": "context-window"
       },
       {
         "quiz": "R1.1"
       },
       {
-        "askSetup": "model"
-      },
-      {
-        "quiz": "N1.3",
-        "when": "model:auto"
-      },
-      {
-        "quiz": "N1.4",
-        "when": "model:picked"
-      },
-      {
-        "askSetup": "os"
-      },
-      {
-        "text": "One more for the prompt box: press {key:mod+R} to see your recent prompts, across all your sessions.",
-        "speaker": "Oren"
-      },
-      {
-        "quiz": "N1.5"
-      },
-      {
-        "file": "pg1.prompts"
+        "say": "mer.oren.08"
       },
       {
         "say": "mer.oren.next"
@@ -872,6 +890,18 @@
       {
         "page": "pg1.settings",
         "doubloons": 15
+      },
+      {
+        "say": "mer.pell.prompts"
+      },
+      {
+        "askSetup": "os"
+      },
+      {
+        "quiz": "N1.5"
+      },
+      {
+        "file": "pg1.prompts"
       },
       {
         "say": "mer.pell.05"
@@ -959,9 +989,11 @@
   },
   "notes": {
     "anders.solved": "Anders's beat when the crate yard's solved (played at once by the puzzle, or when you talk to him).",
+    "oren.practiced": "Oren's debrief once his practice at Gilda's Model Market is done (the market's lesson sets Q1.6 to practiced): the context window (a Retry can change it too), the Retry in the app, changing the model mid-session, then Pell.",
     "pell.letters.debrief": "What the alcoves stand for, on the course's screenshot. A save that finished Pell before the letters existed can file them for practice and gets just this; its quest stays done.",
     "pell.solved": "Pell's debrief once the letters are filed (played at once by the puzzle, or when you talk to him).",
-    "admiral": "Leaving the exam ends the script; next time the Admiral skips her introduction."
+    "admiral": "Leaving the exam ends the script; next time the Admiral skips her introduction.",
+    "oren": "Oren teaches the model control, Auto and effort, hands you the Try the controls page, then sends you to Gilda's Model Market to practise (Q1.6 market). Prompt history is Pell's."
   },
   "barks": {
     "mer_fisher": [
