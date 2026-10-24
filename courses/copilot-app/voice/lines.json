@@ -664,7 +664,7 @@
     {
       "id": "mer.mina.customize",
       "speaker": "Mina",
-      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins and canvases. You won’t need those until later chapters.",
+      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins, extensions and canvases. You won’t need those until later chapters.",
       "sub": {
         "MCP": "M C P"
       }
@@ -687,7 +687,7 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!"
+      "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!"
     },
     {
       "id": "mer.lyra.wait",
@@ -880,7 +880,7 @@
     {
       "id": "mer.oren.05",
       "speaker": "Oren",
-      "text": "For a quick explanation, keep the defaults. For a hard bug across several files, try a stronger model and higher effort."
+      "text": "For a tour or a quick explanation, keep Auto or your current model, on its default effort. For a hard bug across several files, consider a model suited to complex coding, and more effort."
     },
     {
       "id": "mer.oren.06",
@@ -904,6 +904,21 @@
       "id": "mer.oren.08",
       "speaker": "Oren",
       "text": "And you can change the model or effort mid-session, without changing the mode."
+    },
+    {
+      "id": "mer.oren.market",
+      "speaker": "Oren",
+      "text": "Now try it yourself, at Gilda's Model Market in the plaza: a quick look, then a hard job, and Retry it. She'll cover the starfish."
+    },
+    {
+      "id": "mer.oren.market.wait",
+      "speaker": "Oren",
+      "text": "Gilda's market is down in the plaza, Captain. A quick look first, then a hard job and its Retry."
+    },
+    {
+      "id": "mer.oren.practiced",
+      "speaker": "Oren",
+      "text": "Back already? Then you've seen it. A quick look needs no more than the defaults, and Retry runs a hard job again with another model or effort, without retyping a word."
     },
     {
       "id": "mer.oren.next",
@@ -932,6 +947,11 @@
       "sub": {
         "API": "A P I"
       }
+    },
+    {
+      "id": "mer.pell.prompts",
+      "speaker": "Pell",
+      "text": "And a record of your own. Press Control R, or Command R on a Mac, to see your recent prompts across all your sessions. Search them, and reuse one."
     },
     {
       "id": "mer.pell.05",
@@ -1029,7 +1049,7 @@
     {
       "id": "mer.admiral.next",
       "speaker": "Admiral",
-      "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are."
+      "text": "Chapter 02 is sessions, worktrees and context. Thousand-Bough Isle’s to the north-east, and your ship’s ready when you are."
     },
     {
       "id": "mer.admiral.done",
@@ -1182,9 +1202,9 @@
       "text": "Right-sized! That's a fair price for this job."
     },
     {
-      "id": "mer.market.over",
+      "id": "mer.market.keep",
       "speaker": "Gilda",
-      "text": "That's a lot of starfish for a quick look. Auto would've done it."
+      "text": "Right-sized. Your model on its default effort is fine for a quick look. A bigger one just costs more starfish."
     },
     {
       "id": "mer.market.over.effort",
@@ -1197,9 +1217,9 @@
       "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort."
     },
     {
-      "id": "mer.market.short.auto",
+      "id": "mer.market.hard.auto",
       "speaker": "Gilda",
-      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort."
+      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort."
     },
     {
       "id": "mer.market.broke",
@@ -1210,6 +1230,16 @@
       "id": "mer.market.done",
       "speaker": "Gilda",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    },
+    {
+      "id": "mer.market.early",
+      "speaker": "Gilda",
+      "text": "Not yet, Captain! Oren teaches models up at the observatory. Come back when he sends you down."
+    },
+    {
+      "id": "mer.market.practiced",
+      "speaker": "Gilda",
+      "text": "That's Oren's practice done, Captain. Ride the lift back up and tell him how it went."
     },
     {
       "id": "desmond.market.hello",
@@ -1237,9 +1267,9 @@
       "text": "Right-sized! A fair price for this job."
     },
     {
-      "id": "desmond.market.over",
+      "id": "desmond.market.keep",
       "speaker": "Desmond",
-      "text": "That's plenty of starfish for a quick look. Auto would have handled it."
+      "text": "Right-sized. That model on its default effort does a quick look fine. A bigger one just costs you more starfish."
     },
     {
       "id": "desmond.market.over.effort",
@@ -1252,9 +1282,9 @@
       "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort."
     },
     {
-      "id": "desmond.market.short.auto",
+      "id": "desmond.market.hard.auto",
       "speaker": "Desmond",
-      "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort."
+      "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort."
     },
     {
       "id": "desmond.market.broke",
@@ -1265,6 +1295,11 @@
       "id": "desmond.market.done",
       "speaker": "Desmond",
       "text": "Every job on the board, right-sized. You know your models, Captain!"
+    },
+    {
+      "id": "desmond.market.early",
+      "speaker": "Desmond",
+      "text": "Hold on, Captain. Models and effort come in Chapter 01, and Oren teaches them on Port Meridian. Come back after his lesson."
     },
     {
       "id": "desmond.market.bye",
@@ -1297,9 +1332,9 @@
       "text": "Right-sized, and a fair price for the job."
     },
     {
-      "id": "tb.lani.market.over",
+      "id": "tb.lani.market.keep",
       "speaker": "Lani",
-      "text": "That's a lot of starfish for a quick look. Auto could have done it."
+      "text": "Right-sized. A quick look's fine on the model you've got, at its default effort. Bigger ones just cost more starfish."
     },
     {
       "id": "tb.lani.market.over.effort",
@@ -1312,9 +1347,9 @@
       "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort."
     },
     {
-      "id": "tb.lani.market.short.auto",
+      "id": "tb.lani.market.hard.auto",
       "speaker": "Lani",
-      "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort."
+      "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort."
     },
     {
       "id": "tb.lani.market.broke",
@@ -1325,6 +1360,11 @@
       "id": "tb.lani.market.done",
       "speaker": "Lani",
       "text": "The whole board, right-sized! You really know your models, Captain."
+    },
+    {
+      "id": "tb.lani.market.early",
+      "speaker": "Lani",
+      "text": "Not just yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson."
     },
     {
       "id": "tb.lani.market.bye",

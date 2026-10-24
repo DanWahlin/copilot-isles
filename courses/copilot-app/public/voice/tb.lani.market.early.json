@@ -1,0 +1,97 @@
+{
+  "id": "tb.lani.market.early",
+  "speaker": "Lani",
+  "text": "Not just yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "just",
+      "start": 0.288,
+      "end": 0.52
+    },
+    {
+      "word": "yet",
+      "start": 0.52,
+      "end": 0.87
+    },
+    {
+      "word": "Captain",
+      "start": 0.87,
+      "end": 1.68
+    },
+    {
+      "word": "Oren",
+      "start": 1.68,
+      "end": 2.4
+    },
+    {
+      "word": "on",
+      "start": 2.4,
+      "end": 2.64
+    },
+    {
+      "word": "Port",
+      "start": 2.64,
+      "end": 3
+    },
+    {
+      "word": "Meridian",
+      "start": 3,
+      "end": 3.75
+    },
+    {
+      "word": "teaches",
+      "start": 3.75,
+      "end": 4.32
+    },
+    {
+      "word": "models",
+      "start": 4.32,
+      "end": 4.907
+    },
+    {
+      "word": "first",
+      "start": 4.907,
+      "end": 5.616
+    },
+    {
+      "word": "Come",
+      "start": 5.616,
+      "end": 6.04
+    },
+    {
+      "word": "and",
+      "start": 6.04,
+      "end": 6.2
+    },
+    {
+      "word": "see",
+      "start": 6.2,
+      "end": 6.427
+    },
+    {
+      "word": "me",
+      "start": 6.427,
+      "end": 6.72
+    },
+    {
+      "word": "after",
+      "start": 6.72,
+      "end": 7.16
+    },
+    {
+      "word": "his",
+      "start": 7.16,
+      "end": 7.349
+    },
+    {
+      "word": "lesson",
+      "start": 7.349,
+      "end": 7.599
+    }
+  ]
+}

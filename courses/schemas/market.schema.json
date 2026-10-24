@@ -40,7 +40,7 @@
           },
           "acts": {
             "enum": ["small", "medium", "large"],
-            "description": "The game's model size the grading reads for it (each once): a quick look wants small; a hard job large, or medium on high effort."
+            "description": "The game's model size the grading reads for it (each once): on a quick look any size on its default effort is right-sized (small at the fair price); a hard job wants large, or medium on high effort (small falls short)."
           },
           "price": {
             "description": "Starfish to hire a model of this category.",
@@ -141,9 +141,20 @@
       }
     },
     "quotes": {
-      "description": "Course sentences, word for word. The keys the grading uses (cost, effort, hard, noGuarantee, auto, autoAside, autoHidden, retry) must stay.",
+      "description": "Course sentences, word for word. The keys the grading and the work order use (cost, effort, hard, noGuarantee, auto, autoAside, autoHidden, retry, noSpecific, vary) must stay.",
       "type": "object",
-      "required": ["cost", "effort", "hard", "noGuarantee", "auto", "autoAside", "autoHidden", "retry"],
+      "required": [
+        "cost",
+        "effort",
+        "hard",
+        "noGuarantee",
+        "auto",
+        "autoAside",
+        "autoHidden",
+        "retry",
+        "noSpecific",
+        "vary"
+      ],
       "propertyNames": {
         "pattern": "^[a-z][A-Za-z]*$"
       },
@@ -189,7 +200,7 @@
       }
     },
     "gilda": {
-      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back).",
+      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back), `keep` for a quick look right-sized with a bigger model on its default (or low) effort, `hardAuto` for a hard job done with Auto (a nudge to turn it off and choose a model and more effort), `early` for the counter before the course's model lesson, and `practiced` (hers alone) for the lesson's practice done.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -198,12 +209,13 @@
         "auto",
         "right",
         "fair",
-        "over",
+        "keep",
         "overEffort",
         "short",
-        "shortAuto",
+        "hardAuto",
         "broke",
-        "done"
+        "done",
+        "early"
       ],
       "properties": {
         "hello": {
@@ -221,7 +233,7 @@
         "fair": {
           "$ref": "#/$defs/line"
         },
-        "over": {
+        "keep": {
           "$ref": "#/$defs/line"
         },
         "overEffort": {
@@ -230,7 +242,7 @@
         "short": {
           "$ref": "#/$defs/line"
         },
-        "shortAuto": {
+        "hardAuto": {
           "$ref": "#/$defs/line"
         },
         "broke": {
@@ -238,6 +250,13 @@
         },
         "done": {
           "$ref": "#/$defs/line"
+        },
+        "early": {
+          "$ref": "#/$defs/line"
+        },
+        "practiced": {
+          "$ref": "#/$defs/line",
+          "description": "Gilda's only: when the course's model lesson's practice (`lesson.practice` in puzzles/market.json) is done at her counter."
         }
       }
     },
@@ -253,12 +272,13 @@
           "auto",
           "right",
           "fair",
-          "over",
+          "keep",
           "overEffort",
           "short",
-          "shortAuto",
+          "hardAuto",
           "broke",
           "done",
+          "early",
           "bye"
         ],
         "properties": {
@@ -277,7 +297,7 @@
           "fair": {
             "$ref": "#/$defs/line"
           },
-          "over": {
+          "keep": {
             "$ref": "#/$defs/line"
           },
           "overEffort": {
@@ -286,13 +306,16 @@
           "short": {
             "$ref": "#/$defs/line"
           },
-          "shortAuto": {
+          "hardAuto": {
             "$ref": "#/$defs/line"
           },
           "broke": {
             "$ref": "#/$defs/line"
           },
           "done": {
+            "$ref": "#/$defs/line"
+          },
+          "early": {
             "$ref": "#/$defs/line"
           },
           "bye": {
@@ -322,7 +345,7 @@
           "$ref": "#/$defs/text"
         },
         "refund": {
-          "description": "Starfish back for a right-sized hire. Always less than the cheapest right-sized hire for the size (a right-sized job costs at least 1); the game also never refunds a hire's whole price.",
+          "description": "Starfish back for a right-sized hire with a model (Auto's is always its whole price less one: none). Less than the cheapest right-sized model hire for the size (a right-sized job costs at least 1); the game also never refunds a hire's whole price.",
           "type": "integer",
           "minimum": 0
         },
@@ -330,6 +353,13 @@
           "description": "Doubloons the first time the job's done right-sized.",
           "type": "integer",
           "minimum": 0
+        },
+        "quotes": {
+          "description": "Keys of `quotes` shown on every work order of this size, after the job's own `why`.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

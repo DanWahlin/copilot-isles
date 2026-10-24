@@ -209,7 +209,7 @@
       "title": "Change your model",
       "ask": "Which **model** did you pick?",
       "intro": "For this exercise the course says you can keep **Auto** or your current model. What does your model control show?",
-      "uses": "Your Logbook will note it, and Oren will ask one question about your choice.",
+      "uses": "Your Logbook will note it on the Try the controls page.",
       "field": "Your model control",
       "choices": {
         "auto": {

@@ -627,6 +627,16 @@ export function checkContent(
       if (game === 'done') issue(rel, at('steps', game), 'every quest ends at "done": it can\'t be mapped');
       else if (!PUZZLE_STEPS[name]?.includes(game))
         issue(rel, at('steps', game), `the game's ${name} has no step "${game}"`);
+    // The market's lesson: the quests and steps it reads and sets are this course's.
+    const lesson = p.lesson as
+      { taught?: When; practice?: When; practiced?: Record<string, string> } | undefined;
+    if (lesson && questsOk) {
+      if (lesson.taught) checkWhen(rel, 'lesson.taught', lesson.taught);
+      if (lesson.practice) checkWhen(rel, 'lesson.practice', lesson.practice);
+      if (lesson.practiced) checkRules(rel, 'lesson.practiced', [{ set: lesson.practiced }], false);
+      if (!!lesson.practice !== !!lesson.practiced)
+        issue(rel, 'lesson', 'needs both "practice" and "practiced", or neither');
+    }
     for (const key of ['latePage', 'page'] as const)
       if (typeof p[key] === 'string' && !ids.page.has(p[key] as string))
         issue(rel, key, `"${p[key] as string}" isn't a page in this course`);
@@ -1045,7 +1055,9 @@ function checkMarket(
     const right = hires.filter((h) => grade(job, h, tiers).outcome === 'right');
     if (!right.length) return fail(`jobs[${i}]`, 'no hire is right-sized for it');
     const least = Math.min(...right.map((h) => priceIn(m, h)));
-    cheapest.set(j.size, least);
+    // Auto's refund is its price less one (none): the size's refund is a right-sized model hire's.
+    const models = right.filter((h) => !h.auto).map((h) => priceIn(m, h));
+    if (models.length) cheapest.set(j.size, Math.min(...models));
     const refunds = { quick: m.sizes.quick.refund, hard: m.sizes.hard.refund };
     fairHires.push({
       pay: least,
@@ -1062,7 +1074,7 @@ function checkMarket(
     if (refund >= least)
       fail(
         `sizes.${size}.refund`,
-        `${refund} back for a ${least}-starfish hire: a refund must be less than the hire, so a right-sized job costs at least 1 starfish`,
+        `${refund} back for a ${least}-starfish model hire: a refund must be less than the hire, so a right-sized job costs at least 1 starfish`,
       );
   }
   // Every island has a stall, so the first market is on the course's first island: its starfish

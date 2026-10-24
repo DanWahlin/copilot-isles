@@ -8,6 +8,7 @@ import {
   type MarketData,
   type MarketQuoteData,
   type OutcomeId,
+  type QuestKeeperKey,
   type QuoteKey,
 } from '../../content/market';
 import { onCourse } from '../../course/active';
@@ -62,6 +63,8 @@ export interface MarketJob {
   brief: string;
   /** What the course says about a job like this. */
   why: CourseQuote;
+  /** What the course says about every job of its size (shown after `why` on the work order). */
+  also: readonly CourseQuote[];
 }
 
 /** Gilda's jobs board, in order: two quick looks, then two hard jobs (keys 1-4). */
@@ -124,21 +127,26 @@ export let SIZE_LABEL = {} as Readonly<Record<JobSize, string>>;
 export type Outcome = OutcomeId;
 export type Reason =
   | 'quick-right'
-  | 'quick-over-model'
+  | 'quick-keep'
   | 'quick-over-effort'
   | 'hard-right'
-  | 'hard-short-auto'
+  | 'hard-auto'
   | 'hard-short-model'
   | 'hard-short-effort';
 
 /**
- * Grades a hire for a job by its model's size and the effort (for the Copilot app course, Models and
- * Reasoning Effort; Lightweight, Versatile and Powerful are small, medium and large):
- * - A quick look (a tour, a short explanation): Auto, or a small model on its default (or low)
- *   effort, is right-sized. A bigger model, or high effort, overspends. Nothing falls short.
- * - A hard job (a difficult bug, a change across several files): a large model on default or high,
- *   or a medium one on high, is right-sized. Auto (it hides the effort), a small model, a medium one
- *   below high or a large one on low falls short.
+ * Grades a hire for a job by its model's size and the effort, by the course's rule (for the Copilot
+ * app course, Models and Reasoning Effort: "For a repository tour or a short explanation, keep Auto or
+ * the current model and its default reasoning effort. For a difficult bug or a change across several
+ * files, consider a model suited to complex coding and a higher effort level."; Lightweight, Versatile
+ * and Powerful are small, medium and large):
+ * - A quick look (a tour, a short explanation): Auto, or any model on its default (or low) effort, is
+ *   right-sized, whatever its size (it could be your current model: `quick-keep` when it's bigger than
+ *   the smallest, which only costs more starfish). High effort overspends. Nothing falls short.
+ * - A hard job (a difficult bug, a change across several files): Auto (it chooses a model for your
+ *   task) is right-sized, with a nudge that you can turn it off and choose a model and more effort; so
+ *   is a large model on default or high, or a medium one on high. A small model, a medium one below
+ *   high or any model on low falls short. Nothing overspends.
  */
 export function grade(
   job: MarketJob,
@@ -148,12 +156,10 @@ export function grade(
   const tier = h.auto ? null : tiers[h.category];
   if (job.size === 'quick') {
     if (h.auto) return { outcome: 'right', reason: 'quick-right' };
-    if (tier !== 'small') return { outcome: 'over', reason: 'quick-over-model' };
-    return h.effort === 'high'
-      ? { outcome: 'over', reason: 'quick-over-effort' }
-      : { outcome: 'right', reason: 'quick-right' };
+    if (h.effort === 'high') return { outcome: 'over', reason: 'quick-over-effort' };
+    return { outcome: 'right', reason: tier === 'small' ? 'quick-right' : 'quick-keep' };
   }
-  if (h.auto) return { outcome: 'short', reason: 'hard-short-auto' };
+  if (h.auto) return { outcome: 'right', reason: 'hard-auto' };
   if (tier === 'small') return { outcome: 'short', reason: 'hard-short-model' };
   const enough = tier === 'large' ? h.effort !== 'low' : h.effort === 'high';
   return enough
@@ -177,7 +183,7 @@ export function fairPrice(job: MarketJob): number {
 }
 
 /** What the stallholder says: voice line ids (the pack's voice/lines.json) by what they're for. */
-export let GILDA = {} as Readonly<Record<GildaKey, string>>;
+export let GILDA = {} as Readonly<Record<GildaKey, string> & Partial<Record<QuestKeeperKey, string>>>;
 
 /** Each of Gilda's voice lines' text (the caption), by voice line id. */
 export let GILDA_TEXT: Readonly<Record<string, string>> = {};
@@ -196,6 +202,11 @@ export interface Feedback {
   summary: string;
   /** The course sentences behind the grade (the Retry one too when it fell short). */
   quotes: readonly CourseQuote[];
+  /**
+   * The Retry the result offers: `short` (it fell short: a different model, or more effort), `again`
+   * (a hard job done right-sized: try it again with a different model, to compare), or none.
+   */
+  retry: 'short' | 'again' | null;
 }
 
 export let STAMP = {} as Readonly<Record<Outcome, string>>;
@@ -214,6 +225,7 @@ onCourse(() => {
     size: j.size,
     brief: j.brief,
     why: QUOTES[j.why],
+    also: (m.sizes[j.size].quotes ?? []).flatMap((k) => (QUOTES[k] ? [QUOTES[k]] : [])),
   }));
   EFFORT_LABEL = Object.fromEntries(EFFORTS.map((e) => [e, effortData(m, e)?.label ?? e])) as Record<
     Effort,
@@ -240,7 +252,8 @@ onCourse(() => {
   GILDA = Object.fromEntries(Object.entries(m.gilda).map(([k, l]) => [k, l.voice])) as Record<
     GildaKey,
     string
-  >;
+  > &
+    Partial<Record<QuestKeeperKey, string>>;
   GILDA_TEXT = Object.fromEntries(Object.values(m.gilda).map((l) => [l.voice, l.text]));
   GILDA_SOURCES = Object.fromEntries(
     Object.values(m.gilda).flatMap((l) => (l.source ? [[l.voice, sourceOf(l.source)] as const] : [])),
@@ -260,7 +273,7 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
   const paid = price(h);
   const who = hireName(h);
   const fair = fairPrice(job);
-  const base = { outcome, reason, stamp: STAMP[outcome] };
+  const base = { outcome, reason, stamp: STAMP[outcome], retry: null };
   const summary = T(`summary.${reason}`, { who, paid, fair });
   switch (reason) {
     case 'quick-right':
@@ -270,13 +283,8 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         summary,
         quotes: [job.why, ...(h.auto ? [QUOTES.auto] : [])],
       };
-    case 'quick-over-model':
-      return {
-        ...base,
-        key: 'over',
-        summary,
-        quotes: [QUOTES.cost, job.why],
-      };
+    case 'quick-keep':
+      return { ...base, key: 'keep', summary, quotes: [job.why, QUOTES.cost] };
     case 'quick-over-effort':
       return {
         ...base,
@@ -290,13 +298,15 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         key: right,
         summary,
         quotes: [QUOTES.hard, QUOTES.noGuarantee],
+        retry: 'again',
       };
-    case 'hard-short-auto':
+    case 'hard-auto':
       return {
         ...base,
-        key: 'shortAuto',
+        key: 'hardAuto',
         summary,
-        quotes: [QUOTES.autoHidden, QUOTES.hard, QUOTES.retry],
+        quotes: [QUOTES.auto, QUOTES.hard, QUOTES.autoHidden],
+        retry: 'again',
       };
     case 'hard-short-model':
       return {
@@ -304,6 +314,7 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         key: 'short',
         summary,
         quotes: [QUOTES.hard, QUOTES.retry],
+        retry: 'short',
       };
     case 'hard-short-effort':
       return {
@@ -311,18 +322,20 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         key: 'short',
         summary,
         quotes: [QUOTES.hard, QUOTES.effort, QUOTES.retry],
+        retry: 'short',
       };
   }
 }
 
 /**
- * A Retry (only after Fell short; the course's "retry it with a different model or reasoning effort
- * without re-typing your prompt"): the same job, and the work order opens with the picker it's about
- * live and nothing chosen in it, so you choose the different model or the effort yourself.
+ * A Retry (after a hard job: it fell short, or it was done and you'd like to compare; the course's
+ * "retry it with a different model or reasoning effort without re-typing your prompt"): the same job,
+ * and the work order opens with the picker it's about live and nothing chosen in it, so you choose the
+ * different model or the effort yourself.
  */
 export interface RetryPlan {
   kind: 'model' | 'effort';
-  /** The hire that fell short (shown as last time's). */
+  /** The hire being retried (shown as last time's). */
   last: Hire;
   /**
    * The picker that's live, nothing chosen in it: the models' for "a different model", the effort

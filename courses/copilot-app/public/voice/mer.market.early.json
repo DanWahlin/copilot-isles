@@ -1,0 +1,92 @@
+{
+  "id": "mer.market.early",
+  "speaker": "Gilda",
+  "text": "Not yet, Captain! Oren teaches models up at the observatory. Come back when he sends you down.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.3
+    },
+    {
+      "word": "yet",
+      "start": 0.3,
+      "end": 0.795
+    },
+    {
+      "word": "Captain",
+      "start": 0.795,
+      "end": 1.6
+    },
+    {
+      "word": "Oren",
+      "start": 1.6,
+      "end": 2.37
+    },
+    {
+      "word": "teaches",
+      "start": 2.37,
+      "end": 2.789
+    },
+    {
+      "word": "models",
+      "start": 2.789,
+      "end": 3.28
+    },
+    {
+      "word": "up",
+      "start": 3.28,
+      "end": 3.467
+    },
+    {
+      "word": "at",
+      "start": 3.467,
+      "end": 3.56
+    },
+    {
+      "word": "the",
+      "start": 3.56,
+      "end": 3.737
+    },
+    {
+      "word": "observatory",
+      "start": 3.737,
+      "end": 4.672
+    },
+    {
+      "word": "Come",
+      "start": 4.672,
+      "end": 5.184
+    },
+    {
+      "word": "back",
+      "start": 5.184,
+      "end": 5.472
+    },
+    {
+      "word": "when",
+      "start": 5.472,
+      "end": 5.68
+    },
+    {
+      "word": "he",
+      "start": 5.68,
+      "end": 5.893
+    },
+    {
+      "word": "sends",
+      "start": 5.893,
+      "end": 6.18
+    },
+    {
+      "word": "you",
+      "start": 6.18,
+      "end": 6.32
+    },
+    {
+      "word": "down",
+      "start": 6.32,
+      "end": 6.57
+    }
+  ]
+}

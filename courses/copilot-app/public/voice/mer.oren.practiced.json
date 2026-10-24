@@ -1,0 +1,162 @@
+{
+  "id": "mer.oren.practiced",
+  "speaker": "Oren",
+  "text": "Back already? Then you've seen it. A quick look needs no more than the defaults, and Retry runs a hard job again with another model or effort, without retyping a word.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0.055541,
+      "end": 0.319458
+    },
+    {
+      "word": "already",
+      "start": 0.319458,
+      "end": 1.777791
+    },
+    {
+      "word": "Then",
+      "start": 1.777791,
+      "end": 2.013875
+    },
+    {
+      "word": "you've",
+      "start": 2.013875,
+      "end": 2.291666
+    },
+    {
+      "word": "seen",
+      "start": 2.291666,
+      "end": 2.638875
+    },
+    {
+      "word": "it",
+      "start": 2.638875,
+      "end": 3.875
+    },
+    {
+      "word": "A",
+      "start": 3.875,
+      "end": 3.972208
+    },
+    {
+      "word": "quick",
+      "start": 3.972208,
+      "end": 4.25
+    },
+    {
+      "word": "look",
+      "start": 4.25,
+      "end": 4.458333
+    },
+    {
+      "word": "needs",
+      "start": 4.458333,
+      "end": 4.791666
+    },
+    {
+      "word": "no",
+      "start": 4.791666,
+      "end": 5.027791
+    },
+    {
+      "word": "more",
+      "start": 5.027791,
+      "end": 5.236125
+    },
+    {
+      "word": "than",
+      "start": 5.236125,
+      "end": 5.402791
+    },
+    {
+      "word": "the",
+      "start": 5.402791,
+      "end": 5.527791
+    },
+    {
+      "word": "defaults",
+      "start": 5.527791,
+      "end": 6.263875
+    },
+    {
+      "word": "and",
+      "start": 6.263875,
+      "end": 6.388875
+    },
+    {
+      "word": "Retry",
+      "start": 6.388875,
+      "end": 6.861125
+    },
+    {
+      "word": "runs",
+      "start": 6.861125,
+      "end": 7.194458
+    },
+    {
+      "word": "a",
+      "start": 7.194458,
+      "end": 7.263875
+    },
+    {
+      "word": "hard",
+      "start": 7.263875,
+      "end": 7.680541
+    },
+    {
+      "word": "job",
+      "start": 7.680541,
+      "end": 7.958333
+    },
+    {
+      "word": "again",
+      "start": 7.958333,
+      "end": 8.305541
+    },
+    {
+      "word": "with",
+      "start": 8.305541,
+      "end": 8.472208
+    },
+    {
+      "word": "another",
+      "start": 8.472208,
+      "end": 8.833333
+    },
+    {
+      "word": "model",
+      "start": 8.833333,
+      "end": 9.180541
+    },
+    {
+      "word": "or",
+      "start": 9.180541,
+      "end": 9.375
+    },
+    {
+      "word": "effort",
+      "start": 9.375,
+      "end": 9.902791
+    },
+    {
+      "word": "without",
+      "start": 9.902791,
+      "end": 10.291666
+    },
+    {
+      "word": "retyping",
+      "start": 10.291666,
+      "end": 10.902791
+    },
+    {
+      "word": "a",
+      "start": 10.902791,
+      "end": 10.972208
+    },
+    {
+      "word": "word",
+      "start": 10.972208,
+      "end": 11.222208
+    }
+  ]
+}

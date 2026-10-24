@@ -1,0 +1,87 @@
+{
+  "id": "mer.market.practiced",
+  "speaker": "Gilda",
+  "text": "That's Oren's practice done, Captain. Ride the lift back up and tell him how it went.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "Oren's",
+      "start": 0.2,
+      "end": 0.524
+    },
+    {
+      "word": "practice",
+      "start": 0.524,
+      "end": 0.928
+    },
+    {
+      "word": "done",
+      "start": 0.928,
+      "end": 1.345
+    },
+    {
+      "word": "Captain",
+      "start": 1.345,
+      "end": 1.728
+    },
+    {
+      "word": "Ride",
+      "start": 1.728,
+      "end": 2.26
+    },
+    {
+      "word": "the",
+      "start": 2.26,
+      "end": 2.352
+    },
+    {
+      "word": "lift",
+      "start": 2.352,
+      "end": 2.528
+    },
+    {
+      "word": "back",
+      "start": 2.528,
+      "end": 2.8
+    },
+    {
+      "word": "up",
+      "start": 2.8,
+      "end": 3
+    },
+    {
+      "word": "and",
+      "start": 3,
+      "end": 3.152
+    },
+    {
+      "word": "tell",
+      "start": 3.152,
+      "end": 3.3
+    },
+    {
+      "word": "him",
+      "start": 3.3,
+      "end": 3.4
+    },
+    {
+      "word": "how",
+      "start": 3.4,
+      "end": 3.547
+    },
+    {
+      "word": "it",
+      "start": 3.547,
+      "end": 3.664
+    },
+    {
+      "word": "went",
+      "start": 3.664,
+      "end": 3.914
+    }
+  ]
+}
