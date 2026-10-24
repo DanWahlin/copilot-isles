@@ -80,11 +80,10 @@ export function SettingsScreen({ state, bridge }: { state: UiState; bridge: Game
             checked={settings.githubChecks}
             onChange={(githubChecks) => bridge.updateSettings({ githubChecks })}
           />
-          <p className="ci-setting-note" id="ci-github-checks-note">
-            Off unless you turn it on. Then the Logbook’s checklist can ask GitHub’s public API, without
-            signing in, whether a step you did shows in your fork (the fork is there, a branch, a pull
-            request). Your browser sends GitHub your fork’s public name and your IP address, nothing else, and
-            only when you select Check on GitHub. If GitHub can’t answer, your own tick still counts.
+          <p className="ci-setting-note wide" id="ci-github-checks-note">
+            Off unless you turn it on. Then Check on GitHub, in the Logbook’s checklist, asks GitHub’s public
+            API (no sign-in) whether a step shows in your fork. GitHub sees your fork’s name and your IP
+            address, and your own tick always counts.
           </p>
         </SettingsGroup>
         {(state.hasSave || state.returnTo === 'paused') && (

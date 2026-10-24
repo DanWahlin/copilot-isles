@@ -412,3 +412,16 @@ button.ci-lj-applabel {
 :root.reduced-motion .ci-lj-btn {
   transition: none;
 }
+
+/* Six Logbook tabs on a narrow screen: the row scrolls instead of widening the Logbook. */
+.ci-logbook > * {
+  min-width: 0;
+}
+.ci-logbook-tabs {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.ci-logbook-tabs button {
+  flex: none;
+  white-space: nowrap;
+}
