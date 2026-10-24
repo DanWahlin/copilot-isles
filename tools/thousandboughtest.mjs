@@ -4,11 +4,15 @@
 // Oak at the Three Landings (and the gondola), Fen's Channel Routing played for real with the keyboard
 // and mouse (two rounds of tiles, a wrong run first, a hint; round 3's places for the crews, a wrong one
 // first) and the Spire twist (a wrong answer, then a right one), Ines's Flag Hoist (Logbook layering
-// and key ownership, a wrong flag, then all six orders), Rook, Pip, and the Elder's Canopy Trial with the
-// Seal's Thousand Lanterns. Then the Sky Basket, the chest behind the falls, the bottles and the starfish.
+// and key ownership, a wrong flag, then all six orders), Rook and Pip (each briefs an exercise, sends you
+// to do it in the app, and asks what you saw when you come back), the Elder's Canopy Trial with the
+// Seal's Thousand Lanterns, and the optional assignment (given and reported at the Crown). Then the Sky
+// Basket, the chest behind the falls, the bottles and the starfish.
 // Fails on any page error, a missing beat, or a hitch after warm-up. Screenshots at every beat.
-// Rook asks for the session's branch and the practice issue's number (Your setup): by default the run
-// enters them and checks the captions, Logbook pages, terminal and Trial use them; `--setup=skip` skips.
+// Back at Rook, you give your session's working branch and the practice issue's number (Your setup): by
+// default the run enters them (after the base branch, refused) and checks the Logbook pages, terminal
+// and Trial use them, and answers what you saw; `--setup=skip` skips ("I haven't done it yet"), and then
+// nothing asks what you saw.
 //   node tools/thousandboughtest.mjs [--base=http://127.0.0.1:5386] [--out=<dir>] [--tier=high] [--webgl]
 //                                    [--reduced] [--from=elder|rook] [--setup=enter|skip]
 import { mkdirSync } from 'node:fs';
@@ -418,33 +422,72 @@ async function playPlaces() {
   await shot('round3-solved');
 }
 
+/** The practice branch: the session's base branch, never shown as its working branch. */
+const BASE = 'practice-empty-state-copy';
+/** Whether the run gives Rook its session's branch (it did Exercise 1 in the app). */
+const gaveBranch = () => plan.branch !== 'skip';
+
 /** Rook's branch and issue questions (Your setup), then everywhere the answers show. */
 async function checkRookSetup() {
   const setup = await S(() => window.__dev.learn.getState().setup);
-  const issue = plan.issue === 'skip' ? 3 : plan.issue;
-  const branch = plan.branch === 'skip' ? 'practice-empty-state-copy' : plan.branch;
-  if (plan.issue !== 'skip' && setup.issue !== plan.issue) fail(`issue not saved: ${setup.issue}`);
-  if (plan.issue === 'skip' && setup.issue !== null) fail('a skipped issue was saved');
-  if (plan.branch !== 'skip' && setup.branch !== plan.branch) fail(`branch not saved: ${setup.branch}`);
-  if (plan.branch === 'skip' && setup.branch !== null) fail('a skipped branch was saved');
+  // The issue's number is asked only once you've given your session's branch.
+  const askedIssue = gaveBranch() && plan.issue !== 'skip';
+  const issue = askedIssue ? plan.issue : 3;
+  if (askedIssue && setup.issue !== plan.issue) fail(`issue not saved: ${setup.issue}`);
+  if (!askedIssue && setup.issue !== null) fail('an issue was saved without being asked');
+  if (gaveBranch() && setup.branch !== plan.branch) fail(`branch not saved: ${setup.branch}`);
+  if (!gaveBranch() && setup.branch !== null) fail('a skipped branch was saved');
   const all = [...captions].join('\n');
-  if (!all.includes(`Type #${issue} and pick`))
-    fail(`no caption with #${issue}: ${JSON.stringify([...captions])}`);
-  if (!all.includes(`this session on ${branch}`)) fail(`Pip's caption doesn't name ${branch}`);
+  if (!all.includes(`Type #3 and pick`)) fail(`no brief caption with #3: ${JSON.stringify([...captions])}`);
+  if (all.includes(`on ${BASE}`)) fail('a caption still calls the base branch the session’s');
   const plan2 = await logbookPage(page, 'pg2.plan', shot);
   if (!plan2.includes(`type #${issue} and pick`)) fail(`pg2.plan doesn't say #${issue}`);
-  if (plan.issue !== 'skip' && !plan2.includes(`Your practice issue #${issue}`))
+  if (!plan2.includes('Investigate the issue and create a plan to address it.'))
+    fail('pg2.plan has no prompt to send');
+  if (askedIssue && !plan2.includes(`Your practice issue #${issue}`))
     fail('pg2.plan has no Your practice issue note');
+  const preview = await logbookPage(page, 'pg2.preview', shot);
+  if (!/search term, genre or reading status/.test(preview)) fail('pg2.preview has no expected result');
   const details = await logbookPage(page, 'pg2.details', shot);
-  if (plan.branch !== 'skip' && !details.includes(branch)) fail(`pg2.details doesn't note ${branch}`);
-  if (plan.branch === 'skip' && details.includes('Your session’s branch'))
-    fail('pg2.details notes a skipped branch');
+  if (gaveBranch() && !details.includes(plan.branch)) fail(`pg2.details doesn't note ${plan.branch}`);
+  if (!gaveBranch() && details.includes('Your session’s branch')) fail('pg2.details notes a skipped branch');
   const chronicle = await logbookPage(page, 'pg2.chronicle', shot);
-  if (!chronicle.includes(branch)) fail(`pg2.chronicle doesn't name ${branch}`);
-  // The Practice Bough's session terminal, seen by Rook.
+  if (gaveBranch() && !chronicle.includes(plan.branch)) fail(`pg2.chronicle doesn't note ${plan.branch}`);
+  if (chronicle.includes(BASE)) fail('pg2.chronicle names the base branch');
+  // The Practice Bough's session terminal, seen by Rook: its base branch, and the working branch once given.
   const term = [...terminals].reverse().find((t) => t.includes('Working branch'));
-  if (!term?.includes(`Working branch: ${branch}`) || !term.includes(`Attached: #${issue}`))
-    fail(`the session terminal doesn't show ${branch} and #${issue}: ${JSON.stringify(term)}`);
+  if (!term?.includes(`Base branch: ${BASE}`))
+    fail(`the session terminal has no base branch: ${JSON.stringify(term)}`);
+  if (term?.includes(`Working branch: ${BASE}`))
+    fail('the session terminal calls the base branch the working branch');
+  if (gaveBranch() && !term?.includes(`Working branch: ${plan.branch}`))
+    fail(`the session terminal doesn't show ${plan.branch}: ${JSON.stringify(term)}`);
+  if (!term?.includes(`Attached: #${issue}`))
+    fail(`the session terminal doesn't show #${issue}: ${JSON.stringify(term)}`);
+}
+
+/**
+ * An exercise stop: the brief (it ends sending you to the app), the tracker and the compass while you
+ * do it, then the return visit. `saw` is the question about what you saw, asked only if you gave Rook
+ * your session's branch.
+ */
+async function exercise(npc, questId, saw) {
+  await talk(npc);
+  await drive(`${npc} brief`, quest(questId, 'app'));
+  await page.waitForTimeout(800);
+  await shot(`${npc}-do-it-in-the-app`);
+  const tracker = await S(() => window.__dev.learn.getState().tracker);
+  const task = tracker?.tasks?.find((t) => t.id === questId);
+  if (!/in the app/.test(JSON.stringify(task ?? {})))
+    fail(`${questId}'s tracker doesn't send you to the app: ${JSON.stringify(task)}`);
+  const compass = await S(() => document.querySelector('.hud-compass-label')?.textContent ?? null);
+  if (!compass?.includes(npc === 'rook' ? 'Rook' : 'Pip'))
+    fail(`${questId}:app compass points at ${compass}`);
+  if (seen.has(`quiz-${saw}`) || seen.has(saw)) fail(`${saw} was asked before you came back`);
+  await talk(npc);
+  await drive(`${npc} back`, quest(questId, 'done'));
+  if (gaveBranch() !== seen.has(saw))
+    fail(`${saw} ${seen.has(saw) ? 'was' : 'wasn’t'} asked (branch ${plan.branch})`);
 }
 
 if (opt.from === 'elder') {
@@ -459,11 +502,9 @@ if (opt.from === 'elder') {
       window.__dev.session().debug.quest(id, 'done');
     window.__dev.session().debug.quest('Q2.7', 'start');
   });
-  await talk('rook');
-  await drive('Rook', quest('Q2.7', 'done'));
+  await exercise('rook', 'Q2.7', 'K2.5');
   await shot('rook-session-terminal');
-  await talk('pip');
-  await drive('Pip', quest('Q2.8', 'done'));
+  await exercise('pip', 'Q2.8', 'K2.7');
   await checkRookSetup();
 } else {
   // Q2.1 Tamsin → Q2.2 Lyra (and her chest) → Q2.3 Saffi → Q2.4 Oak.
@@ -577,12 +618,10 @@ if (opt.from === 'elder') {
   });
   if (hoisted < 6) fail(`only ${hoisted} orders answered`);
 
-  // Q2.7 Rook → Q2.8 Pip.
-  await talk('rook');
-  await drive('Rook', quest('Q2.7', 'done'));
+  // Q2.7 Rook → Q2.8 Pip: each exercise briefed, done in the app, then reported.
+  await exercise('rook', 'Q2.7', 'K2.5');
   await shot('rook-session-terminal');
-  await talk('pip');
-  await drive('Pip', quest('Q2.8', 'done'));
+  await exercise('pip', 'Q2.8', 'K2.7');
   await checkRookSetup();
 }
 
@@ -600,7 +639,7 @@ await drive('Elder', quest('Q2.9', 'done'), 300000, async (s) => {
   }
   if (s.quiz?.id === 'T2.6' && !seen.has('T2.6-issue')) {
     seen.add('T2.6-issue');
-    const want = `#${plan.issue === 'skip' || opt.from === 'elder' ? 3 : plan.issue}`;
+    const want = `#${plan.issue === 'skip' || !gaveBranch() || opt.from === 'elder' ? 3 : plan.issue}`;
     await page.waitForTimeout(400);
     const text = await S(() => document.querySelector('.ci-quiz-backdrop')?.textContent ?? '');
     if (!text.includes(`Type ${want} and pick the issue`)) fail(`T2.6 doesn't say ${want}`);
@@ -630,6 +669,23 @@ if (
     .includes('Thousand-Bough')
 )
   fail('no Seal of Thousand-Bough');
+
+// Q2.A, the optional assignment: the Elder gives it at the Crown, you do it in the app, and come back to
+// her with the success criteria (no walk back down the tree).
+if (final.quests['Q2.A'] !== 'start') fail(`Q2.A is ${final.quests['Q2.A']} after the Seal`);
+// (The compass marks main quests only; Q2.A's targets are in the pack for an optional-quest marker.)
+await talk('elder');
+await drive('assignment brief', quest('Q2.A', 'try'));
+await page.waitForTimeout(800);
+await shot('assignment-do-it-in-the-app');
+await talk('elder');
+await drive('assignment report', quest('Q2.A', 'done'));
+await shot('assignment-done');
+if (!seen.has('K2.8')) fail('the assignment finished without its checklist');
+{
+  const task = (await S(() => window.__dev.learn.getState().tracker))?.tasks?.find((t) => t.id === 'Q2.A');
+  if (task?.status !== 'done') fail(`the tracker shows Q2.A ${task?.status}`);
+}
 
 // After the Seal: the Sky Basket down, the chest behind the falls, the bottles, the starfish.
 const top = { x: 1987, y: 50.5, z: -1560 };
@@ -735,12 +791,13 @@ const hitches = await S(() => window.__isles?.hitches?.() ?? []);
 if (hitches.length > hitchesBefore)
   fail(`hitches after warm-up: ${JSON.stringify(hitches.slice(hitchesBefore, hitchesBefore + 5))}`);
 
+const last = await learnState();
 await browser.close();
 console.log(
   JSON.stringify(
     {
       url,
-      final: { quests: final.quests, pages: final.pages, doubloons: final.doubloons },
+      final: { quests: last.quests, pages: last.pages, doubloons: last.doubloons },
       shots: shots.length,
       out,
       logs: logs.slice(0, 40),

@@ -41,23 +41,37 @@ export const QUOTE_KEYS = [
   'autoAside',
   'autoHidden',
   'retry',
+  'noSpecific',
+  'vary',
 ] as const;
 export type QuoteKey = (typeof QUOTE_KEYS)[number];
-/** The stallholder's lines the game plays, by what they're for. */
+/**
+ * The stallholder's lines the game plays, by what they're for: `keep` is a quick look right-sized with
+ * a bigger model on its default (or low) effort, `hardAuto` a hard job right-sized with Auto (and a nudge
+ * to choose a model and more effort), and `early` what a keeper says before the course's model lesson
+ * (`lesson.taught` in the market's puzzle file).
+ */
 export const GILDA_KEYS = [
   'hello',
   'open',
   'auto',
   'right',
   'fair',
-  'over',
+  'keep',
   'overEffort',
   'short',
-  'shortAuto',
+  'hardAuto',
   'done',
   'broke',
+  'early',
 ] as const;
 export type GildaKey = (typeof GILDA_KEYS)[number];
+/**
+ * Lines only the quest's stall says (Gilda's): `practiced`, when the lesson's practice
+ * (`lesson.practice`) is done at her counter.
+ */
+export const QUEST_KEEPER_KEYS = ['practiced'] as const;
+export type QuestKeeperKey = (typeof QUEST_KEEPER_KEYS)[number];
 
 export interface MarketJobData {
   id: string;
@@ -67,6 +81,15 @@ export interface MarketJobData {
   brief: string;
   /** A key of `quotes`: what the course says about a job like this. */
   why: string;
+}
+
+/** A job size: its label, what a right-sized hire gets back, and the course sentences every such job shows. */
+export interface JobSizeData {
+  label: string;
+  refund: number;
+  doubloons: number;
+  /** Keys of `quotes` shown on every work order of this size, after the job's own `why`. */
+  quotes?: readonly string[];
 }
 
 export interface GildaLineData {
@@ -95,13 +118,13 @@ export interface MarketData {
   efforts: readonly { id: EffortId; label: string; price: number }[];
   autoPrice: number;
   maxPrice: number;
-  sizes: Readonly<Record<JobSizeId, { label: string; refund: number; doubloons: number }>>;
+  sizes: Readonly<Record<JobSizeId, JobSizeData>>;
   board: { size: number; perFamily: number };
   stamps: Readonly<Record<OutcomeId, string>>;
   /** The keys the game asks for, and any a job's `why` names. */
   quotes: Readonly<Record<QuoteKey, MarketQuoteData> & Record<string, MarketQuoteData>>;
   jobs: readonly MarketJobData[];
-  gilda: Readonly<Record<GildaKey, GildaLineData>>;
+  gilda: Readonly<Record<GildaKey, GildaLineData> & Partial<Record<QuestKeeperKey, GildaLineData>>>;
   /**
    * The keepers of the stalls other than Gilda's (each island's; the game's MARKET_STALLS): every line
    * in their own voice, so a stall never plays Gilda's.

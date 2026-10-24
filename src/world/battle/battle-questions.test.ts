@@ -24,10 +24,10 @@ function stem(quiz: Quiz): string {
 
 describe('battle questions', () => {
   it('uses fresh scenario questions for the repeated waves', () => {
-    expect(BATTLE_PLANS[0]?.waves[1]?.quiz).toBe('N0.2');
+    expect(BATTLE_PLANS[0]?.waves[1]?.quiz).toBe('N0.3');
     expect(BATTLE_PLANS[1]?.waves[0]?.quiz).toBe('N1.6');
 
-    for (const id of ['N0.2', 'N1.6']) {
+    for (const id of ['N0.3', 'N1.6']) {
       const quiz = QUIZZES.get(id);
       expect(quiz?.type, id).toBe('scenario');
       if (quiz?.type !== 'scenario') continue;

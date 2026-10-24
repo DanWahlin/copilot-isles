@@ -1,16 +1,16 @@
 {
   "id": "tb.rook.02",
   "speaker": "Rook",
-  "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time.",
+  "text": "Point to the project, select Create from, open Branches and pick our branch. The app starts a session from it in a new worktree.",
   "words": [
     {
       "word": "Point",
       "start": 0,
-      "end": 0.213
+      "end": 0.267
     },
     {
       "word": "to",
-      "start": 0.213,
+      "start": 0.267,
       "end": 0.34
     },
     {
@@ -21,72 +21,107 @@
     {
       "word": "project",
       "start": 0.46,
-      "end": 1.337
+      "end": 1.257
     },
     {
       "word": "select",
-      "start": 1.337,
-      "end": 1.771
+      "start": 1.257,
+      "end": 1.68
     },
     {
       "word": "Create",
-      "start": 1.771,
-      "end": 2.384
+      "start": 1.68,
+      "end": 2.24
     },
     {
       "word": "from",
-      "start": 2.384,
-      "end": 3.104
+      "start": 2.24,
+      "end": 3.024
     },
     {
       "word": "open",
-      "start": 3.104,
-      "end": 3.737
+      "start": 3.024,
+      "end": 3.337
     },
     {
       "word": "Branches",
-      "start": 3.737,
-      "end": 4.36
+      "start": 3.337,
+      "end": 3.98
     },
     {
       "word": "and",
-      "start": 4.36,
-      "end": 4.784
+      "start": 3.98,
+      "end": 4.224
     },
     {
       "word": "pick",
-      "start": 4.784,
-      "end": 5.12
+      "start": 4.224,
+      "end": 4.56
     },
     {
       "word": "our",
-      "start": 5.12,
-      "end": 5.429
+      "start": 4.56,
+      "end": 4.869
     },
     {
       "word": "branch",
-      "start": 5.429,
-      "end": 6.3
+      "start": 4.869,
+      "end": 5.7
     },
     {
-      "word": "New",
-      "start": 6.3,
-      "end": 6.784
+      "word": "The",
+      "start": 5.7,
+      "end": 6.06
+    },
+    {
+      "word": "app",
+      "start": 6.06,
+      "end": 6.297
+    },
+    {
+      "word": "starts",
+      "start": 6.297,
+      "end": 6.68
+    },
+    {
+      "word": "a",
+      "start": 6.68,
+      "end": 6.76
+    },
+    {
+      "word": "session",
+      "start": 6.76,
+      "end": 7.088
+    },
+    {
+      "word": "from",
+      "start": 7.088,
+      "end": 7.333
+    },
+    {
+      "word": "it",
+      "start": 7.333,
+      "end": 7.493
+    },
+    {
+      "word": "in",
+      "start": 7.493,
+      "end": 7.64
+    },
+    {
+      "word": "a",
+      "start": 7.64,
+      "end": 7.74
+    },
+    {
+      "word": "new",
+      "start": 7.74,
+      "end": 8
     },
     {
       "word": "worktree",
-      "start": 6.784,
-      "end": 7.733
-    },
-    {
-      "word": "every",
-      "start": 7.733,
-      "end": 8.08
-    },
-    {
-      "word": "time",
-      "start": 8.08,
-      "end": 8.33
+      "start": 8,
+      "end": 8.25
     }
   ]
 }

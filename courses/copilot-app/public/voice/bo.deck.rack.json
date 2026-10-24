@@ -1,0 +1,82 @@
+{
+  "id": "bo.deck.rack",
+  "speaker": "Bo",
+  "text": "Session made? Then step up to my rack, and we’ll check your tools in Terminal.",
+  "words": [
+    {
+      "word": "Session",
+      "start": 0.07,
+      "end": 0.43
+    },
+    {
+      "word": "made",
+      "start": 0.43,
+      "end": 1.27
+    },
+    {
+      "word": "Then",
+      "start": 1.27,
+      "end": 1.55
+    },
+    {
+      "word": "step",
+      "start": 1.55,
+      "end": 1.83
+    },
+    {
+      "word": "up",
+      "start": 1.83,
+      "end": 1.91
+    },
+    {
+      "word": "to",
+      "start": 1.91,
+      "end": 2.029
+    },
+    {
+      "word": "my",
+      "start": 2.029,
+      "end": 2.23
+    },
+    {
+      "word": "rack",
+      "start": 2.23,
+      "end": 2.55
+    },
+    {
+      "word": "and",
+      "start": 2.55,
+      "end": 2.67
+    },
+    {
+      "word": "we’ll",
+      "start": 2.67,
+      "end": 2.869
+    },
+    {
+      "word": "check",
+      "start": 2.869,
+      "end": 3.15
+    },
+    {
+      "word": "your",
+      "start": 3.15,
+      "end": 3.309
+    },
+    {
+      "word": "tools",
+      "start": 3.309,
+      "end": 3.67
+    },
+    {
+      "word": "in",
+      "start": 3.67,
+      "end": 3.789
+    },
+    {
+      "word": "Terminal",
+      "start": 3.789,
+      "end": 4.039
+    }
+  ]
+}

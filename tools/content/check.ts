@@ -440,7 +440,9 @@ export function checkContent(
     list: readonly PackScriptStep[],
     isScript: (name: string) => boolean,
     island: string,
-  ) =>
+  ) => {
+    /** After an `orStop` hand-off, Later ends the script: what follows mustn't move the main story. */
+    let stopAt: string | null = null;
     list.forEach((s, i) => {
       const path = `${base}[${i}]`;
       const has = (kind: keyof typeof ids, id: string, what: string) => {
@@ -457,6 +459,12 @@ export function checkContent(
         const d = questDefs.get(s.quest);
         if (!d) issue(rel, path, `"${s.quest}" isn't a quest`);
         else if (!Object.hasOwn(d.steps, s.step)) issue(rel, path, `"${s.step}" isn't a step of ${s.quest}`);
+        else if (stopAt && !d.optional)
+          issue(
+            rel,
+            path,
+            `${s.quest} isn't optional, but Later at ${stopAt} ends the script first: the app can't hold up the story`,
+          );
       } else if ('script' in s) {
         if (!isScript(s.script)) issue(rel, path, `"${s.script}" isn't a script of ${island}`);
       }
@@ -464,8 +472,15 @@ export function checkContent(
       if ('appTask' in s) {
         has('appTask', s.appTask, 'an app task (learning.json)');
         handedOff.add(s.appTask);
+        if (s.orStop) stopAt ??= path;
+        if (s.orStop && s.quiet)
+          issue(rel, path, 'a quiet hand-off shows no card, so it has no Later to stop on');
       }
+      // A step for players who confirmed an app task: that task is this course's.
+      const when = 'quiz' in s || 'askSetup' in s ? s.when : undefined;
+      if (when?.startsWith('app:')) has('appTask', when.slice(4), 'an app task (learning.json)');
     });
+  };
 
   // Quests: islands, quest steps, every script step, barks, beats.
   const quests = files
@@ -638,6 +653,16 @@ export function checkContent(
       if (game === 'done') issue(rel, at('steps', game), 'every quest ends at "done": it can\'t be mapped');
       else if (!PUZZLE_STEPS[name]?.includes(game))
         issue(rel, at('steps', game), `the game's ${name} has no step "${game}"`);
+    // The market's lesson: the quests and steps it reads and sets are this course's.
+    const lesson = p.lesson as
+      { taught?: When; practice?: When; practiced?: Record<string, string> } | undefined;
+    if (lesson && questsOk) {
+      if (lesson.taught) checkWhen(rel, 'lesson.taught', lesson.taught);
+      if (lesson.practice) checkWhen(rel, 'lesson.practice', lesson.practice);
+      if (lesson.practiced) checkRules(rel, 'lesson.practiced', [{ set: lesson.practiced }], false);
+      if (!!lesson.practice !== !!lesson.practiced)
+        issue(rel, 'lesson', 'needs both "practice" and "practiced", or neither');
+    }
     for (const key of ['latePage', 'page'] as const)
       if (typeof p[key] === 'string' && !ids.page.has(p[key] as string))
         issue(rel, key, `"${p[key] as string}" isn't a page in this course`);
@@ -647,6 +672,17 @@ export function checkContent(
     if (questsOk)
       for (const [name, list] of Object.entries((p.scripts ?? {}) as Record<string, PackScriptStep[]>))
         steps(rel, at('scripts', name), list, () => false, rel);
+    // The gear rack's checks: a stale one names a script of the file, and its closing script moves the
+    // quest on (without one, the rack's quest would wait at its checks for good).
+    if (p.mechanic === 'checklist' && Array.isArray(p.checks)) {
+      const own = (p.scripts ?? {}) as Record<string, unknown>;
+      (p.checks as { stale?: { script?: string } }[]).forEach((c, i) => {
+        if (c.stale?.script && !Object.hasOwn(own, c.stale.script))
+          issue(rel, at(at('checks', i), 'stale.script'), `"${c.stale.script}" isn't one of its scripts`);
+      });
+      if (want?.length && !Object.hasOwn(own, 'checked'))
+        issue(rel, 'scripts', 'needs a "checked" script: it plays once every check has passed');
+    }
     // Cited sections: the items' own sources, and the `cites` (or `section` anchors) of its chapter.
     const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
     items.forEach((it, i) => {
@@ -715,16 +751,6 @@ export function checkContent(
         issue(rel, `${path}.check.branch`, 'branchExists needs the branch to look for');
       if (t.check?.branch?.includes('{practiceBranch}') && !meta!.practice)
         issue(rel, `${path}.check.branch`, '{practiceBranch} needs course.json\'s "practice"');
-      if (t.completes) {
-        questStep(rel, `${path}.completes`, t.completes.quest, t.completes.step);
-        // Never blocking a player without the app: only an optional quest can wait on the app.
-        if (questDefs.get(t.completes.quest) && !questDefs.get(t.completes.quest)!.optional)
-          issue(
-            rel,
-            `${path}.completes.quest`,
-            `${t.completes.quest} isn't optional: the app can't hold up the story`,
-          );
-      }
       if (!handedOff.has(t.id))
         issue(
           rel,
@@ -1152,7 +1178,9 @@ function checkMarket(
     const right = hires.filter((h) => grade(job, h, tiers).outcome === 'right');
     if (!right.length) return fail(`jobs[${i}]`, 'no hire is right-sized for it');
     const least = Math.min(...right.map((h) => priceIn(m, h)));
-    cheapest.set(j.size, least);
+    // Auto's refund is its price less one (none): the size's refund is a right-sized model hire's.
+    const models = right.filter((h) => !h.auto).map((h) => priceIn(m, h));
+    if (models.length) cheapest.set(j.size, Math.min(...models));
     const refunds = { quick: m.sizes.quick.refund, hard: m.sizes.hard.refund };
     fairHires.push({
       pay: least,
@@ -1169,7 +1197,7 @@ function checkMarket(
     if (refund >= least)
       fail(
         `sizes.${size}.refund`,
-        `${refund} back for a ${least}-starfish hire: a refund must be less than the hire, so a right-sized job costs at least 1 starfish`,
+        `${refund} back for a ${least}-starfish model hire: a refund must be less than the hire, so a right-sized job costs at least 1 starfish`,
       );
   }
   // Every island has a stall, so the first market is on the course's first island: its starfish

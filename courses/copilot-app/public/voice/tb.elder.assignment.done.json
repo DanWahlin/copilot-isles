@@ -1,0 +1,92 @@
+{
+  "id": "tb.elder.assignment.done",
+  "speaker": "Maren",
+  "text": "Main's untouched, and the theme's safe in its own worktree. That's how a real crew works, Captain.",
+  "words": [
+    {
+      "word": "Main's",
+      "start": 0,
+      "end": 0.472
+    },
+    {
+      "word": "untouched",
+      "start": 0.472,
+      "end": 1.32
+    },
+    {
+      "word": "and",
+      "start": 1.32,
+      "end": 1.7
+    },
+    {
+      "word": "the",
+      "start": 1.7,
+      "end": 1.827
+    },
+    {
+      "word": "theme's",
+      "start": 1.827,
+      "end": 2.448
+    },
+    {
+      "word": "safe",
+      "start": 2.448,
+      "end": 3.013
+    },
+    {
+      "word": "in",
+      "start": 3.013,
+      "end": 3.16
+    },
+    {
+      "word": "its",
+      "start": 3.16,
+      "end": 3.34
+    },
+    {
+      "word": "own",
+      "start": 3.34,
+      "end": 3.6
+    },
+    {
+      "word": "worktree",
+      "start": 3.6,
+      "end": 4.544
+    },
+    {
+      "word": "That's",
+      "start": 4.544,
+      "end": 5.58
+    },
+    {
+      "word": "how",
+      "start": 5.58,
+      "end": 5.8
+    },
+    {
+      "word": "a",
+      "start": 5.8,
+      "end": 5.904
+    },
+    {
+      "word": "real",
+      "start": 5.904,
+      "end": 6.24
+    },
+    {
+      "word": "crew",
+      "start": 6.24,
+      "end": 6.64
+    },
+    {
+      "word": "works",
+      "start": 6.64,
+      "end": 7.17
+    },
+    {
+      "word": "Captain",
+      "start": 7.17,
+      "end": 7.42
+    }
+  ]
+}

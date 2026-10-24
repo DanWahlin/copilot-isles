@@ -74,7 +74,10 @@ so VS Code and other editors check your edit as you type and show each field's d
   Without it, the Logbook's Your setup card has no fork, issue or branch row.
 - **`setup`**: the "Your setup" forms' words (kicker, titles, intro, what each value is used for, the
   model choices), the Logbook's notes and its Your setup card's labels, and the Settings screen's
-  shortcut line. Without it, the Logbook has no Your setup card. `**bold**` and `` `code` ``
+  shortcut line. Without it, the Logbook has no Your setup card. The branch form asks for the practice
+  session's **working** branch: it starts empty (`branch.example` is its placeholder), refuses
+  `practice.branch` (the session's base branch) with `branch.base`, and `branch.skip` labels its Skip
+  when a script asks. `**bold**` and `` `code` ``
   render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in.
 - **`hooks`**: the voice lines and questions the game asks for by id, so it never names one itself:
   the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
@@ -102,7 +105,12 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Scripts** are the steps `src/game/script.ts` runs: `say` (a voice line), `text`, `show`/`hide` (a
   course image in the spyglass), `quiz`, `page`, `file`, `term`, `quest`, `trial`, `cue`, `askFork`,
   `askSetup`, `appTask` (a "Do this in the app" card from `learning.json`, skipped once confirmed;
-  Later goes straight on). A `{ "script": "<name>" }` step splices in another script of the same island. `notes`
+  Later goes straight on; `"quiet": true` hands it off with no card, for an NPC who sends you off and
+  asks when you're back; `"orStop": true` ends the script on Later, for an optional app-only quest's
+  return beat). A `quiz` or `askSetup` with `when` runs only for players whose setup fits
+  (`model:auto`, `model:picked`, `branch:given`, `issue:given`) or who confirmed an app task
+  (`app:A2.2`). A `{ "script": "<name>" }` step
+  splices in another script of the same island. `notes`
   says what each script is for; the game ignores it.
 - **Ids are saved in players' progress** (quests and their steps, pages, chests, quizzes, glossary
   terms, Trials, labels, market jobs): don't rename them.
@@ -140,11 +148,17 @@ so VS Code and other editors check your edit as you type and show each field's d
   its content (an order, a twist's answer) is a voice line too.
 - **Cited reasons**: the crate yard's items have a `source`; the Lost Letters' `cites` and the Flag
   Hoist's `section` anchors are in the file's `chapter`. The content check holds them to the lock.
+- **The gear rack** (`gear-rack.json`, a checklist) runs one check per press while its quest is at
+  `checks`: `scripts.intro` plays at the first press, a check's `stale` prints an out-of-date
+  `output` first and plays the script it names (the next run prints the right one), a check's `notes`
+  show on one kind of computer (`windows`, `mac`, `linux`), and `scripts.checked` plays once every
+  check has passed (it must move the quest on). Keep a `stale` version's `output` in step with the
+  real world (the Copilot app course's `node -v` tracks the version nodejs.org marks LTS).
 - **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
   does nothing. Change the quests that wait on it too (their step won't finish by itself).
 - **`quest`**: the quest the puzzle plays in. It must have the steps the puzzle's mechanic sets and
-  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `crane` and `solved`, the
-  crate yard's `crates` and `solved`…). If the quest calls one of them something else, map it in
+  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `brief`, `crane` and
+  `solved`, the gear rack's `checks`, the crate yard's `crates` and `solved`…). If the quest calls one of them something else, map it in
   **`steps`** (game step → the quest's step: the Copilot app course's crane has
   `"steps": { "gate": "actions" }`); the game reads every mechanic step through it
   (`puzzleSteps(name)`, resolved once per course). Every quest also ends at `done`, the game's step
@@ -175,14 +189,17 @@ so VS Code and other editors check your edit as you type and show each field's d
   fork), the `quest` it belongs to, an optional `seen` ("What did you see?": a prompt, two to four
   options, the `answer` and an `explain` that says what the course says you'll see; any answer is
   fine), an optional `check` (an opt-in GitHub check: `repoExists` for the fork, `branchExists` with a
-  `branch`, `prOpened`; `{practiceBranch}` is `course.json`'s `practice.branch`), and an optional
-  `completes` (an optional, app-only quest that finishes when the player confirms it). A script hands
+  `branch`, `prOpened`; `{practiceBranch}` is `course.json`'s `practice.branch`). A script hands
   each one off with `{ "appTask": "<id>" }` right where the NPC teaches it; every task needs one.
-  Task ids are saved in players' progress: don't rename them.
-- **`learned`**: quest → its Logbook line once it's done but its app tasks aren't all confirmed. A
-  quest's `done` step says what you did in the app ("Your fork is added under Sessions."); this says
-  what you learned ("You know how to fork the course and add your fork under Sessions."). Only for
-  quests with app tasks.
+  Where an NPC sends you off to do it and asks when you're back (Thousand-Bough's exercises and
+  assignment), hand it off `quiet` at the brief and show the card at the return beat, with the
+  NPC's own "what did you see?" gated on `app:<id>`: one prompt for one app moment. Task ids are
+  saved in players' progress: don't rename them.
+- **`learned`** (optional): quest → its Logbook line once it's done but its app tasks aren't all
+  confirmed, for a quest whose `done` step says what you did in the app ("Your fork is added under
+  Sessions."). Better: write the `done` step as what you learned ("You know how to fork the course…"),
+  as the Copilot app course does, and leave `learned` empty; the Logbook marks whether the app work is
+  confirmed either way. Only for quests with app tasks.
 - **`objectives`**: each chapter's learning objectives, word for word from its Learning Objectives
   section (the check holds them to the snapshot), with what in the game `covers` each: `quests` (done
   means practised), `puzzles` (by file name; their quest's done), `quizzes` (passed means quizzed) and
@@ -194,25 +211,32 @@ so VS Code and other editors check your edit as you type and show each field's d
 ### `market.json`
 
 - **Categories** are your model categories (models.json names them), smallest first, each bound to a
-  size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look wants a
-  small one; a hard job a large one, or a medium one on high effort.
+  size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look is
+  right-sized with Auto or any size on its default (or low) effort (only high effort overspends); a hard
+  job wants Auto, a large one, or a medium one on high effort.
 - **Prices** are starfish. `categories[].price` must go up from the smallest to the largest. A hire costs
   its category's price plus its effort's price, up to `maxPrice` (at most 4). Auto costs `autoPrice`.
 - **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund must be
-  less than the cheapest right-sized hire for that size, so a right-sized job always costs at least 1
-  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price.
+  less than the cheapest right-sized model hire for that size, so a right-sized job always costs at least 1
+  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price (Auto's 1 gets
+  none back). `sizes.*.quotes` (optional) are keys of `quotes` every work order of that size shows after
+  its job's `why` (today the hard jobs': `noSpecific`, `vary`).
 - **Doubloons** (`sizes.*.doubloons`) are paid the first time a job is done right-sized.
 - **`board`**: how many model names each signboard shows, and how many of one family it takes before
   it fills up (docs/specs/MODEL-MARKET.md §4.2).
 - **Quotes** are course sentences, word for word (`**bold**` included), with the section they're from:
   `chapter`, `anchor` and `hash`. Get the anchor and hash from `npm run course:refs -- 01`. The overlay
-  shows the section's title from the course lock. The keys the grading uses (`cost`, `effort`,
-  `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`) must stay.
+  shows the section's title from the course lock. The keys the grading and the work order use (`cost`,
+  `effort`, `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`, `noSpecific`, `vary`)
+  must stay.
 - **Jobs** (at most four: the cork board has four spots) name a quote key in `why`. A job's `id` is
   saved in players' progress, so don't rename it.
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
   `text` shown as her caption, and, for a teaching line, the course `source` it paraphrases (the drift
-  report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none.
+  report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none,
+  `keep` for a quick look right-sized with a bigger model on its default effort, `hardAuto` for a hard job
+  done with Auto, and `early` for the counter before the course's model lesson. `practiced` (Gilda's
+  alone, optional) is said when the lesson's practice is done at her stall.
 - **The other keepers** (`keepers.<island>`): each stall but Gilda's (the game's
   `src/game/market/stalls.ts`: Desmond on `anchorage`, Lani on `thousand-bough`) has its keeper's own
   version of every one of Gilda's lines (the same keys, the same teaching and `source`, in their own words
@@ -222,6 +246,12 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Whose task it is:** jobs at every stall count on the one board, but the market's quest (`puzzles/market.json`
   → `quest`) is done, and its `page` given, only at the stall on the island whose `quests/<island>.json` holds
   that quest (Gilda's).
+- **The lesson** (`puzzles/market.json` → `lesson`, optional): `taught` is a `when` (as in a beat) that says
+  the course has taught models and effort: until it holds, every stall's keeper says their `early` line and
+  the work order stays shut. `practice` is a `when` during which Gilda's stall runs the lesson's practice (a
+  quick look right-sized, then a hard job and a Retry of it, staking the starfish), and `practiced` the steps
+  it sets when that's done (`{ "Q1.6": "practiced" }`). The content check holds the quests and steps to the
+  course's.
 
 ### `boards.json`
 
@@ -294,7 +324,8 @@ change. The checks (tools/content/check.ts):
   (in its waters, on the ground or a deck up to 1 m above it);
 - every category has a model in `models.json`, and no model is listed twice;
 - `learning.json`: every app task is handed off by a script, cites its own chapter's section, and its
-  quest, "seen" answer, check and `completes` (an optional quest) resolve; every objective is word for
+  quest, "seen" answer and check resolve; a step's `when: "app:<id>"` names a task; after an `orStop`
+  hand-off, a script sets only optional quests' steps; every objective is word for
   word in its section and covers quests, puzzles, quizzes and app tasks that exist; one reflection per
   chapter, with unique choices; `learned` lines only for quests with app tasks; `course.json`'s
   `recap.exclude` names quizzes.

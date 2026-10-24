@@ -1,67 +1,102 @@
 {
   "id": "mer.mina.done",
   "speaker": "Mina",
-  "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!",
+  "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!",
   "words": [
     {
       "word": "New",
       "start": 0.0471659,
-      "end": 0.636791
+      "end": 0.625
     },
     {
       "word": "Pull",
-      "start": 0.636791,
-      "end": 0.872625
+      "start": 0.625,
+      "end": 0.860833
     },
     {
       "word": "requests",
-      "start": 0.872625,
-      "end": 1.721708
+      "start": 0.860833,
+      "end": 1.592
     },
     {
       "word": "Issues",
-      "start": 1.721708,
-      "end": 2.334916
+      "start": 1.592,
+      "end": 2.193416
     },
     {
       "word": "Automations",
-      "start": 2.334916,
-      "end": 3.384416
+      "start": 2.193416,
+      "end": 3.160375
     },
     {
       "word": "Customize",
-      "start": 3.384416,
-      "end": 4.905666
+      "start": 3.160375,
+      "end": 4.092
     },
     {
-      "word": "You",
-      "start": 4.905666,
-      "end": 5.058958
+      "word": "and",
+      "start": 4.092,
+      "end": 4.245291
     },
     {
-      "word": "know",
-      "start": 5.058958,
-      "end": 5.294791
+      "word": "Sessions",
+      "start": 4.245291,
+      "end": 4.740583
+    },
+    {
+      "word": "for",
+      "start": 4.740583,
+      "end": 4.834916
     },
     {
       "word": "your",
-      "start": 5.294791,
-      "end": 5.448125
+      "start": 4.834916,
+      "end": 4.976416
+    },
+    {
+      "word": "projects",
+      "start": 4.976416,
+      "end": 5.471708
+    },
+    {
+      "word": "and",
+      "start": 5.471708,
+      "end": 5.577833
+    },
+    {
+      "word": "chats",
+      "start": 5.577833,
+      "end": 6.922166
+    },
+    {
+      "word": "You",
+      "start": 6.922166,
+      "end": 7.075458
+    },
+    {
+      "word": "know",
+      "start": 7.075458,
+      "end": 7.311333
+    },
+    {
+      "word": "your",
+      "start": 7.311333,
+      "end": 7.464625
     },
     {
       "word": "way",
-      "start": 5.448125,
-      "end": 5.683958
+      "start": 7.464625,
+      "end": 7.700458
     },
     {
       "word": "around",
-      "start": 5.683958,
-      "end": 6.084916
+      "start": 7.700458,
+      "end": 8.101416
     },
     {
       "word": "now",
-      "start": 6.084916,
-      "end": 6.334916
+      "start": 8.101416,
+      "end": 8.351416
     }
   ]
 }

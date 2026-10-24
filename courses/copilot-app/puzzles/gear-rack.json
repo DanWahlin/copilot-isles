@@ -3,7 +3,7 @@
   "id": "gear.rack",
   "mechanic": "checklist",
   "quest": "Q0.4",
-  "$comment": "Bo's gear rack (Q0.4): the course's \"Check your tools in Terminal\" version checks, one per piece of gear on the rack (the game's compass, lantern, rope and spyglass), and what Terminal prints. Every check passes.",
+  "$comment": "Bo's gear rack (Q0.4 `checks`): the course's \"Check your tools in Terminal\", one version check per piece of gear on the rack (the game's compass, lantern, rope and spyglass), run one per press. The first press plays `intro` (Review panel → Terminal). The lantern's first run prints an old Node.js major, so the player meets the course's rule (compare the first number with the LTS on the download page; if it's lower, install the LTS and run the checks again) and runs it again; `output` must track the version nodejs.org marks LTS (v24 on 2026-10-23). The rope's Windows note is the course's npm.ps1 fix. Once all four pass, `checked` adds GitHub CLI's own sign-in and moves the quests on.",
   "checks": [
     {
       "id": "compass",
@@ -17,14 +17,21 @@
       "name": "lantern",
       "tool": "Node.js",
       "command": "node -v",
-      "output": "v22.16.0"
+      "output": "v24.22.1",
+      "stale": {
+        "output": "v20.19.5",
+        "script": "lts"
+      }
     },
     {
       "id": "rope",
       "name": "rope coil",
       "tool": "npm",
       "command": "npm -v",
-      "output": "10.9.2"
+      "output": "11.19.1",
+      "notes": {
+        "windows": "On Windows, PowerShell may refuse to load npm.ps1. Use npm.cmd in place of npm (npm.cmd -v), or, if your organization allows it, run Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser."
+      }
     },
     {
       "id": "spyglass",
@@ -34,10 +41,75 @@
       "output": "gh version 2.74.0"
     }
   ],
+  "scripts": {
+    "intro": [
+      {
+        "show": "shared/app-review-panel",
+        "caption": "**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
+      },
+      {
+        "say": "bo.gear.brief.01"
+      },
+      {
+        "term": "review-panel"
+      },
+      {
+        "hide": true
+      },
+      {
+        "say": "bo.gear.brief.02"
+      }
+    ],
+    "lts": [
+      {
+        "say": "bo.gear.lts"
+      },
+      {
+        "quiz": "S0.4"
+      },
+      {
+        "say": "bo.gear.brief.03"
+      }
+    ],
+    "checked": [
+      {
+        "say": "bo.gear.checked.02"
+      },
+      {
+        "quiz": "S0.1"
+      },
+      {
+        "appTask": "A0.5"
+      },
+      {
+        "page": "pg.terminal",
+        "doubloons": 10
+      },
+      {
+        "say": "bo.signed.02"
+      },
+      {
+        "quest": "Q0.4",
+        "step": "done"
+      },
+      {
+        "quest": "Q0.7",
+        "step": "actions"
+      }
+    ]
+  },
   "text": {
     "signIn": "$ gh auth status",
     "signedIn": "✓ Logged in to {host} account {handle}",
     "title": "Terminal · {repo}",
-    "interact": "Run Bo’s version checks"
+    "interact": "Run Bo’s version checks",
+    "open": "Open Terminal at Bo’s rack",
+    "run": "Check the {name}: {command}",
+    "rerun": "{tool} LTS installed. Run {command} again.",
+    "closing": "Finish up with Bo",
+    "finish": "Press E at Bo’s rack to finish up.",
+    "hint1": "Bo’s rack runs each check in Terminal. Walk up and press E.",
+    "hint2": "One check per press, Captain. Read what each one prints, and compare Node’s first number with the LTS.",
+    "hint3": "I’ve run the next one for you. Read what it printed."
   }
 }

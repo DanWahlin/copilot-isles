@@ -1,4 +1,5 @@
-import type { SetupKind, SetupWhen } from '../learn/setup';
+import type { SetupKind } from '../learn/setup';
+import type { StepWhen } from '../learn/store';
 import type { ForkFrom, LearnStore } from '../learn/store';
 import type { Dialogue } from './dialogue';
 
@@ -12,7 +13,7 @@ export type ScriptStep =
   | { show: string; caption?: string }
   | { hide: true }
   /** A quiz; with `when`, only for players whose setup fits (a model quiz for those who kept Auto). */
-  | { quiz: string; when?: SetupWhen }
+  | { quiz: string; when?: StepWhen }
   | { page: string; doubloons?: number }
   /** Shelves a page in the Logbook without a reveal card (the NPC says it's there). */
   | { file: string; doubloons?: number }
@@ -29,14 +30,18 @@ export type ScriptStep =
   | { askFork: Exclude<ForkFrom, 'logbook'>; line?: string }
   /**
    * Asks for one of the player's setup values (src/learn/setup.ts), with Skip for now, only if they
-   * haven't given it yet. `line` is a voiced line played first, only when the form opens.
+   * haven't given it yet (and, with `when`, only if their setup fits). `line` is a voiced line played
+   * first, only when the form opens.
    */
-  | { askSetup: SetupKind; line?: string }
+  | { askSetup: SetupKind; line?: string; when?: StepWhen }
   /**
    * "Do this in the app": hands a real-app task (the course's `learning.json`) to the player on a card
    * with I did it and Later. Skipped once they've confirmed it; Later never holds the story up.
+   * `quiet` hands it off with no card (it joins the App checklist as Later: the NPC sends you off to
+   * do it, and asks when you're back). `orStop` ends the script on Later (an app-only quest's return
+   * beat: the NPC asks again next time).
    */
-  | { appTask: string };
+  | { appTask: string; quiet?: boolean; orStop?: boolean };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -97,11 +102,14 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         await learn.askFork(s.askFork);
       } else if ('askSetup' in s) {
         if (!learn || learn.getState().setup[s.askSetup] !== null) continue;
+        if (s.when && !learn.setupIs(s.when)) continue;
         if (s.line) await dialogue.play([s.line]);
         if (ctx.cancelled?.()) return false;
         await learn.askSetup(s.askSetup, 'script');
       } else if ('appTask' in s) {
-        if (learn) await learn.askAppTask(s.appTask, 'script');
+        if (!learn) continue;
+        if (s.quiet) learn.noteAppTask(s.appTask);
+        else if ((await learn.askAppTask(s.appTask, 'script')) !== 'done' && s.orStop) return false;
       }
     }
     return true;

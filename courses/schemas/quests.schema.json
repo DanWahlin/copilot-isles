@@ -293,7 +293,16 @@
               "$ref": "#/$defs/id"
             },
             "when": {
-              "enum": ["model:auto", "model:picked"]
+              "anyOf": [
+                {
+                  "enum": ["model:auto", "model:picked", "branch:given", "issue:given"]
+                },
+                {
+                  "type": "string",
+                  "pattern": "^app:[A-Za-z0-9][\\w.:-]*$",
+                  "description": "A real-app task (learning.json) the player confirmed."
+                }
+              ]
             }
           }
         },
@@ -395,6 +404,18 @@
             },
             "line": {
               "$ref": "#/$defs/id"
+            },
+            "when": {
+              "anyOf": [
+                {
+                  "enum": ["model:auto", "model:picked", "branch:given", "issue:given"]
+                },
+                {
+                  "type": "string",
+                  "pattern": "^app:[A-Za-z0-9][\\w.:-]*$",
+                  "description": "A real-app task (learning.json) the player confirmed."
+                }
+              ]
             }
           }
         },
@@ -406,6 +427,14 @@
             "appTask": {
               "description": "\"Do this in the app\": a real-app task (learning.json) on a card with I did it and Later.",
               "$ref": "#/$defs/id"
+            },
+            "quiet": {
+              "const": true,
+              "description": "No card: the task joins the App checklist as Later (the NPC sends you off, and asks when you're back)."
+            },
+            "orStop": {
+              "const": true,
+              "description": "Later ends the script (an optional, app-only quest's return beat: the NPC asks again)."
             }
           }
         },

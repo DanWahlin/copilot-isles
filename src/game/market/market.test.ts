@@ -210,33 +210,39 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
       for (const e of EFFORTS) expect(price(hire(c, e))).toBeLessThanOrEqual(MAX_PRICE);
   });
 
-  it('grades each job: quick looks right-sized with Auto or a light model, overspent with more', () => {
+  it('grades quick looks by the course’s rule: Auto, or any model on its default (or low) effort', () => {
     for (const id of ['tour', 'explain'] as const) {
       const job = jobById(id)!;
-      expect(grade(job, AUTO).outcome, id).toBe('right');
-      expect(grade(job, hire('Lightweight', 'default')).outcome, id).toBe('right');
-      expect(grade(job, hire('Lightweight', 'low')).outcome, id).toBe('right');
-      expect(grade(job, hire('Lightweight', 'high'))).toEqual({
-        outcome: 'over',
-        reason: 'quick-over-effort',
-      });
-      expect(grade(job, hire('Versatile', 'default')).outcome, id).toBe('over');
-      expect(grade(job, hire('Powerful', 'high'))).toEqual({ outcome: 'over', reason: 'quick-over-model' });
+      expect(grade(job, AUTO), id).toEqual({ outcome: 'right', reason: 'quick-right' });
+      // "keep Auto or the current model and its default reasoning effort", whatever the model's size.
+      for (const e of ['low', 'default'] as const) {
+        expect(grade(job, hire('Lightweight', e)), id).toEqual({ outcome: 'right', reason: 'quick-right' });
+        expect(grade(job, hire('Versatile', e)), id).toEqual({ outcome: 'right', reason: 'quick-keep' });
+        expect(grade(job, hire('Powerful', e)), id).toEqual({ outcome: 'right', reason: 'quick-keep' });
+      }
+      // Only High effort is more than a quick look needs.
+      for (const c of CATEGORIES)
+        expect(grade(job, hire(c, 'high')), `${id} ${c}`).toEqual({
+          outcome: 'over',
+          reason: 'quick-over-effort',
+        });
       for (const c of CATEGORIES)
         for (const e of EFFORTS) expect(grade(job, hire(c, e)).outcome).not.toBe('short');
     }
   });
 
-  it('grades each hard job: a model suited to complex coding and higher effort, or it falls short', () => {
+  it('grades hard jobs: Auto or a model suited to complex coding with effort; light or low falls short', () => {
     for (const id of ['bug', 'files'] as const) {
       const job = jobById(id)!;
-      expect(grade(job, AUTO), id).toEqual({ outcome: 'short', reason: 'hard-short-auto' });
+      // Auto chooses a model for your task: never a failure, with a nudge to choose (and a Retry).
+      expect(grade(job, AUTO), id).toEqual({ outcome: 'right', reason: 'hard-auto' });
       for (const e of EFFORTS) expect(grade(job, hire('Lightweight', e)).reason, id).toBe('hard-short-model');
+      expect(grade(job, hire('Versatile', 'low')).reason, id).toBe('hard-short-effort');
       expect(grade(job, hire('Versatile', 'default')).reason, id).toBe('hard-short-effort');
-      expect(grade(job, hire('Versatile', 'high')).outcome, id).toBe('right');
+      expect(grade(job, hire('Versatile', 'high')), id).toEqual({ outcome: 'right', reason: 'hard-right' });
       expect(grade(job, hire('Powerful', 'low')).reason, id).toBe('hard-short-effort');
-      expect(grade(job, hire('Powerful', 'default')).outcome, id).toBe('right');
-      expect(grade(job, hire('Powerful', 'high')).outcome, id).toBe('right');
+      expect(grade(job, hire('Powerful', 'default')), id).toEqual({ outcome: 'right', reason: 'hard-right' });
+      expect(grade(job, hire('Powerful', 'high')), id).toEqual({ outcome: 'right', reason: 'hard-right' });
       for (const c of CATEGORIES)
         for (const e of EFFORTS) expect(grade(job, hire(c, e)).outcome).not.toBe('over');
     }
@@ -252,6 +258,8 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     expect(REFUND.quick).toBe(0);
     expect(REFUND.hard).toBe(2);
     expect(refundFor(jobById('tour')!, AUTO)).toBe(0);
+    // Auto on a hard job is right-sized at its fair price: nothing back.
+    expect(refundFor(jobById('bug')!, AUTO)).toBe(0);
     expect(refundFor(jobById('bug')!, hire('Powerful', 'default'))).toBe(2);
     expect(refundFor(jobById('bug')!, hire('Versatile', 'high'))).toBe(2);
     // Whatever a pack's refund, the game never gives back the whole hire.
@@ -285,25 +293,47 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     }
   });
 
-  it('gives each outcome a stamp, a voiced line, and the course sentences behind it', () => {
+  it('gives each outcome a stamp, a voiced line, the course sentences behind it, and its Retry', () => {
     const tour = jobById('tour')!;
+    const bug = jobById('bug')!;
     const over = feedback(tour, hire('Powerful', 'high'));
-    expect(over.stamp).toBe('! Overspent');
+    expect(over).toMatchObject({ stamp: '! Overspent', key: 'overEffort', retry: null });
     expect(over.summary).toBe(
-      'Powerful model on High did the job, but it cost 4 starfish for a 1-starfish job.',
+      'Powerful model on High did the job, but High effort cost 4 starfish for a 1-starfish job.',
     );
-    expect(GILDA_TEXT[GILDA[over.key]]).toBe(
-      "That's a lot of starfish for a quick look. Auto would've done it.",
+    expect(over.quotes).toEqual([QUOTES.effort, tour.why]);
+    // Your (bigger) model on its default effort: right-sized, and the price is all it costs you.
+    const keep = feedback(tour, hire('Powerful', 'default'));
+    expect(keep).toMatchObject({ outcome: 'right', stamp: '✓ Right-sized', key: 'keep', retry: null });
+    expect(keep.summary).toBe(
+      'Powerful model on Default did the job, right-sized: a quick look needs no extra effort. It cost 3 starfish, where 1 would do.',
     );
-    expect(over.quotes).toContain(QUOTES.cost);
-    const short = feedback(jobById('bug')!, hire('Lightweight', 'low'));
-    expect(short.stamp).toBe('↻ Fell short');
+    expect(keep.quotes).toEqual([tour.why, QUOTES.cost]);
+    expect(GILDA_TEXT[GILDA.keep]).toMatch(/default effort is fine for a quick look/);
+    // Auto on a hard job: right-sized, the course's "consider", and a Retry to try a model and effort.
+    const auto = feedback(bug, AUTO);
+    expect(auto).toMatchObject({ outcome: 'right', key: 'hardAuto', retry: 'again' });
+    expect(auto.quotes).toEqual([QUOTES.auto, QUOTES.hard, QUOTES.autoHidden]);
+    expect(GILDA_TEXT[GILDA.hardAuto]).toMatch(/turn Auto off/);
+    const short = feedback(bug, hire('Lightweight', 'low'));
+    expect(short).toMatchObject({ stamp: '↻ Fell short', key: 'short', retry: 'short' });
     expect(short.quotes).toContain(QUOTES.retry);
+    expect(feedback(bug, hire('Versatile', 'default')).quotes).toEqual([
+      QUOTES.hard,
+      QUOTES.effort,
+      QUOTES.retry,
+    ]);
     expect(feedback(tour, AUTO).quotes).toContain(QUOTES.auto);
     // Right-sized at the fair price (nothing back) or with starfish back: each its own line.
-    expect(feedback(tour, AUTO).key).toBe('fair');
-    expect(feedback(jobById('bug')!, hire('Powerful', 'default')).key).toBe('right');
+    expect(feedback(tour, AUTO)).toMatchObject({ key: 'fair', retry: null });
+    expect(feedback(bug, hire('Powerful', 'default'))).toMatchObject({ key: 'right', retry: 'again' });
     expect(feedback(jobById('files')!, hire('Powerful', 'high')).stamp).toBe('✓ Right-sized');
+  });
+
+  it('shows every hard job “You do not need a specific model” and that models vary', () => {
+    for (const job of JOBS)
+      expect(job.also, job.id).toEqual(job.size === 'hard' ? [QUOTES.noSpecific, QUOTES.vary] : []);
+    expect(QUOTES.noSpecific.text).toBe('You do not need a specific model for this course.');
   });
 });
 
@@ -399,16 +429,23 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     back(): void;
     close(): void;
     state(): {
+      open: boolean;
       purse: number;
       done: string[];
+      taught: boolean;
+      practice: { quick: boolean; retry: boolean } | null;
       view: {
         screen: string;
         draft: { auto: boolean; category: string; model: string; effort: string; pending: string | null };
         retry: unknown;
         notice: string | null;
+        practice: { quick: boolean; retry: boolean } | null;
+        result: { feedback: { outcome: string; retry: string | null } } | null;
       };
     };
   };
+  /** The course's model lesson taught (Oren's done): every stall grades. */
+  const TAUGHT = { 'Q1.6': 'done' } as const;
   const stocked = () => {
     const s = new LearnStore(new Progress(new MemStorage()));
     s.refundStarfish(20);
@@ -417,10 +454,11 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
   const play = (
     island: 'anchorage' | 'meridian' | 'thousand-bough',
     store = stocked(),
-    quests: Record<string, string> = {},
+    quests: Record<string, string> = { ...TAUGHT },
   ) => {
     const said: string[][] = [];
     const pages: string[] = [];
+    const labels: string[] = [];
     const host = {
       learn: store,
       hud: { toast: () => undefined },
@@ -430,7 +468,10 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
         cancel: () => undefined,
       },
       audio: null,
-      interactions: { add: () => undefined, remove: () => undefined },
+      interactions: {
+        add: (it: { label: () => string }) => void labels.push(it.label()),
+        remove: () => undefined,
+      },
       player: { x: 0, y: 0, z: 0, heading: 0 },
       quests: () => quests,
       setQuest: (id: string, step: string) => void (quests[id] = step),
@@ -451,7 +492,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
       setDone: () => undefined,
     } as unknown as ModelMarketSite;
     const p = createModelMarket(host, site, marketStall(island));
-    return { p, d: p.debug as unknown as Debug, quests, said, pages, store };
+    return { p, d: p.debug as unknown as Debug, quests, said, pages, store, labels };
   };
 
   it('has a stall on every island, and only Gilda’s runs the story', () => {
@@ -533,7 +574,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     tb.d.pay();
     // The fair price: one spent, none back; and only Gilda's stall touches the story's task.
     expect(tb.d.state()).toMatchObject({ purse: 5, done: ['tour'] });
-    expect(tb.quests).toEqual({});
+    expect(tb.quests).toEqual(TAUGHT);
     const anc = play('anchorage', store);
     expect(anc.d.state()).toMatchObject({ purse: 5, done: ['tour'] });
     // Another keeper says every line in their own voice, never Gilda's.
@@ -583,17 +624,17 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
 
   it('jobs done at another stall count, but only Gilda’s stall finishes her task and gives its page', async () => {
     const store = stocked();
-    const quests: Record<string, string> = {};
+    const quests: Record<string, string> = { ...TAUGHT };
     const anc = play('anchorage', store, quests);
     await clearBoard(anc.d);
     expect(anc.d.state().done).toHaveLength(JOBS.length);
-    expect(quests).toEqual({});
+    expect(quests).toEqual(TAUGHT);
     expect(anc.pages).toEqual([]);
     expect(anc.said.flat()).toContain(MARKET.keepers!.anchorage!.done.voice);
 
     // At Port Meridian: as you come up, Gilda says hello and finishes the task with her line.
     const mer = play('meridian', store, quests);
-    expect(quests).toEqual({});
+    expect(quests).toEqual(TAUGHT);
     mer.p.update(1 / 60, 0);
     expect(quests[puzzleQuest('market')]).toBe('done');
     expect(mer.pages).toEqual([puzzleContent<PuzzleFile & { page: string }>('market').page]);
@@ -607,7 +648,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
 
   it('a board finished elsewhere is done when you open Gilda’s stall (her hello already said)', async () => {
     const store = stocked();
-    const quests: Record<string, string> = {};
+    const quests: Record<string, string> = { ...TAUGHT };
     const mer = play('meridian', store, quests);
     await mer.d.open();
     mer.d.close();
@@ -620,5 +661,117 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     expect(quests[puzzleQuest('market')]).toBe('done');
     expect(back.pages).toHaveLength(1);
     expect(back.said).toEqual([[GILDA.done]]);
+  });
+
+  it('holds off grading at every stall until the course’s model lesson, and the keeper says so', async () => {
+    for (const island of ['anchorage', 'meridian', 'thousand-bough'] as const) {
+      const quests: Record<string, string> = { 'Q1.5': 'done', 'Q1.6': 'start' };
+      const { p, d, said, labels, store } = play(island, stocked(), quests);
+      expect(labels[0], island).toMatch(/^Ask .+ about the Model Market$/);
+      p.update(1 / 60, 0);
+      // No hello (nor Gilda's optional task) as you come up, and the work order stays shut.
+      expect(said, island).toEqual([]);
+      await d.open();
+      const early = island === 'meridian' ? GILDA.early : MARKET.keepers![island]!.early.voice;
+      expect(d.state(), island).toMatchObject({ open: false, taught: false });
+      expect(said, island).toEqual([[early]]);
+      expect(p.engaged(), island).toBe(false);
+      expect(p.hint(1), island).toBeNull();
+      expect(quests[puzzleQuest('market')], island).toBeUndefined();
+      expect(store.getState().starfishPurse).toBe(20);
+      // Oren sends you down (Q1.6 at market): every stall grades from then on.
+      quests['Q1.6'] = 'market';
+      await d.open();
+      expect(d.state(), island).toMatchObject({ open: true, taught: true });
+    }
+  });
+
+  it('runs Oren’s practice at Gilda’s: stakes the starfish, then a quick look and a hard job’s Retry', async () => {
+    const store = new LearnStore(new Progress(new MemStorage()));
+    const quests: Record<string, string> = { 'Q1.5': 'done', 'Q1.6': 'market' };
+    const mer = play('meridian', store, quests);
+    await mer.d.open();
+    // Broke on the story's path: the keeper stakes you up to the dearest hire.
+    let st = mer.d.state();
+    expect(st.purse).toBe(MAX_PRICE);
+    expect(st.view.notice).toMatch(/staked you 4 starfish/);
+    expect(st.view.practice).toEqual({ quick: false, retry: false });
+    // A quick look overspent doesn't count; right-sized with your (big) model on Default does.
+    mer.d.pickJob('tour');
+    mer.d.pick('Powerful');
+    mer.d.effort('high');
+    mer.d.pay();
+    expect(mer.d.state().view.practice).toEqual({ quick: false, retry: false });
+    expect(mer.d.state().purse).toBe(MAX_PRICE);
+    mer.d.back();
+    mer.d.pickJob('tour');
+    mer.d.pick('Powerful');
+    mer.d.effort('default');
+    mer.d.pay();
+    expect(mer.d.state().view.practice).toEqual({ quick: true, retry: false });
+    // A hard job with Auto: right-sized, and it offers a Retry (a different model, to compare).
+    mer.d.back();
+    mer.d.pickJob('bug');
+    mer.d.pick('auto');
+    mer.d.pay();
+    st = mer.d.state();
+    expect(st.view.result?.feedback).toMatchObject({ outcome: 'right', retry: 'again' });
+    expect(quests['Q1.6']).toBe('market');
+    mer.d.retry('model');
+    expect(mer.d.state().view.draft).toMatchObject({ auto: false, pending: 'model' });
+    mer.d.pick('Powerful');
+    mer.d.effort('high');
+    mer.d.pay();
+    // Practised: Q1.6 moves on (tell Oren), Gilda says so after her grade, and the stake stops.
+    expect(quests['Q1.6']).toBe('practiced');
+    expect(mer.said.at(-1)).toEqual([GILDA.right, GILDA.practiced!]);
+    expect(mer.d.state().practice).toBeNull();
+    const left = mer.d.state().purse;
+    mer.d.back();
+    mer.d.pickJob('files');
+    mer.d.pick('auto');
+    mer.d.pay();
+    expect(mer.d.state().purse).toBe(left - AUTO_PRICE);
+  });
+
+  it('counts the practice only at Gilda’s stall, and a quick look done before (in the save) counts', async () => {
+    const store = stocked();
+    const quests: Record<string, string> = { 'Q1.5': 'done', 'Q1.6': 'market' };
+    const anc = play('anchorage', store, quests);
+    await anc.d.open();
+    expect(anc.d.state().view.practice).toBeNull();
+    anc.d.pickJob('explain');
+    anc.d.pick('auto');
+    anc.d.pay();
+    anc.d.back();
+    anc.d.pickJob('files');
+    anc.d.pick('Lightweight');
+    anc.d.pay();
+    anc.d.retry('model');
+    anc.d.pick('Powerful');
+    anc.d.pay();
+    expect(quests['Q1.6']).toBe('market');
+    const mer = play('meridian', store, quests);
+    await mer.d.open();
+    expect(mer.d.state().view.practice).toEqual({ quick: true, retry: false });
+    mer.d.pickJob('files');
+    mer.d.pick('Versatile');
+    mer.d.pay();
+    expect(mer.d.state().view.result?.feedback).toMatchObject({ outcome: 'short', retry: 'short' });
+    mer.d.retry('effort');
+    mer.d.effort('high');
+    mer.d.pay();
+    expect(quests['Q1.6']).toBe('practiced');
+  });
+
+  it('broke after the lesson: the keeper says so, and nothing is staked', async () => {
+    const store = new LearnStore(new Progress(new MemStorage()));
+    const mer = play('meridian', store);
+    await mer.d.open();
+    expect(mer.d.state()).toMatchObject({ open: true, purse: 0 });
+    expect(mer.said.flat()).toContain(GILDA.broke);
+    mer.d.pickJob('tour');
+    mer.d.pay();
+    expect(mer.d.state().view.screen).toBe('hire');
   });
 });

@@ -136,7 +136,7 @@ lines, task list lines), write these tokens instead of the course's fixed exampl
 | `{key:mod+R}` | A course shortcut with their computer's keys (`Cmd+R`, `Ctrl+R`) | The browser's system |
 | `{os}` | macOS, Windows, or Linux | The browser's system |
 | `{issue}` | Their practice issue, like `#7` | The course's `#3` |
-| `{branch}` | Their session's working branch | `practice-empty-state-copy` |
+| `{branch}` | Their session's working branch | `practice-empty-state-copy` (the practice session's **base** branch, not its own: write `{branch}` only where that reads right, or note theirs with `setup: ['branch']`) |
 | `{model}` | What they picked in the model control | "the model you chose" |
 | `{fork}` | Their fork's `owner/repo` | `your-handle/copilot-app-for-beginners` |
 
@@ -145,8 +145,10 @@ lines, task list lines), write these tokens instead of the course's fixed exampl
 - Add `setup: ['branch']` (or `'issue'`, `'model'`, `'os'`) to a page to note the player's value under
   its caption once they've given it.
 - A script asks with `{ askSetup: 'issue' }` (only if it isn't known yet), and `{ quiz, when }` asks a
-  quiz only for some answers (`when: 'model:auto'`). Voiced lines can't change: Rook still says "hash
-  three", and the captions around him use `{issue}`.
+  quiz only for some answers (`when: 'model:auto'`). `when: 'branch:given'` (or `'issue:given'`) asks a
+  quiz or a form only of players who gave that value: back from the app, Rook asks your session's working
+  branch (its Skip is "I haven't done it yet"), and only those who gave it are asked what they saw. Voiced
+  lines can't change: Rook still says "hash three", and the captions around him use `{issue}`.
 
 ## 4. When the course changes
 

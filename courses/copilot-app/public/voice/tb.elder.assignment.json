@@ -1,0 +1,107 @@
+{
+  "id": "tb.elder.assignment",
+  "speaker": "Maren",
+  "text": "One more job, Captain: a light and dark theme for the Book App, in its own worktree, without touching main.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.208
+    },
+    {
+      "word": "more",
+      "start": 0.208,
+      "end": 0.46
+    },
+    {
+      "word": "job",
+      "start": 0.46,
+      "end": 0.77
+    },
+    {
+      "word": "Captain",
+      "start": 0.77,
+      "end": 1.88
+    },
+    {
+      "word": "a",
+      "start": 1.88,
+      "end": 2
+    },
+    {
+      "word": "light",
+      "start": 2,
+      "end": 2.46
+    },
+    {
+      "word": "and",
+      "start": 2.46,
+      "end": 2.72
+    },
+    {
+      "word": "dark",
+      "start": 2.72,
+      "end": 3.107
+    },
+    {
+      "word": "theme",
+      "start": 3.107,
+      "end": 3.48
+    },
+    {
+      "word": "for",
+      "start": 3.48,
+      "end": 3.62
+    },
+    {
+      "word": "the",
+      "start": 3.62,
+      "end": 3.744
+    },
+    {
+      "word": "Book",
+      "start": 3.744,
+      "end": 4.08
+    },
+    {
+      "word": "App",
+      "start": 4.08,
+      "end": 4.693
+    },
+    {
+      "word": "in",
+      "start": 4.693,
+      "end": 4.86
+    },
+    {
+      "word": "its",
+      "start": 4.86,
+      "end": 5.08
+    },
+    {
+      "word": "own",
+      "start": 5.08,
+      "end": 5.28
+    },
+    {
+      "word": "worktree",
+      "start": 5.28,
+      "end": 6.21
+    },
+    {
+      "word": "without",
+      "start": 6.21,
+      "end": 6.604
+    },
+    {
+      "word": "touching",
+      "start": 6.604,
+      "end": 7.04
+    },
+    {
+      "word": "main",
+      "start": 7.04,
+      "end": 7.29
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/market.schema.json",
-  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines and the other stalls' keepers' hello and goodbye (`keepers`, by island). The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines (and `practiced`, hers alone) and the other stalls' keepers' own version of each, and a goodbye (`keepers`, by island). `sizes.*.quotes` are course sentences every work order of that size shows after its job's `why`. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
   "categories": [
     {
       "id": "Lightweight",
@@ -52,7 +52,8 @@
     "hard": {
       "label": "Hard job",
       "refund": 2,
-      "doubloons": 10
+      "doubloons": 10,
+      "quotes": ["noSpecific", "vary"]
     }
   },
   "board": {
@@ -130,6 +131,12 @@
       "chapter": "01-tour-the-app",
       "anchor": "try-again-with-a-different-model",
       "hash": "b0031ded9c4d"
+    },
+    "noSpecific": {
+      "text": "You do not need a specific model for this course.",
+      "chapter": "01-tour-the-app",
+      "anchor": "models-and-reasoning-effort",
+      "hash": "84d625491118"
     }
   },
   "jobs": [
@@ -197,9 +204,9 @@
       "voice": "mer.market.fair",
       "text": "Right-sized! That's a fair price for this job."
     },
-    "over": {
-      "voice": "mer.market.over",
-      "text": "That's a lot of starfish for a quick look. Auto would've done it.",
+    "keep": {
+      "voice": "mer.market.keep",
+      "text": "Right-sized. Your model on its default effort is fine for a quick look. A bigger one just costs more starfish.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
@@ -224,9 +231,9 @@
         "hash": "b0031ded9c4d"
       }
     },
-    "shortAuto": {
-      "voice": "mer.market.short.auto",
-      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort.",
+    "hardAuto": {
+      "voice": "mer.market.hard.auto",
+      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
@@ -240,6 +247,14 @@
     "done": {
       "voice": "mer.market.done",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    },
+    "early": {
+      "voice": "mer.market.early",
+      "text": "Not yet, Captain! Oren teaches models up at the observatory. Come back when he sends you down."
+    },
+    "practiced": {
+      "voice": "mer.market.practiced",
+      "text": "That's Oren's practice done, Captain. Ride the lift back up and tell him how it went."
     }
   },
   "keepers": {
@@ -274,9 +289,9 @@
         "voice": "desmond.market.fair",
         "text": "Right-sized! A fair price for this job."
       },
-      "over": {
-        "voice": "desmond.market.over",
-        "text": "That's plenty of starfish for a quick look. Auto would have handled it.",
+      "keep": {
+        "voice": "desmond.market.keep",
+        "text": "Right-sized. That model on its default effort does a quick look fine. A bigger one just costs you more starfish.",
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
@@ -301,9 +316,9 @@
           "hash": "b0031ded9c4d"
         }
       },
-      "shortAuto": {
-        "voice": "desmond.market.short.auto",
-        "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort.",
+      "hardAuto": {
+        "voice": "desmond.market.hard.auto",
+        "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort.",
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
@@ -317,6 +332,10 @@
       "done": {
         "voice": "desmond.market.done",
         "text": "Every job on the board, right-sized. You know your models, Captain!"
+      },
+      "early": {
+        "voice": "desmond.market.early",
+        "text": "Hold on, Captain. Models and effort come in Chapter 01, and Oren teaches them on Port Meridian. Come back after his lesson."
       },
       "bye": {
         "voice": "desmond.market.bye",
@@ -354,9 +373,9 @@
         "voice": "tb.lani.market.fair",
         "text": "Right-sized, and a fair price for the job."
       },
-      "over": {
-        "voice": "tb.lani.market.over",
-        "text": "That's a lot of starfish for a quick look. Auto could have done it.",
+      "keep": {
+        "voice": "tb.lani.market.keep",
+        "text": "Right-sized. A quick look's fine on the model you've got, at its default effort. Bigger ones just cost more starfish.",
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
@@ -381,9 +400,9 @@
           "hash": "b0031ded9c4d"
         }
       },
-      "shortAuto": {
-        "voice": "tb.lani.market.short.auto",
-        "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort.",
+      "hardAuto": {
+        "voice": "tb.lani.market.hard.auto",
+        "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort.",
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
@@ -397,6 +416,10 @@
       "done": {
         "voice": "tb.lani.market.done",
         "text": "The whole board, right-sized! You really know your models, Captain."
+      },
+      "early": {
+        "voice": "tb.lani.market.early",
+        "text": "Not just yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson."
       },
       "bye": {
         "voice": "tb.lani.market.bye",

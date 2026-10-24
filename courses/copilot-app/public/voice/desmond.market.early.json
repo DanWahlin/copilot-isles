@@ -1,0 +1,117 @@
+{
+  "id": "desmond.market.early",
+  "speaker": "Desmond",
+  "text": "Hold on, Captain. Models and effort come in Chapter 01, and Oren teaches them on Port Meridian. Come back after his lesson.",
+  "words": [
+    {
+      "word": "Hold",
+      "start": 0,
+      "end": 0.293
+    },
+    {
+      "word": "on",
+      "start": 0.293,
+      "end": 0.54
+    },
+    {
+      "word": "Captain",
+      "start": 0.54,
+      "end": 1.234
+    },
+    {
+      "word": "Models",
+      "start": 1.234,
+      "end": 2.42
+    },
+    {
+      "word": "and",
+      "start": 2.42,
+      "end": 2.571
+    },
+    {
+      "word": "effort",
+      "start": 2.571,
+      "end": 3.168
+    },
+    {
+      "word": "come",
+      "start": 3.168,
+      "end": 3.387
+    },
+    {
+      "word": "in",
+      "start": 3.387,
+      "end": 3.5
+    },
+    {
+      "word": "Chapter",
+      "start": 3.5,
+      "end": 4
+    },
+    {
+      "word": "01",
+      "start": 4,
+      "end": 4.54
+    },
+    {
+      "word": "and",
+      "start": 4.54,
+      "end": 5.08
+    },
+    {
+      "word": "Oren",
+      "start": 5.08,
+      "end": 5.57
+    },
+    {
+      "word": "teaches",
+      "start": 5.57,
+      "end": 5.968
+    },
+    {
+      "word": "them",
+      "start": 5.968,
+      "end": 6.187
+    },
+    {
+      "word": "on",
+      "start": 6.187,
+      "end": 6.304
+    },
+    {
+      "word": "Port",
+      "start": 6.304,
+      "end": 6.62
+    },
+    {
+      "word": "Meridian",
+      "start": 6.62,
+      "end": 7.536
+    },
+    {
+      "word": "Come",
+      "start": 7.536,
+      "end": 8.288
+    },
+    {
+      "word": "back",
+      "start": 8.288,
+      "end": 8.547
+    },
+    {
+      "word": "after",
+      "start": 8.547,
+      "end": 8.92
+    },
+    {
+      "word": "his",
+      "start": 8.92,
+      "end": 9.12
+    },
+    {
+      "word": "lesson",
+      "start": 9.12,
+      "end": 9.37
+    }
+  ]
+}

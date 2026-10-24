@@ -1,7 +1,7 @@
 {
   "id": "mer.admiral.next",
   "speaker": "Admiral",
-  "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are.",
+  "text": "Chapter 02 is sessions, worktrees and context. Thousand-Bough Isle’s to the north-east, and your ship’s ready when you are.",
   "words": [
     {
       "word": "Chapter 02",
@@ -31,72 +31,67 @@
     {
       "word": "context",
       "start": 3.457875,
-      "end": 4.736833
+      "end": 4.695375
     },
     {
-      "word": "That",
-      "start": 4.736833,
-      "end": 4.973666
+      "word": "Thousand-Bough",
+      "start": 4.695375,
+      "end": 5.524333
     },
     {
-      "word": "island’s",
-      "start": 4.973666,
-      "end": 5.486833
+      "word": "Isle’s",
+      "start": 5.524333,
+      "end": 5.984875
     },
     {
-      "word": "still",
-      "start": 5.486833,
-      "end": 5.763166
-    },
-    {
-      "word": "being",
-      "start": 5.763166,
-      "end": 6.013166
-    },
-    {
-      "word": "charted",
-      "start": 6.013166,
-      "end": 6.934208
-    },
-    {
-      "word": "but",
-      "start": 6.934208,
-      "end": 7.10525
+      "word": "to",
+      "start": 5.984875,
+      "end": 6.103291
     },
     {
       "word": "the",
-      "start": 7.10525,
-      "end": 7.223666
+      "start": 6.103291,
+      "end": 6.208541
     },
     {
-      "word": "course",
-      "start": 7.223666,
-      "end": 7.592125
+      "word": "north-east",
+      "start": 6.208541,
+      "end": 7.248041
     },
     {
-      "word": "is",
-      "start": 7.592125,
-      "end": 7.736833
+      "word": "and",
+      "start": 7.248041,
+      "end": 7.353291
+    },
+    {
+      "word": "your",
+      "start": 7.353291,
+      "end": 7.484875
+    },
+    {
+      "word": "ship’s",
+      "start": 7.484875,
+      "end": 7.879625
     },
     {
       "word": "ready",
-      "start": 7.736833,
-      "end": 8.078958
+      "start": 7.879625,
+      "end": 8.208541
     },
     {
       "word": "when",
-      "start": 8.078958,
-      "end": 8.276333
+      "start": 8.208541,
+      "end": 8.419083
     },
     {
       "word": "you",
-      "start": 8.276333,
-      "end": 8.421041
+      "start": 8.419083,
+      "end": 8.576958
     },
     {
       "word": "are",
-      "start": 8.421041,
-      "end": 8.671041
+      "start": 8.576958,
+      "end": 8.826958
     }
   ]
 }

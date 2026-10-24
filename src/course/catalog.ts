@@ -157,7 +157,14 @@ export interface SetupFormCopy {
 export interface SetupCopy {
   os: SetupFormCopy & { shortcut: string; note: string };
   issue: SetupFormCopy;
-  branch: SetupFormCopy & { match: string };
+  branch: SetupFormCopy & {
+    /** The field's placeholder: what a session's working branch looks like. */
+    example?: string;
+    /** Shown when the player types the practice branch: the session's base branch, not its own. */
+    base?: string;
+    /** The Skip button's label when a script asks. */
+    skip?: string;
+  };
   model: SetupFormCopy & {
     choices: Readonly<Record<'auto' | 'current' | 'other', { label: string; note: string }>>;
     name: string;

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // End-to-end quest run on the play page, in Chapter 00's order: Nell (prerequisites chest, spyglass
-// views, pages), the palette stand (Paint Your Sails), Ezra's fork, Bo's session and tool checks at
-// his gear rack, Pim and Pol's Dry-Run Crane (P0.2) with Suri's gate lever first (P0.1, Actions),
-// Suri's optional mill race (P0.1's channels: the practice checks), Juno's First
-// Words (Q0.8), the message bottles, Lyra's soundcheck (Q0.9), then Nell at the bow: the
+// views, the sign-in hotspot, pages), the palette stand (Paint Your Sails), Ezra's fork, Bo's session,
+// then the version checks you run at his gear rack (the old Node.js caught and rerun), Suri's gate
+// lever (P0.1, Actions first) on the way to Pim and Pol's Dry-Run Crane (P0.2), Suri's optional mill
+// race (P0.1's channels: the practice checks), Juno's overview prompt (Q0.8), the message bottles,
+// Lyra's soundcheck (Q0.9), then Nell at the bow: the
 // Harbormaster's Trial and the christening. Answered through the real UI where it matters (hotspots
 // are clicked; other types use __dev.answer()), with screenshots at each beat.
 // node tools/questtest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/quest]
@@ -327,14 +328,21 @@ if (stand) {
 await talk('merchant');
 results.ezra = await drive('ezra', (s) => s.quests['Q0.3'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
 
-// Bo: a Current checkout session, Terminal, and the version checks at his rack (every one passes),
-// then GitHub CLI's sign-in (S0.1).
+// Bo, in two beats (R5): at Bo, a Current checkout session (H0.4) and the short prompt that creates
+// it; then at his rack, where you run the checks yourself (R4): the first E opens Terminal (Bo's
+// intro), then one check per E. The lantern's first `node -v` is out of date: Bo asks what to do (S0.4),
+// and the next run prints the LTS. Once all four pass, GitHub CLI's own sign-in (S0.1) closes it and
+// sends you to Suri's gate lever (Actions first, R6).
 await talk('dockhand_b');
-results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'done' && !s.dialogue && !s.quiz && !s.reveal);
+results.bo = await drive('bo', (s) => s.quests['Q0.4'] === 'checks' && !s.dialogue && !s.quiz && !s.reveal);
 const rack = () => page.evaluate(() => window.__dev.session().debug.puzzle('gear.rack')?.state() ?? null);
-if (!(await rack())?.shown) logs.push('[questtest] gear: Bo never ran the checks at his rack');
 const gs = await page.evaluate(() => window.__dev.session().debug.puzzle('gear.rack')?.spots() ?? null);
+const term = () => page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
 if (gs) {
+  await page.waitForTimeout(600);
+  const label = await page.evaluate(() => document.querySelector('.hud-compass-label')?.textContent ?? '');
+  if (!label.includes('Bo’s gear rack'))
+    logs.push(`[questtest] gear: after Bo's talk the compass reads ${JSON.stringify(label)}`);
   await page.evaluate((a) => {
     window.__dev.session().debug.teleport(a.x, a.z, a.heading);
     window.__dev.look(a.heading + 0.3, 0.2);
@@ -342,105 +350,59 @@ if (gs) {
   await page.waitForTimeout(900);
   const focus = await page.evaluate(() => window.__dev.session().debug.state().focus);
   if (focus !== 'gear:rack') logs.push(`[questtest] gear: focus at the rack was ${focus}`);
+  const prompt = async () =>
+    page.evaluate(() => document.querySelector('.hud-prompt.show')?.textContent ?? '');
+  if (!/Open Terminal/.test(await prompt()))
+    logs.push(`[questtest] gear: the rack's first prompt reads ${JSON.stringify(await prompt())}`);
+  // The intro: Review panel → Terminal.
   await tap('KeyE');
-  await page.waitForTimeout(900);
-  const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
-  if (!/gh version/.test(term) || /not found/.test(term))
-    logs.push(`[questtest] gear: the rack's terminal read ${JSON.stringify(term.slice(0, 160))}`);
+  await page.waitForTimeout(500);
+  await drive('gear-intro', (s) => !s.dialogue && !s.quiz && !s.reveal);
+  const pressed = [];
+  for (let k = 0; k < 8 && (await learnState()).quests['Q0.4'] === 'checks'; k++) {
+    await page.waitForTimeout(400);
+    pressed.push(await prompt());
+    await tap('KeyE');
+    await page.waitForTimeout(700);
+    const t = await term();
+    if (k === 1) {
+      await shot('gear-node-stale');
+      if (!/v20\./.test(t))
+        logs.push(`[questtest] gear: node -v didn't print the old version (${t.slice(-80)})`);
+    }
+    await drive(`gear-${k}`, (s) => !s.dialogue && !s.quiz && !s.reveal);
+    if (k === 2 && !/v24\./.test(await term()))
+      logs.push(`[questtest] gear: the rerun didn't print the LTS (${(await term()).slice(-80)})`);
+  }
+  results.gear = { pressed, state: await rack() };
   await shot('gear-checks');
+  const t = await term();
+  if (!/gh version/.test(t) || !/gh auth status/.test(t) || /not found/.test(t))
+    logs.push(`[questtest] gear: the rack's terminal read ${JSON.stringify(t.slice(0, 200))}`);
+  if (!seen.has('S0.4')) logs.push('[questtest] gear: Bo never asked about the old Node.js (S0.4)');
+  if (!seen.has('S0.1')) logs.push('[questtest] gear: Bo never asked about GitHub CLI’s sign-in (S0.1)');
+  const q = (await learnState()).quests;
+  if (q['Q0.4'] !== 'done' || q['Q0.7'] !== 'actions')
+    logs.push(`[questtest] gear: after the checks the quests are ${JSON.stringify(q)}`);
 } else logs.push('[questtest] no gear rack hook');
 
-// Pim & Pol: the Dry-Run Crane (P0.2). Every capstan turn and lever pull goes through E. Ezra's
-// register was skipped, so Pim asks for the fork: this time the run types one in. Their brief sends
-// you to Suri's gate lever first (Q0.7 `actions`); the run tries the crane anyway, so your fork's
-// dry run warns that Actions is off and --yes fails, then pulls the lever and comes back.
-if (forkAnswers.length !== 1 || forkAnswers[0].saved)
-  logs.push(
-    `[questtest] fork: Ezra's register should have asked once and been skipped (${JSON.stringify(forkAnswers)})`,
-  );
-forkPlan = 'https://github.com/dan-sample/copilot-app-for-beginners.git';
-const FORK = 'dan-sample/copilot-app-for-beginners';
-await talk('pim');
-results.pim = await drive(
-  'pim',
-  (s) => s.quests['Q0.7'] === 'actions' && !s.dialogue && !s.quiz && !s.reveal,
-);
+// Actions first (R6): from Bo's rack the compass points along the quay to Suri's mill. Ezra's register
+// was skipped, so the fork's still the placeholder. Before talking to Suri the run tries the crane
+// anyway (it runs from the Actions step): the dry run warns that Actions is off and --yes fails.
 {
   await page.waitForTimeout(600);
   const label = await page.evaluate(() => document.querySelector('.hud-compass-label')?.textContent ?? '');
   if (!label.includes('Suri’s gate lever'))
-    logs.push(`[questtest] crane: after the brief the compass reads ${JSON.stringify(label)}`);
+    logs.push(`[questtest] actions: after Bo the compass reads ${JSON.stringify(label)}`);
 }
-{
-  const f = forkAnswers.at(-1);
-  if (forkAnswers.length !== 2 || f?.from !== 'crane' || `${f.saved?.owner}/${f.saved?.repo}` !== FORK)
-    logs.push(`[questtest] fork: the crane didn't save the typed fork (${JSON.stringify(forkAnswers)})`);
-}
-// The Actions page now links straight to the fork's Actions tab (checked in the Logbook copy).
-{
-  await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg.workflows'));
-  await page.waitForTimeout(300);
-  const href = await page.evaluate(
-    () => document.querySelector('.ci-fork-link')?.getAttribute('href') ?? null,
+if (forkAnswers.length !== 1 || forkAnswers[0].saved)
+  logs.push(
+    `[questtest] fork: Ezra's register should have asked once and been skipped (${JSON.stringify(forkAnswers)})`,
   );
-  if (href !== `https://github.com/${FORK}/actions`) logs.push(`[questtest] fork: Actions link is ${href}`);
-  await page.evaluate(() => window.__dev.learn.openLogbook('quests'));
-  await page.waitForTimeout(300);
-  const card = await page.evaluate(() => document.querySelector('.ci-fork-card')?.textContent ?? '');
-  if (!card.includes(FORK)) logs.push(`[questtest] fork: the Logbook card reads ${JSON.stringify(card)}`);
-  await shot('fork-logbook');
-  // Honest ticks: the fork was put off with Later at Ezra, so the quest's line doesn't claim it; ticking
-  // it in the App checklist does.
-  const q03 = () => page.evaluate(() => document.querySelector('[data-quest="Q0.3"]')?.textContent ?? '');
-  const before = await q03();
-  if (!/Not ticked/.test(before) || /added under Sessions\./.test(before))
-    logs.push(`[questtest] the Logbook claims the fork before it's ticked: ${JSON.stringify(before)}`);
-  await page.click('.ci-logbook-tabs button:has-text("App checklist")');
-  await page.waitForSelector('.ci-lj-checklist');
-  await shot('app-checklist');
-  await page.click('.ci-lj-task[data-task="A0.2"] button:has-text("I did it")');
-  await page.click('.ci-logbook-tabs button:has-text("Quests")');
-  await page.waitForTimeout(250);
-  const after = await q03();
-  if (!/Done in the app/.test(after))
-    logs.push(`[questtest] ticking the fork didn't tick the quest's app work: ${JSON.stringify(after)}`);
-  // Your setup, next to the fork: change the computer (entered), skip the practice issue (Cancel), and
-  // add a branch, then forget it. Each opens from its row's button, like a player would.
-  const setupFail = (m) => logs.push(`[questtest] ${m}`);
-  const row = (kind) => `.ci-setup-row[data-kind="${kind}"] button`;
-  const detected = await page.evaluate(() => window.__dev.learn.getState().osDetected);
-  const pickOs = detected === 'windows' ? 'mac' : 'windows';
-  await page.click(row('os'));
-  await answerSetupForm(page, { kind: 'os' }, { os: pickOs }, { shot, fail: setupFail });
-  const keys = pickOs === 'mac' ? 'Cmd+R' : 'Ctrl+R';
-  const osCard = await page.evaluate(
-    () => document.querySelector('.ci-setup-row[data-kind="os"]')?.textContent ?? '',
-  );
-  if (!osCard.includes(pickOs === 'mac' ? 'macOS' : 'Windows'))
-    setupFail(`setup: the computer row reads ${JSON.stringify(osCard)}`);
-  await page.click(row('issue'));
-  await answerSetupForm(page, { kind: 'issue' }, { issue: 'skip' }, { shot, fail: setupFail });
-  await page.click(row('branch'));
-  await answerSetupForm(page, { kind: 'branch' }, { branch: 'my-session-branch' }, { shot, fail: setupFail });
-  await shot('setup-logbook');
-  await page.click(row('branch'));
-  await page.waitForSelector('.ci-setup[data-kind="branch"]');
-  await page.click('.ci-setup .ci-fork-actions button:last-child');
-  await page.waitForTimeout(300);
-  const setup = await page.evaluate(() => window.__dev.learn.getState().setup);
-  if (setup.os !== pickOs || setup.issue !== null || setup.branch !== null)
-    setupFail(`setup: after the Logbook it's ${JSON.stringify(setup)}`);
-  // A page with a shortcut now uses the picked computer's keys.
-  await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg1.prompts'));
-  await page.waitForTimeout(300);
-  const prompts = await page.evaluate(() => document.querySelector('.ci-logbook-body')?.textContent ?? '');
-  if (!prompts.includes(keys)) setupFail(`setup: pg1.prompts doesn't say ${keys}`);
-  await page.evaluate(() => {
-    window.__dev.learn.saveSetup({ os: null });
-    window.__dev.learn.closeLogbook();
-  });
-  await page.waitForTimeout(300);
-}
+const PLACEHOLDER = 'your-handle/copilot-app-for-beginners';
+forkPlan = 'https://github.com/dan-sample/copilot-app-for-beginners.git';
+const FORK = 'dan-sample/copilot-app-for-beginners';
+
 const crane = () => page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.state() ?? null);
 const cs = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.2')?.spots() ?? null);
 if (cs) {
@@ -505,11 +467,11 @@ if (cs) {
   await shot('crane-ghosts-yours');
   {
     const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
-    if (!term.includes(`Repository: ${FORK}`))
+    if (!term.includes(`Repository: ${PLACEHOLDER}`))
       logs.push(
         `[questtest] crane: the terminal doesn't show your fork (${JSON.stringify(term.slice(0, 200))})`,
       );
-    const warn = `[dry-run] GitHub Actions is not active. Enable workflows at https://github.com/${FORK}/actions before running with --yes.`;
+    const warn = `[dry-run] GitHub Actions is not active. Enable workflows at https://github.com/${PLACEHOLDER}/actions before running with --yes.`;
     if (!term.includes(warn))
       logs.push(
         `[questtest] crane: no Actions warning in the dry run (${JSON.stringify(term.slice(0, 400))})`,
@@ -529,7 +491,11 @@ if (cs) {
   await idle();
   if ((await crane())?.complete) logs.push('[questtest] crane: --yes completed with workflows off');
 
-  // Actions first: Suri's gate lever (through E), then back to the crane.
+  // Suri at her gate (Q0.7 `actions`): her talk files the Actions page; then her lever (through E).
+  await talk('suri');
+  results.suriActions = await drive('suri-actions', (s) => !s.dialogue && !s.quiz && !s.reveal);
+  if (!(await page.evaluate(() => window.__dev.learn.progress.data.pages)).includes('pg.workflows'))
+    logs.push("[questtest] actions: Suri's talk didn't give the Actions page");
   const ms = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1')?.spots() ?? null);
   if (ms) {
     await page.evaluate(({ lever }) => {
@@ -544,16 +510,106 @@ if (cs) {
     await page.waitForTimeout(1200);
     const gate = await page.evaluate(() => window.__dev.session().debug.puzzle('P0.1').state().gate);
     if (!gate) logs.push('[questtest] mill: E at the lever did not open the gate');
-    results.lever = await drive('lever', (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue);
+    results.lever = await drive('lever', (s) => s.quests['Q0.7'] === 'brief' && !s.dialogue);
+    await page.waitForTimeout(600);
+    const label = await page.evaluate(() => document.querySelector('.hud-compass-label')?.textContent ?? '');
+    if (!label.includes('Pim and Pol'))
+      logs.push(`[questtest] actions: after the lever the compass reads ${JSON.stringify(label)}`);
   } else logs.push('[questtest] no P0.1 debug hook');
 
-  // Back at the crane: the preview still stands, and --yes runs now.
+  // Pim and Pol's briefing at the crane (Q0.7 `brief`): Pim asks for the fork, and the run types one.
+  await talk('pim');
+  results.pim = await drive(
+    'pim',
+    (s) => s.quests['Q0.7'] === 'crane' && !s.dialogue && !s.quiz && !s.reveal,
+  );
+  {
+    const f = forkAnswers.at(-1);
+    if (forkAnswers.length !== 2 || f?.from !== 'crane' || `${f.saved?.owner}/${f.saved?.repo}` !== FORK)
+      logs.push(`[questtest] fork: the crane didn't save the typed fork (${JSON.stringify(forkAnswers)})`);
+  }
+  // The Actions page now links straight to the fork's Actions tab (checked in the Logbook copy).
+  {
+    await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg.workflows'));
+    await page.waitForTimeout(300);
+    const href = await page.evaluate(
+      () => document.querySelector('.ci-fork-link')?.getAttribute('href') ?? null,
+    );
+    if (href !== `https://github.com/${FORK}/actions`) logs.push(`[questtest] fork: Actions link is ${href}`);
+    await page.evaluate(() => window.__dev.learn.openLogbook('quests'));
+    await page.waitForTimeout(300);
+    const card = await page.evaluate(() => document.querySelector('.ci-fork-card')?.textContent ?? '');
+    if (!card.includes(FORK)) logs.push(`[questtest] fork: the Logbook card reads ${JSON.stringify(card)}`);
+    await shot('fork-logbook');
+    // Honest ticks: the fork was put off with Later at Ezra, so the quest's line doesn't claim it;
+    // ticking it in the App checklist does.
+    const q03 = () => page.evaluate(() => document.querySelector('[data-quest="Q0.3"]')?.textContent ?? '');
+    const before = await q03();
+    if (!/Not ticked/.test(before) || /added under Sessions\./.test(before))
+      logs.push(`[questtest] the Logbook claims the fork before it's ticked: ${JSON.stringify(before)}`);
+    await page.click('.ci-logbook-tabs button:has-text("App checklist")');
+    await page.waitForSelector('.ci-lj-checklist');
+    await shot('app-checklist');
+    await page.click('.ci-lj-task[data-task="A0.2"] button:has-text("I did it")');
+    await page.click('.ci-logbook-tabs button:has-text("Quests")');
+    await page.waitForTimeout(250);
+    const after = await q03();
+    if (!/Done in the app/.test(after))
+      logs.push(`[questtest] ticking the fork didn't tick the quest's app work: ${JSON.stringify(after)}`);
+    // Your setup, next to the fork: change the computer (entered), skip the practice issue (Cancel), and
+    // add a branch, then forget it. Each opens from its row's button, like a player would.
+    const setupFail = (m) => logs.push(`[questtest] ${m}`);
+    const row = (kind) => `.ci-setup-row[data-kind="${kind}"] button`;
+    const detected = await page.evaluate(() => window.__dev.learn.getState().osDetected);
+    const pickOs = detected === 'windows' ? 'mac' : 'windows';
+    await page.click(row('os'));
+    await answerSetupForm(page, { kind: 'os' }, { os: pickOs }, { shot, fail: setupFail });
+    const keys = pickOs === 'mac' ? 'Cmd+R' : 'Ctrl+R';
+    const osCard = await page.evaluate(
+      () => document.querySelector('.ci-setup-row[data-kind="os"]')?.textContent ?? '',
+    );
+    if (!osCard.includes(pickOs === 'mac' ? 'macOS' : 'Windows'))
+      setupFail(`setup: the computer row reads ${JSON.stringify(osCard)}`);
+    await page.click(row('issue'));
+    await answerSetupForm(page, { kind: 'issue' }, { issue: 'skip' }, { shot, fail: setupFail });
+    await page.click(row('branch'));
+    await answerSetupForm(
+      page,
+      { kind: 'branch' },
+      { branch: 'my-session-branch' },
+      { shot, fail: setupFail },
+    );
+    await shot('setup-logbook');
+    await page.click(row('branch'));
+    await page.waitForSelector('.ci-setup[data-kind="branch"]');
+    await page.click('.ci-setup .ci-fork-actions button:last-child');
+    await page.waitForTimeout(300);
+    const setup = await page.evaluate(() => window.__dev.learn.getState().setup);
+    if (setup.os !== pickOs || setup.issue !== null || setup.branch !== null)
+      setupFail(`setup: after the Logbook it's ${JSON.stringify(setup)}`);
+    // A page with a shortcut now uses the picked computer's keys.
+    await page.evaluate(() => window.__dev.learn.openLogbook('pages', 'pg1.prompts'));
+    await page.waitForTimeout(300);
+    const prompts = await page.evaluate(() => document.querySelector('.ci-logbook-body')?.textContent ?? '');
+    if (!prompts.includes(keys)) setupFail(`setup: pg1.prompts doesn't say ${keys}`);
+    await page.evaluate(() => {
+      window.__dev.learn.saveSetup({ os: null });
+      window.__dev.learn.closeLogbook();
+    });
+    await page.waitForTimeout(300);
+  }
+  // Back at the crane, with your fork's name: preview again (no Actions warning now), then --yes.
   await stand(cs.dry, -0.35);
-  await page.waitForTimeout(500);
+  await tap('KeyE');
+  await idle();
   {
     const term = await page.evaluate(() => document.querySelector('.hud-term')?.textContent ?? '');
     if (term.includes('GitHub Actions is not active'))
       logs.push('[questtest] crane: the Actions warning stayed after the lever');
+    if (!term.includes(`Repository: ${FORK}`))
+      logs.push(
+        `[questtest] crane: the preview doesn't name your fork (${JSON.stringify(term.slice(0, 200))})`,
+      );
   }
   await stand(cs.yes);
   await tap('KeyE');
@@ -561,11 +617,12 @@ if (cs) {
   await shot('crane-loading');
   results.crane = await drive('crane', (s) => s.quests['Q0.7'] === 'done' && !s.dialogue && !s.reveal);
   if (!(await crane())?.complete) logs.push('[questtest] crane: not complete after --yes');
+  if (!(await page.evaluate(() => window.__dev.learn.progress.data.pages)).includes('pg.items-missing'))
+    logs.push("[questtest] crane: Pol's closing didn't file the missing-issues page");
   await stand(cs.dry, -0.35);
   await page.waitForTimeout(800);
   await shot('crane-solved');
 } else logs.push('[questtest] no P0.2 debug hook');
-
 // Suri: the Mill Race (P0.1's channels, optional once the crane's done). Her gate's already up; one
 // tile turn (E) and one back (Shift+E) go through the keys like a player's would.
 await talk('suri');

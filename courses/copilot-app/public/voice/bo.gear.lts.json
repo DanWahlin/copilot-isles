@@ -1,0 +1,102 @@
+{
+  "id": "bo.gear.lts",
+  "speaker": "Bo",
+  "text": "See that first number, Captain? It’s lower than the LTS version on the Node.js download page.",
+  "words": [
+    {
+      "word": "See",
+      "start": 0.07,
+      "end": 0.19
+    },
+    {
+      "word": "that",
+      "start": 0.19,
+      "end": 0.39
+    },
+    {
+      "word": "first",
+      "start": 0.39,
+      "end": 0.67
+    },
+    {
+      "word": "number",
+      "start": 0.67,
+      "end": 0.99
+    },
+    {
+      "word": "Captain",
+      "start": 0.99,
+      "end": 1.59
+    },
+    {
+      "word": "It’s",
+      "start": 1.59,
+      "end": 1.87
+    },
+    {
+      "word": "lower",
+      "start": 1.87,
+      "end": 2.19
+    },
+    {
+      "word": "than",
+      "start": 2.19,
+      "end": 2.349
+    },
+    {
+      "word": "the",
+      "start": 2.349,
+      "end": 2.51
+    },
+    {
+      "word": "L",
+      "start": 2.51,
+      "end": 2.59
+    },
+    {
+      "word": "T",
+      "start": 2.59,
+      "end": 2.829
+    },
+    {
+      "word": "S",
+      "start": 2.829,
+      "end": 2.989
+    },
+    {
+      "word": "version",
+      "start": 2.989,
+      "end": 3.349
+    },
+    {
+      "word": "on",
+      "start": 3.349,
+      "end": 3.429
+    },
+    {
+      "word": "the",
+      "start": 3.429,
+      "end": 3.55
+    },
+    {
+      "word": "Node",
+      "start": 3.55,
+      "end": 3.869
+    },
+    {
+      "word": "js",
+      "start": 3.869,
+      "end": 4.35
+    },
+    {
+      "word": "download",
+      "start": 4.35,
+      "end": 4.79
+    },
+    {
+      "word": "page",
+      "start": 4.79,
+      "end": 5.04
+    }
+  ]
+}

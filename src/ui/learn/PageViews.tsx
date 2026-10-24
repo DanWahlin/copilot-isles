@@ -177,7 +177,7 @@ export function SetupCard({ store }: { store: LearnStore }) {
                 <code>{setup.branch}</code>
               ) : (
                 <>
-                  Not added yet. The game uses <code>{COURSE_BRANCH}</code> by default.
+                  Not added yet. Its base branch is <code>{COURSE_BRANCH}</code>.
                 </>
               ),
             has: setup.branch !== null,

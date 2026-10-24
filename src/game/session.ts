@@ -638,12 +638,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       : t;
   };
   noteMeridianSeal(storyHolds('meridian', 'sealed', quests()));
-  // A real-app task that finishes an app-only quest (learning.json `completes`) finishes it on confirm.
-  const offAppTask =
-    learn?.onAppTaskDone((t) => {
-      if (t.completes && quests()[t.completes.quest] !== 'done')
-        setQuest(t.completes.quest, t.completes.step);
-    }) ?? null;
   storyEvent('anchorage', 'landed', quests(), setQuest);
   // Suri's gate lever (the mill race) is the crane job's Actions step; without a save there's nothing
   // to check, so an old save's rules that ask for it don't fire.
@@ -3300,7 +3294,6 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     dispose() {
       disposed = true;
-      offAppTask?.();
       for (const u of unsubscribeStreams) u();
       // Anchorage's cast and chests while it's dormant are out of the scene (the voyage's end doesn't
       // see them): told they're disposed once they're freed below.

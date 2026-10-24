@@ -162,7 +162,8 @@ all):
 - every chapter in `islands[]` is in `source.chapters` and the lock;
 - today's rules stay: market economy, board topics, models listed once, labels' sources;
 - `learning.json` (§11): every app task is handed off by a script, cites a section of its chapter, and
-  names a quest, an answer and a check that resolve; an app-only `completes` quest is optional;
+  names a quest, an answer and a check that resolve; `when: "app:<id>"` names a task; after an
+  `orStop` hand-off a script moves only optional quests on;
   every objective is word for word in its section and covers quests, puzzles, quizzes and app tasks
   that exist; one reflection per chapter; `learned` lines only for quests with app tasks.
 
@@ -176,7 +177,7 @@ Step 1 left puzzle content where it was; this table was the plan for step 2. Wha
 | Puzzle (id) | Island · NPC | Generic mechanic | Content fields | Content today | Step 2 |
 | --- | --- | --- | --- | --- | --- |
 | Palette stand (`Q0.2.palette`) | Anchorage · Nell | Pick one of N (cosmetic) + scripted follow-up | `colors[]`, `scripts.finished`, `scripts.late` | `paint-sails.ts` `PALETTE_FINISHED`, `NEW_VIEW_LATE` | Data-only |
-| Gear rack (`Q0.4`, cue `gear-checks`) | Anchorage · Bo | Checklist / terminal readout | `checks[{id, label, command, output}]` | `world/sites/gear-logic.ts` `GEAR` | Data-only |
+| Gear rack (`Q0.4` `checks`) | Anchorage · Bo | Checklist you run, one check per press | `checks[{id, name, tool, command, output, stale?, notes?}]`, `scripts` | `world/sites/gear-logic.ts`, `game/puzzles/gear-rack.ts` | Data-only |
 | Sluice (`P0.1`, `Q0.6`) | Anchorage · Suri | Routing (rotate tiles to outlets) | `outlets[{id, label, meaning}]`, `layout`, feedback | `sluice-logic.ts` `ANCHORAGE_SLUICE` | Data-only (layout is game geometry; meanings are content) |
 | Dry-Run Crane (`P0.2`, `Q0.7`) | Anchorage · Pim & Pol | Procedure with a dry run and guards | `targets[{id, owner, label}]`, `cargo[]`, `command`, guard messages | `crane-logic.ts` `CRANE_FACINGS`, `CRANE_CARGO`, `SETUP_COMMAND` | **Refactor first**: guards encode the course's setup script rules (fork ownership, Actions on) |
 | First words (`Q0.8.pipes`, quiz `S0.2`) | Anchorage · Juno | Choose the right tool, then send | `choices[{id, label, correct, feedback}]`, `prompt`, `reply[]` | `first-words.ts` `SHORT_PROMPT`, `HATCH_LINES`, `REPLY_LINES`, `JUNO_REPLY` | Data-only |
@@ -310,7 +311,7 @@ its `mechanic` and validated by `courses/schemas/puzzle-<mechanic>.schema.json`.
 
 | File | Mechanic | What moved | What stayed in code |
 | --- | --- | --- | --- |
-| `gear-rack.json` | checklist | the checks (tool, command, output), the terminal's sign-in and title, the prompt | the rack, its order of play |
+| `gear-rack.json` | checklist | the checks (tool, command, output, an out-of-date first `stale` output and its script, per-computer `notes`), the `intro`, `checked` and stale scripts, the terminal's sign-in and title, the prompts and hints | the rack, its order of play (one check per press while its quest is at `checks`) |
 | `practice-session.json` | checklist | the terminal's title and readout (setup tokens) | — |
 | `palette.json` | ceremony | the finished and late scripts, prompts, hints | the colours (game art) |
 | `bard.json`, `christening.json` | ceremony | Wingman's hints (and the bard's announcement) | timing, the ship name board |
@@ -476,13 +477,14 @@ first welcomes, the gangway, the compass on to Thousand-Bough and the Meridian S
 
 **Puzzles' quests.** A puzzle file names the quest it plays in, `"quest": "Q0.7"`, read with
 `puzzleQuest(name)` (`src/course/puzzles.ts`). The steps a mechanic sets and waits on are the game's
-words, `PUZZLE_STEPS` (the crane's `gate`, `crane`, `solved`; the letters' `letters`, `solved`…), and
+words, `PUZZLE_STEPS` (the crane's `gate`, `brief`, `crane`, `solved`; the gear rack's `checks`; the letters' `letters`, `solved`…), and
 that quest must have them, under the same names or the ones the puzzle's file maps them to
 (`"steps"`: the Copilot app course's crane calls `gate` `actions`). Mechanics read them through
 `puzzleSteps(name)`, resolved once per course activation, so every one can be renamed
 (`src/game/puzzles/steps.test.ts` renames them all). Every quest ends at `done`, the game's own step for
 a finished quest: it isn't a mechanic step and can't be mapped. The crane reads the gear rack's quest,
-the mill race the crane's. Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
+the mill race the crane's: its gate lever moves the crane's job from `gate` on to `brief` (the crew's
+briefing at the crane; the crane runs from `gate` on). Puzzle ids, save keys (`P0.1`, `P1.3`…) and chart labels stay the game's, each named once in
 its module (`SLUICE_ID`, `LETTERS_ID`, `HOIST_ID`); Channel Routing keeps its rounds under its own key
 in the quests. The palette's late page (`latePage`) and the market's page (`page`) moved to their files.
 
@@ -669,10 +671,10 @@ next". These systems are generic and data-driven: a pack opts in with data, and 
 
 | System | Pack data | Game code |
 | --- | --- | --- |
-| **"Do this in the app"** card: steps, why, the course link, **I did it** / **Later** (Later never holds the story up), then an optional "What did you see?" | `learning.json` → `appTasks[]`; a script step `{ "appTask": "A0.3" }` where it's taught | `src/learn/learning.ts`, `LearnStore.askAppTask`, `src/ui/learn/LearningCards.tsx` |
+| **"Do this in the app"** card: steps, why, the course link, **I did it** / **Later** (Later never holds the story up), then an optional "What did you see?" | `learning.json` → `appTasks[]`; a script step `{ "appTask": "A0.3" }` where it's taught; `"quiet": true` at a brief that sends you off (no card, the checklist keeps it), the card at the return beat, and the NPC's own question gated `when: "app:A2.2"` | `src/learn/learning.ts`, `LearnStore.askAppTask`, `src/ui/learn/LearningCards.tsx` |
 | **App checklist** (Logbook): every task by chapter, done / later / not reached, open its steps or tick it later | the same tasks; `labels.checklist` names the tab | `src/ui/learn/LogbookLearning.tsx` |
-| **Honest ticks:** a finished quest's Logbook line claims its app work only once every one of its tasks is confirmed | `learned` (quest → the line until then); each task's `quest` | `questLogLine` |
-| **App-only quests** that finish on confirm (the Lantern House) | a task's `completes: { quest, step }` (an optional quest) | `onAppTaskDone` in `session.ts` |
+| **Honest ticks:** a finished quest's Logbook line says what you learned, and marks its app work done only once every one of its tasks is confirmed | each task's `quest`; `learned` only where a `done` step claims app work | `questLogLine` |
+| **App-only quests** (the Lantern House): the return beat's card with `"orStop": true`; Later ends the talk with the quest open, I did it leads into the NPC's report | the script step; the content check allows only optional quests after it | `runScript` |
 | **Wingman's recap** at a landfall (other chapters) and on Continue: 1-3 questions from quizzes you've met, spaced (Leitner boxes) and interleaved, skippable, no fail state, doubloons and a starfish | `course.json` → `recap` (`questions`, `types`, `exclude`, `minGapMinutes`, `reward`) | `src/learn/recap.ts` (pure), `LearnStore.recapDue`/`runRecap`, `QuizPanel`'s recap mode |
 | **Course map** (Logbook): each objective with Practised / Quizzed / Done in the app, what's next, the reflection picked, the Seal and its card | `objectives[]` (quoted from Learning Objectives) with `covers` | `src/learn/mastery.ts` (pure) |
 | **Reflection** before each Seal (after the Trial's last answer, before the banner), once, skippable | `reflections[]` (the Key Takeaways as choices) | `LearnStore.askReflection` in `runTrial` |

@@ -33,6 +33,12 @@ export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'map' | 'app' | 'star
 /** A GitHub check's state for a task: not run, running, or its last result. */
 export type CheckState = { status: 'running' } | CheckResult;
 
+/**
+ * A script step's condition: the player's setup (`model:auto`, `branch:given`…), or `app:<task>`, a
+ * real-app task they've confirmed (learning.json).
+ */
+export type StepWhen = SetupWhen | `app:${string}`;
+
 /** How a real-app task card ended: confirmed, put off, or closed without either (the Logbook's Cancel). */
 export type AppTaskOutcome = 'done' | 'later' | 'closed';
 
@@ -194,7 +200,6 @@ export class LearnStore {
   private reflectionDone: (() => void) | null = null;
   private badgeDone: (() => void) | null = null;
   private resumeDone: (() => void) | null = null;
-  private readonly appTaskListeners = new Set<(task: AppTask) => void>();
   private seed = 1;
   /** Tests: GitHub's API (a stand-in fetch) and the clock. */
   fetchFn: ((url: string, init?: RequestInit) => Promise<Response>) | undefined = undefined;
@@ -578,7 +583,10 @@ export class LearnStore {
   }
 
   /** Whether a step or quiz meant for some answers fits this player's (`model:auto`…). */
-  setupIs = (when: SetupWhen): boolean => setupMatches(this.state.setup, when);
+  setupIs = (when: StepWhen): boolean =>
+    when.startsWith('app:')
+      ? this.progress.data.appTasks[when.slice(4)]?.status === 'done'
+      : setupMatches(this.state.setup, when as SetupWhen);
 
   /**
    * Opens a setup form. Resolves true once the player saves, or false if they skip (nothing changes:
@@ -656,12 +664,6 @@ export class LearnStore {
 
   // ---- "Do this in the app" (src/learn/learning.ts) ----
 
-  /** Calls `fn` when the player confirms a real-app task (the session finishes the quest it `completes`). */
-  onAppTaskDone = (fn: (task: AppTask) => void): (() => void) => {
-    this.appTaskListeners.add(fn);
-    return () => this.appTaskListeners.delete(fn);
-  };
-
   /**
    * Hands a real-app task to the player: a card with its steps, I did it and Later. From a quest beat
    * it's skipped once the task's done (Later brings it back next time); it never holds the story up.
@@ -674,6 +676,16 @@ export class LearnStore {
     this.appTaskDone?.('closed');
     this.set({ appTask: { task, from, phase: 'ask', answer: null } });
     return new Promise((resolve) => (this.appTaskDone = resolve));
+  };
+
+  /**
+   * Hands a task off with no card (the NPC sends you off to do it, and asks when you're back): it joins
+   * the App checklist as Later, unless it's done already.
+   */
+  noteAppTask = (id: string): void => {
+    if (!APP_TASKS.has(id) || this.progress.data.appTasks[id]) return;
+    this.progress.setAppTask(id, { status: 'later' });
+    this.set({ appTasks: { ...this.progress.data.appTasks } });
   };
 
   /** I did it: saved as done, then "What did you see?" if the task asks. */
@@ -729,10 +741,8 @@ export class LearnStore {
   };
 
   private markAppTaskDone(task: AppTask, verified = false): void {
-    const fresh = this.progress.data.appTasks[task.id]?.status !== 'done';
     this.progress.setAppTask(task.id, verified ? { status: 'done', verified } : { status: 'done' });
     this.set({ appTasks: { ...this.progress.data.appTasks } });
-    if (fresh) for (const fn of this.appTaskListeners) fn(task);
   }
 
   private finishAppTask(outcome: AppTaskOutcome): void {

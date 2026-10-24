@@ -50,8 +50,6 @@ export interface AppTask {
   link?: { label: string; url: string };
   seen?: AppTaskSeen;
   check?: AppTaskCheck;
-  /** An optional app-only quest the task finishes once the player confirms it. */
-  completes?: { quest: string; step: string };
 }
 
 /** One of a chapter's learning objectives and what in the game covers it. */

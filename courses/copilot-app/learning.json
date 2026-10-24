@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/learning.schema.json",
-  "$comment": "The learning systems (docs/content-data.md, COURSE-PACKS.md \"Learning systems\"): real-app tasks the scripts hand off with {\"appTask\": id}, the chapters' learning objectives (quoted from each chapter's Learning Objectives) and what covers them, the reflection before each Seal (the Key Takeaways), and the Logbook's line for a finished quest whose app tasks aren't confirmed yet.",
+  "$comment": "The learning systems (docs/content-data.md, COURSE-PACKS.md \"Learning systems\"): real-app tasks the scripts hand off with {\"appTask\": id}, the chapters' learning objectives (quoted from each chapter's Learning Objectives) and what covers them, the reflection before each Seal (the Key Takeaways). The quests' own done lines say what you learned, so `learned` is empty: the Logbook adds whether the app work is confirmed.",
   "labels": {
     "kicker": "Do this in the Copilot app",
     "checklist": "App checklist",
@@ -387,25 +387,6 @@
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
         "hash": "6db80a8de549"
-      },
-      "seen": {
-        "prompt": "After the change, what does the empty-state message suggest?",
-        "options": [
-          {
-            "id": "change",
-            "text": "Changing the search term, genre, or reading status"
-          },
-          {
-            "id": "add",
-            "text": "Adding a new book"
-          },
-          {
-            "id": "reload",
-            "text": "Reloading the page"
-          }
-        ],
-        "answer": "change",
-        "explain": "Reload and search again: the empty-state message should suggest changing the search term, genre, or reading status."
       }
     },
     {
@@ -423,25 +404,6 @@
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
         "hash": "0eb8259b8b60"
-      },
-      "seen": {
-        "prompt": "What does `/context` open?",
-        "options": [
-          {
-            "id": "usage",
-            "text": "The usage popup below the prompt box"
-          },
-          {
-            "id": "plan",
-            "text": "The **Plan** tab"
-          },
-          {
-            "id": "changes",
-            "text": "The **Changes** tab"
-          }
-        ],
-        "answer": "usage",
-        "explain": "`/context` opens the usage popup below the prompt box, with plan, session, token and context information."
       }
     },
     {
@@ -459,10 +421,6 @@
         "chapter": "02-sessions-worktrees-context",
         "anchor": "assignment",
         "hash": "a6fd57783531"
-      },
-      "completes": {
-        "quest": "Q2.A",
-        "step": "done"
       }
     }
   ],
@@ -478,7 +436,7 @@
       },
       "covers": {
         "quests": ["Q0.2"],
-        "quizzes": ["T0.6"],
+        "quizzes": ["H0.1", "T0.6"],
         "appTasks": ["A0.1"]
       }
     },
@@ -508,7 +466,7 @@
       },
       "covers": {
         "puzzles": ["gear-rack"],
-        "quizzes": ["S0.1", "T0.9"],
+        "quizzes": ["S0.1", "S0.4", "N0.3", "T0.9"],
         "appTasks": ["A0.5"]
       }
     },
@@ -568,7 +526,7 @@
       "covers": {
         "quests": ["Q1.3"],
         "puzzles": ["crate-yard"],
-        "quizzes": ["H1.2", "A1.4", "A1.1", "N1.6", "A1.5"],
+        "quizzes": ["H1.2", "A1.4", "A1.1", "A1.11", "N1.6", "A1.5"],
         "appTasks": ["A1.1", "A1.2"]
       }
     },
@@ -583,7 +541,7 @@
       },
       "covers": {
         "puzzles": ["three-helms"],
-        "quizzes": ["M1.2", "A1.6", "A1.8", "N1.1"]
+        "quizzes": ["M1.2", "A1.6", "A1.8", "A1.10", "N1.1"]
       }
     },
     {
@@ -611,7 +569,7 @@
         "hash": "10570b2bca05"
       },
       "covers": {
-        "quests": ["Q1.6"],
+        "quests": ["Q1.7"],
         "quizzes": ["N1.5"]
       }
     },
@@ -651,7 +609,7 @@
       },
       "covers": {
         "quests": ["Q2.7"],
-        "quizzes": ["H2.3", "T2.6"],
+        "quizzes": ["K2.9", "H2.3", "T2.6"],
         "appTasks": ["A2.2"]
       }
     },
@@ -709,7 +667,7 @@
       "covers": {
         "quests": ["Q2.4"],
         "puzzles": ["channel-routing"],
-        "quizzes": ["H2.1", "K2.4", "T2.3", "T2.4", "T2.7"],
+        "quizzes": ["H2.1", "K2.4", "T2.3", "T2.4", "T2.10"],
         "appTasks": ["A2.1"]
       }
     },
@@ -724,7 +682,7 @@
       },
       "covers": {
         "quests": ["Q2.8"],
-        "quizzes": ["H2.6", "T2.8", "T2.9"],
+        "quizzes": ["H2.6", "T2.11", "T2.9"],
         "appTasks": ["A2.3"]
       }
     }
@@ -812,11 +770,5 @@
       ]
     }
   ],
-  "learned": {
-    "Q0.2": "You know how to install the app and sign in. Your sails are painted.",
-    "Q0.3": "You know how to fork the course and add your fork under Sessions.",
-    "Q0.4": "You know how to start a session on Current checkout and check your tools in Terminal.",
-    "Q0.7": "You know to turn workflows on first, then preview the setup script with --dry-run before --yes.",
-    "Q0.8": "You know a request for the agent goes in the prompt box, not Terminal."
-  }
+  "learned": {}
 }

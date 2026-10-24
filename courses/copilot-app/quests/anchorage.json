@@ -19,7 +19,7 @@
       "steps": {
         "start": "Talk to Nell Tidewell by the harbourmaster’s door.",
         "palette": "Paint your sails at the palette stand beside Nell. In the app, themes are in Settings → Themes.",
-        "done": "Signed in, the New view is open, and your sails are painted."
+        "done": "You know how to install the app and sign in, and your sails are painted."
       }
     },
     {
@@ -32,7 +32,7 @@
       },
       "steps": {
         "start": "Find Ezra Quill at his chart table by the pier.",
-        "done": "Your fork is added under Sessions."
+        "done": "You know how to fork the course and add your fork from the + next to Sessions."
       }
     },
     {
@@ -41,7 +41,8 @@
       "task": "Start a session and check your tools",
       "steps": {
         "start": "Bo Marlin, the quartermaster, is at his gear rack beside Ezra.",
-        "done": "Your session runs on Current checkout, and every tool checks out in Terminal."
+        "checks": "Run each version check at Bo’s gear rack, one at a time, and read what Terminal prints.",
+        "done": "You know how to start a Current checkout session and check your tools in Terminal."
       }
     },
     {
@@ -49,21 +50,21 @@
       "title": "The Dry-Run Crane",
       "task": "Add the course practice items",
       "steps": {
-        "start": "Find Pim and Pol at the crane at the end of the pier.",
-        "actions": "Actions first: on GitHub.com, you enable workflows in your fork’s Actions tab. Here, pull the gate lever at Suri’s mill.",
+        "actions": "Actions first: on GitHub.com, you enable workflows in your fork’s Actions tab. Here, it’s the gate lever at Suri’s mill, along the quay.",
+        "brief": "Workflows are on. Find Pim and Pol at the crane at the end of the pier.",
         "crane": "Aim the crane at your ship, preview with Dry-Run, check the Repository line, then pull --yes.",
         "solved": "Setup complete. Talk to Pol.",
-        "done": "Workflows are on, and your fork has its practice labels, issues, branches, and pull requests."
+        "done": "You know the setup routine: workflows on, --dry-run, check the Repository line, then --yes."
       }
     },
     {
       "id": "Q0.8",
-      "title": "First Words",
+      "title": "Ask About the Course",
       "task": "Ask the agent about the course",
       "steps": {
         "start": "Find Juno, your first mate, on the pier beside your ship.",
         "pipes": "Send the course’s overview prompt to the agent. Which fitting on your ship’s rail carries it?",
-        "done": "Your request went to the agent, and the crew answered."
+        "done": "You know requests go to the agent in the prompt box, and commands go in Terminal."
       }
     },
     {
@@ -125,13 +126,17 @@
       "ids": ["npc:dockhand_b"],
       "label": "Bo Marlin"
     },
-    "Q0.7:start": {
-      "ids": ["npc:pim", "npc:pol"],
-      "label": "Pim and Pol"
+    "Q0.4:checks": {
+      "ids": ["gear:rack"],
+      "label": "Bo’s gear rack"
     },
     "Q0.7:actions": {
-      "ids": ["mill:lever"],
+      "ids": ["npc:suri", "mill:lever"],
       "label": "Suri’s gate lever"
+    },
+    "Q0.7:brief": {
+      "ids": ["npc:pim", "npc:pol"],
+      "label": "Pim and Pol"
     },
     "Q0.7:crane": {
       "ids": ["crane:*"],
@@ -263,6 +268,13 @@
     },
     {
       "npc": "dockhand_b",
+      "when": {
+        "Q0.4": "checks"
+      },
+      "none": true
+    },
+    {
+      "npc": "dockhand_b",
       "script": "bo.deck"
     },
     {
@@ -271,13 +283,13 @@
         "Q0.6": null,
         "Q0.7": "actions"
       },
-      "say": "suri.actions.01"
+      "script": "suri.actions"
     },
     {
       "npc": "suri",
       "when": {
         "Q0.6": null,
-        "Q0.7": ["crane", "solved"]
+        "Q0.7": ["brief", "crane", "solved"]
       },
       "say": "suri.actions.02"
     },
@@ -346,7 +358,7 @@
     {
       "npc": ["pim", "pol"],
       "when": {
-        "Q0.7": "start"
+        "Q0.7": "brief"
       },
       "script": "crane.brief"
     },
@@ -483,6 +495,12 @@
         "step": "done"
       },
       {
+        "say": "nell.takeaways.01"
+      },
+      {
+        "say": "nell.takeaways.02"
+      },
+      {
         "say": "nell.trial.02"
       },
       {
@@ -574,17 +592,11 @@
         "line": "pim.brief.fork"
       },
       {
-        "say": "pol.brief.actions"
-      },
-      {
         "term": "github-actions"
       },
       {
-        "page": "pg.workflows",
+        "file": "pg.workflows",
         "doubloons": 10
-      },
-      {
-        "appTask": "A0.6"
       },
       {
         "say": "pim.brief.02"
@@ -596,11 +608,11 @@
         "term": "dry-run"
       },
       {
-        "say": "pim.brief.03"
+        "say": "pim.crane.01"
       },
       {
         "quest": "Q0.7",
-        "step": "actions"
+        "step": "crane"
       }
     ],
     "pol.solved": [
@@ -619,6 +631,12 @@
       {
         "page": "P0.S",
         "doubloons": 20
+      },
+      {
+        "say": "pol.solved.issues"
+      },
+      {
+        "file": "pg.items-missing"
       },
       {
         "say": "pim.solved.03"
@@ -654,11 +672,10 @@
         "say": "nell.papers.app"
       },
       {
-        "show": "ch00/app-sign-in",
-        "caption": "Open the app and select **Sign in to GitHub** (on GHE.com, **Sign in to GitHub Enterprise Cloud**)."
+        "hide": true
       },
       {
-        "say": "nell.papers.signin"
+        "quiz": "H0.1"
       },
       {
         "show": "shared/app-github-copilot-app",
@@ -714,7 +731,7 @@
       },
       {
         "show": "shared/app-github-copilot-app",
-        "caption": "Then add your fork to the app, starting from the **New** view."
+        "caption": "Then add your fork to the app, starting from the **New** view. This picture’s from an older app version, where **Sessions** was called **Projects**."
       },
       {
         "say": "ezra.fork.02"
@@ -724,7 +741,7 @@
       },
       {
         "show": "ch00/app-add-project",
-        "caption": "**+** next to **Sessions** → **Add GitHub repository**, then pick your fork, `{fork}`."
+        "caption": "**+** next to **Sessions** → **Add GitHub repository**, then pick your fork, `{fork}`. In this older picture, **Sessions** still reads **Projects**."
       },
       {
         "say": "ezra.fork.03"
@@ -787,50 +804,11 @@
         "appTask": "A0.4"
       },
       {
-        "show": "shared/app-review-panel",
-        "caption": "**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
-      },
-      {
-        "say": "bo.gear.brief.01"
-      },
-      {
-        "term": "review-panel"
-      },
-      {
-        "hide": true
-      },
-      {
-        "say": "bo.gear.brief.02"
-      },
-      {
-        "cue": "gear-checks"
-      },
-      {
-        "say": "bo.gear.brief.03"
-      },
-      {
-        "say": "bo.gear.checked.02"
-      },
-      {
-        "quiz": "S0.1"
-      },
-      {
-        "appTask": "A0.5"
-      },
-      {
-        "page": "pg.terminal",
-        "doubloons": 10
-      },
-      {
-        "say": "bo.signed.02"
+        "say": "bo.deck.rack"
       },
       {
         "quest": "Q0.4",
-        "step": "done"
-      },
-      {
-        "quest": "Q0.7",
-        "step": "start"
+        "step": "checks"
       }
     ],
     "suri.brief": [
@@ -850,20 +828,36 @@
         "quest": "Q0.6",
         "step": "sluice"
       }
+    ],
+    "suri.actions": [
+      {
+        "say": "suri.actions.01"
+      },
+      {
+        "term": "github-actions"
+      },
+      {
+        "page": "pg.workflows",
+        "doubloons": 10
+      },
+      {
+        "appTask": "A0.6"
+      }
     ]
   },
   "notes": {
     "christening": "The christening (Q0.11): Nell names the ship at the bow (the `christen` cue throws the coconut), Juno reports the crew's aboard, and Wingman gives the sailing lesson. The naming line carries the captain's own ship name, so it stays a subtitle. While Port Meridian is open (the dev build, or ?meridian), the game plays wingman.sail.meridian instead of wingman.sail.03 to point the way.",
-    "nell.trial": "The Harbormaster's Trial (Q0.10), with Nell at your bow once the first prompt's sent, so there's no walk back up the harbour. Passing goes straight on to the christening.",
+    "nell.trial": "The Harbormaster's Trial (Q0.10), with Nell at your bow once the crew's answered, so there's no walk back up the harbour. Passing, she sums up the chapter's Key Takeaways (the app's a desktop control center for agent-driven work, samples/book-app-web is the sample app, and the setup script stocked your fork), then goes straight on to the christening.",
     "lyra.soundcheck": "Lyra's soundcheck (Q0.9, optional): the course's recording-studio theme, and C0.5.",
-    "juno.brief": "Juno's opening beat (Q0.8): the course's first prompt, where it goes in the app, and two fittings on the rail.",
+    "juno.brief": "Juno's opening beat (Q0.8): the course's overview prompt (the session itself was made by Bo's short prompt), where it goes in the app, and two fittings on the rail.",
     "suri.solved": "Suri's lines once the mill race is solved (P0.1, optional), also used if you come back after quitting: with workflows on, GitHub runs the practice checks, and one fails on purpose (Chapter 00 · Add the Course Practice Items).",
-    "crane.brief": "Pim and Pol's opening beat (Q0.7), the course's \"Add the course practice items\", kept short and literal: what the setup script adds to your fork (practice, not problems), your fork's address if Ezra didn't get it (for the crane's sign and the Actions link), turning on workflows in the fork's Actions tab on GitHub.com, then the rule: `--dry-run`, check `Repository:`, then `--yes`. Like the course (steps 1–3 before the dry run) and the script (`--yes` refuses while workflows are off), Actions comes first: the job's next step is Suri's gate lever (`actions`).",
-    "pol.solved": "Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting: where the commands run in the app, and what to do if the `Repository:` line isn't yours (Chapter 00 · Connect to Your Repository, step 3: pick your fork, not the original).",
-    "nell.papers": "Nell's papers (Q0.2) in the course's order (Chapter 00 · Prerequisites, Installation), kept short (about 30 s of voice and one card): papers, the chest with the full list (the Business/Enterprise policy and the tools Bo checks later), the app and its download link, Sign in, Connect your repositories → Continue → the New view, then Settings → Themes and the palette stand. The install and New view pages go straight into the Logbook (no cards).",
-    "ezra.fork": "Ezra's fork (Q0.3) in the course's order: fork on GitHub (the link stays in the Logbook and tracker), then add it from the New view: find the + (H0.2), see the menu it opens, and pick your fork rather than the original (S0.3). Right after forking, the fork's URL is in the browser: write it in Ezra's register (Skip for now always works). The crane's sign, Bo's rack, and fork links use it.",
-    "bo.deck": "Bo's deck (Q0.4), the course's \"Check your tools in Terminal\": a project session on Current checkout, a short prompt that creates it, the Terminal tab, the version checks (Bo's rack runs them, and they all pass), then GitHub CLI's own sign-in.",
-    "suri.brief": "Suri's mill race (Q0.6, optional), once the crane's stocked your fork: workflows are on (her gate's up), so the practice checks run. The mill race shows them, one failing on purpose."
+    "crane.brief": "Pim and Pol's opening beat (Q0.7 `brief`), once Suri's gate lever has turned workflows on: what the setup script adds to your fork (practice, not problems), your fork's address if Ezra didn't get it (for the crane's sign and the Actions link), then the rule: `--dry-run` in Terminal, check `Repository:`, then `--yes`. It files the Actions page too, for a captain who pulled the lever without Suri's talk. It sets `crane`.",
+    "pol.solved": "Pol and Pim's closing beat once the crane's done (P0.2), also used if you come back after quitting: where the commands run in the app, what to do if the `Repository:` line isn't yours (Chapter 00 · Connect to Your Repository, step 3: pick your fork, not the original), and what to do if the issues are missing afterwards (Troubleshooting · Practice items were not created).",
+    "nell.papers": "Nell's papers (Q0.2) in the course's order (Chapter 00 · Prerequisites, Installation), kept short (about 30 s of voice, one card and one hotspot): papers, the chest with the full list (the Business/Enterprise policy and the tools Bo checks later), the app and its download link, which sign-in button to select (H0.1), Connect your repositories → Continue → the New view, then Settings → Themes and the palette stand. The install and New view pages go straight into the Logbook (no cards).",
+    "ezra.fork": "Ezra's fork (Q0.3) in the course's order: fork on GitHub (the link stays in the Logbook and tracker), then add it from the New view: find the + (H0.2), see the menu it opens, and pick your fork rather than the original (S0.3). Right after forking, the fork's URL is in the browser: write it in Ezra's register (Skip for now always works). The crane's sign, Bo's rack, and fork links use it. The course's two pictures here predate app 1.1.30, so their captions say the heading they show (Projects) is Sessions now.",
+    "bo.deck": "Bo's deck (Q0.4), the first half of the course's \"Check your tools in Terminal\": a project session on Current checkout (H0.4) and the short prompt that creates it, then on to his rack (`checks`), where you run the version checks yourself (puzzles/gear-rack.json: Terminal, the Node LTS rule, then GitHub CLI's own sign-in).",
+    "suri.brief": "Suri's mill race (Q0.6, optional), once the crane's stocked your fork: workflows are on (her gate's up), so the practice checks run. The mill race shows them, one failing on purpose.",
+    "suri.actions": "Suri at her gate (Q0.7 `actions`), right after Bo, on the quay: Actions first, as the course does (steps 1–3 before the dry run) and the script needs (`--yes` stops while workflows are off). Her gate is your fork's Actions tab; pulling its lever moves the job on to Pim and Pol's briefing at the crane, with no walk back."
   },
   "barks": {
     "merchant": [

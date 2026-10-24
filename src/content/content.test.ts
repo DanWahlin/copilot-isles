@@ -255,6 +255,7 @@ describe('the content checks report broken edits by entry', () => {
       'quest',
       'quest',
       'quest',
+      'quest',
     ]);
     expect(paths(issuesWith('puzzles/crane.json', { ...crane, quest: 'Q9.9' }))).toEqual(['quest']);
     const noQuest = { ...crane };
@@ -327,8 +328,6 @@ describe('the content checks report broken edits by entry', () => {
       seen: { ...(l.appTasks[0]!.seen as object), answer: 'nope' },
     };
     l.appTasks[1] = { ...l.appTasks[1], check: { kind: 'branchExists' } };
-    // An app-only quest can finish on confirm; a main quest can't wait on the app.
-    l.appTasks[2] = { ...l.appTasks[2], completes: { quest: 'Q0.3', step: 'done' } };
     l.objectives[0]!.text = 'Install the app in one click';
     l.objectives[1]!.covers = { quizzes: ['Q9.9'], appTasks: ['A9.9'], puzzles: ['nope'] };
     l.objectives[2]!.source.hash = '000000000000';
@@ -339,7 +338,6 @@ describe('the content checks report broken edits by entry', () => {
       'appTasks[0].quest',
       'appTasks[0].seen.answer',
       'appTasks[1].check.branch',
-      'appTasks[2].completes.quest',
       'objectives[0].text',
       'objectives[1].covers.quizzes[0]',
       'objectives[1].covers.appTasks[0]',
@@ -348,14 +346,23 @@ describe('the content checks report broken edits by entry', () => {
       'reflections[1].chapter',
       'reflections[1].source.chapter',
       'reflections[2].choices[4].id',
-      // Q0.2's only app task now names another quest.
-      'learned["Q0.2"]',
       'learned["Q0.10"]',
     ]);
     const q = quests('meridian');
-    q.scripts.lyra = [...q.scripts.lyra!, { appTask: 'A9.9' }];
+    const n = q.scripts.lyra!.length;
+    // An unknown task, one for players who confirmed an unknown task, and Later ending a script
+    // before it moves the main story on.
+    q.scripts.lyra = [
+      ...q.scripts.lyra!,
+      { appTask: 'A9.9' },
+      { quiz: 'H1.2', when: 'app:A9.9' },
+      { appTask: 'A1.1', orStop: true },
+      { quest: 'Q1.4', step: 'start' },
+    ];
     expect(paths(issuesWith('quests/meridian.json', q))).toEqual([
-      `scripts.lyra[${q.scripts.lyra.length - 1}]`,
+      `scripts.lyra[${n}]`,
+      `scripts.lyra[${n + 1}]`,
+      `scripts.lyra[${n + 3}]`,
     ]);
     const c = meta();
     c.recap = { questions: 2, exclude: ['Q9.9'] };

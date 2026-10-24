@@ -1,0 +1,97 @@
+{
+  "id": "tb.rook.branch",
+  "speaker": "Rook",
+  "text": "That worktree gets a working branch of its own. Ours is only its base branch, where it starts.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "worktree",
+      "start": 0.24,
+      "end": 0.864
+    },
+    {
+      "word": "gets",
+      "start": 0.864,
+      "end": 1.16
+    },
+    {
+      "word": "a",
+      "start": 1.16,
+      "end": 1.26
+    },
+    {
+      "word": "working",
+      "start": 1.26,
+      "end": 1.726
+    },
+    {
+      "word": "branch",
+      "start": 1.726,
+      "end": 2.027
+    },
+    {
+      "word": "of",
+      "start": 2.027,
+      "end": 2.14
+    },
+    {
+      "word": "its",
+      "start": 2.14,
+      "end": 2.4
+    },
+    {
+      "word": "own",
+      "start": 2.4,
+      "end": 3.08
+    },
+    {
+      "word": "Ours",
+      "start": 3.08,
+      "end": 3.653
+    },
+    {
+      "word": "is",
+      "start": 3.653,
+      "end": 3.824
+    },
+    {
+      "word": "only",
+      "start": 3.824,
+      "end": 4.12
+    },
+    {
+      "word": "its",
+      "start": 4.12,
+      "end": 4.32
+    },
+    {
+      "word": "base",
+      "start": 4.32,
+      "end": 4.709
+    },
+    {
+      "word": "branch",
+      "start": 4.709,
+      "end": 5.227
+    },
+    {
+      "word": "where",
+      "start": 5.227,
+      "end": 5.413
+    },
+    {
+      "word": "it",
+      "start": 5.413,
+      "end": 5.611
+    },
+    {
+      "word": "starts",
+      "start": 5.611,
+      "end": 5.861
+    }
+  ]
+}

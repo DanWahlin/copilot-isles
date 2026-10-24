@@ -187,20 +187,6 @@
               "$ref": "#/$defs/text"
             }
           }
-        },
-        "completes": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["quest", "step"],
-          "description": "An app-only quest this task finishes once it's confirmed.",
-          "properties": {
-            "quest": {
-              "$ref": "#/$defs/id"
-            },
-            "step": {
-              "$ref": "#/$defs/id"
-            }
-          }
         }
       }
     },

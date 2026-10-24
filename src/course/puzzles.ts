@@ -56,16 +56,19 @@ export const PUZZLE_ISLANDS: Readonly<Record<string, string>> = {
  * each of these steps, under the same name or the one its file maps it to (`"steps"`, game step →
  * quest step). Every quest also ends at `done`, the game's own step for a finished quest (the quest
  * list, the tracker and the content check know it), so a puzzle reads `done` as it is: it isn't a
- * mechanic step and can't be renamed. The gear rack sets none, but the crane reads its quest's `done`
- * (so the gear rack needs a quest), and the mill race reads the crane's (`gate`, `crane`, `solved`).
+ * mechanic step and can't be renamed. The gear rack waits on its quest's `checks` (the rack runs one
+ * check per press then, and plays the course's `checked` script when every one passes), and the crane
+ * reads its `done`. The crane's `gate` is the mill's gate lever (Actions first), which moves the job on
+ * to `brief` (the crew's briefing at the crane; the crane runs from it), then `crane` and `solved`. The
+ * mill race reads the crane's steps too.
  */
 const STEPS = {
-  'gear-rack': [],
+  'gear-rack': ['checks'],
   palette: ['palette'],
   bard: ['start'],
   christening: ['start', 'sail'],
   sluice: ['sluice', 'solved'],
-  crane: ['gate', 'crane', 'solved'],
+  crane: ['gate', 'brief', 'crane', 'solved'],
   'first-words': ['pipes'],
   'crate-yard': ['crates', 'solved'],
   'three-helms': ['helms', 'solved'],

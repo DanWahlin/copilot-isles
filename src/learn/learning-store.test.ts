@@ -94,8 +94,19 @@ describe('"Do this in the app" (learning.json app tasks)', () => {
   it('ticks a quest’s app work in the Logbook only once every task of it is confirmed', () => {
     const l = store();
     const done = 'Your fork is added under Sessions.';
-    const learned = coursePack().learning.learned['Q0.3']!;
-    expect(questLogLine('Q0.3', done, l.getState().appTasks)).toEqual({ line: learned, app: 'open' });
+    // A course's `learned` line stands in for a done line that claims the app work (this pack's done
+    // lines say what you learned, so it has none: the done line shows, marked open).
+    const pack = coursePack();
+    setActiveCourse({ ...pack, learning: { ...pack.learning, learned: { 'Q0.3': 'You know how.' } } });
+    try {
+      expect(questLogLine('Q0.3', done, l.getState().appTasks)).toEqual({
+        line: 'You know how.',
+        app: 'open',
+      });
+    } finally {
+      setActiveCourse(pack);
+    }
+    expect(questLogLine('Q0.3', done, l.getState().appTasks)).toEqual({ line: done, app: 'open' });
     l.setAppTaskDone('A0.2', true);
     expect(questLogLine('Q0.3', done, l.getState().appTasks).app).toBe('open');
     l.setAppTaskDone('A0.3', true);
@@ -107,15 +118,30 @@ describe('"Do this in the app" (learning.json app tasks)', () => {
     expect(questLogLine('Q0.3', done, l.getState().appTasks).app).toBe('open');
   });
 
-  it('finishes an app-only quest when its task is confirmed (once)', () => {
+  it('hands a task off quietly (no card), and Later at an orStop return beat ends the script', async () => {
     const l = store();
-    const heard = vi.fn();
-    const off = l.onAppTaskDone(heard);
+    const said: string[] = [];
+    const dialogue = {
+      ...silent,
+      play: async (ids: readonly string[]) => void said.push(...ids),
+    } as Dialogue;
+    const ctx = { dialogue, learn: l, speaker: 'Elder' };
+    expect(await runScript([{ appTask: 'A2.4', quiet: true }, { say: 'go' }], ctx)).toBe(true);
+    expect(said).toEqual(['go']);
+    expect(l.getState().appTasks['A2.4']?.status).toBe('later');
+    // The return beat: Later stops before the quest's step (she asks again next time).
+    const back = runScript([{ appTask: 'A2.4', orStop: true }, { quiz: 'K2.8' }, { say: 'done' }], ctx);
+    await tick();
+    l.appTaskLater();
+    expect(await back).toBe(false);
+    expect(said).toEqual(['go']);
+    // A step for players who confirmed it (`when: "app:<task>"`).
+    expect(l.setupIs('app:A2.4')).toBe(false);
     l.setAppTaskDone('A2.4', true);
-    l.setAppTaskDone('A2.4', true);
-    expect(heard).toHaveBeenCalledTimes(1);
-    expect(heard.mock.calls[0]![0].completes).toEqual({ quest: 'Q2.A', step: 'done' });
-    off();
+    expect(l.setupIs('app:A2.4')).toBe(true);
+    // Quiet again after it's done: still done.
+    l.noteAppTask('A2.4');
+    expect(l.getState().appTasks['A2.4']?.status).toBe('done');
   });
 });
 
@@ -305,8 +331,8 @@ describe('where you left off', () => {
     const s = l.resumeSummary()!;
     expect(s.task).toEqual({ title: 'Your Own Deck', task: 'Start a session' });
     expect(s.next).toBe('Talk to Bo.');
-    // The fork wasn't confirmed: the learned line, not the claim.
-    expect(s.learned).toBe(`Copy the Master Chart: ${coursePack().learning.learned['Q0.3']}`);
+    // The quest's own line (this pack's done lines say what you learned).
+    expect(s.learned).toBe('Copy the Master Chart: Your fork is added under Sessions.');
     expect(s.later).toBe(1);
   });
 });
