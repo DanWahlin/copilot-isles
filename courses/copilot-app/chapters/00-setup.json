@@ -16,7 +16,7 @@
       "hash": "371d5ae374bc",
       "width": 1920,
       "height": 1080,
-      "alt": "The GitHub Copilot app New view: New, Pull requests, Issues, Automations, Customize and More in the sidebar, an empty Projects list, and the prompt box with Chat below it"
+      "alt": "The GitHub Copilot app New view from before app 1.1.30: New, Pull requests, Issues, Automations, Customize and More in the sidebar, an empty Projects list (the app calls it Sessions now), and the prompt box with Chat below it"
     },
     {
       "id": "ch00/app-add-project",
@@ -24,7 +24,7 @@
       "hash": "faf03f246231",
       "width": 1920,
       "height": 1080,
-      "alt": "The Projects menu open, with callouts on the + (1) and Add GitHub repository (2), between Chat above and Clone repository and Open folder below"
+      "alt": "The sidebar's + menu open, from before app 1.1.30 (its Projects heading is Sessions now), with callouts on the + (1) and Add GitHub repository (2), between Chat above and Clone repository and Open folder below"
     },
     {
       "id": "ch00/app-current-checkout-workspace-selector",
@@ -53,6 +53,45 @@
   ],
   "quizzes": [
     {
+      "id": "H0.1",
+      "type": "hotspot",
+      "image": "ch00/app-sign-in",
+      "mask": [],
+      "prompt": "Your account’s on GitHub.com. Which button signs you in to the app?",
+      "targets": [
+        {
+          "id": "github",
+          "rect": [0.1357, 0.7143, 0.2, 0.102],
+          "label": "Sign in to GitHub",
+          "correct": true
+        },
+        {
+          "id": "ghe",
+          "rect": [0.349, 0.7143, 0.415, 0.102],
+          "label": "Sign in to GitHub Enterprise Cloud (*.ghe.com)",
+          "feedback": "That one’s for organizations on `*.ghe.com`. An account on GitHub.com uses **Sign in to GitHub**."
+        }
+      ],
+      "explain": {
+        "correct": "Right: **Sign in to GitHub**. Then sign in with your GitHub account.",
+        "wrong": "Pick the button for an account on GitHub.com."
+      },
+      "hints": [
+        "Two buttons, two kinds of account.",
+        "The second one is only for `*.ghe.com`.",
+        "Select **Sign in to GitHub**, the green one."
+      ],
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "installation",
+        "hash": "bf12cef33675",
+        "image": {
+          "src": "course/ch00/app-sign-in.webp",
+          "hash": "484b7239d4ac"
+        }
+      }
+    },
+    {
       "id": "H0.2",
       "type": "hotspot",
       "image": "shared/app-github-copilot-app",
@@ -69,29 +108,29 @@
           "id": "prompt-plus",
           "rect": [0.33229166666666665, 0.49166666666666664, 0.016666666666666666, 0.02962962962962963],
           "label": "+ in the prompt box",
-          "feedback": "That **+** belongs to the prompt box. The **Sessions** heading has its own **+** in the sidebar."
+          "feedback": "That **+** belongs to the prompt box. The heading above your projects has its own **+** in the sidebar."
         },
         {
           "id": "new",
           "rect": [0.005208333333333333, 0.07037037037037037, 0.19166666666666668, 0.03888888888888889],
           "label": "New",
-          "feedback": "**New** starts new work. Adding a project starts from the **Sessions** heading."
+          "feedback": "**New** starts new work. Adding a project starts from the heading above your projects."
         },
         {
           "id": "customize",
           "rect": [0.005208333333333333, 0.23425925925925925, 0.19166666666666668, 0.03888888888888889],
           "label": "Customize",
-          "feedback": "**Customize** is where you extend the app. Look beside the **Sessions** heading."
+          "feedback": "**Customize** is where you extend the app. Look beside the heading above your projects."
         }
       ],
       "explain": {
-        "correct": "Right! The **+** next to **Sessions** opens the menu for adding a project.",
-        "wrong": "Close! Look for the **+** beside the **Sessions** heading in the sidebar."
+        "correct": "Right! The **+** next to **Sessions** opens the menu for adding a project. This picture’s from an older app version, where that heading read **Projects**.",
+        "wrong": "Close! Look for the **+** beside the heading above your projects: **Sessions** in the app, **Projects** in this older picture."
       },
       "hints": [
         "Your projects live in the sidebar.",
-        "Find the **Sessions** heading. There’s a small button beside it.",
-        "Select the **+** to the right of **Sessions**."
+        "Find the heading above your projects. It’s **Sessions** in the app (this picture still says **Projects**). There’s a small button beside it.",
+        "Select the **+** to the right of that heading."
       ],
       "source": {
         "chapter": "00-setup",
@@ -210,13 +249,50 @@
         {
           "id": "yes",
           "text": "Run the setup script with `--yes` anyway",
-          "feedback": "The script uses the CLI’s account, so it’d target the wrong place."
+          "feedback": "The script acts as GitHub CLI’s account, and it stops if that account doesn’t own your fork. Sign in as the right account first."
         }
       ],
       "answer": "login",
       "explain": {
         "correct": "Right. Sign in with `gh auth login`, then confirm the active account with `gh auth status`.",
         "wrong": "The CLI’s account has to match your fork before you continue."
+      },
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    {
+      "id": "S0.4",
+      "type": "scenario",
+      "situation": "In **Terminal**, `node -v` prints `v20.19.5`. The Node.js download page marks v24 as **LTS**.",
+      "prompt": "What do you do?",
+      "options": [
+        {
+          "id": "fine",
+          "text": "Carry on. It printed a version number, so Node.js is installed",
+          "feedback": "A number means it’s installed, but for Node.js the course also compares the first number with the LTS. 20 is lower than 24."
+        },
+        {
+          "id": "lts",
+          "text": "Install the LTS version, then run `node -v` again"
+        },
+        {
+          "id": "all",
+          "text": "Reinstall Git, Node.js, npm, and GitHub CLI",
+          "feedback": "Install only what’s missing or out of date. Here that’s just Node.js."
+        },
+        {
+          "id": "again",
+          "text": "Run `node -v` again until it prints a newer version",
+          "feedback": "It prints the same version until you install a newer Node.js. Install the LTS first, then check again."
+        }
+      ],
+      "answer": "lts",
+      "explain": {
+        "correct": "Right. Your first number is lower than the LTS, so install the LTS version, then run the checks again.",
+        "wrong": "Compare Node’s first number with the LTS on the download page."
       },
       "source": {
         "chapter": "00-setup",
@@ -477,6 +553,43 @@
       }
     },
     {
+      "id": "N0.3",
+      "type": "scenario",
+      "situation": "Your version checks print `command not found` for `git --version`, `v24.22.1` for `node -v` (the download page marks v24 as **LTS**), `11.19.1` for `npm -v`, and `gh version 2.74.0`.",
+      "prompt": "What do you do before the setup script?",
+      "options": [
+        {
+          "id": "node",
+          "text": "Install a newer Node.js",
+          "feedback": "Its first number, 24, matches the LTS, so Node.js is fine. It’s Git that’s missing."
+        },
+        {
+          "id": "git",
+          "text": "Install Git, then run the checks again"
+        },
+        {
+          "id": "all",
+          "text": "Reinstall all four tools",
+          "feedback": "Install only the tools that are missing. Node.js, npm and GitHub CLI each printed a version."
+        },
+        {
+          "id": "go",
+          "text": "Carry on to the setup script",
+          "feedback": "Git printed no version, so it’s missing. Install it first, then run the checks again."
+        }
+      ],
+      "answer": "git",
+      "explain": {
+        "correct": "Right. Install only what’s missing, then run the checks again before you continue.",
+        "wrong": "Every check should print a version. Which one didn’t?"
+      },
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    {
       "id": "T0.5",
       "type": "scenario",
       "situation": "The dry-run finishes and shows `Repository: someone-else/copilot-app-for-beginners`.",
@@ -579,6 +692,42 @@
       }
     },
     {
+      "id": "T0.11",
+      "type": "mc",
+      "prompt": "Later chapters work in the course’s web sample app. Which folder is it in?",
+      "options": [
+        {
+          "id": "scripts",
+          "text": "`.github/scripts`",
+          "feedback": "That’s where the setup script lives."
+        },
+        {
+          "id": "root",
+          "text": "The repository root",
+          "feedback": "The root holds the chapters. The sample app has its own folder under `samples`."
+        },
+        {
+          "id": "sample",
+          "text": "`samples/book-app-web`"
+        },
+        {
+          "id": "appendices",
+          "text": "`appendices`",
+          "feedback": "Those are the course’s reference pages, like the Training GitHub Scenarios appendix."
+        }
+      ],
+      "answer": "sample",
+      "explain": {
+        "correct": "Yes: `samples/book-app-web` is the course’s main sample app, the one the overview flagged.",
+        "wrong": "The overview prompt asked about it by name."
+      },
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "key-takeaways",
+        "hash": "4da1d85cc5fe"
+      }
+    },
+    {
       "id": "T0.8",
       "type": "scenario",
       "situation": "The script finished, but the practice issues weren’t created in your fork.",
@@ -657,7 +806,7 @@
       "id": "C0.4",
       "title": "Add your fork",
       "image": "ch00/app-add-project",
-      "caption": "**+** next to **Sessions** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have the URL? **Clone repository**. If the app says Git is missing, install Git and try again.",
+      "caption": "**+** next to **Sessions** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have your fork’s URL? **Clone repository**, paste it in **Repository URL**, then select **Clone**. If the app says Git is missing, install Git and try again. This picture’s from an older app version, where **Sessions** was called **Projects**.",
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
@@ -680,7 +829,7 @@
       "id": "pg.terminal",
       "title": "Terminal in the app",
       "image": "shared/app-review-panel",
-      "caption": "Select **View → Toggle Review Panel**, then **Terminal**. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Requests to the agent go in the prompt box. On Windows, if PowerShell won’t run `npm`, use `npm.cmd` in its place.",
+      "caption": "Select **View → Toggle Review Panel**, then **Terminal**. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Each check should print a version. For `node -v`, compare the first number with the **LTS** on the [Node.js download page](https://nodejs.org/en/download): lower means install the LTS. Install only what’s missing, then run the checks again. On Windows, if PowerShell won’t load `npm.ps1`, use `npm.cmd` in place of `npm`, or, if your organization allows it, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`. Requests to the agent go in the prompt box.",
       "code": "git --version\nnode -v\nnpm -v\ngh --version\ngh auth status   # signed in as the account that owns your fork?\ngh auth login    # if not: GitHub.com → Login with a web browser",
       "source": {
         "chapter": "00-setup",
@@ -757,7 +906,7 @@
     {
       "id": "B0.2",
       "title": "I can’t see the repository",
-      "caption": "Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**. If the app says Git is missing, install Git and retry. A chat can’t explain the repository? Check the right one’s connected and your prompt names `copilot-app-for-beginners`.",
+      "caption": "Check you’ve got access to it on GitHub and that you picked the right account or organization. Already cloned it? Try **Open folder**. If the app says Git is missing, install Git and retry. A chat can’t explain the repository? Check the right one’s connected, your prompt names `copilot-app-for-beginners`, and the app has permission to read the project folder.",
       "source": {
         "chapter": "00-setup",
         "anchor": "i-cannot-see-the-repository",
@@ -767,9 +916,8 @@
     {
       "id": "B0.3",
       "title": "The script stops for an organization fork",
-      "caption": "The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized and the `Repository:` line shows the right target. Issues missing? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun. Can’t run the script at all? The course’s Training GitHub Scenarios appendix has the manual steps. Do them before Chapter 02.",
+      "caption": "The setup script won’t change a repository an organization owns. Add `--allow-shared-repository` only if you’re authorized to set up that organization fork and the `Repository:` line shows the right target.",
       "code": "node .github/scripts/setup-training-scenarios.js --yes --allow-shared-repository",
-      "fork": ["settings", "issues"],
       "source": {
         "chapter": "00-setup",
         "anchor": "the-script-stops-for-an-organization-fork",
@@ -785,6 +933,17 @@
         "chapter": "00-setup",
         "anchor": "the-script-stops-with-setup-failed",
         "hash": "3935f4325855"
+      }
+    },
+    {
+      "id": "pg.items-missing",
+      "title": "Practice items weren’t created",
+      "caption": "Issues missing from your fork? On GitHub.com, open your fork’s **Settings** → **Features**, turn on **Issues**, and rerun the script. Can’t run the script at all? The course’s Training GitHub Scenarios appendix has the manual steps. Do them before Chapter 02.",
+      "fork": ["settings", "issues"],
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "practice-items-were-not-created",
+        "hash": "f70544845f12"
       }
     }
   ],
@@ -860,7 +1019,7 @@
     {
       "id": "T0",
       "title": "The Harbormaster’s Trial",
-      "items": ["T0.1", "T0.9", "T0.3", "T0.4", "T0.5", "T0.6", "T0.10", "T0.8"],
+      "items": ["T0.1", "T0.9", "T0.3", "T0.4", "T0.5", "T0.6", "T0.10", "T0.11"],
       "reward": {
         "seal": "Seal of Anchorage",
         "doubloons": 50
@@ -920,8 +1079,8 @@
     },
     "bo.deck.01": {
       "chapter": "00-setup",
-      "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "anchor": "check-your-tools-in-terminal",
+      "hash": "a098a1855e14"
     },
     "bo.deck.02": {
       "chapter": "00-setup",
@@ -1072,6 +1231,225 @@
       "chapter": "00-setup",
       "anchor": "the-course-theme-working-in-a-recording-studio",
       "hash": "5b84e8d01bdb"
+    },
+    "wingman.welcome.03": {
+      "chapter": "00-setup",
+      "anchor": "the-course-theme-working-in-a-recording-studio",
+      "hash": "5b84e8d01bdb"
+    },
+    "bo.deck.rack": {
+      "chapter": "00-setup",
+      "anchor": "check-your-tools-in-terminal",
+      "hash": "a098a1855e14"
+    },
+    "bo.gear.lts": {
+      "chapter": "00-setup",
+      "anchor": "check-your-tools-in-terminal",
+      "hash": "a098a1855e14"
+    },
+    "pol.solved.issues": {
+      "chapter": "00-setup",
+      "anchor": "practice-items-were-not-created",
+      "hash": "f70544845f12"
+    },
+    "nell.takeaways.01": {
+      "chapter": "00-setup",
+      "anchor": "key-takeaways",
+      "hash": "4da1d85cc5fe"
+    },
+    "nell.takeaways.02": {
+      "chapter": "00-setup",
+      "anchor": "key-takeaways",
+      "hash": "4da1d85cc5fe"
+    },
+    "suri.brief.01": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "suri.done.01": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "pim.crane.01": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "pol.crane.01": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "pol.done.01": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "pol.refuse.captain.01": {
+      "chapter": "00-setup",
+      "anchor": "the-script-stops-for-an-organization-fork",
+      "hash": "b65840384055"
+    },
+    "juno.reply.02": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.reply.03": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.reply.vary": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.hatch.01": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.hatch.feedback.01": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.pipes.01": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "juno.brief.01": {
+      "chapter": "00-setup",
+      "anchor": "learn-more-about-the-course-repository",
+      "hash": "104572df79ac"
+    },
+    "lyra.soundcheck.03": {
+      "chapter": "00-setup",
+      "anchor": "the-course-theme-working-in-a-recording-studio",
+      "hash": "5b84e8d01bdb"
+    },
+    "lyra.soundcheck.04": {
+      "chapter": "00-setup",
+      "anchor": "whats-next",
+      "hash": "3763cb5b3b13"
+    }
+  },
+  "cited": {
+    "gear.rack.checks": {
+      "text": "git --version, node -v, npm -v and gh --version each print a version number.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    "gear.rack.lantern": {
+      "text": "node -v prints v20.19.5 first, lower than the LTS (v24), so you install the LTS and run it again: v24.22.1.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    "gear.rack.rope.windows": {
+      "text": "On Windows, PowerShell may refuse to load npm.ps1. Use npm.cmd in place of npm (npm.cmd -v), or, if your organization allows it, run Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    "gear.rack.signedIn": {
+      "text": "$ gh auth status → ✓ Logged in to github.com account your-handle",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    "P0.1.signs": {
+      "text": "Workflows aren’t being run on this forked repository. I understand my workflows, go ahead and enable them.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.dryRun": {
+      "text": "--dry-run → Repository: {repository} … Dry run complete. No changes were made.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.yes": {
+      "text": "--yes → Setup complete.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.notARepo": {
+      "text": "Run this script from the root of a cloned Git repository.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.cargo": {
+      "text": "Labels, issues, practice branches and pull requests (9, 5, 7 and 3).",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.actionsWarning": {
+      "text": "[dry-run] GitHub Actions is not active. Enable workflows at {url} before running with --yes.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    "P0.2.actionsFailure": {
+      "text": "Setup failed: The Book app web workflow is not active. Open {url}, enable workflows for the fork, then rerun the setup script.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "the-script-stops-with-setup-failed",
+        "hash": "3935f4325855"
+      }
+    },
+    "P0.2.refused": {
+      "text": "Refusing to change shared or upstream repository.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "the-script-stops-for-an-organization-fork",
+        "hash": "b65840384055"
+      }
+    },
+    "Q0.8.pipes.hatch": {
+      "text": "$ Give me an overview… → zsh: command not found: Give (Terminal runs commands, not requests).",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learn-more-about-the-course-repository",
+        "hash": "104572df79ac"
+      }
+    },
+    "Q0.8.pipes.reply": {
+      "text": "The reply sums up the course and names samples/book-app-web as the web sample for later exercises.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learn-more-about-the-course-repository",
+        "hash": "104572df79ac"
+      }
     }
   }
 }

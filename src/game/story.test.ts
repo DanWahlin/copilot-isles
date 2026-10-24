@@ -130,7 +130,8 @@ describe('the Copilot app course’s story', () => {
   });
 
   it('brings old saves in line exactly as the old migrateQuests did', () => {
-    // The rules as code, before they were course.json's `migrations.quests`.
+    // The rules as code, before they were course.json's `migrations.quests` (with the 2026-10 Actions-first
+    // order: Suri's gate lever right after Bo, then Pim and Pol's briefing).
     const before = (saved: QuestState, o: { workflowsOn?: boolean }) => {
       const q: Record<string, string> = { ...saved };
       const put = (id: string, step: string) => (q[id] = step);
@@ -142,7 +143,8 @@ describe('the Copilot app course’s story', () => {
         else if (!done('Q0.5') && done('Q0.4')) put('Q0.4', 'start');
       }
       if (done('Q0.3') && !has('Q0.4')) put('Q0.4', 'start');
-      if (done('Q0.4') && !has('Q0.7')) put('Q0.7', 'start');
+      if (done('Q0.4') && !has('Q0.7')) put('Q0.7', 'actions');
+      if (q['Q0.7'] === 'start') put('Q0.7', o.workflowsOn === true ? 'brief' : 'actions');
       if (q['Q0.7'] === 'crane' && o.workflowsOn === false) put('Q0.7', 'actions');
       if (done('Q0.7') && !has('Q0.8')) put('Q0.8', 'start');
       if (done('Q0.7') && !has('Q0.6')) put('Q0.6', 'start');
@@ -154,10 +156,10 @@ describe('the Copilot app course’s story', () => {
     const steps: Record<string, string[]> = {
       'Q0.2': ['start', 'chest', 'palette', 'done'],
       'Q0.3': ['start', 'done'],
-      'Q0.4': ['start', 'done'],
+      'Q0.4': ['start', 'checks', 'done'],
       'Q0.5': ['start', 'ledger', 'done'],
       'Q0.6': ['start', 'sluice', 'done'],
-      'Q0.7': ['start', 'actions', 'crane', 'solved', 'done'],
+      'Q0.7': ['start', 'actions', 'brief', 'crane', 'solved', 'done'],
       'Q0.8': ['start', 'pipes', 'done'],
       'Q0.9': ['start', 'done'],
       'Q0.10': ['start', 'done'],

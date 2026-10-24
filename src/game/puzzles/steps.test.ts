@@ -3,13 +3,19 @@ import { readCoursePack } from '../../../tools/course-pack/read';
 import { setActiveCourse } from '../../course/active';
 import { activateCourse } from '../../course/load';
 import type { CoursePack, PuzzleFile } from '../../course/pack';
-import { PUZZLE_STEPS, puzzleQuest, puzzleSteps } from '../../course/puzzles';
+import {
+  PUZZLE_STEPS,
+  puzzleContent as puzzleContentOf,
+  puzzleQuest,
+  puzzleSteps,
+} from '../../course/puzzles';
 import { createBard } from './bard';
 import { createChristening } from './christening';
 import { createPaintSails } from './paint-sails';
 import { createFirstWords } from './first-words';
 import { createSluice } from './sluice';
 import { createCrane } from './crane';
+import { createGearRack } from './gear-rack';
 import { createCrateYard } from './crate-yard';
 import { createThreeHelms } from './three-helms';
 import { createLostLetters } from './lost-letters';
@@ -166,7 +172,7 @@ describe('a course that renames every mechanic step', () => {
     );
     createSluice(mill.h as never, stub() as never);
     expect(written(mill.set)).toEqual([
-      [Q('crane'), S('crane', 'crane')],
+      [Q('crane'), S('crane', 'brief')],
       [Q('sluice'), S('sluice', 'solved')],
     ]);
 
@@ -174,9 +180,37 @@ describe('a course that renames every mechanic step', () => {
     const crane = (step: string) => createCrane(host({ [Q('crane')]: step }).h as never, site as never);
     expect(crane('actions').engaged()).toBe(false);
     expect(crane(S('crane', 'gate')).engaged()).toBe(true);
+    expect(crane(S('crane', 'brief')).engaged()).toBe(true);
     const stocked = host({ [Q('crane')]: S('crane', 'crane') }, { 'P0.2': { solved: true } });
     createCrane(stocked.h as never, site as never);
     expect(written(stocked.set)).toEqual([[Q('crane'), S('crane', 'solved')]]);
+  });
+
+  it('the gear rack waits on its renamed checks, then runs one check per press', async () => {
+    const site = stub({ spots: () => ({ rack: { x: 0, y: 1, z: 0 } }), anchors: {} });
+    expect(createGearRack(host({ [Q('gear-rack')]: 'checks' }).h as never, site as never).engaged()).toBe(
+      false,
+    );
+    const beats: Any[][] = [];
+    const g = host(
+      { [Q('gear-rack')]: S('gear-rack', 'checks') },
+      {},
+      {
+        beat: async (steps: Any[]) => {
+          beats.push(steps);
+          return true;
+        },
+      },
+    );
+    const rack = createGearRack(g.h as never, site as never);
+    expect(rack.engaged()).toBe(true);
+    expect(g.interactions.get('gear:rack')!.enabled()).toBe(true);
+    // The intro, four checks (the lantern twice: out of date, then the LTS), and the closing.
+    for (let press = 0; press < 6; press++) await (rack.debug.run as () => Promise<void>)();
+    const scripts = (puzzleContentOf('gear-rack') as Any).scripts as Record<string, Any[]>;
+    expect(beats).toEqual([scripts.intro, scripts.lts, scripts.checked]);
+    expect((rack.debug.state as () => Any)()).toMatchObject({ next: 4, signedIn: true });
+    expect(rack.terminal!()!.lines.map((l) => l.text)).toContain('$ gh auth status');
   });
 
   it('the crate yard, the helms, the letters and the market read and write their renamed steps', () => {

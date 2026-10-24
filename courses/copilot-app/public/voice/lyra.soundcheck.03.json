@@ -1,7 +1,7 @@
 {
   "id": "lyra.soundcheck.03",
   "speaker": "Lyra",
-  "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew.",
+  "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your gear checked, and the practice items loaded.",
   "words": [
     {
       "word": "You’ve",
@@ -11,102 +11,92 @@
     {
       "word": "just",
       "start": 0.302625,
-      "end": 0.592125
+      "end": 0.578958
     },
     {
       "word": "done",
-      "start": 0.592125,
-      "end": 0.802625
+      "start": 0.578958,
+      "end": 0.789458
     },
     {
       "word": "the",
-      "start": 0.802625,
-      "end": 0.934208
+      "start": 0.789458,
+      "end": 0.921041
     },
     {
       "word": "sailor’s",
-      "start": 0.934208,
-      "end": 1.328958
+      "start": 0.921041,
+      "end": 1.315791
     },
     {
       "word": "version",
-      "start": 1.328958,
-      "end": 2.118416
+      "start": 1.315791,
+      "end": 2.10525
     },
     {
       "word": "papers",
-      "start": 2.118416,
-      "end": 2.631583
+      "start": 2.10525,
+      "end": 2.60525
     },
     {
       "word": "signed",
-      "start": 2.631583,
-      "end": 3.342125
+      "start": 2.60525,
+      "end": 3.302625
     },
     {
       "word": "the",
-      "start": 3.342125,
-      "end": 3.460541
+      "start": 3.302625,
+      "end": 3.421041
     },
     {
       "word": "chart",
-      "start": 3.460541,
-      "end": 3.842125
+      "start": 3.421041,
+      "end": 3.815791
     },
     {
       "word": "forked",
-      "start": 3.842125,
-      "end": 4.486833
+      "start": 3.815791,
+      "end": 4.460541
     },
     {
       "word": "your",
-      "start": 4.486833,
-      "end": 4.763166
+      "start": 4.460541,
+      "end": 4.736833
     },
     {
-      "word": "own",
-      "start": 4.763166,
-      "end": 5.013166
+      "word": "gear",
+      "start": 4.736833,
+      "end": 4.973666
     },
     {
-      "word": "deck",
-      "start": 5.013166,
-      "end": 5.618416
+      "word": "checked",
+      "start": 4.973666,
+      "end": 5.723666
     },
     {
       "word": "and",
-      "start": 5.618416,
-      "end": 5.842125
+      "start": 5.723666,
+      "end": 5.881583
     },
     {
-      "word": "a",
-      "start": 5.842125,
-      "end": 5.921041
+      "word": "the",
+      "start": 5.881583,
+      "end": 5.973666
     },
     {
-      "word": "first",
-      "start": 5.921041,
-      "end": 6.368416
+      "word": "practice",
+      "start": 5.973666,
+      "end": 6.473666
     },
     {
-      "word": "word",
-      "start": 6.368416,
-      "end": 6.723666
+      "word": "items",
+      "start": 6.473666,
+      "end": 6.947375
     },
     {
-      "word": "to",
-      "start": 6.723666,
-      "end": 6.85525
-    },
-    {
-      "word": "your",
-      "start": 6.85525,
-      "end": 7.039458
-    },
-    {
-      "word": "crew",
-      "start": 7.039458,
-      "end": 7.289458
+      "word": "loaded",
+      "start": 6.947375,
+      "end": 7.197375
     }
   ]
 }

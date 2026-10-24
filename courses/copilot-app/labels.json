@@ -162,14 +162,14 @@
       "game": "battle",
       "k": "The Passage · Sea Battle",
       "t": "Review between the waves",
-      "b": "Between waves, the bosun asks a question about what you just learned.",
+      "b": "Between waves, the bosun asks about Anchorage: previewing the setup script, and checking your tools.",
       "ch": "00",
-      "c": "Add the course practice items",
+      "c": "Setup",
       "chLine": "Questions from Course Chapter 00",
       "source": {
         "chapter": "00-setup",
-        "anchor": "add-the-course-practice-items",
-        "hash": "15d697dd1d02"
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
       }
     },
     "battle:passage-meridian-thousand-bough": {
