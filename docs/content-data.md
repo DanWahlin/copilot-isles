@@ -160,25 +160,32 @@ so VS Code and other editors check your edit as you type and show each field's d
 ### `market.json`
 
 - **Categories** are your model categories (models.json names them), smallest first, each bound to a
-  size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look wants a
-  small one; a hard job a large one, or a medium one on high effort.
+  size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look is
+  right-sized with Auto or any size on its default (or low) effort (only high effort overspends); a hard
+  job wants Auto, a large one, or a medium one on high effort.
 - **Prices** are starfish. `categories[].price` must go up from the smallest to the largest. A hire costs
   its category's price plus its effort's price, up to `maxPrice` (at most 4). Auto costs `autoPrice`.
 - **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund must be
-  less than the cheapest right-sized hire for that size, so a right-sized job always costs at least 1
-  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price.
+  less than the cheapest right-sized model hire for that size, so a right-sized job always costs at least 1
+  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price (Auto's 1 gets
+  none back). `sizes.*.quotes` (optional) are keys of `quotes` every work order of that size shows after
+  its job's `why` (today the hard jobs': `noSpecific`, `vary`).
 - **Doubloons** (`sizes.*.doubloons`) are paid the first time a job is done right-sized.
 - **`board`**: how many model names each signboard shows, and how many of one family it takes before
   it fills up (docs/specs/MODEL-MARKET.md §4.2).
 - **Quotes** are course sentences, word for word (`**bold**` included), with the section they're from:
   `chapter`, `anchor` and `hash`. Get the anchor and hash from `npm run course:refs -- 01`. The overlay
-  shows the section's title from the course lock. The keys the grading uses (`cost`, `effort`,
-  `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`) must stay.
+  shows the section's title from the course lock. The keys the grading and the work order use (`cost`,
+  `effort`, `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`, `noSpecific`, `vary`)
+  must stay.
 - **Jobs** (at most four: the cork board has four spots) name a quote key in `why`. A job's `id` is
   saved in players' progress, so don't rename it.
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
   `text` shown as her caption, and, for a teaching line, the course `source` it paraphrases (the drift
-  report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none.
+  report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none,
+  `keep` for a quick look right-sized with a bigger model on its default effort, `hardAuto` for a hard job
+  done with Auto, and `early` for the counter before the course's model lesson. `practiced` (Gilda's
+  alone, optional) is said when the lesson's practice is done at her stall.
 - **The other keepers** (`keepers.<island>`): each stall but Gilda's (the game's
   `src/game/market/stalls.ts`: Desmond on `anchorage`, Lani on `thousand-bough`) has its keeper's own
   version of every one of Gilda's lines (the same keys, the same teaching and `source`, in their own words
@@ -188,6 +195,12 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Whose task it is:** jobs at every stall count on the one board, but the market's quest (`puzzles/market.json`
   → `quest`) is done, and its `page` given, only at the stall on the island whose `quests/<island>.json` holds
   that quest (Gilda's).
+- **The lesson** (`puzzles/market.json` → `lesson`, optional): `taught` is a `when` (as in a beat) that says
+  the course has taught models and effort: until it holds, every stall's keeper says their `early` line and
+  the work order stays shut. `practice` is a `when` during which Gilda's stall runs the lesson's practice (a
+  quick look right-sized, then a hard job and a Retry of it, staking the starfish), and `practiced` the steps
+  it sets when that's done (`{ "Q1.6": "practiced" }`). The content check holds the quests and steps to the
+  course's.
 
 ### `boards.json`
 
