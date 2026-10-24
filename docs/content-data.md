@@ -47,7 +47,7 @@ course-specific in code after step 5") lists what's left: only the game's own.
 - **A voyage** (New Voyage or Continue) loads the rest (`src/course/load.ts`) in parts
   ([COURSE-PACKS.md](specs/COURSE-PACKS.md) §2, `src/course/split.ts`). The build splits every JSON
   file of a pack, but `course.json` and `voice/`, into:
-  - **the core**, one lazy chunk, `course-<id>` (≤ 40 KB gz): the shared files, and each chapter's
+  - **the core**, one lazy chunk, `course-<id>` (≤ 48 KB gz): the shared files, and each chapter's
     index, images, chests, glossary and Trials, each island's tracker, quest list, `story` and
     `signs`, and each puzzle's `mechanic`, `quest`, `steps` and `disabled`;
   - **a part per chapter**, a JSON file (≤ 28 KB gz each): the chapter's quizzes, pages, `voiced` and

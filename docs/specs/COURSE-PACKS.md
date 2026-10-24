@@ -127,11 +127,12 @@ snapshot are static files fetched by URL.**
     (each quiz's id, type and section; each page's id, title, picture and section), its images,
     chests, glossary and Trials; for each island its tracker, quest list, `story` and `signs`; for
     each puzzle its `mechanic`, `quest`, `steps`, `chapter` and `disabled`. A puzzle the game runs on
-    every island (the Model Market, `SHARED_PUZZLES`) stays whole in the core. Built: 19.0 KB gz for
-    `copilot-app`, 3.9 KB for `copilot-cli`; budget 40 KB each.
+    every island (the Model Market, `SHARED_PUZZLES`) stays whole in the core. Built: 22.6 KB gz for
+    `copilot-app`, 4.1 KB for `copilot-cli`; budget 48 KB each (13 KB shared and about 3.2 KB a
+    chapter: eight chapters fit).
   - **A part per chapter**, a JSON file `assets/course-<id>-<chapter>-<hash>.json`: the chapter's
     quizzes, pages, `voiced` and `cited`, and its island's (`course.json` → `islands`) compass
-    targets, beats, scripts and barks, and its puzzles' content. Built: 14.1, 19.7 and 15.7 KB gz
+    targets, beats, scripts and barks, and its puzzles' content. Built: 13.7, 17.0 and 15.1 KB gz
     (chapters 00-02); budget 28 KB each, one row per part (`check:budgets` and `content:check` fail on
     a part without one). The browser's copy leaves out what the game never reads: the scripts'
     `notes`, the lock's hashes, terms and images, and each file's `$schema` and `$comment`.
