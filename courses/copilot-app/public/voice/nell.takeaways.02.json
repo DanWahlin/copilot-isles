@@ -1,0 +1,87 @@
+{
+  "id": "nell.takeaways.02",
+  "speaker": "Nell",
+  "text": "Your sample app is samples/book-app-web, and your fork’s stocked with practice items for the chapters ahead.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "sample",
+      "start": 0.16,
+      "end": 0.74
+    },
+    {
+      "word": "app",
+      "start": 0.74,
+      "end": 1.173
+    },
+    {
+      "word": "is",
+      "start": 1.173,
+      "end": 1.54
+    },
+    {
+      "word": "samples/book-app-web",
+      "start": 1.54,
+      "end": 7.46
+    },
+    {
+      "word": "and",
+      "start": 7.46,
+      "end": 7.552
+    },
+    {
+      "word": "your",
+      "start": 7.552,
+      "end": 7.76
+    },
+    {
+      "word": "fork’s",
+      "start": 7.76,
+      "end": 8.29
+    },
+    {
+      "word": "stocked",
+      "start": 8.29,
+      "end": 8.656
+    },
+    {
+      "word": "with",
+      "start": 8.656,
+      "end": 8.791
+    },
+    {
+      "word": "practice",
+      "start": 8.791,
+      "end": 9.427
+    },
+    {
+      "word": "items",
+      "start": 9.427,
+      "end": 9.8
+    },
+    {
+      "word": "for",
+      "start": 9.8,
+      "end": 9.94
+    },
+    {
+      "word": "the",
+      "start": 9.94,
+      "end": 10.053
+    },
+    {
+      "word": "chapters",
+      "start": 10.053,
+      "end": 10.56
+    },
+    {
+      "word": "ahead",
+      "start": 10.56,
+      "end": 10.81
+    }
+  ]
+}

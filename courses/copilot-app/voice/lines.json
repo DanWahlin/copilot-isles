@@ -20,7 +20,7 @@
     {
       "id": "wingman.welcome.01",
       "speaker": "Wingman",
-      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate."
+      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and navigator."
     },
     {
       "id": "wingman.welcome.02",
@@ -30,7 +30,7 @@
     {
       "id": "wingman.welcome.03",
       "speaker": "Wingman",
-      "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her."
+      "text": "We're on Anchorage Cay. This course works like a recording studio, and setup's your soundcheck. Nell's by the harbourmaster's door, so start with her."
     },
     {
       "id": "wingman.welcome.04",
@@ -85,7 +85,7 @@
     {
       "id": "suri.actions.02",
       "speaker": "Suri",
-      "text": "Gate’s up, so your workflows are on! Back to the crane, Captain. Come see me once your practice items are in."
+      "text": "Gate’s up, so your workflows are on! Now Pim and Pol’s crane, at the end of the pier. Come see me once your practice items are in."
     },
     {
       "id": "suri.brief.01",
@@ -183,7 +183,7 @@
     {
       "id": "pim.brief.02",
       "speaker": "Pim",
-      "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first."
+      "text": "The setup script runs in the app's Terminal. Preview it with --dry-run first."
     },
     {
       "id": "pol.brief.02",
@@ -193,7 +193,7 @@
     {
       "id": "pim.brief.03",
       "speaker": "Pim",
-      "text": "Same here: Actions first. Pull the gate lever at Suri’s mill, then aim our crane at your ship, Dry-Run, and --yes."
+      "text": "Actions first, Captain! Pull the gate lever at Suri’s mill, along the quay, then come back to us."
     },
     {
       "id": "pol.brief.actions",
@@ -217,6 +217,11 @@
         "+": "plus"
       },
       "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork from the + next to Sessions instead."
+    },
+    {
+      "id": "pol.solved.issues",
+      "speaker": "Pol",
+      "text": "And if your fork’s issues are missing afterwards, turn on Issues under Settings, then Features, and run the script again."
     },
     {
       "id": "pol.refuse.guild.01",
@@ -332,6 +337,11 @@
       "text": "Then send a short prompt to create the session. It’s on the page I’ve just given you: name the top-level folders, and don’t change any files."
     },
     {
+      "id": "bo.deck.rack",
+      "speaker": "Bo",
+      "text": "Session made? Then step up to my rack, and we’ll check your tools in Terminal."
+    },
+    {
       "id": "bo.gear.brief.01",
       "speaker": "Bo",
       "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal."
@@ -339,7 +349,12 @@
     {
       "id": "bo.gear.brief.02",
       "speaker": "Bo",
-      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number. For Node, compare the first number with the LTS version on the download page.",
+      "text": "Commands run there. Run each check on my rack, one at a time. Each should print a version number."
+    },
+    {
+      "id": "bo.gear.lts",
+      "speaker": "Bo",
+      "text": "See that first number, Captain? It’s lower than the LTS version on the Node.js download page.",
       "sub": {
         "LTS": "L T S"
       }
@@ -360,12 +375,12 @@
     {
       "id": "bo.signed.02",
       "speaker": "Bo",
-      "text": "Deck's ready, and your gear checks out. Pim and Pol add the practice items next, at the crane at the end of the pier."
+      "text": "Deck's ready, and your gear checks out. Next, the practice items, but Actions come first. Suri's at her mill, along the quay."
     },
     {
       "id": "juno.brief.01",
       "speaker": "Juno",
-      "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order."
+      "text": "Setup’s done, Captain, so let’s ask the crew about the course."
     },
     {
       "id": "juno.brief.02",
@@ -444,7 +459,7 @@
     {
       "id": "pim.solved.03",
       "speaker": "Pim",
-      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready."
+      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your next order ready."
     },
     {
       "id": "nell.palette.02",
@@ -482,6 +497,16 @@
       "text": "Setup's done, Captain. Before your ship gets her name, there's the Harbormaster's Trial: eight questions on what you've set up."
     },
     {
+      "id": "nell.takeaways.01",
+      "speaker": "Nell",
+      "text": "Before you sail, three things to keep. The app’s your desktop control center for agent-driven coding work."
+    },
+    {
+      "id": "nell.takeaways.02",
+      "speaker": "Nell",
+      "text": "Your sample app is samples/book-app-web, and your fork’s stocked with practice items for the chapters ahead."
+    },
+    {
       "id": "nell.trial.02",
       "speaker": "Nell",
       "text": "The Seal of Anchorage, and well earned. Now, about that ship."
@@ -509,7 +534,7 @@
     {
       "id": "lyra.idle.01",
       "speaker": "Lyra",
-      "text": "Every island has a song, Captain. Come back once your crew’s heard your first words, and I’ll play you this one."
+      "text": "Every island has a song, Captain. Come back once your crew’s answered you, and I’ll play you this one."
     },
     {
       "id": "lyra.soundcheck.01",
@@ -524,12 +549,12 @@
     {
       "id": "lyra.soundcheck.03",
       "speaker": "Lyra",
-      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew."
+      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your gear checked, and the practice items loaded."
     },
     {
       "id": "lyra.soundcheck.04",
       "speaker": "Lyra",
-      "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead."
+      "text": "Port Meridian’s next on the chart. There you’ll learn why the app matters and tour its rooms. I’ll see you there."
     },
     {
       "id": "lyra.done.01",

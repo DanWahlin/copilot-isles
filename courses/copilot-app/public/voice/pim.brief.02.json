@@ -1,41 +1,41 @@
 {
   "id": "pim.brief.02",
   "speaker": "Pim",
-  "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first.",
+  "text": "The setup script runs in the app's Terminal. Preview it with --dry-run first.",
   "words": [
     {
-      "word": "Then",
+      "word": "The",
       "start": 0.044625,
-      "end": 0.212041
-    },
-    {
-      "word": "the",
-      "start": 0.212041,
-      "end": 0.279
+      "end": 0.167416
     },
     {
       "word": "setup",
-      "start": 0.279,
-      "end": 0.5915
+      "start": 0.167416,
+      "end": 0.491083
     },
     {
       "word": "script",
-      "start": 0.5915,
-      "end": 1.149541
+      "start": 0.491083,
+      "end": 0.848208
+    },
+    {
+      "word": "runs",
+      "start": 0.848208,
+      "end": 1.160708
     },
     {
       "word": "in",
-      "start": 1.149541,
-      "end": 1.25
+      "start": 1.160708,
+      "end": 1.261166
     },
     {
       "word": "the",
-      "start": 1.25,
-      "end": 1.361625
+      "start": 1.261166,
+      "end": 1.37275
     },
     {
       "word": "app's",
-      "start": 1.361625,
+      "start": 1.37275,
       "end": 1.573666
     },
     {

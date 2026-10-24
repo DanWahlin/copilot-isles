@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-22T14:25:05.402Z",
+  "generatedAt": "2026-10-24T01:39:27.527Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -175,13 +175,13 @@
       "v": "XBCBHCABXBABACBXBAFBFCBGCHBCABEBXBABCDBABAHCABX"
     },
     "pim.brief.02": {
-      "h": "6c9e383270ba5287",
+      "h": "a5e989830616e9ff",
       "e": "neutral",
       "t": [
-        0, 8, 4, 11, 21, 7, 9, 21, 8, 12, 14, 19, 7, 11, 6, 13, 8, 13, 7, 70, 12, 16, 7, 21, 7, 7, 35, 7, 28,
-        7, 14, 21, 75
+        0, 9, 25, 7, 9, 17, 8, 25, 7, 28, 7, 10, 6, 13, 8, 13, 7, 70, 12, 16, 7, 21, 7, 7, 35, 7, 28, 7, 14,
+        21, 75
       ],
-      "v": "XBCBCABABXBCABEACHXABGFBFBCBGEBX"
+      "v": "XBCABABCBCABEACHXABGFBFBCBGEBX"
     },
     "pol.brief.02": {
       "h": "1a3727fcff0100e3",
@@ -192,13 +192,13 @@
       "v": "XBCBADBEBHCBCBAFGECBXEBCBCBX"
     },
     "pim.brief.03": {
-      "h": "6429153393c96e95",
-      "e": "neutral",
+      "h": "41a06762b6f19955",
+      "e": "happy",
       "t": [
-        0, 7, 7, 6, 7, 8, 54, 7, 34, 7, 14, 21, 71, 12, 14, 7, 14, 28, 7, 14, 21, 7, 7, 8, 27, 22, 4, 11, 7,
-        8, 8, 21, 7, 7, 7, 14, 21, 23, 19, 7, 14, 21, 19, 10, 17, 31, 14, 75
+        0, 8, 6, 26, 7, 21, 22, 14, 8, 26, 71, 12, 18, 5, 18, 28, 7, 7, 7, 28, 7, 8, 47, 5, 18, 42, 18, 5, 25,
+        8, 7, 28, 14, 14, 75
       ],
-      "v": "XBCBABCBGEBXAFBCBGEBFBABXBCBADBCBCFBABCBCBCBCBX"
+      "v": "XCBGEBCABXAFECBGECFBABCEBXBCACFCBX"
     },
     "pol.brief.actions": {
       "h": "10baedf8e90bc535",
@@ -400,14 +400,13 @@
       "v": "XCBCEFEHBXEACGFBCDCBGFACBCBABEACAXCEBCAXBCHCBAHCBXBCBEACHX"
     },
     "bo.gear.brief.02": {
-      "h": "7a0a96ed731c1df7",
+      "h": "f5a1212b97333f44",
       "e": "neutral",
       "t": [
-        0, 1, 7, 6, 8, 14, 35, 7, 7, 44, 7, 14, 7, 7, 7, 7, 14, 14, 7, 7, 35, 7, 14, 7, 7, 9, 4, 18, 14, 14,
-        48, 13, 21, 8, 22, 7, 7, 14, 35, 10, 19, 51, 5, 5, 14, 7, 46, 8, 12, 14, 14, 14, 14, 8, 10, 7, 21, 7,
-        28, 7, 7, 7, 14, 14, 7, 7, 7, 7, 14, 21, 8, 18, 28, 16
+        0, 1, 8, 8, 10, 5, 8, 16, 28, 14, 60, 6, 5, 49, 21, 7, 10, 7, 13, 14, 21, 14, 28, 28, 7, 12, 53, 15,
+        14, 8, 35, 7, 14, 7, 28, 10, 18, 16
       ],
-      "v": "XBAEFBCBXBDBFBCGEGEBCBECACBCBXBFABCGEBAEXGBCEBACBGECAEFBCBCBGEBCECBCEACBX"
+      "v": "XBADCABCBXBCBECACBCBFCDBAXBFABGEBCAEX"
     },
     "bo.gear.brief.03": {
       "h": "43da6504dc911eea",
@@ -430,22 +429,19 @@
       "v": "XFCAEBXBCABCHDBCBEFBCBABABCAXBCBCBEBCBCBCBAFBEFBCEBEFGECBX"
     },
     "bo.signed.02": {
-      "h": "62e7eff94e547c7e",
+      "h": "b9ebbf0543ad0a19",
       "e": "neutral",
       "t": [
-        0, 6, 6, 49, 19, 12, 7, 7, 42, 7, 14, 14, 21, 53, 12, 14, 8, 5, 4, 8, 21, 14, 7, 14, 11, 35, 7, 14, 8,
-        7, 21, 21, 19, 16, 7, 14, 14, 7, 14, 21, 7, 21, 8, 29, 25
+        0, 4, 4, 49, 15, 14, 7, 49, 7, 14, 14, 21, 47, 13, 21, 10, 33, 7, 22, 3, 8, 10, 5, 18, 14, 35, 10, 10,
+        21, 21, 43, 45, 28, 11, 11, 21, 7, 21, 7, 21, 14, 7, 13
       ],
-      "v": "BCBXBCEBCBCBXABACBAEHCBABCBABCBXBCBCBCBCBABX"
+      "v": "BCBXBEBCBCBXCBABCBABABCBCAGEBXBEABHCEBHCBX"
     },
     "juno.brief.01": {
-      "h": "31017a0c13619acb",
+      "h": "441bc62f3157025b",
       "e": "neutral",
-      "t": [
-        0, 5, 14, 7, 7, 7, 30, 14, 7, 7, 14, 8, 8, 21, 55, 8, 7, 7, 7, 11, 6, 43, 20, 7, 21, 7, 7, 21, 8, 12,
-        7, 7, 14, 14, 14, 14, 6
-      ],
-      "v": "XFCEFBFGCBACBXBCBCABCBCBGBFACHGCBEFX"
+      "t": [0, 4, 18, 7, 16, 7, 28, 8, 7, 30, 16, 7, 7, 7, 18, 4, 4, 14, 14, 14, 21, 8, 7, 20, 28, 21, 9],
+      "v": "XBCAFCABCBEFCAHCBCBFACBEBX"
     },
     "juno.brief.02": {
       "h": "21b08b01d340b44d",
@@ -562,13 +558,13 @@
       "v": "XBCBCFBCBFACABXBEACHBCBACBDBCB"
     },
     "pim.solved.03": {
-      "h": "8b7cd6214667abce",
+      "h": "9e297b302f098fb6",
       "e": "neutral",
       "t": [
-        0, 9, 15, 7, 14, 7, 8, 15, 14, 7, 8, 9, 7, 7, 21, 23, 12, 8, 26, 81, 16, 7, 7, 7, 14, 21, 7, 14, 7,
-        35, 35, 75
+        0, 9, 15, 7, 14, 7, 8, 15, 14, 7, 8, 9, 7, 7, 21, 23, 12, 8, 27, 80, 20, 7, 7, 14, 21, 14, 14, 14, 7,
+        7, 35, 76
       ],
-      "v": "XFGEBABFBACBFBACABXFCEFDFGEBEBX"
+      "v": "XFGEBABFBACBFBACABXFEFDFCBEBEBX"
     },
     "nell.palette.02": {
       "h": "9952f37f36a4636a",
@@ -637,13 +633,13 @@
       "v": "XFBAECABCX"
     },
     "lyra.idle.01": {
-      "h": "31bb53c1afd4c101",
+      "h": "ba62e8671f8fd2a3",
       "e": "neutral",
       "t": [
-        0, 9, 9, 7, 21, 7, 28, 21, 7, 7, 14, 44, 19, 12, 4, 32, 82, 28, 11, 19, 14, 7, 14, 21, 7, 35, 7, 14,
-        35, 7, 14, 7, 8, 7, 27, 53, 4, 4, 7, 7, 8, 17, 7, 7, 7, 28, 7, 28, 86
+        0, 9, 9, 7, 14, 14, 28, 21, 7, 7, 14, 44, 19, 12, 4, 32, 82, 27, 12, 21, 14, 7, 7, 63, 14, 14, 35, 21,
+        28, 14, 7, 8, 18, 7, 7, 14, 21, 7, 28, 87
       ],
-      "v": "XCGBDBCBCBECABCXCACBFCFBFBCFGCBAHCBCBCBAHCBFBFCX"
+      "v": "XCGBDBCBCBECABCXCACBFCFBDBFBCBAHCBFBFCX"
     },
     "lyra.soundcheck.01": {
       "h": "70fe0d1431154439",
@@ -664,22 +660,22 @@
       "v": "XABGEFBEBCBCBFBFBCBXFBCBAHCBCEBXHCBEBCBCBFBCBCBX"
     },
     "lyra.soundcheck.03": {
-      "h": "4b489a7a5fcee809",
+      "h": "fb343d45af72990f",
       "e": "neutral",
       "t": [
-        0, 10, 17, 7, 14, 7, 7, 21, 21, 7, 28, 8, 15, 14, 21, 24, 12, 11, 13, 25, 7, 28, 23, 4, 4, 14, 14, 14,
-        7, 21, 44, 7, 21, 14, 28, 35, 8, 22, 7, 21, 21, 7, 14, 19, 5, 16, 5, 39, 87
+        0, 10, 22, 7, 7, 7, 14, 14, 28, 7, 21, 8, 16, 58, 12, 11, 12, 26, 7, 28, 23, 4, 4, 14, 14, 14, 7, 14,
+        7, 42, 10, 49, 14, 50, 6, 12, 12, 46, 7, 7, 14, 8, 8, 14, 28, 85
       ],
-      "v": "XFGBCBCBCBACBCBACABDBXBCBDBGEBCEFCBACGCBFCFECEFX"
+      "v": "XFGBCBCBCBACBACABCBXBCBDBGECBFBCBCBABCBCABEBX"
     },
     "lyra.soundcheck.04": {
-      "h": "04e3b67d90e5a88e",
+      "h": "c2ecbe62188646cd",
       "e": "neutral",
       "t": [
-        0, 10, 19, 14, 14, 7, 7, 7, 23, 7, 8, 14, 71, 5, 12, 10, 4, 14, 21, 7, 14, 7, 14, 7, 22, 9, 42, 14,
-        42, 7, 35, 13, 16, 99, 8, 28, 14, 7, 7, 7, 14, 28, 14, 94
+        0, 1, 8, 15, 14, 8, 11, 56, 21, 14, 14, 7, 21, 14, 28, 101, 4, 4, 7, 10, 4, 21, 14, 14, 7, 7, 21, 7,
+        22, 6, 6, 28, 14, 7, 35, 21, 35, 12, 18, 100, 7, 42, 14, 7, 7, 21, 89
       ],
-      "v": "XCBCABAEBAEBFCFEHCBFCBCACBCFBFABXCBCGBHDCBX"
+      "v": "XAEBAEBCBDCBDBXBCBFEHCBFCBCACBEBCFBFABXCBFBCBX"
     },
     "lyra.done.01": {
       "h": "a8fe161b23cd1910",
@@ -2301,13 +2297,13 @@
       "v": "XCBABDBAECGBABXCEGECBCBCBCAXAFBCHCGEXCBCBACFECGEFECBCABCAX"
     },
     "suri.actions.02": {
-      "h": "efae2629f9d8c6d5",
+      "h": "131379f151996765",
       "e": "happy",
       "t": [
-        0, 10, 7, 28, 25, 13, 7, 21, 14, 7, 7, 14, 7, 7, 7, 28, 7, 52, 12, 6, 20, 7, 7, 14, 7, 7, 21, 8, 6,
-        52, 8, 13, 8, 11, 7, 7, 14, 11, 7, 6, 21, 7, 14, 8, 19, 28, 18
+        0, 3, 7, 21, 7, 49, 28, 7, 7, 7, 14, 7, 14, 28, 7, 40, 13, 8, 22, 6, 6, 8, 14, 14, 21, 7, 7, 14, 21,
+        7, 14, 8, 42, 36, 21, 8, 13, 8, 9, 7, 7, 14, 10, 6, 5, 21, 7, 14, 8, 8, 7, 28, 20
       ],
-      "v": "CBCABEFECGEBDBDCXACFBCBCBCABCABABFCFABCBCBABCX"
+      "v": "XCBCBFECGEBEDCXCABABADHBCBCBCBABXCABABFCFABCBCBABEBX"
     },
     "pim.solved.fork": {
       "h": "6c9c7f5c741971a8",
@@ -2814,6 +2810,52 @@
         17, 10, 7, 28, 1
       ],
       "v": "XBCEFAEBXBCBECBXFBCBCEADCHBCABCX"
+    },
+    "pol.solved.issues": {
+      "h": "540d5d675a637b34",
+      "e": "concerned",
+      "t": [
+        0, 13, 16, 14, 7, 7, 7, 21, 14, 14, 7, 8, 20, 14, 77, 20, 7, 21, 7, 21, 35, 28, 14, 34, 6, 13, 7, 21,
+        7, 21, 31, 53, 8, 7, 41, 75
+      ],
+      "v": "XBFGEFBGFBABCBEDBGFBCBXBCGBEBXBABCX"
+    },
+    "bo.deck.rack": {
+      "h": "9b79358bba3c3954",
+      "e": "neutral",
+      "t": [
+        0, 3, 8, 7, 7, 14, 8, 4, 18, 63, 6, 12, 7, 7, 6, 6, 8, 15, 8, 6, 12, 14, 28, 7, 21, 7, 7, 7, 7, 28,
+        28, 14, 8, 15, 7, 17
+      ],
+      "v": "XBCBCACBXBCBCACAFACBCBFBCBCEFBEACHX"
+    },
+    "bo.gear.lts": {
+      "h": "452e0ffd4e1b5c5c",
+      "e": "neutral",
+      "t": [
+        0, 3, 14, 7, 7, 14, 7, 7, 14, 8, 21, 9, 6, 20, 31, 14, 21, 7, 7, 7, 14, 14, 21, 14, 7, 7, 7, 14, 7, 7,
+        7, 7, 7, 14, 21, 7, 7, 14, 7, 14, 7, 7, 7, 7, 8, 23, 21, 14
+      ],
+      "v": "XBCBGEBCACABCXBEFBCBCBCBGEBCECBCEBCBCBCECEBACBX"
+    },
+    "nell.takeaways.01": {
+      "h": "07a8875a4cfe237e",
+      "e": "neutral",
+      "t": [
+        0, 3, 8, 7, 7, 21, 14, 14, 7, 21, 30, 47, 14, 28, 37, 51, 19, 15, 5, 12, 8, 21, 7, 21, 7, 10, 4, 8,
+        16, 7, 14, 7, 14, 7, 28, 7, 14, 7, 14, 7, 28, 14, 21, 21, 7, 7, 7, 15, 12
+      ],
+      "v": "ABGEFBCBHXBFBAXBXBCAFBCBDCACBEFBCEGECBCBCEBFECXB"
+    },
+    "nell.takeaways.02": {
+      "h": "fc1e01bdb0af45a1",
+      "e": "neutral",
+      "t": [
+        0, 3, 15, 21, 14, 9, 5, 11, 14, 38, 38, 14, 9, 7, 21, 21, 22, 20, 7, 14, 7, 8, 35, 13, 13, 7, 25, 15,
+        28, 7, 28, 58, 9, 35, 21, 21, 7, 25, 44, 53, 14, 21, 7, 7, 21, 21, 7, 21, 15, 6, 13, 28, 7, 7, 14, 8,
+        7, 6, 7, 7, 7, 7, 7, 10, 25, 21, 28, 17
+      ],
+      "v": "XFBCACHCABCABHBXBHCBAFBDBXBCBCABCBFCAXBFGECBDCBABCBCBCABGEBCBCABCBX"
     }
   }
 }
