@@ -27,6 +27,39 @@ export interface CoastFoamOptions {
    * wreck): each gets a wash ribbon round it in the same mesh, so it costs no draw.
    */
   rings?: readonly (readonly { x: number; z: number }[])[];
+  /**
+   * Surf on exposed cliff feet (0-1, default 0: the same wash everywhere). The ribbon widens and whitens
+   * where the open sea reaches the shore (`shoreExposure`) and the shore is steep.
+   */
+  exposure?: number;
+}
+
+const EXPOSURE_DIRECTIONS = 16;
+
+/**
+ * How exposed a shore point is (0-1): the share of 16 points 70 m and 150 m out that are open sea
+ * (deeper than 6 m in the baked data, or off it), times how steep the shore is there.
+ */
+export function shoreExposure(data: TerrainBakeData, heightField: HeightField, x: number, z: number): number {
+  let open = 0;
+  for (let i = 0; i < EXPOSURE_DIRECTIONS; i++) {
+    const a = (i / EXPOSURE_DIRECTIONS) * Math.PI * 2;
+    for (const r of [70, 150]) {
+      const px = x + Math.cos(a) * r;
+      const pz = z + Math.sin(a) * r;
+      const off = px < data.minX || px > data.maxX || pz < data.minZ || pz > data.maxZ;
+      if (off || heightField.heightAt(px, pz) < -6) open++;
+    }
+  }
+  const share = open / (EXPOSURE_DIRECTIONS * 2);
+  // Steep: the ground 6 m inland stands well above the sea.
+  let rise = 0;
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    rise = Math.max(rise, heightField.heightAt(x + Math.cos(a) * 6, z + Math.sin(a) * 6));
+  }
+  const steep = Math.min(1, Math.max(0, (rise - 1.5) / 6));
+  return Math.min(1, Math.max(0, (share - 0.35) / 0.45)) * steep;
 }
 
 function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
@@ -55,13 +88,19 @@ function createFoamMaterial(maxDistance: number): MeshBasicNodeMaterial {
   const distanceFade = float(1).sub(
     smoothstep(uniform(maxDistance * 0.45), uniform(maxDistance), cameraPosition.sub(positionWorld).length()),
   );
-  material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5)).mul(foamLight);
+  // Exposed cliff feet (0 elsewhere, so every other ribbon draws as before): denser, whiter surf.
+  const exposed = attribute('foamExposure', 'float');
+  material.colorNode = mix(color(0xbfe9ef), color(0xffffff), pow(lace, 2.5).add(exposed.mul(0.5)).min(1)).mul(
+    foamLight,
+  );
   // The sea state's surf (Breeze 1): a Calm's wash is faint, a Gale's heavy.
   material.opacityNode = band
     .mul(distanceFade)
     .mul(seaUniforms.surf)
     .mul(float(0.075).add(surge.mul(0.22)).add(wash.mul(0.08)))
-    .mul(float(0.45).add(lace.mul(0.55)));
+    .mul(float(0.45).add(lace.mul(0.55)))
+    .mul(exposed.mul(2.6).add(1))
+    .min(0.95);
   return material;
 }
 
@@ -76,8 +115,10 @@ export function createCoastFoam(
   const normals: number[] = [];
   const uvs: number[] = [];
   const alongAttr: number[] = [];
+  const exposureAttr: number[] = [];
   const indices: number[] = [];
   const normal = new Float32Array(3);
+  const exposureStrength = options.exposure ?? 0;
   const pushRibbonPair = (
     x: number,
     z: number,
@@ -86,12 +127,14 @@ export function createCoastFoam(
     along: number,
     inner: number,
     outer: number,
+    exposure = 0,
   ) => {
     const base = positions.length / 3;
     positions.push(x + sx * inner, 0.058, z + sz * inner, x + sx * outer, 0.066, z + sz * outer);
     normals.push(0, 1, 0, 0, 1, 0);
     uvs.push(along * 0.025, 0, along * 0.025, 1);
     alongAttr.push(along, along);
+    exposureAttr.push(exposure, exposure);
     return base;
   };
 
@@ -112,7 +155,9 @@ export function createCoastFoam(
       const len = Math.hypot(sx, sz) || 1;
       sx /= len;
       sz /= len;
-      const base = pushRibbonPair(p.x, p.z, sx, sz, along, 0.18, width);
+      const exposure =
+        exposureStrength > 0 ? exposureStrength * shoreExposure(data, heightField, p.x, p.z) : 0;
+      const base = pushRibbonPair(p.x, p.z, sx, sz, along, 0.18, width * (1 + exposure * 1.8), exposure);
       if (previousBase >= 0) indices.push(previousBase, previousOuter, base, base, previousOuter, base + 1);
       previousBase = base;
       previousOuter = base + 1;
@@ -191,6 +236,7 @@ export function createCoastFoam(
   geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setAttribute('foamAlong', new BufferAttribute(new Float32Array(alongAttr), 1));
+  geometry.setAttribute('foamExposure', new BufferAttribute(new Float32Array(exposureAttr), 1));
   geometry.setIndex(indices);
   geometry.computeBoundingSphere();
   const mesh = new Mesh(geometry, material);
