@@ -1,0 +1,117 @@
+{
+  "id": "tb.rook.go",
+  "speaker": "Rook",
+  "text": "Off you go, do it in the app. Your Logbook has every step. Then come back and tell me what you saw.",
+  "words": [
+    {
+      "word": "Off",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "you",
+      "start": 0.18,
+      "end": 0.32
+    },
+    {
+      "word": "go",
+      "start": 0.32,
+      "end": 0.693
+    },
+    {
+      "word": "do",
+      "start": 0.693,
+      "end": 0.827
+    },
+    {
+      "word": "it",
+      "start": 0.827,
+      "end": 0.907
+    },
+    {
+      "word": "in",
+      "start": 0.907,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.1
+    },
+    {
+      "word": "app",
+      "start": 1.1,
+      "end": 1.408
+    },
+    {
+      "word": "Your",
+      "start": 1.408,
+      "end": 1.66
+    },
+    {
+      "word": "Logbook",
+      "start": 1.66,
+      "end": 2.06
+    },
+    {
+      "word": "has",
+      "start": 2.06,
+      "end": 2.32
+    },
+    {
+      "word": "every",
+      "start": 2.32,
+      "end": 2.8
+    },
+    {
+      "word": "step",
+      "start": 2.8,
+      "end": 3.392
+    },
+    {
+      "word": "Then",
+      "start": 3.392,
+      "end": 3.888
+    },
+    {
+      "word": "come",
+      "start": 3.888,
+      "end": 4.144
+    },
+    {
+      "word": "back",
+      "start": 4.144,
+      "end": 4.5
+    },
+    {
+      "word": "and",
+      "start": 4.5,
+      "end": 4.832
+    },
+    {
+      "word": "tell",
+      "start": 4.832,
+      "end": 5.013
+    },
+    {
+      "word": "me",
+      "start": 5.013,
+      "end": 5.136
+    },
+    {
+      "word": "what",
+      "start": 5.136,
+      "end": 5.24
+    },
+    {
+      "word": "you",
+      "start": 5.24,
+      "end": 5.44
+    },
+    {
+      "word": "saw",
+      "start": 5.44,
+      "end": 5.69
+    }
+  ]
+}

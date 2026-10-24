@@ -1647,19 +1647,9 @@
       "text": "Two previews on one port collide. Try again."
     },
     {
-      "id": "tb.fen.close",
-      "speaker": "Fen",
-      "text": "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide."
-    },
-    {
       "id": "tb.fen.app",
       "speaker": "Fen",
       "text": "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch."
-    },
-    {
-      "id": "tb.fen.oneatatime",
-      "speaker": "Fen",
-      "text": "Mind, the course has you work one session at a time in this chapter."
     },
     {
       "id": "tb.fen.next",
@@ -1769,12 +1759,22 @@
     {
       "id": "tb.rook.02",
       "speaker": "Rook",
-      "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time."
+      "text": "Point to the project, select Create from, open Branches and pick our branch. The app starts a session from it in a new worktree."
+    },
+    {
+      "id": "tb.rook.branch",
+      "speaker": "Rook",
+      "text": "That worktree gets a working branch of its own. Ours is only its base branch, where it starts."
     },
     {
       "id": "tb.rook.03",
       "speaker": "Rook",
       "text": "Set Mode to Plan, type hash three, pick Improve the empty state copy, and ask for a plan."
+    },
+    {
+      "id": "tb.rook.scope",
+      "speaker": "Rook",
+      "text": "If Copilot asks you about the scope first, pick the recommended answer."
     },
     {
       "id": "tb.rook.04",
@@ -1789,17 +1789,22 @@
     {
       "id": "tb.rook.06",
       "speaker": "Rook",
-      "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare."
+      "text": "Then ask Copilot to implement the plan, check the Changes tab and reload. It should suggest changing the search term, genre or reading status."
+    },
+    {
+      "id": "tb.rook.go",
+      "speaker": "Rook",
+      "text": "Off you go, do it in the app. Your Logbook has every step. Then come back and tell me what you saw."
+    },
+    {
+      "id": "tb.rook.back",
+      "speaker": "Rook",
+      "text": "Back, Captain? Tell me about your session, or just say so if you haven't done it yet."
     },
     {
       "id": "tb.rook.next",
       "speaker": "Rook",
       "text": "Pip's got the day's log up in the Chronicle Loft. Up you go."
-    },
-    {
-      "id": "tb.rook.assignment",
-      "speaker": "Rook",
-      "text": "Your turn now: a light and dark theme for the Book App, in its own worktree."
     },
     {
       "id": "tb.rook.done",
@@ -1842,6 +1847,16 @@
       "text": "Then ask Copilot to stop the session's development server. No pull request needed."
     },
     {
+      "id": "tb.pip.go",
+      "speaker": "Pip",
+      "text": "Run both in your session, then come back and tell me what the chronicle said."
+    },
+    {
+      "id": "tb.pip.back",
+      "speaker": "Pip",
+      "text": "Back already? If you ran the chronicle, tell me what it said."
+    },
+    {
       "id": "tb.pip.next",
       "speaker": "Pip",
       "text": "The Elder's waiting at the Crown, Captain. Last flight up."
@@ -1880,6 +1895,26 @@
       "id": "tb.elder.next",
       "speaker": "Maren",
       "text": "Keelhaven's shipwrights put sessions to real work: review, debug, test and preview, then issues, pull requests and checks."
+    },
+    {
+      "id": "tb.elder.assignment",
+      "speaker": "Maren",
+      "text": "One more job, Captain: a light and dark theme for the Book App, in its own worktree, without touching main."
+    },
+    {
+      "id": "tb.elder.assignment.go",
+      "speaker": "Maren",
+      "text": "Do it in the app, then come back and show me what you've got."
+    },
+    {
+      "id": "tb.elder.assignment.back",
+      "speaker": "Maren",
+      "text": "Back with your theme, Captain? Show me."
+    },
+    {
+      "id": "tb.elder.assignment.done",
+      "speaker": "Maren",
+      "text": "Main's untouched, and the theme's safe in its own worktree. That's how a real crew works, Captain."
     },
     {
       "id": "tb.elder.done",

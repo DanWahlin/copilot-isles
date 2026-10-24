@@ -1,0 +1,82 @@
+{
+  "id": "tb.pip.go",
+  "speaker": "Pip",
+  "text": "Run both in your session, then come back and tell me what the chronicle said.",
+  "words": [
+    {
+      "word": "Run",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "both",
+      "start": 0.32,
+      "end": 0.667
+    },
+    {
+      "word": "in",
+      "start": 0.667,
+      "end": 0.752
+    },
+    {
+      "word": "your",
+      "start": 0.752,
+      "end": 0.94
+    },
+    {
+      "word": "session",
+      "start": 0.94,
+      "end": 1.648
+    },
+    {
+      "word": "then",
+      "start": 1.648,
+      "end": 1.872
+    },
+    {
+      "word": "come",
+      "start": 1.872,
+      "end": 2.08
+    },
+    {
+      "word": "back",
+      "start": 2.08,
+      "end": 2.46
+    },
+    {
+      "word": "and",
+      "start": 2.46,
+      "end": 2.688
+    },
+    {
+      "word": "tell",
+      "start": 2.688,
+      "end": 2.933
+    },
+    {
+      "word": "me",
+      "start": 2.933,
+      "end": 3.056
+    },
+    {
+      "word": "what",
+      "start": 3.056,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.253
+    },
+    {
+      "word": "chronicle",
+      "start": 3.253,
+      "end": 3.76
+    },
+    {
+      "word": "said",
+      "start": 3.76,
+      "end": 4.01
+    }
+  ]
+}
