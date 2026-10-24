@@ -25,6 +25,7 @@ keep the second:
 |---|---|---|
 | **The passage, Anchorage → Port Meridian** (Ch 00 recap) | **First battle, now.** Two gentle waves out of a fog bank | It's open water, clear of harbours and terrain, and you've just learned to sail. It's the first time you sail far, so it's a natural set piece. The questions recap Chapter 00 (the islands that would host later battles aren't built yet) |
 | **The passage, Port Meridian → Thousand-Bough Isle** (Ch 01 recap) | **Second battle, built.** Three waves | The next long passage after Chapter 01. Each wave recaps one Chapter 01 habit (see §2.0b) |
+| *Planned:* **The passage, Thousand-Bough Isle → Keelhaven** (Ch 02 recap) | **Third battle, planned.** Three waves | Chapter 02 gets no recap today but its Trial. Each wave recaps one Chapter 02 habit (see §2.0c), built with the passage |
 | *Later:* **03 · Keelhaven** (Dev & GitHub Workflows) | Raiders off the shipwreck point | **"Trust the Evidence"**: *"A confident response from Copilot isn't the same as validated software"* (03 §Core Concept). You fire on evidence (your guns bear and are loaded), not a hunch |
 | *Later:* **07 · Tidewheel Caldera** (Automations) | Finale, bigger waves | Gun crews get **standing orders**: a trigger, a prompt, a tool set, and a review path (07 §Key Takeaways 1) |
 
@@ -67,6 +68,28 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 The win card says Thousand-Bough Isle lies ahead. It runs after the Seal of Meridian, on the passage
 from Port Meridian toward Thousand-Bough Isle, once that island is in the `ISLANDS` registry (§13);
 the dev page plays it with `?battle=2`.
+
+### 2.0c The third passage: Thousand-Bough Isle → Keelhaven (Chapter 02, planned)
+
+Planned with the learning-journey review (Chapter 02 audit R10, 2026-10-23); built when the passage to
+Keelhaven is. Today Chapter 02 is recapped only by its Trial, while Chapters 00 and 01 each get a battle.
+Same loop and rewards as §2.0b, one Chapter 02 habit per wave, every sentence verbatim from the snapshot:
+
+| Wave | Raiders | Habit (verbatim course sentence) | Question (new, in `chapters/02-sessions-worktrees-context.json`) |
+|---|---|---|---|
+| 1 | *Shared Deck*, *Muddy Main* | *"When in doubt, choose a new worktree. It keeps your `main` checkout clean while still running on your machine, which is why the rest of this course leans on worktree-backed sessions."* (02 §Where a Session Runs, the tip) | N2.1: a task that changes files → **New worktree** (vs **Current checkout**, which touches your folder, and **Cloud**) |
+| 2 | *Whole Library*, *Every Issue* | *"Provide the smallest amount of useful context. Less is often more."* (02 §Context Syntax, the tip) | N2.2: a job and four context picks → the one folder it needs with `@` (the Flag Hoist's "Pack light" in a new job) |
+| 3 | *Port Jam*, *Same Lookout* | *"Worktrees isolate files and branches, but not ports, databases, or background processes. Use different ports for parallel previews."* (02 §Key Takeaways 3) | N2.3: two worktree sessions both start a preview → stop one or start the second on `5174` |
+
+- **Data, as today:** the battle is `hooks.battles["passage-thousand-bough-keelhaven"]` in `course.json`
+  (`"chapter": "02"`, each wave's `quiz` and `raiders`, a `won` line that says Keelhaven lies ahead); it
+  waits for Thousand-Bough's story to say `sealed`. The quizzes cite their sections, like N1.x.
+- **Spaced, not repeated:** each question is a new scenario on a habit the island taught, never a Trial
+  item again (spacing works through retrieval in a new context).
+- **If Keelhaven's island comes first:** a short pre-departure recap at the Thousand-Bough gangway
+  (Wingman asks N2.1–N2.3 once, skippable) until the passage is built.
+- **When.** The first time you sail from Thousand-Bough toward Keelhaven with the Seal of Thousand-Bough.
+  Required, with **Skip battle**, as in §2.0.
 
 ### 2.1 Keelhaven (later): "Trust the Evidence"
 

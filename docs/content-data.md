@@ -73,7 +73,10 @@ so VS Code and other editors check your edit as you type and show each field's d
   Without it, the Logbook's Your setup card has no fork, issue or branch row.
 - **`setup`**: the "Your setup" forms' words (kicker, titles, intro, what each value is used for, the
   model choices), the Logbook's notes and its Your setup card's labels, and the Settings screen's
-  shortcut line. Without it, the Logbook has no Your setup card. `**bold**` and `` `code` ``
+  shortcut line. Without it, the Logbook has no Your setup card. The branch form asks for the practice
+  session's **working** branch: it starts empty (`branch.example` is its placeholder), refuses
+  `practice.branch` (the session's base branch) with `branch.base`, and `branch.skip` labels its Skip
+  when a script asks. `**bold**` and `` `code` ``
   render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in.
 - **`hooks`**: the voice lines and questions the game asks for by id, so it never names one itself:
   the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
@@ -95,7 +98,8 @@ so VS Code and other editors check your edit as you type and show each field's d
 - A chapter file is named after its `chapter`; a quests file after its `island`.
 - **Scripts** are the steps `src/game/script.ts` runs: `say` (a voice line), `text`, `show`/`hide` (a
   course image in the spyglass), `quiz`, `page`, `file`, `term`, `quest`, `trial`, `cue`, `askFork`,
-  `askSetup`. A `{ "script": "<name>" }` step splices in another script of the same island. `notes`
+  `askSetup`. A `quiz` or `askSetup` with `when` runs only for players whose setup fits (`model:auto`,
+  `model:picked`, `branch:given`, `issue:given`). A `{ "script": "<name>" }` step splices in another script of the same island. `notes`
   says what each script is for; the game ignores it.
 - **Ids are saved in players' progress** (quests and their steps, pages, chests, quizzes, glossary
   terms, Trials, labels, market jobs): don't rename them.
