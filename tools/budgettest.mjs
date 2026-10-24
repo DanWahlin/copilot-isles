@@ -34,7 +34,7 @@
 // Needs a no-HMR dev server (edits elsewhere would reload the page mid-run):
 //   npx vite --config tools/vite.nohmr.config.mjs --host 127.0.0.1 --port 5353 --strictPort
 // node tools/budgettest.mjs [--base=http://127.0.0.1:5353] [--tiers=lite,low,medium,high,ultra]
-//   [--islands=anchorage,meridian,thousand-bough] [--spots=12] (seeded walkable spots per island, plus the named ones)
+//   [--islands=anchorage,meridian,thousand-bough] (default: every island in tools/lib/islands.json) [--spots=12] (seeded walkable spots per island, plus the named ones)
 //   [--yaws=4] [--frames=8] (settled frames read per view) [--steady=0.03] (the frames' spread allowed,
 //   a fraction of the largest count; draws also get 4) [--settle-timeout=120] (seconds per view)
 //   [--top=10] (groups to print) [--json=<file>]
@@ -48,6 +48,7 @@
 // for a known gap), when an island doesn't settle, or on a page error.
 import { writeFileSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { HOME, ISLAND_IDS } from './lib/islands.mjs';
 
 /** PLAN §12.1: draw calls (whole frame incl. mirror + post) and triangles (all scene passes), per tier. */
 const BUDGET = {
@@ -58,7 +59,10 @@ const BUDGET = {
   ultra: { draws: 400, tris: 3_500_000 },
 };
 
-/** Walkable areas to seed spots in, and named spots (x, z) that are known to be heavy views. */
+/**
+ * Walkable areas to seed spots in, and named spots (x, z) that are known to be heavy views, for each
+ * island in tools/lib/islands.json (a new island adds its own).
+ */
 const ISLANDS = {
   anchorage: {
     box: [-230, -230, 260, 230],
@@ -97,7 +101,9 @@ const ISLANDS = {
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353');
 const tiers = String(opt.tiers || 'lite,low,medium,high,ultra').split(',');
-const islands = String(opt.islands || 'anchorage,meridian,thousand-bough').split(',');
+const islands = String(opt.islands || ISLAND_IDS.join(',')).split(',');
+for (const id of islands)
+  if (!ISLANDS[id]) throw new Error(`budgettest: no spots for island "${id}" (add them to ISLANDS)`);
 const SPOTS = Number(opt.spots ?? 12);
 const YAWS = Number(opt.yaws ?? 4);
 const FRAMES = Number(opt.frames ?? 8);
@@ -514,25 +520,11 @@ for (const tier of tiers) {
     // The island you're leaving stays in memory (as if the world were busy) until the arrival's
     // views with it resident are measured: its 20 s grace would otherwise end mid-sweep.
     await page.evaluate(() => window.__dev.session().debug.keepResident(true));
-    if (island === 'thousand-bough') {
-      await page.evaluate(() => window.__dev.learn?.progress.add('arrivals', 'thousand-bough'));
-      const q = await page.evaluate(() => window.__dev.session().islandQuay('thousand-bough'));
+    if (island !== HOME) {
+      // Skip the first-landfall flyover (it holds the camera far from the player), and go ashore.
+      await page.evaluate((id) => window.__dev.learn?.progress.add('arrivals', id), island);
+      const q = await page.evaluate((id) => window.__dev.session().islandQuay(id), island);
       await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
-      // Streamed in and wired: the Three Landings' deck is walkable.
-      await page.waitForFunction(
-        () => window.__dev.session().world.surfaceHeightAt(2037, -1560, 27) !== null,
-        null,
-        { timeout: 180000 },
-      );
-    }
-    if (island === 'meridian') {
-      // Skip the first-landfall flyover: it holds the camera far from the player.
-      await page.evaluate(() => window.__dev.learn?.progress.add('arrivals', 'meridian'));
-      const q = await page.evaluate(() => window.__dev.session().islandQuay('meridian'));
-      await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
-      await page.waitForFunction(() => window.__dev.session().debug.cast().length > 0, null, {
-        timeout: 120000,
-      });
     }
     // Its content is on (the session's setup, whose warm-up `settled()` then counts).
     await page.waitForFunction(

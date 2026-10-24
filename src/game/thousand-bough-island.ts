@@ -1,7 +1,9 @@
 import { BOOTH_LAYOUT } from '../world/market-stall/booth';
 import type { ThousandBoughSystem } from '../world/islands/thousand-bough/contract';
 import type { IslandContent, IslandCode } from './island-code';
+import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import { createThousandBoughStream } from '../world/islands/thousand-bough/stream';
+import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
 import { storyHolds } from './story';
 import {
   thousandBoughCurrent,
@@ -21,6 +23,9 @@ const own = new WeakMap<IslandContent, ThousandBoughContent>();
  */
 export const THOUSAND_BOUGH_CODE: IslandCode = {
   stream: createThousandBoughStream,
+  chests: [...THOUSAND_BOUGH.chests, ...THOUSAND_BOUGH.bottles].map((c) => c.id),
+  // The extras after the Spire's twist too (they all can appear).
+  cast: (anchors) => [...THOUSAND_BOUGH_NPCS, ...thousandBoughExtras(anchors, true)],
   quests: {
     log: thousandBoughLog,
     tracker: thousandBoughTracker,

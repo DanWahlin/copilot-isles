@@ -35,6 +35,13 @@ export interface IslandCode {
   walk?(ctx: IslandWalkContext): IslandWalk;
   /** The island's content in the session (a streamed island); the home island's is the session's own. */
   content?(host: IslandContentHost): IslandContent;
+  /** The chests and message bottles the island places (their ids; what's in them is the course's). */
+  chests: readonly string[];
+  /**
+   * Every NPC that can appear on the island (its cast and every extra, on stand-in `anchors`): the
+   * ids a course pack can give barks and beats to (tools/content/check.ts).
+   */
+  cast(anchors: Readonly<Record<string, { x: number; z: number }>>): readonly { id: string }[];
 }
 
 /** An island's quest line as the session reads it (its `quests/<island>.json`, through the course pack). */

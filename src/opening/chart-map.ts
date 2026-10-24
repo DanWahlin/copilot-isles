@@ -1,4 +1,4 @@
-import type { IslandId } from '../islands/registry';
+import { ISLAND_IDS, type IslandId } from '../islands/registry';
 import { ARCHIPELAGO, ARCH_H, ARCH_W } from '../ui/chart/archipelago';
 import { coveHeight, coveMasks } from '../world/terrain/cove-height';
 import { meridianHeight, meridianMasks } from '../world/islands/meridian';
@@ -44,9 +44,13 @@ export interface ChartIslandSource {
   relief?(x: number, z: number): number;
 }
 
-export const CHART_ISLANDS: readonly ChartIslandSource[] = [
-  {
-    id: 'anchorage',
+/**
+ * Each island's miniature (TypeScript asks for one for every island in the registry): its chart
+ * position, scale, sampled box and terrain functions. The height functions are the world's own, so
+ * they stay in the opening's chunk (and the content check's ground), not in the registry.
+ */
+const SOURCES: Readonly<Record<IslandId, Omit<ChartIslandSource, 'id'>>> = {
+  anchorage: {
     cx: 58,
     cz: 54,
     scale: 1 / 2200,
@@ -59,8 +63,7 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
     height: coveHeight,
     masks: coveMasks,
   },
-  {
-    id: 'meridian',
+  meridian: {
     cx: 915,
     cz: -893,
     scale: 1 / 3400,
@@ -73,8 +76,7 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
     height: meridianHeight,
     masks: meridianMasks,
   },
-  {
-    id: 'thousand-bough',
+  'thousand-bough': {
     cx: 2050,
     cz: -1510,
     // A little smaller than true to its neighbours, so its outline stays clear of Port Meridian's.
@@ -94,7 +96,10 @@ export const CHART_ISLANDS: readonly ChartIslandSource[] = [
       return d < 1 ? 46 * Math.sqrt(1 - d * d) : 0;
     },
   },
-];
+};
+
+/** The 3D chart's islands, in voyage order. */
+export const CHART_ISLANDS: readonly ChartIslandSource[] = ISLAND_IDS.map((id) => ({ id, ...SOURCES[id] }));
 
 export function chartIsland(id: ChartIslandId): ChartIslandSource {
   return CHART_ISLANDS.find((i) => i.id === id)!;

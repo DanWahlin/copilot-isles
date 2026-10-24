@@ -19,6 +19,7 @@
 //                             [--trips=2] [--out=<dir>] [--no-gate]
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { HOME, OPEN_FLAGS, STREAMED, island } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5301';
@@ -29,7 +30,7 @@ const out = opt.out || null;
 const budgets = JSON.parse(readFileSync(new URL('./budgets.json', import.meta.url), 'utf8')).memory;
 const GPU_ERROR =
   /GPUValidationError|while destroyed|\[(Buffer|Texture|TextureView|BindGroup|RenderPipeline)\b/;
-const ROUTE = ['meridian', 'thousand-bough', 'anchorage'];
+const ROUTE = [...STREAMED, HOME];
 const MB = 1048576;
 
 const fails = [];
@@ -101,7 +102,7 @@ async function run(tier, backend) {
     return row;
   }
 
-  const url = `${base}/?debug&meridian&thousandbough&tier=${tier}${backend === 'webgl2' ? '&webgl' : ''}`;
+  const url = `${base}/?debug${OPEN_FLAGS}&tier=${tier}${backend === 'webgl2' ? '&webgl' : ''}`;
   try {
     await page.goto(url, { waitUntil: 'load' });
     await page.evaluate(() => localStorage.clear());
@@ -116,7 +117,7 @@ async function run(tier, backend) {
     await until('playing', 300_000);
     await page.waitForTimeout(1500);
     await S('s.debug.skipArrival()');
-    const first = await stop('anchorage (first)');
+    const first = await stop(`${HOME} (first)`);
     const back = [];
     for (let trip = 1; trip <= trips; trip++) {
       for (const id of ROUTE) {
@@ -132,7 +133,7 @@ async function run(tier, backend) {
         await page.waitForTimeout(1500);
         await S('s.debug.skipArrival()');
         const row = await stop(`${id} (trip ${trip})`);
-        if (id === 'anchorage') back.push(row);
+        if (id === HOME) back.push(row);
       }
     }
     const hitches = await page.evaluate(() => window.__isles.hitches());
@@ -141,26 +142,26 @@ async function run(tier, backend) {
     // Quit while Anchorage is dormant (its parts parked out of the scene), then a new voyage: one
     // Anchorage, nothing drawn with freed buffers, and memory back where the first voyage began.
     const anchorages = () =>
-      page.evaluate(() => {
+      page.evaluate((name) => {
         let n = 0;
-        window.__flow.o.engine.scene.traverse((o) => void (o.name === 'test-cove-terrain' && n++));
+        window.__flow.o.engine.scene.traverse((o) => void (o.name === name && n++));
         return n;
-      });
+      }, island(HOME).terrain);
+    const away = STREAMED[0];
     await flow('openChart()');
     await page.waitForTimeout(800);
-    await flow("travelTo('island:meridian')");
+    await flow(`travelTo('island:${away}')`);
     await page.waitForFunction(
-      () =>
-        window.__flow.getState().screen === 'playing' && window.__flow.debugSession?.island === 'meridian',
-      null,
+      (id) => window.__flow.getState().screen === 'playing' && window.__flow.debugSession?.island === id,
+      away,
       { timeout: 180_000 },
     );
     await page.waitForTimeout(1500);
     await S('s.debug.skipArrival()');
     // Past the residency's 20 s away: Anchorage goes dormant.
     await page.waitForTimeout(24_000);
-    const dormant = await stop('meridian (anchorage dormant)');
-    if (dormant.resident?.includes('anchorage'))
+    const dormant = await stop(`${away} (${HOME} dormant)`);
+    if (dormant.resident?.includes(HOME))
       fail(`Anchorage still resident: ${JSON.stringify(dormant.resident)}`);
     await flow('pause()');
     await flow('quitToTitle()');
@@ -175,7 +176,7 @@ async function run(tier, backend) {
     await until('playing', 300_000);
     await page.waitForTimeout(1500);
     await S('s.debug.skipArrival()');
-    const again = await stop('anchorage (new voyage)');
+    const again = await stop(`${HOME} (new voyage)`);
     const count = await anchorages();
     if (count !== 1) fail(`new voyage after a dormant quit: ${count} Anchorage terrains in the scene`);
     if (gpuErrors) fail(`${gpuErrors} WebGPU validation errors`);

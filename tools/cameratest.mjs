@@ -31,6 +31,7 @@
 //   from 4 m further out) [--match=<regex>] (which hits get screenshots) [--warn] (print warnings)
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { ISLANDS, STREAMED } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5322';
@@ -40,6 +41,38 @@ const cfg = {
   samples: Number(opt.samples ?? 160),
   sail: Number(opt.sail ?? 30),
   seed: Number(opt.seed ?? 7),
+  // Each island's terrain (tools/lib/islands.json): its box is where the spots go.
+  islands: ISLANDS.map((i) => ({ id: i.id, terrain: i.terrain })),
+  // Walk surfaces above the ground, by island: spots on them too.
+  decks: {
+    // Thousand-Bough's tree village: its stair, decks, bridges and lookouts.
+    'thousand-bough': [
+      [1994.2, -1574.6, 18.6],
+      [1990.8, -1563.4, 20.2],
+      [1994.4, -1544.0, 22.5],
+      [2004.6, -1537.4, 24.3],
+      [2037.5, -1554.5, 26.9],
+      [2024.8, -1587.2, 28.9],
+      [1991.3, -1540.6, 31.4],
+      [2022, -1531, 32.6],
+      [2030.5, -1543.5, 40.2],
+      [1985.6, -1558.8, 43.4],
+      [2010, -1546, 50.6],
+      [2004, -1566, 50.6],
+      [2018.6, -1561.3, 50.6],
+      [2066.5, -1597, 27.1],
+      [2008, -1596, 22.5],
+      [2120, -1606, 16.1],
+      [2146, -1645, 19.1],
+      [1947, -1434, 2.7],
+      [1939.2, -1376, 2.3],
+      [1939, -1400, 2.3],
+      // The Fern Walk under the Signal Deck at the Root Gate (the camera must stay under the deck).
+      [1988.5, -1534.6, 17.6],
+      [1990.6, -1537.4, 17.9],
+      [1993.4, -1540.4, 18.3],
+    ],
+  },
 };
 const list = Number(opt.list ?? 25);
 // --near=x,z,r runs only the clusters within r m of (x, z); --match=<regex> picks which hits get screenshots.
@@ -54,29 +87,23 @@ await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.se
   timeout: 120000,
 });
 await page.waitForTimeout(2000);
-// Port Meridian's town (and its colliders) only load when needed: go there first.
-const quay = await page.evaluate(() => window.__dev.session().islandQuay('meridian'));
-await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), quay);
-await page.waitForFunction(() => window.__dev.session().debug.cast().length > 0, null, { timeout: 90000 });
-await page.waitForTimeout(2000);
-// The first landfall flies in (it owns the camera, which the screenshots need); E skips it.
-for (
-  let i = 0;
-  i < 10 && (await page.evaluate(() => window.__dev.session().debug.arrival()?.phase)) === 'flying';
-  i++
-) {
-  await page.keyboard.press('KeyE');
-  await page.waitForTimeout(600);
-}
-
-// Thousand-Bough loads when you're near it: go there too (its colliders join the world and stay).
-const tbQuay = await page.evaluate(() => window.__dev.session().islandQuay('thousand-bough'));
-if (tbQuay) {
-  await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), tbQuay);
-  await page.waitForFunction(() => !!window.__dev.scene.getObjectByName('thousand-bough-village'), null, {
-    timeout: 120000,
-  });
+// The other islands (their towns and colliders) only load when needed: go to each in turn (its
+// colliders join the world, and the ones you left stay: the session keeps them while it's open).
+for (const id of STREAMED) {
+  const quay = await page.evaluate((id) => window.__dev.session().islandQuay(id), id);
+  if (!quay) continue;
+  await page.evaluate((q) => window.__dev.session().travel(q.x, q.z, q.heading), quay);
+  await page.waitForFunction(
+    (id) =>
+      window.__dev
+        .session()
+        .islandSetups()
+        .some((s) => s.id === id),
+    id,
+    { timeout: 120000 },
+  );
   await page.waitForTimeout(3000);
+  // The first landfall flies in (it owns the camera, which the screenshots need); E skips it.
   for (
     let i = 0;
     i < 10 && (await page.evaluate(() => window.__dev.session().debug.arrival()?.phase)) === 'flying';
@@ -411,11 +438,7 @@ const clusters = await page.evaluate(async (cfg) => {
     });
     return b;
   };
-  const islands = [
-    { id: 'anchorage', box: islandBox('test-cove-terrain') },
-    { id: 'meridian', box: islandBox('port-meridian-terrain') },
-    { id: 'thousand-bough', box: islandBox('thousand-bough-terrain') },
-  ];
+  const islands = cfg.islands.map((i) => ({ id: i.id, box: islandBox(i.terrain) }));
   const boxes = world.boxes();
   const circles = world.circles();
   const spots = [];
@@ -467,38 +490,12 @@ const clusters = await page.evaluate(async (cfg) => {
     const take = ring.slice(0, Math.floor(cfg.samples / 2));
     take.push(...grid.slice(0, cfg.samples - take.length));
     for (const p of take) spots.push({ ...p, island: isl.id, y: world.groundAt(p.x, p.z) });
-    // Thousand-Bough's tree village stands above the ground: spots on its stair, decks, bridges and
+    // Decks above the ground (Thousand-Bough's tree village): spots on its stair, decks, bridges and
     // lookouts too (feet on the walk surface under each).
-    if (isl.id === 'thousand-bough')
-      for (const [x, z, y] of [
-        [1994.2, -1574.6, 18.6],
-        [1990.8, -1563.4, 20.2],
-        [1994.4, -1544.0, 22.5],
-        [2004.6, -1537.4, 24.3],
-        [2037.5, -1554.5, 26.9],
-        [2024.8, -1587.2, 28.9],
-        [1991.3, -1540.6, 31.4],
-        [2022, -1531, 32.6],
-        [2030.5, -1543.5, 40.2],
-        [1985.6, -1558.8, 43.4],
-        [2010, -1546, 50.6],
-        [2004, -1566, 50.6],
-        [2018.6, -1561.3, 50.6],
-        [2066.5, -1597, 27.1],
-        [2008, -1596, 22.5],
-        [2120, -1606, 16.1],
-        [2146, -1645, 19.1],
-        [1947, -1434, 2.7],
-        [1939.2, -1376, 2.3],
-        [1939, -1400, 2.3],
-        // The Fern Walk under the Signal Deck at the Root Gate (the camera must stay under the deck).
-        [1988.5, -1534.6, 17.6],
-        [1990.6, -1537.4, 17.9],
-        [1993.4, -1540.4, 18.3],
-      ]) {
-        const g = world.groundAt(x, z, y + 0.3);
-        if (Math.abs(g - y) < 0.6 && free(x, z, g)) spots.push({ x, z, kind: 'deck', island: isl.id, y: g });
-      }
+    for (const [x, z, y] of cfg.decks[isl.id] ?? []) {
+      const g = world.groundAt(x, z, y + 0.3);
+      if (Math.abs(g - y) < 0.6 && free(x, z, g)) spots.push({ x, z, kind: 'deck', island: isl.id, y: g });
+    }
     const coast = shuffle(
       sea.filter((p) => {
         for (let a = 0; a < 8; a++)
@@ -765,12 +762,8 @@ const total = {
   hits: [],
   notShown: 0,
 };
-// Each island's terrain and silhouette (the scene's object names).
-const SHOWN = {
-  anchorage: ['test-cove-terrain', 'anchorage-silhouette'],
-  meridian: ['port-meridian-terrain', 'meridian-silhouette'],
-  'thousand-bough': ['thousand-bough-terrain', 'thousand-bough-silhouette'],
-};
+// Each island's terrain and silhouette (the scene's object names, tools/lib/islands.json).
+const SHOWN = Object.fromEntries(ISLANDS.map((i) => [i.id, [i.terrain, i.silhouette]]));
 for (const [i, c] of clusters.entries()) {
   if (near && Math.hypot(c.x - near[0], c.z - near[1]) > near[2]) continue;
   if (!c.sail) {

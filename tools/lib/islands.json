@@ -1,0 +1,29 @@
+{
+  "$comment": "The islands for the tools, in voyage order: the same ids, URL flags and names as src/islands/registry.ts (src/islands/registry.test.ts keeps them in step), and the scene names the tools look for. A new island adds one entry here with its registry line.",
+  "islands": [
+    {
+      "id": "anchorage",
+      "flag": "anchorage",
+      "name": "Anchorage Cay",
+      "home": true,
+      "terrain": "test-cove-terrain",
+      "silhouette": "anchorage-silhouette"
+    },
+    {
+      "id": "meridian",
+      "flag": "meridian",
+      "name": "Port Meridian",
+      "home": false,
+      "terrain": "port-meridian-terrain",
+      "silhouette": "meridian-silhouette"
+    },
+    {
+      "id": "thousand-bough",
+      "flag": "thousandbough",
+      "name": "Thousand-Bough Isle",
+      "home": false,
+      "terrain": "thousand-bough-terrain",
+      "silhouette": "thousand-bough-silhouette"
+    }
+  ]
+}

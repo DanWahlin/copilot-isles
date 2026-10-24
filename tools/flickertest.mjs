@@ -31,6 +31,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
+import { HOME } from './lib/islands.mjs';
 
 /** [name, island, camera position, orbit target, what it covers]. */
 const VIEWS = [
@@ -200,8 +201,8 @@ async function writeMap(path, base, still, noisy, solid, regions, w, h) {
 
 const results = [];
 const audits = {};
-let meridianLoaded = false;
-let thousandBoughLoaded = false;
+/** The islands streamed in so far on this page (the home island is built with the world). */
+const loaded = new Set();
 // Vite reloads the page when anyone edits a source file; a view measured across a reload is redone.
 let loads = 0;
 page.on('framenavigated', (frame) => {
@@ -231,8 +232,7 @@ for (const view of views) {
     console.error(`     ${view[0]}: the page reloaded (HMR), measuring again`);
     await page.waitForFunction(() => window.__dev?.ready === true, null, { timeout: 180_000 });
     await page.waitForTimeout(3000);
-    meridianLoaded = false;
-    thousandBoughLoaded = false;
+    loaded.clear();
   }
 }
 
@@ -243,17 +243,13 @@ function pct(share) {
 /** Measures one view: freeze, still frames, jitter and dolly series, regions, images. */
 async function measure([name, island, cam, target, what]) {
   await S(() => window.__dev.freeze(false));
-  if (island === 'meridian' && !meridianLoaded) {
-    await S(async () => void (await window.__dev.cove.meridian.load()));
-    meridianLoaded = true;
-  }
-  if (island === 'thousand-bough' && !thousandBoughLoaded) {
-    await S(async () => void (await window.__dev.cove.thousandBough.load()));
-    thousandBoughLoaded = true;
+  if (island !== HOME && !loaded.has(island)) {
+    await S(async (id) => void (await window.__dev.cove.islands[id].load()), island);
+    loaded.add(island);
   }
   await S(([c, t]) => window.__dev.setCam(c, t), [cam, target]);
   // Let streaming, LOD fades, impostors and the reflection settle at this view.
-  await page.waitForTimeout(island === 'anchorage' ? 2500 : 5000);
+  await page.waitForTimeout(island === HOME ? 2500 : 5000);
   await S(() => window.__dev.freeze(true));
   // Progressive work (the clouds' 16-frame trace and 32-slot panorama) converges on a held frame.
   await S(async (n) => {

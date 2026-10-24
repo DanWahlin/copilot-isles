@@ -6,6 +6,7 @@
 // Needs the dev server (npm run dev, port 5301).
 // node tools/starfishtest.mjs [--base=http://localhost:5301] [--out=/tmp/shots/starfish]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { OPEN_FLAGS, STREAMED } from './lib/islands.mjs';
 
 const opt = parseFlags(process.argv.slice(2));
 const base = opt.base || 'http://localhost:5301';
@@ -13,31 +14,26 @@ const out = opt.out || '';
 const browser = await launchChrome({ autoplay: true });
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
 const logs = collectLogs(page);
-await page.goto(`${base}/devpages/play.html?auto&quiet&meridian`, { waitUntil: 'load' });
+await page.goto(`${base}/devpages/play.html?auto&quiet${OPEN_FLAGS}`, { waitUntil: 'load' });
 await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
   timeout: 120000,
 });
 const S = (f, a) => page.evaluate(f, a);
 await page.waitForTimeout(2500);
-// Port Meridian's town (and its colliders) only load when needed: go there first.
-const q = await S(() => window.__dev.session().islandQuay('meridian'));
-await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
-await page.waitForFunction(() => window.__dev.session().debug.cast().length > 0, null, { timeout: 90000 });
-await page.waitForTimeout(1500);
-// And Thousand-Bough's world (its decks and the stair) when it's open.
-const tb = await S(() => window.__dev.session().islandQuay('thousand-bough'));
-if (tb) {
-  await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), tb);
+// The other islands' worlds (their towns, decks and colliders) only load when needed: go to each
+// open one in turn.
+for (const id of STREAMED) {
+  const q = await S((id) => window.__dev.session().islandQuay(id), id);
+  if (!q) continue;
+  await S((q) => window.__dev.session().travel(q.x, q.z, q.heading), q);
   await page.waitForFunction(
-    () =>
+    (id) =>
       window.__dev
         .session()
-        .debug.cast()
-        .some((n) => n.id === 'tamsin'),
-    null,
-    {
-      timeout: 120000,
-    },
+        .islandSetups()
+        .some((s) => s.id === id),
+    id,
+    { timeout: 120000 },
   );
   await page.waitForTimeout(1500);
 }

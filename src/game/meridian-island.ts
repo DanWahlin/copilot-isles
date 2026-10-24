@@ -2,7 +2,8 @@ import { naturalWaterAt } from '../world/islands/fresh-water-natural';
 import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
 import type { MeridianTownSystem } from '../world/meridian-town';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
-import { currentQuest } from './cove-quests';
+import { MERIDIAN_CHESTS, currentQuest } from './cove-quests';
+import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
 import type { IslandCode } from './island-code';
 import { createMeridianStream } from '../world/islands/meridian-stream';
 import { createMeridianContent } from './meridian-session';
@@ -20,6 +21,8 @@ import {
  */
 export const MERIDIAN_CODE: IslandCode = {
   stream: createMeridianStream,
+  chests: MERIDIAN_CHESTS.map((c) => c.id),
+  cast: (anchors) => [...MERIDIAN_NPCS, ...meridianExtras(anchors)],
   quests: {
     log: meridianLog,
     tracker: meridianTracker,

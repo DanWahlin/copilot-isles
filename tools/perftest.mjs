@@ -48,6 +48,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus, loadavg } from 'node:os';
 import { join } from 'node:path';
 import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
+import { HOME } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353').replace(/\/$/, '');
@@ -247,7 +248,7 @@ async function openPlay(tier, backend, uncapped = false) {
 
 /** Travels to an island's quay and waits for its setup and for the islands you left to be freed. */
 async function goToIsland(page, island) {
-  if (island !== 'anchorage') {
+  if (island !== HOME) {
     await page.evaluate((id) => window.__dev.learn?.progress.add('arrivals', id), island);
     const at = await page.evaluate((id) => window.__dev.session().islandQuay(id), island);
     await page.evaluate((at) => window.__dev.session().travel(at.x, at.z, at.heading), at);
@@ -451,7 +452,7 @@ console.log(
 /** One page through every view in `mode`, island by island. */
 async function runViews(tier, backend, mode) {
   const ctx = await openPlay(tier, backend, mode === 'gpu');
-  let island = 'anchorage';
+  let island = HOME;
   try {
     for (const view of viewIds) {
       const v = VIEWS[view];

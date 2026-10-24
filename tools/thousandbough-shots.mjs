@@ -141,9 +141,11 @@ for (const tier of tiers) {
   // Bring the camera over the island so it streams in, and wait for its world.
   await page.evaluate(() => {
     window.__dev.setCam([1900, 40, -1300], [2010, 30, -1560]);
-    void window.__dev.cove.thousandBough.load();
+    void window.__dev.cove.islands['thousand-bough'].load();
   });
-  await page.waitForFunction(() => !!window.__dev.cove.thousandBough.system, null, { timeout: 180000 });
+  await page.waitForFunction(() => !!window.__dev.cove.islands['thousand-bough'].world, null, {
+    timeout: 180000,
+  });
   await page.waitForTimeout(3000);
   // Round 1's start board (spec §5.3) on the terrace, so the puzzle shots show the flumes.
   await page.evaluate(() => {
@@ -154,7 +156,7 @@ for (const tier of tiers) {
       [S('straight', 0), S('elbow', 0), S('straight', 0), S('elbow', 3), S('straight', 0)],
       [S('straight', 0), S('straight', 0), S('straight', 0), S('straight', 0), S('straight', 0)],
     ];
-    window.__dev.cove.thousandBough.system.flume.setBoard(rows, false);
+    window.__dev.cove.islands['thousand-bough'].world.flume.setBoard(rows, false);
   });
   for (const name of want) {
     const s = SHOTS[name];

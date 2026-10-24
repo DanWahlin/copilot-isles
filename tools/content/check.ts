@@ -52,13 +52,10 @@ import { WORKSPACE_IDS } from '../../src/game/puzzles/channel-routing/workspaces
 import { HELM_MODES, REVIEW_ACTS } from '../../src/world/sites/helms-logic';
 import { CRATE_KINDS } from '../../src/world/sites/crate-yard-logic';
 import { HALYARDS } from '../../src/world/islands/thousand-bough/set-pieces';
-import { COVE_CHESTS, MERIDIAN_CHESTS } from '../../src/game/cove-quests';
 import { islandAt, type IslandId } from '../../src/game/islands';
-import { MERIDIAN_NPCS, meridianExtras } from '../../src/game/meridian-npcs';
+import { ISLAND_LIST } from '../../src/islands/registry';
 import { EFFORTS, grade, priceIn, refundIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
 import { MARKET_STALLS } from '../../src/game/market/stalls';
-import { COVE_NPCS } from '../../src/game/npcs';
-import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from '../../src/game/thousand-bough-npcs';
 import { boardTopics, type CourseBoardTopic } from '../../src/learn/course-board';
 import type { CourseLock } from '../../src/learn/course/lock';
 import { normalizeForCompare, parseSections } from '../../src/learn/course/sections';
@@ -66,12 +63,8 @@ import type { ChapterContent, SourceRef } from '../../src/learn/types';
 import type { LearningFile } from '../../src/learn/learning';
 import { ARCHIPELAGO } from '../../src/ui/chart/archipelago';
 import { COURSE_BOARDS, type CourseBoardPlacement } from '../../src/world/islands/course-boards';
-import { meridianHeight } from '../../src/world/islands/meridian';
-import { thousandBoughHeight } from '../../src/world/islands/thousand-bough/height';
-import { THOUSAND_BOUGH } from '../../src/world/islands/thousand-bough/layout';
-import { COVE_BOTTLES } from '../../src/world/sites/bottles';
+import { CHART_ISLANDS } from '../../src/opening/chart-map';
 import { starfishOn } from '../../src/world/starfish/spots';
-import { coveHeight } from '../../src/world/terrain/cove-height';
 import { DEFAULT_COURSE } from '../course-pack/read';
 import { at, validate, type JsonSchema } from './json-schema';
 
@@ -138,19 +131,18 @@ export function marketPurseNeeded(jobs: readonly { pay: number; back: number }[]
   return jobs.length ? best : 0;
 }
 
-/** The ground under a board: each island's own height function (the board may stand on a deck). */
-/** The chests and message bottles each island places (the game's spots; what's in them is the course's). */
-const CHEST_SPOTS: Readonly<Record<IslandId, readonly string[]>> = {
-  anchorage: [...COVE_CHESTS, ...COVE_BOTTLES].map((c) => c.id),
-  meridian: MERIDIAN_CHESTS.map((c) => c.id),
-  'thousand-bough': [...THOUSAND_BOUGH.chests, ...THOUSAND_BOUGH.bottles].map((c) => c.id),
-};
+/** Every island's code (src/islands/registry.ts): its chests, bottles and cast. */
+const CODES = await Promise.all(ISLAND_LIST.map((e) => e.code()));
 
-const GROUND: Readonly<Record<IslandId, (x: number, z: number) => number>> = {
-  anchorage: coveHeight,
-  meridian: meridianHeight,
-  'thousand-bough': thousandBoughHeight,
-};
+/** The chests and message bottles each island places (the game's spots; what's in them is the course's). */
+const CHEST_SPOTS = Object.fromEntries(ISLAND_LIST.map((e, i) => [e.id, CODES[i]!.chests])) as Readonly<
+  Record<IslandId, readonly string[]>
+>;
+
+/** The ground under a board: each island's own height function (the 3D chart's, the board may stand on a deck). */
+const GROUND = Object.fromEntries(CHART_ISLANDS.map((c) => [c.id, c.height])) as Readonly<
+  Record<IslandId, (x: number, z: number) => number>
+>;
 
 /** The game's cast (every NPC a pack can give barks to), with every extra that can appear. */
 function castIds(): Set<string> {
@@ -158,15 +150,7 @@ function castIds(): Set<string> {
     string,
     { x: number; z: number }
   >;
-  return new Set(
-    [
-      ...COVE_NPCS,
-      ...MERIDIAN_NPCS,
-      ...meridianExtras(anyAnchor),
-      ...THOUSAND_BOUGH_NPCS,
-      ...thousandBoughExtras(anyAnchor, true),
-    ].map((n) => n.id),
-  );
+  return new Set(CODES.flatMap((c) => c.cast(anyAnchor)).map((n) => n.id));
 }
 
 interface Cite {
