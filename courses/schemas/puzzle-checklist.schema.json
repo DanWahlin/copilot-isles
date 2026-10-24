@@ -150,6 +150,10 @@
           "you": {
             "enum": ["os", "issue", "branch", "model"],
             "description": "The line shows a Your setup value: the game marks it as yours."
+          },
+          "show": {
+            "enum": ["given", "missing"],
+            "description": "With `you`: the line shows only once the player has given that value (`given`), or only until they have (`missing`)."
           }
         }
       }

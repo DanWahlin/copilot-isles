@@ -41,6 +41,10 @@
       "steps": {
         "start": "Climb the Great Stair to Oak at the Three Landings.",
         "done": "New worktree is the safe default, so switch back to it. Base branch sets where it starts. Create from always makes a new worktree."
+      },
+      "link": {
+        "label": "Switch back to New worktree in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/02-sessions-worktrees-context/README.md#where-a-session-runs"
       }
     },
     {
@@ -70,7 +74,12 @@
       "task": "Start a session from a branch",
       "steps": {
         "start": "Cross the Signal Bridge to Rook on the Practice Bough.",
-        "done": "Create from, Branches, Plan, attach {issue}, then review the plan and the diff."
+        "app": "Do Exercise 1 in the app: start a session from the practice branch and attach {issue}. Then tell Rook what you saw.",
+        "done": "Create from, Branches, Plan, attach {issue}, review the plan, then check the diff and the preview."
+      },
+      "link": {
+        "label": "Do Exercise 1 in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/02-sessions-worktrees-context/README.md#exercise-start-a-session-from-a-branch-and-attach-an-issue"
       }
     },
     {
@@ -79,7 +88,12 @@
       "task": "Check a session",
       "steps": {
         "start": "Pip Hollow keeps the Chronicle Loft, near the top.",
+        "app": "Do Exercise 2 in the app: send /chronicle standup and /context in that session. Then tell Pip what you saw.",
         "done": "/chronicle standup recaps your day. /context shows tokens, context and AI credits."
+      },
+      "link": {
+        "label": "Do Exercise 2 in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/02-sessions-worktrees-context/README.md#exercise-check-the-session-with-slash-commands"
       }
     },
     {
@@ -98,12 +112,12 @@
       "task": "Your turn: a light and dark theme",
       "optional": true,
       "link": {
-        "label": "Try it in the app ↗",
+        "label": "Do the assignment in the app ↗",
         "url": "https://github.com/github/copilot-app-for-beginners/blob/main/02-sessions-worktrees-context/README.md#assignment"
       },
       "steps": {
-        "start": "Rook’s on the Practice Bough with one more job for you.",
-        "try": "Add a light and dark theme to the Book App in its own worktree, without touching main. The Lantern House’s shutters on the Three Landings show the idea.",
+        "start": "Elder Maren has one more job for you on the Crown Deck.",
+        "try": "Add a light and dark theme to the Book App in its own worktree, without touching main, then show Elder Maren what you’ve got. The Lantern House’s shutters on the Three Landings show the idea.",
         "done": "A light and dark theme in its own worktree, without touching main."
       }
     }
@@ -149,7 +163,15 @@
       "ids": ["npc:rook"],
       "label": "Rook"
     },
+    "Q2.7:app": {
+      "ids": ["npc:rook"],
+      "label": "Rook"
+    },
     "Q2.8:start": {
+      "ids": ["npc:pip"],
+      "label": "Pip"
+    },
+    "Q2.8:app": {
       "ids": ["npc:pip"],
       "label": "Pip"
     },
@@ -158,6 +180,14 @@
       "label": "Elder Maren"
     },
     "Q2.9:exam": {
+      "ids": ["npc:elder"],
+      "label": "Elder Maren"
+    },
+    "Q2.A:start": {
+      "ids": ["npc:elder"],
+      "label": "Elder Maren"
+    },
+    "Q2.A:try": {
       "ids": ["npc:elder"],
       "label": "Elder Maren"
     }
@@ -300,18 +330,18 @@
     {
       "npc": "rook",
       "when": {
+        "Q2.7": "app"
+      },
+      "script": "rook.back"
+    },
+    {
+      "npc": "rook",
+      "when": {
         "Q2.7": {
           "not": "done"
         }
       },
       "script": "rook"
-    },
-    {
-      "npc": "rook",
-      "when": {
-        "Q2.A": "start"
-      },
-      "script": "rook.assignment"
     },
     {
       "npc": "rook",
@@ -325,6 +355,13 @@
         }
       },
       "say": "tb.pip.wait"
+    },
+    {
+      "npc": "pip",
+      "when": {
+        "Q2.8": "app"
+      },
+      "script": "pip.back"
     },
     {
       "npc": "pip",
@@ -356,6 +393,20 @@
     {
       "npc": "elder",
       "when": {
+        "Q2.A": "start"
+      },
+      "script": "elder.assignment"
+    },
+    {
+      "npc": "elder",
+      "when": {
+        "Q2.A": "try"
+      },
+      "script": "elder.assignment.back"
+    },
+    {
+      "npc": "elder",
+      "when": {
         "Q2.9": "done"
       },
       "say": "tb.elder.done"
@@ -367,17 +418,39 @@
   ],
   "story": {
     "conditions": {
-      "firstVisit": { "Q2.1": { "not": "done" } },
-      "gondolaOpen": { "Q2.4": "done" },
-      "secondBridge": { "Q2.5": "done" },
-      "practiceStarted": { "Q2.7": { "not": null } },
-      "basketOpen": { "Q2.9": { "not": [null, "start"] } },
-      "skipCrownView": { "Q2.9": ["exam", "done"] },
-      "sealed": { "Q2.9": "done" }
+      "firstVisit": {
+        "Q2.1": {
+          "not": "done"
+        }
+      },
+      "gondolaOpen": {
+        "Q2.4": "done"
+      },
+      "secondBridge": {
+        "Q2.5": "done"
+      },
+      "practiceStarted": {
+        "Q2.7": {
+          "not": null
+        }
+      },
+      "basketOpen": {
+        "Q2.9": {
+          "not": [null, "start"]
+        }
+      },
+      "skipCrownView": {
+        "Q2.9": ["exam", "done"]
+      },
+      "sealed": {
+        "Q2.9": "done"
+      }
     },
     "events": {}
   },
-  "signs": { "loft": "Chronicle Loft" },
+  "signs": {
+    "loft": "Chronicle Loft"
+  },
   "scripts": {
     "tamsin": [
       {
@@ -530,10 +603,16 @@
         "quiz": "K2.4"
       },
       {
+        "quiz": "K2.6"
+      },
+      {
         "quiz": "H2.1"
       },
       {
         "say": "tb.oak.08"
+      },
+      {
+        "term": "current-checkout"
       },
       {
         "term": "new-worktree"
@@ -592,9 +671,6 @@
     ],
     "fen.solved": [
       {
-        "say": "tb.fen.close"
-      },
-      {
         "show": "ch02/app-where-sessions-run",
         "caption": "In the app: **+**, then **New worktree** in the workspace selector. The app makes the folder and branch."
       },
@@ -603,9 +679,6 @@
       },
       {
         "hide": true
-      },
-      {
-        "say": "tb.fen.oneatatime"
       },
       {
         "file": "pg2.parallel"
@@ -690,6 +763,9 @@
         "say": "tb.rook.01"
       },
       {
+        "quiz": "K2.9"
+      },
+      {
         "show": "ch02/app-create-from-icon",
         "caption": "Point to the project, then select the **Create from** icon next to it."
       },
@@ -697,17 +773,20 @@
         "say": "tb.rook.02"
       },
       {
-        "askSetup": "branch"
+        "say": "tb.rook.branch"
+      },
+      {
+        "hide": true
+      },
+      {
+        "show": "ch02/app-plan-from-issue",
+        "caption": "Type `{issue}` and pick **Improve the empty state copy**. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box."
       },
       {
         "say": "tb.rook.03"
       },
       {
-        "askSetup": "issue"
-      },
-      {
-        "show": "ch02/app-plan-from-issue",
-        "caption": "Type `{issue}` and pick **Improve the empty state copy**. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box."
+        "say": "tb.rook.scope"
       },
       {
         "say": "tb.rook.04"
@@ -735,25 +814,21 @@
         "term": "empty-state"
       },
       {
-        "file": "pg2.create-from"
+        "page": "pg2.create-from"
       },
       {
-        "file": "pg2.plan"
+        "page": "pg2.plan"
       },
       {
         "page": "pg2.preview",
         "doubloons": 15
       },
       {
-        "say": "tb.rook.next"
+        "say": "tb.rook.go"
       },
       {
         "quest": "Q2.7",
-        "step": "done"
-      },
-      {
-        "quest": "Q2.8",
-        "step": "start"
+        "step": "app"
       }
     ],
     "pip": [
@@ -762,7 +837,7 @@
       },
       {
         "show": "ch02/app-chronicle-standup-output",
-        "caption": "`/chronicle standup`: your work from the last day, with this session on `{branch}`."
+        "caption": "`/chronicle standup`: your work from the last day. It should list this session and its changes."
       },
       {
         "say": "tb.pip.02"
@@ -796,25 +871,24 @@
         "term": "context-command"
       },
       {
-        "file": "pg2.chronicle"
+        "term": "usage-popup"
       },
       {
-        "file": "pg2.context"
+        "page": "pg2.chronicle"
+      },
+      {
+        "page": "pg2.context"
       },
       {
         "page": "pg2.details",
         "doubloons": 15
       },
       {
-        "say": "tb.pip.next"
+        "say": "tb.pip.go"
       },
       {
         "quest": "Q2.8",
-        "step": "done"
-      },
-      {
-        "quest": "Q2.9",
-        "step": "start"
+        "step": "app"
       }
     ],
     "trial.passed": [
@@ -877,28 +951,99 @@
         "script": "trial.passed"
       }
     ],
-    "rook.assignment": [
+    "rook.back": [
       {
-        "say": "tb.rook.assignment"
+        "say": "tb.rook.back"
+      },
+      {
+        "askSetup": "branch"
+      },
+      {
+        "askSetup": "issue",
+        "when": "branch:given"
+      },
+      {
+        "quiz": "K2.5",
+        "when": "branch:given"
+      },
+      {
+        "say": "tb.rook.next"
+      },
+      {
+        "quest": "Q2.7",
+        "step": "done"
+      },
+      {
+        "quest": "Q2.8",
+        "step": "start"
+      }
+    ],
+    "pip.back": [
+      {
+        "say": "tb.pip.back"
+      },
+      {
+        "quiz": "K2.7",
+        "when": "branch:given"
+      },
+      {
+        "say": "tb.pip.next"
+      },
+      {
+        "quest": "Q2.8",
+        "step": "done"
+      },
+      {
+        "quest": "Q2.9",
+        "step": "start"
+      }
+    ],
+    "elder.assignment": [
+      {
+        "say": "tb.elder.assignment"
       },
       {
         "page": "pg2.assignment",
         "doubloons": 15
       },
       {
+        "say": "tb.elder.assignment.go"
+      },
+      {
         "quest": "Q2.A",
         "step": "try"
+      }
+    ],
+    "elder.assignment.back": [
+      {
+        "say": "tb.elder.assignment.back"
+      },
+      {
+        "quiz": "K2.8"
+      },
+      {
+        "say": "tb.elder.assignment.done"
+      },
+      {
+        "quest": "Q2.A",
+        "step": "done"
       }
     ]
   },
   "notes": {
     "fen": "Fen's welcome: the shared trough (Without isolation): the crews' water mixes while he says why, then the trough comes down and the Gate Board opens.",
-    "fen.solved": "Fen's close once the twist's settled (played at once by the puzzle, or when you talk to him).",
+    "fen.solved": "Fen’s close once the twist’s settled (played at once by the puzzle, or when you talk to him): the app’s way to dig a channel, then the cards.",
     "ines": "The four flags, \"less is more\" and dropping a file on a session, then six orders to practise them (the hoist), and a check that carries the tip to a new job (K2.3).",
     "elder": "Leaving the Trial ends the script; next time the Elder skips her introduction.",
     "barks.tb_kid_a": "The second bark paraphrases 02 · why-the-github-copilot-app-uses-worktrees.",
     "barks.tb_weaver": "The first bark paraphrases 02 · context-syntax.",
-    "barks.tb_lookout": "Jory stands on the lookout once the Channel Routing twist is done; the first bark paraphrases 02 · two-previews-collided."
+    "barks.tb_lookout": "Jory stands on the lookout once the Channel Routing twist is done; the first bark paraphrases 02 · two-previews-collided.",
+    "rook": "Exercise 1, briefed: Create from (a stop check: how you start it), the base branch and the session’s own working branch, the plan, the baseline and the expected result, with the prompts on three cards. Then you do it in the app (the `app` step), and come back.",
+    "rook.back": "Back from the app: your session’s working branch (Skip is “I haven’t done it yet”, for players without the app), then, only if you gave it, the issue’s number and what the empty state says now.",
+    "pip": "Exercise 2, briefed: /chronicle standup, /context and the session details, on three cards. Then you run them in the app (the `app` step), and come back.",
+    "pip.back": "Back from the app: what the chronicle said, only if you gave your session’s branch at Rook (you did Exercise 1).",
+    "elder.assignment": "The optional assignment, given at the Crown once the Seal is yours: nothing to walk back down for.",
+    "elder.assignment.back": "Your report, at the Crown: the assignment’s success criteria as a checklist. Leaving it keeps the quest open for later."
   },
   "barks": {
     "tb_kid_a": ["Race you to the rope swing!", "My treehouse, my branch. Nobody tracks mud in."],

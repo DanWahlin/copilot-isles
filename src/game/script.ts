@@ -29,9 +29,10 @@ export type ScriptStep =
   | { askFork: Exclude<ForkFrom, 'logbook'>; line?: string }
   /**
    * Asks for one of the player's setup values (src/learn/setup.ts), with Skip for now, only if they
-   * haven't given it yet. `line` is a voiced line played first, only when the form opens.
+   * haven't given it yet (and, with `when`, only if their setup fits). `line` is a voiced line played
+   * first, only when the form opens.
    */
-  | { askSetup: SetupKind; line?: string };
+  | { askSetup: SetupKind; line?: string; when?: SetupWhen };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -92,6 +93,7 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         await learn.askFork(s.askFork);
       } else if ('askSetup' in s) {
         if (!learn || learn.getState().setup[s.askSetup] !== null) continue;
+        if (s.when && !learn.setupIs(s.when)) continue;
         if (s.line) await dialogue.play([s.line]);
         if (ctx.cancelled?.()) return false;
         await learn.askSetup(s.askSetup, 'script');

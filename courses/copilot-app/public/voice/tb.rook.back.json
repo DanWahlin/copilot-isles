@@ -1,0 +1,92 @@
+{
+  "id": "tb.rook.back",
+  "speaker": "Rook",
+  "text": "Back, Captain? Tell me about your session, or just say so if you haven't done it yet.",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.385
+    },
+    {
+      "word": "Captain",
+      "start": 0.385,
+      "end": 0.784
+    },
+    {
+      "word": "Tell",
+      "start": 0.784,
+      "end": 1.387
+    },
+    {
+      "word": "me",
+      "start": 1.387,
+      "end": 1.48
+    },
+    {
+      "word": "about",
+      "start": 1.48,
+      "end": 1.696
+    },
+    {
+      "word": "your",
+      "start": 1.696,
+      "end": 1.82
+    },
+    {
+      "word": "session",
+      "start": 1.82,
+      "end": 2.373
+    },
+    {
+      "word": "or",
+      "start": 2.373,
+      "end": 2.56
+    },
+    {
+      "word": "just",
+      "start": 2.56,
+      "end": 2.96
+    },
+    {
+      "word": "say",
+      "start": 2.96,
+      "end": 3.28
+    },
+    {
+      "word": "so",
+      "start": 3.28,
+      "end": 3.467
+    },
+    {
+      "word": "if",
+      "start": 3.467,
+      "end": 3.54
+    },
+    {
+      "word": "you",
+      "start": 3.54,
+      "end": 3.627
+    },
+    {
+      "word": "haven't",
+      "start": 3.627,
+      "end": 3.872
+    },
+    {
+      "word": "done",
+      "start": 3.872,
+      "end": 4.027
+    },
+    {
+      "word": "it",
+      "start": 4.027,
+      "end": 4.14
+    },
+    {
+      "word": "yet",
+      "start": 4.14,
+      "end": 4.39
+    }
+  ]
+}

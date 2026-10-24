@@ -8,7 +8,8 @@ import { COURSE, onCourseSelected } from '../course/catalog';
  * - `os`: the computer they're on, for the course's keyboard shortcuts. Detected from the browser
  *   until they pick.
  * - `issue`: the number of their practice issue (the course's `practice.issue` until they give it).
- * - `branch`: the working branch of their practice session (the course's `practice.branch`).
+ * - `branch`: the working branch of their practice session. The course's `practice.branch` is only
+ *   the session's base branch (where it starts), so it's never taken, or kept, as theirs.
  * - `model`: what they chose in the model control. The game never says anything about a model itself.
  *
  * The forms' words are the course's (`setup` in its course.json; for the Copilot app course, Chapter
@@ -165,6 +166,15 @@ export function cleanBranch(v: unknown): string | null {
   return p.ok && p.value === v ? p.value : null;
 }
 
+/**
+ * Whether a branch is the course's practice branch: the base branch a practice session starts from,
+ * never the session's own working branch (the app gives a new worktree a branch of its own). Saves
+ * from before kept it when the player confirmed the old form's default.
+ */
+export function isBaseBranch(b: string | null): boolean {
+  return !!b && !!COURSE_BRANCH && b === COURSE_BRANCH;
+}
+
 export const MODEL_NAME_MAX = 40;
 
 /**
@@ -200,7 +210,7 @@ export function cleanSetup(v: unknown): SetupData {
   return {
     os: cleanOs(s.os),
     issue: cleanIssue(s.issue),
-    branch: cleanBranch(s.branch),
+    branch: isBaseBranch(cleanBranch(s.branch)) ? null : cleanBranch(s.branch),
     model: cleanModel(s.model),
   };
 }
@@ -224,11 +234,17 @@ export function modelLabel(m: ModelPick | null): string {
   return m.name ?? names.other;
 }
 
-/** Script steps and quizzes that only fit some answers (a model quiz for Auto, another for a picked one). */
-export type SetupWhen = 'model:auto' | 'model:picked';
+/**
+ * Script steps and quizzes that only fit some answers: a model quiz for Auto, another for a picked
+ * one; `branch:given` and `issue:given` for players who gave that value (a practice session's branch
+ * says they did the exercise in the app, so the game can ask what they saw).
+ */
+export type SetupWhen = 'model:auto' | 'model:picked' | 'branch:given' | 'issue:given';
 
 export function setupMatches(s: SetupData, when: SetupWhen): boolean {
   if (when === 'model:auto') return s.model?.pick === 'auto';
+  if (when === 'branch:given') return s.branch !== null;
+  if (when === 'issue:given') return s.issue !== null;
   return s.model?.pick === 'current' || s.model?.pick === 'other';
 }
 
@@ -237,7 +253,9 @@ export function setupMatches(s: SetupData, when: SetupWhen): boolean {
  * - `{key:mod+R}` → the shortcut on their computer (`Cmd+R` or `Ctrl+R`),
  * - `{os}` → macOS, Windows, or Linux,
  * - `{issue}` → `#N` (the course's `#3` until they give theirs),
- * - `{branch}` → their session's branch (the course's `practice-empty-state-copy` until then),
+ * - `{branch}` → their session's working branch (until they give it, the course's practice branch,
+ *   which is only its base branch: write it where that reads right, or note theirs with a page's
+ *   `setup: ['branch']`),
  * - `{model}` → their model choice.
  */
 export function fillSetup(text: string, s: SetupData, detected: OsId): string {

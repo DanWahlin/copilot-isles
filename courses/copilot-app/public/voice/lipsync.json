@@ -2567,15 +2567,6 @@
       "t": [0, 5, 18, 8, 21, 7, 21, 21, 7, 7, 14, 7, 8, 24, 56, 23, 27, 56, 14],
       "v": "XFABGFBECFCAEBXBCB"
     },
-    "tb.fen.close": {
-      "h": "0bf1a0147fa42619",
-      "e": "neutral",
-      "t": [
-        0, 10, 16, 49, 14, 21, 8, 17, 7, 14, 14, 7, 28, 7, 7, 9, 4, 18, 7, 7, 44, 17, 7, 7, 7, 7, 28, 35, 14,
-        21, 7, 7, 14, 7, 7, 21, 14, 7, 28, 8, 8, 35, 21, 7, 8, 29, 28, 35, 49, 14, 35, 37
-      ],
-      "v": "XFBCBAECBGCBCBABCBCBCEFCGBXBCGBCGEBCBCACBCBAEBCBHBX"
-    },
     "tb.fen.app": {
       "h": "38be75c949b65f5a",
       "e": "concerned",
@@ -2584,15 +2575,6 @@
         21, 39, 4, 25, 7, 7, 7, 14, 21, 7, 8, 9, 21, 14, 11
       ],
       "v": "XBCAFBEFBCHBABFBFECACBHBDBCBCACBGEFECBABCBX"
-    },
-    "tb.fen.oneatatime": {
-      "h": "69bdb536e13dbca0",
-      "e": "concerned",
-      "t": [
-        0, 3, 9, 5, 32, 42, 7, 7, 35, 7, 19, 5, 25, 14, 7, 21, 14, 14, 14, 7, 21, 7, 7, 7, 21, 7, 11, 51, 7,
-        12, 7, 21, 21, 6
-      ],
-      "v": "XACBCBCEBCEFECFCBCBCBCBCBABCABEBX"
     },
     "tb.fen.next": {
       "h": "3367973160abe18b",
@@ -2749,13 +2731,22 @@
       "v": "XBACEBABCBABCBCABCBCDABXBCABCBACBFEBEAEACBX"
     },
     "tb.rook.02": {
-      "h": "cf088e60c68c0e31",
+      "h": "c29d31731f1dcb2e",
       "e": "neutral",
       "t": [
-        0, 1, 8, 7, 6, 21, 10, 8, 7, 7, 7, 21, 33, 7, 6, 7, 7, 55, 7, 14, 14, 7, 7, 17, 62, 9, 13, 9, 9, 7, 6,
-        69, 6, 5, 8, 24, 28, 7, 10, 6, 19, 21, 58, 44, 67, 13, 14, 14, 21, 7, 9, 15
+        0, 5, 8, 5, 5, 21, 9, 7, 7, 7, 7, 21, 22, 12, 21, 49, 7, 14, 14, 7, 7, 53, 9, 8, 13, 9, 8, 7, 42, 7,
+        7, 8, 36, 9, 14, 12, 6, 19, 21, 24, 46, 7, 15, 10, 14, 28, 7, 28, 7, 8, 39, 49, 42, 13
       ],
-      "v": "XAEBFABDBCBXBCHCBCBGBCAXEABABCBCBABCEABCBXFBCGBCBAB"
+      "v": "XAEBFABDBCBXBCBCBGBCAEACABCBCBABCEABCBXBCABDBCBCABFBX"
+    },
+    "tb.rook.branch": {
+      "h": "271c4222405b494c",
+      "e": "neutral",
+      "t": [
+        0, 5, 5, 5, 14, 21, 50, 7, 21, 7, 14, 7, 21, 12, 8, 14, 28, 7, 28, 29, 21, 14, 21, 28, 7, 35, 8, 21,
+        14, 12, 9, 14, 21, 7, 7, 28, 14, 7, 25, 20, 4
+      ],
+      "v": "XBCBFBCBCFEBABCBEFXBCEBEBACBABCBFCBDCABX"
     },
     "tb.rook.03": {
       "h": "48043184b9e02f07",
@@ -2765,6 +2756,15 @@
         7, 10, 4, 8, 60, 5, 5, 14, 14, 7, 7, 8, 15, 14, 26
       ],
       "v": "XBCBAEBAHCXBCACBXABAFGBCABCBDCABCBCBGEAHCX"
+    },
+    "tb.rook.scope": {
+      "h": "71b95a05bf903867",
+      "e": "neutral",
+      "t": [
+        0, 12, 8, 14, 8, 18, 7, 7, 14, 21, 14, 8, 12, 21, 14, 11, 8, 28, 35, 12, 25, 7, 7, 7, 7, 8, 7, 13, 21,
+        14, 14, 14
+      ],
+      "v": "XBEACHBCBFACBEAGEBABCBCBACBCBEX"
     },
     "tb.rook.04": {
       "h": "fce0bad7695aeaca",
@@ -2785,28 +2785,37 @@
       "v": "ACBECBGXBAFCACBEACABFXBEBDCABXBCACBCAFBCBCBCABCBX"
     },
     "tb.rook.06": {
-      "h": "e93c649e06b281bf",
+      "h": "1e0835b7f81e63ff",
       "e": "neutral",
       "t": [
-        0, 3, 11, 21, 14, 21, 17, 2, 8, 8, 10, 8, 15, 14, 42, 10, 14, 28, 7, 28, 21, 8, 22, 8, 23, 28, 24, 27,
-        21, 21, 18, 24, 8, 17, 21, 20
+        0, 6, 8, 28, 7, 21, 8, 17, 7, 4, 10, 17, 2, 8, 8, 15, 8, 18, 21, 46, 16, 7, 56, 14, 25, 6, 27, 14, 21,
+        28, 33, 28, 14, 7, 7, 14, 63, 21, 7, 28, 30, 7, 13, 7, 7, 21, 19, 12, 49, 14, 7, 21, 21, 13
       ],
-      "v": "XBCBFBABABAHCXBCBCBCAEABHXBEBXBACBX"
+      "v": "XBCBEACHEFBABABAHCXBCBCACBEBXBFBCBCBEBEABDCBDCEBCBCBX"
+    },
+    "tb.rook.go": {
+      "h": "e67b31711a8975fb",
+      "e": "neutral",
+      "t": [
+        0, 8, 8, 7, 7, 21, 38, 21, 7, 39, 12, 14, 8, 12, 21, 21, 14, 14, 21, 7, 46, 17, 14, 5, 25, 8, 21, 14,
+        27, 13, 14, 8, 5, 25, 14, 21, 23
+      ],
+      "v": "XEGFEFBCAFEAFCBCGBCABXBCACBXBCABFBEX"
+    },
+    "tb.rook.back": {
+      "h": "3e2f22e4f1bd5e47",
+      "e": "neutral",
+      "t": [
+        0, 4, 31, 8, 30, 45, 12, 7, 7, 7, 6, 12, 21, 7, 14, 7, 21, 7, 7, 28, 7, 30, 7, 21, 7, 7, 7, 7, 7, 28,
+        14, 14, 19
+      ],
+      "v": "ACABXBCABACFBCBCEFBCBCBFBFCGBCBX"
     },
     "tb.rook.next": {
       "h": "f50128ba2dad2182",
       "e": "neutral",
       "t": [0, 1, 8, 8, 8, 29, 14, 7, 14, 7, 8, 33, 7, 14, 21, 7, 37, 8, 11, 5, 12, 7, 6],
       "v": "XABABCBECABDCEGBCACEFX"
-    },
-    "tb.rook.assignment": {
-      "h": "61140b1bab2d318f",
-      "e": "neutral",
-      "t": [
-        0, 6, 6, 34, 21, 7, 18, 20, 14, 21, 24, 11, 21, 19, 5, 39, 14, 13, 7, 8, 23, 24, 8, 48, 32, 7, 28, 14,
-        7, 28, 9
-      ],
-      "v": "XCECECBCHBCBDCBAGBAFBCABEFECBX"
     },
     "tb.rook.done": {
       "h": "27f3b5f7ed0c9bde",
@@ -2874,6 +2883,21 @@
       ],
       "v": "XBCBCBEACBFBDCABCBCBGCHABEGEBCEAFBFCBX"
     },
+    "tb.pip.go": {
+      "h": "10f7abdcaa4b2302",
+      "e": "neutral",
+      "t": [
+        0, 3, 17, 7, 8, 21, 7, 14, 14, 14, 14, 7, 21, 25, 6, 26, 8, 20, 29, 7, 7, 14, 7, 8, 6, 5, 35, 7, 7, 7,
+        7, 14, 7, 21, 20
+      ],
+      "v": "XBCAEFBFBCBCXBCACBCBCHABFBDBCHBCBX"
+    },
+    "tb.pip.back": {
+      "h": "f16fdc260236bdc1",
+      "e": "neutral",
+      "t": [0, 3, 10, 28, 35, 37, 9, 7, 14, 7, 14, 21, 14, 14, 21, 14, 7, 8, 7, 6, 35, 7, 14, 4],
+      "v": "ACEBXBGFBCBDCHCHABFBCBX"
+    },
     "tb.pip.next": {
       "h": "4678a4dd3b91a2e1",
       "e": "neutral",
@@ -2931,6 +2955,36 @@
         14, 28, 1
       ],
       "v": "XBHCBGCBABCBAFBCBFBFECXBGFXBADCBXBCBABGFBXBCACBAFBCBCBCBX"
+    },
+    "tb.elder.assignment": {
+      "h": "da7ef2e68e24f298",
+      "e": "neutral",
+      "t": [
+        0, 7, 5, 11, 8, 14, 7, 7, 8, 19, 8, 5, 25, 71, 5, 4, 14, 7, 14, 28, 14, 28, 7, 28, 12, 10, 7, 8, 14,
+        4, 19, 39, 32, 27, 8, 14, 7, 77, 7, 14, 7, 21, 14, 21, 8, 13, 21, 4
+      ],
+      "v": "XFCAEBEACABCXBCHCBCBECBAGBAFECABFEHCBFBCBCBACBX"
+    },
+    "tb.elder.assignment.go": {
+      "h": "04e355cbf9057fa1",
+      "e": "neutral",
+      "t": [0, 3, 11, 42, 7, 57, 41, 8, 21, 42, 7, 8, 8, 7, 7, 21, 19, 5, 18, 4],
+      "v": "XFBCACACBFABFCFDCBX"
+    },
+    "tb.elder.assignment.back": {
+      "h": "0def617e1013906e",
+      "e": "neutral",
+      "t": [0, 3, 12, 14, 14, 35, 8, 19, 9, 5, 25, 34, 10, 7, 7, 8, 18, 4],
+      "v": "ACBFBACABCXBEFABX"
+    },
+    "tb.elder.assignment.done": {
+      "h": "3b54e7804389c691",
+      "e": "neutral",
+      "t": [
+        0, 1, 8, 11, 28, 14, 28, 8, 28, 39, 51, 14, 46, 7, 7, 17, 30, 7, 21, 7, 14, 7, 42, 97, 7, 21, 14, 7,
+        14, 35, 49, 14, 35, 9, 7, 20, 4
+      ],
+      "v": "XACBDCABXBABCBGBCBFECBXCBCECBFECABCX"
     },
     "tb.elder.done": {
       "h": "091583a8badfbe2c",

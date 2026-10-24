@@ -1,0 +1,67 @@
+{
+  "id": "tb.rook.scope",
+  "speaker": "Rook",
+  "text": "If Copilot asks you about the scope first, pick the recommended answer.",
+  "words": [
+    {
+      "word": "If",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "Copilot",
+      "start": 0.24,
+      "end": 0.784
+    },
+    {
+      "word": "asks",
+      "start": 0.784,
+      "end": 1.08
+    },
+    {
+      "word": "you",
+      "start": 1.08,
+      "end": 1.227
+    },
+    {
+      "word": "about",
+      "start": 1.227,
+      "end": 1.4
+    },
+    {
+      "word": "the",
+      "start": 1.4,
+      "end": 1.573
+    },
+    {
+      "word": "scope",
+      "start": 1.573,
+      "end": 1.92
+    },
+    {
+      "word": "first",
+      "start": 1.92,
+      "end": 2.672
+    },
+    {
+      "word": "pick",
+      "start": 2.672,
+      "end": 2.84
+    },
+    {
+      "word": "the",
+      "start": 2.84,
+      "end": 3.007
+    },
+    {
+      "word": "recommended",
+      "start": 3.007,
+      "end": 3.577
+    },
+    {
+      "word": "answer",
+      "start": 3.577,
+      "end": 3.827
+    }
+  ]
+}

@@ -30697,95 +30697,6 @@
       "voice": "y6p0SvBlfEe2MH4XN7BP"
     },
     {
-      "id": "tb.fen.close",
-      "speaker": "Fen",
-      "text": "Worktrees separate files and branches, not everything. Dev servers, databases and ports can still collide.",
-      "duration": 8.808,
-      "files": {
-        "webm": "tb.fen.close.webm",
-        "m4a": "tb.fen.close.m4a"
-      },
-      "hash": "0bf1a0147fa42619",
-      "words": [
-        {
-          "word": "Worktrees",
-          "start": 0,
-          "end": 0.729
-        },
-        {
-          "word": "separate",
-          "start": 0.729,
-          "end": 1.533
-        },
-        {
-          "word": "files",
-          "start": 1.533,
-          "end": 2.02
-        },
-        {
-          "word": "and",
-          "start": 2.02,
-          "end": 2.151
-        },
-        {
-          "word": "branches",
-          "start": 2.151,
-          "end": 3.1
-        },
-        {
-          "word": "not",
-          "start": 3.1,
-          "end": 3.324
-        },
-        {
-          "word": "everything",
-          "start": 3.324,
-          "end": 4.06
-        },
-        {
-          "word": "Dev",
-          "start": 4.06,
-          "end": 4.54
-        },
-        {
-          "word": "servers",
-          "start": 4.54,
-          "end": 5.144
-        },
-        {
-          "word": "databases",
-          "start": 5.144,
-          "end": 6.14
-        },
-        {
-          "word": "and",
-          "start": 6.14,
-          "end": 6.413
-        },
-        {
-          "word": "ports",
-          "start": 6.413,
-          "end": 7
-        },
-        {
-          "word": "can",
-          "start": 7,
-          "end": 7.413
-        },
-        {
-          "word": "still",
-          "start": 7.413,
-          "end": 7.76
-        },
-        {
-          "word": "collide",
-          "start": 7.76,
-          "end": 8.01
-        }
-      ],
-      "voice": "y6p0SvBlfEe2MH4XN7BP"
-    },
-    {
       "id": "tb.fen.app",
       "speaker": "Fen",
       "text": "In the app you don't dig channels. Pick New worktree in the workspace selector, and the app makes the folder and branch.",
@@ -30905,90 +30816,6 @@
           "word": "branch",
           "start": 6.469,
           "end": 6.719
-        }
-      ],
-      "voice": "y6p0SvBlfEe2MH4XN7BP"
-    },
-    {
-      "id": "tb.fen.oneatatime",
-      "speaker": "Fen",
-      "text": "Mind, the course has you work one session at a time in this chapter.",
-      "duration": 5.008,
-      "files": {
-        "webm": "tb.fen.oneatatime.webm",
-        "m4a": "tb.fen.oneatatime.m4a"
-      },
-      "hash": "69bdb536e13dbca0",
-      "words": [
-        {
-          "word": "Mind",
-          "start": 0,
-          "end": 0.92
-        },
-        {
-          "word": "the",
-          "start": 0.92,
-          "end": 1.086
-        },
-        {
-          "word": "course",
-          "start": 1.086,
-          "end": 1.42
-        },
-        {
-          "word": "has",
-          "start": 1.42,
-          "end": 1.64
-        },
-        {
-          "word": "you",
-          "start": 1.64,
-          "end": 1.824
-        },
-        {
-          "word": "work",
-          "start": 1.824,
-          "end": 2.16
-        },
-        {
-          "word": "one",
-          "start": 2.16,
-          "end": 2.46
-        },
-        {
-          "word": "session",
-          "start": 2.46,
-          "end": 2.96
-        },
-        {
-          "word": "at",
-          "start": 2.96,
-          "end": 3.16
-        },
-        {
-          "word": "a",
-          "start": 3.16,
-          "end": 3.296
-        },
-        {
-          "word": "time",
-          "start": 3.296,
-          "end": 3.733
-        },
-        {
-          "word": "in",
-          "start": 3.733,
-          "end": 3.872
-        },
-        {
-          "word": "this",
-          "start": 3.872,
-          "end": 4.06
-        },
-        {
-          "word": "chapter",
-          "start": 4.06,
-          "end": 4.31
         }
       ],
       "voice": "y6p0SvBlfEe2MH4XN7BP"
@@ -32580,22 +32407,22 @@
     {
       "id": "tb.rook.02",
       "speaker": "Rook",
-      "text": "Point to the project, select Create from, open Branches and pick our branch. New worktree, every time.",
-      "duration": 8.708,
+      "text": "Point to the project, select Create from, open Branches and pick our branch. The app starts a session from it in a new worktree.",
+      "duration": 8.808,
       "files": {
         "webm": "tb.rook.02.webm",
         "m4a": "tb.rook.02.m4a"
       },
-      "hash": "cf088e60c68c0e31",
+      "hash": "c29d31731f1dcb2e",
       "words": [
         {
           "word": "Point",
           "start": 0,
-          "end": 0.213
+          "end": 0.267
         },
         {
           "word": "to",
-          "start": 0.213,
+          "start": 0.267,
           "end": 0.34
         },
         {
@@ -32606,72 +32433,211 @@
         {
           "word": "project",
           "start": 0.46,
-          "end": 1.337
+          "end": 1.257
         },
         {
           "word": "select",
-          "start": 1.337,
-          "end": 1.771
+          "start": 1.257,
+          "end": 1.68
         },
         {
           "word": "Create",
-          "start": 1.771,
-          "end": 2.384
+          "start": 1.68,
+          "end": 2.24
         },
         {
           "word": "from",
-          "start": 2.384,
-          "end": 3.104
+          "start": 2.24,
+          "end": 3.024
         },
         {
           "word": "open",
-          "start": 3.104,
-          "end": 3.737
+          "start": 3.024,
+          "end": 3.337
         },
         {
           "word": "Branches",
-          "start": 3.737,
-          "end": 4.36
+          "start": 3.337,
+          "end": 3.98
         },
         {
           "word": "and",
-          "start": 4.36,
-          "end": 4.784
+          "start": 3.98,
+          "end": 4.224
         },
         {
           "word": "pick",
-          "start": 4.784,
-          "end": 5.12
+          "start": 4.224,
+          "end": 4.56
         },
         {
           "word": "our",
-          "start": 5.12,
-          "end": 5.429
+          "start": 4.56,
+          "end": 4.869
         },
         {
           "word": "branch",
-          "start": 5.429,
-          "end": 6.3
+          "start": 4.869,
+          "end": 5.7
         },
         {
-          "word": "New",
-          "start": 6.3,
-          "end": 6.784
+          "word": "The",
+          "start": 5.7,
+          "end": 6.06
+        },
+        {
+          "word": "app",
+          "start": 6.06,
+          "end": 6.297
+        },
+        {
+          "word": "starts",
+          "start": 6.297,
+          "end": 6.68
+        },
+        {
+          "word": "a",
+          "start": 6.68,
+          "end": 6.76
+        },
+        {
+          "word": "session",
+          "start": 6.76,
+          "end": 7.088
+        },
+        {
+          "word": "from",
+          "start": 7.088,
+          "end": 7.333
+        },
+        {
+          "word": "it",
+          "start": 7.333,
+          "end": 7.493
+        },
+        {
+          "word": "in",
+          "start": 7.493,
+          "end": 7.64
+        },
+        {
+          "word": "a",
+          "start": 7.64,
+          "end": 7.74
+        },
+        {
+          "word": "new",
+          "start": 7.74,
+          "end": 8
         },
         {
           "word": "worktree",
-          "start": 6.784,
-          "end": 7.733
+          "start": 8,
+          "end": 8.25
+        }
+      ],
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
+    },
+    {
+      "id": "tb.rook.branch",
+      "speaker": "Rook",
+      "text": "That worktree gets a working branch of its own. Ours is only its base branch, where it starts.",
+      "duration": 6.408,
+      "files": {
+        "webm": "tb.rook.branch.webm",
+        "m4a": "tb.rook.branch.m4a"
+      },
+      "hash": "271c4222405b494c",
+      "words": [
+        {
+          "word": "That",
+          "start": 0,
+          "end": 0.24
         },
         {
-          "word": "every",
-          "start": 7.733,
-          "end": 8.08
+          "word": "worktree",
+          "start": 0.24,
+          "end": 0.864
         },
         {
-          "word": "time",
-          "start": 8.08,
-          "end": 8.33
+          "word": "gets",
+          "start": 0.864,
+          "end": 1.16
+        },
+        {
+          "word": "a",
+          "start": 1.16,
+          "end": 1.26
+        },
+        {
+          "word": "working",
+          "start": 1.26,
+          "end": 1.726
+        },
+        {
+          "word": "branch",
+          "start": 1.726,
+          "end": 2.027
+        },
+        {
+          "word": "of",
+          "start": 2.027,
+          "end": 2.14
+        },
+        {
+          "word": "its",
+          "start": 2.14,
+          "end": 2.4
+        },
+        {
+          "word": "own",
+          "start": 2.4,
+          "end": 3.08
+        },
+        {
+          "word": "Ours",
+          "start": 3.08,
+          "end": 3.653
+        },
+        {
+          "word": "is",
+          "start": 3.653,
+          "end": 3.824
+        },
+        {
+          "word": "only",
+          "start": 3.824,
+          "end": 4.12
+        },
+        {
+          "word": "its",
+          "start": 4.12,
+          "end": 4.32
+        },
+        {
+          "word": "base",
+          "start": 4.32,
+          "end": 4.709
+        },
+        {
+          "word": "branch",
+          "start": 4.709,
+          "end": 5.227
+        },
+        {
+          "word": "where",
+          "start": 5.227,
+          "end": 5.413
+        },
+        {
+          "word": "it",
+          "start": 5.413,
+          "end": 5.611
+        },
+        {
+          "word": "starts",
+          "start": 5.611,
+          "end": 5.861
         }
       ],
       "voice": "poHOO1m3tBNm4Ywmzcaq"
@@ -32776,6 +32742,80 @@
           "word": "plan",
           "start": 7.36,
           "end": 7.61
+        }
+      ],
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
+    },
+    {
+      "id": "tb.rook.scope",
+      "speaker": "Rook",
+      "text": "If Copilot asks you about the scope first, pick the recommended answer.",
+      "duration": 4.208,
+      "files": {
+        "webm": "tb.rook.scope.webm",
+        "m4a": "tb.rook.scope.m4a"
+      },
+      "hash": "71b95a05bf903867",
+      "words": [
+        {
+          "word": "If",
+          "start": 0,
+          "end": 0.24
+        },
+        {
+          "word": "Copilot",
+          "start": 0.24,
+          "end": 0.784
+        },
+        {
+          "word": "asks",
+          "start": 0.784,
+          "end": 1.08
+        },
+        {
+          "word": "you",
+          "start": 1.08,
+          "end": 1.227
+        },
+        {
+          "word": "about",
+          "start": 1.227,
+          "end": 1.4
+        },
+        {
+          "word": "the",
+          "start": 1.4,
+          "end": 1.573
+        },
+        {
+          "word": "scope",
+          "start": 1.573,
+          "end": 1.92
+        },
+        {
+          "word": "first",
+          "start": 1.92,
+          "end": 2.672
+        },
+        {
+          "word": "pick",
+          "start": 2.672,
+          "end": 2.84
+        },
+        {
+          "word": "the",
+          "start": 2.84,
+          "end": 3.007
+        },
+        {
+          "word": "recommended",
+          "start": 3.007,
+          "end": 3.577
+        },
+        {
+          "word": "answer",
+          "start": 3.577,
+          "end": 3.827
         }
       ],
       "voice": "poHOO1m3tBNm4Ywmzcaq"
@@ -32996,93 +33036,356 @@
     {
       "id": "tb.rook.06",
       "speaker": "Rook",
-      "text": "Then ask it to implement the plan, check the Changes tab or pill, reload, and compare.",
-      "duration": 6.008,
+      "text": "Then ask Copilot to implement the plan, check the Changes tab and reload. It should suggest changing the search term, genre or reading status.",
+      "duration": 9.408,
       "files": {
         "webm": "tb.rook.06.webm",
         "m4a": "tb.rook.06.m4a"
       },
-      "hash": "e93c649e06b281bf",
+      "hash": "1e0835b7f81e63ff",
       "words": [
         {
           "word": "Then",
           "start": 0,
-          "end": 0.22
+          "end": 0.24
         },
         {
           "word": "ask",
-          "start": 0.22,
-          "end": 0.427
+          "start": 0.24,
+          "end": 0.56
         },
         {
-          "word": "it",
-          "start": 0.427,
-          "end": 0.533
+          "word": "Copilot",
+          "start": 0.56,
+          "end": 1.067
         },
         {
           "word": "to",
-          "start": 0.533,
-          "end": 0.68
+          "start": 1.067,
+          "end": 1.16
         },
         {
           "word": "implement",
-          "start": 0.68,
-          "end": 1.06
+          "start": 1.16,
+          "end": 1.54
         },
         {
           "word": "the",
-          "start": 1.06,
-          "end": 1.184
+          "start": 1.54,
+          "end": 1.68
         },
         {
           "word": "plan",
-          "start": 1.184,
-          "end": 1.893
+          "start": 1.68,
+          "end": 2.533
         },
         {
           "word": "check",
-          "start": 1.893,
-          "end": 2.18
-        },
-        {
-          "word": "the",
-          "start": 2.18,
-          "end": 2.3
-        },
-        {
-          "word": "Changes",
-          "start": 2.3,
+          "start": 2.533,
           "end": 2.82
         },
         {
-          "word": "tab",
+          "word": "the",
           "start": 2.82,
-          "end": 3.173
+          "end": 2.93
         },
         {
-          "word": "or",
-          "start": 3.173,
-          "end": 3.376
+          "word": "Changes",
+          "start": 2.93,
+          "end": 3.36
         },
         {
-          "word": "pill",
-          "start": 3.376,
-          "end": 4.309
-        },
-        {
-          "word": "reload",
-          "start": 4.309,
-          "end": 4.92
+          "word": "tab",
+          "start": 3.36,
+          "end": 3.66
         },
         {
           "word": "and",
-          "start": 4.92,
-          "end": 5.11
+          "start": 3.66,
+          "end": 3.909
         },
         {
-          "word": "compare",
-          "start": 5.11,
-          "end": 5.36
+          "word": "reload",
+          "start": 3.909,
+          "end": 4.773
+        },
+        {
+          "word": "It",
+          "start": 4.773,
+          "end": 5.074
+        },
+        {
+          "word": "should",
+          "start": 5.074,
+          "end": 5.34
+        },
+        {
+          "word": "suggest",
+          "start": 5.34,
+          "end": 5.804
+        },
+        {
+          "word": "changing",
+          "start": 5.804,
+          "end": 6.18
+        },
+        {
+          "word": "the",
+          "start": 6.18,
+          "end": 6.286
+        },
+        {
+          "word": "search",
+          "start": 6.286,
+          "end": 6.624
+        },
+        {
+          "word": "term",
+          "start": 6.624,
+          "end": 7.267
+        },
+        {
+          "word": "genre",
+          "start": 7.267,
+          "end": 7.76
+        },
+        {
+          "word": "or",
+          "start": 7.76,
+          "end": 8.13
+        },
+        {
+          "word": "reading",
+          "start": 8.13,
+          "end": 8.571
+        },
+        {
+          "word": "status",
+          "start": 8.571,
+          "end": 8.821
+        }
+      ],
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
+    },
+    {
+      "id": "tb.rook.go",
+      "speaker": "Rook",
+      "text": "Off you go, do it in the app. Your Logbook has every step. Then come back and tell me what you saw.",
+      "duration": 6.008,
+      "files": {
+        "webm": "tb.rook.go.webm",
+        "m4a": "tb.rook.go.m4a"
+      },
+      "hash": "e67b31711a8975fb",
+      "words": [
+        {
+          "word": "Off",
+          "start": 0,
+          "end": 0.18
+        },
+        {
+          "word": "you",
+          "start": 0.18,
+          "end": 0.32
+        },
+        {
+          "word": "go",
+          "start": 0.32,
+          "end": 0.693
+        },
+        {
+          "word": "do",
+          "start": 0.693,
+          "end": 0.827
+        },
+        {
+          "word": "it",
+          "start": 0.827,
+          "end": 0.907
+        },
+        {
+          "word": "in",
+          "start": 0.907,
+          "end": 0.98
+        },
+        {
+          "word": "the",
+          "start": 0.98,
+          "end": 1.1
+        },
+        {
+          "word": "app",
+          "start": 1.1,
+          "end": 1.408
+        },
+        {
+          "word": "Your",
+          "start": 1.408,
+          "end": 1.66
+        },
+        {
+          "word": "Logbook",
+          "start": 1.66,
+          "end": 2.06
+        },
+        {
+          "word": "has",
+          "start": 2.06,
+          "end": 2.32
+        },
+        {
+          "word": "every",
+          "start": 2.32,
+          "end": 2.8
+        },
+        {
+          "word": "step",
+          "start": 2.8,
+          "end": 3.392
+        },
+        {
+          "word": "Then",
+          "start": 3.392,
+          "end": 3.888
+        },
+        {
+          "word": "come",
+          "start": 3.888,
+          "end": 4.144
+        },
+        {
+          "word": "back",
+          "start": 4.144,
+          "end": 4.5
+        },
+        {
+          "word": "and",
+          "start": 4.5,
+          "end": 4.832
+        },
+        {
+          "word": "tell",
+          "start": 4.832,
+          "end": 5.013
+        },
+        {
+          "word": "me",
+          "start": 5.013,
+          "end": 5.136
+        },
+        {
+          "word": "what",
+          "start": 5.136,
+          "end": 5.24
+        },
+        {
+          "word": "you",
+          "start": 5.24,
+          "end": 5.44
+        },
+        {
+          "word": "saw",
+          "start": 5.44,
+          "end": 5.69
+        }
+      ],
+      "voice": "poHOO1m3tBNm4Ywmzcaq"
+    },
+    {
+      "id": "tb.rook.back",
+      "speaker": "Rook",
+      "text": "Back, Captain? Tell me about your session, or just say so if you haven't done it yet.",
+      "duration": 4.608,
+      "files": {
+        "webm": "tb.rook.back.webm",
+        "m4a": "tb.rook.back.m4a"
+      },
+      "hash": "3e2f22e4f1bd5e47",
+      "words": [
+        {
+          "word": "Back",
+          "start": 0,
+          "end": 0.385
+        },
+        {
+          "word": "Captain",
+          "start": 0.385,
+          "end": 0.784
+        },
+        {
+          "word": "Tell",
+          "start": 0.784,
+          "end": 1.387
+        },
+        {
+          "word": "me",
+          "start": 1.387,
+          "end": 1.48
+        },
+        {
+          "word": "about",
+          "start": 1.48,
+          "end": 1.696
+        },
+        {
+          "word": "your",
+          "start": 1.696,
+          "end": 1.82
+        },
+        {
+          "word": "session",
+          "start": 1.82,
+          "end": 2.373
+        },
+        {
+          "word": "or",
+          "start": 2.373,
+          "end": 2.56
+        },
+        {
+          "word": "just",
+          "start": 2.56,
+          "end": 2.96
+        },
+        {
+          "word": "say",
+          "start": 2.96,
+          "end": 3.28
+        },
+        {
+          "word": "so",
+          "start": 3.28,
+          "end": 3.467
+        },
+        {
+          "word": "if",
+          "start": 3.467,
+          "end": 3.54
+        },
+        {
+          "word": "you",
+          "start": 3.54,
+          "end": 3.627
+        },
+        {
+          "word": "haven't",
+          "start": 3.627,
+          "end": 3.872
+        },
+        {
+          "word": "done",
+          "start": 3.872,
+          "end": 4.027
+        },
+        {
+          "word": "it",
+          "start": 4.027,
+          "end": 4.14
+        },
+        {
+          "word": "yet",
+          "start": 4.14,
+          "end": 4.39
         }
       ],
       "voice": "poHOO1m3tBNm4Ywmzcaq"
@@ -33162,100 +33465,6 @@
           "word": "go",
           "start": 2.48,
           "end": 2.728
-        }
-      ],
-      "voice": "poHOO1m3tBNm4Ywmzcaq"
-    },
-    {
-      "id": "tb.rook.assignment",
-      "speaker": "Rook",
-      "text": "Your turn now: a light and dark theme for the Book App, in its own worktree.",
-      "duration": 5.408,
-      "files": {
-        "webm": "tb.rook.assignment.webm",
-        "m4a": "tb.rook.assignment.m4a"
-      },
-      "hash": "61140b1bab2d318f",
-      "words": [
-        {
-          "word": "Your",
-          "start": 0,
-          "end": 0.208
-        },
-        {
-          "word": "turn",
-          "start": 0.208,
-          "end": 0.46
-        },
-        {
-          "word": "now",
-          "start": 0.46,
-          "end": 1
-        },
-        {
-          "word": "a",
-          "start": 1,
-          "end": 1.267
-        },
-        {
-          "word": "light",
-          "start": 1.267,
-          "end": 1.66
-        },
-        {
-          "word": "and",
-          "start": 1.66,
-          "end": 1.92
-        },
-        {
-          "word": "dark",
-          "start": 1.92,
-          "end": 2.307
-        },
-        {
-          "word": "theme",
-          "start": 2.307,
-          "end": 2.7
-        },
-        {
-          "word": "for",
-          "start": 2.7,
-          "end": 2.9
-        },
-        {
-          "word": "the",
-          "start": 2.9,
-          "end": 3.04
-        },
-        {
-          "word": "Book",
-          "start": 3.04,
-          "end": 3.46
-        },
-        {
-          "word": "App",
-          "start": 3.46,
-          "end": 3.92
-        },
-        {
-          "word": "in",
-          "start": 3.92,
-          "end": 4.14
-        },
-        {
-          "word": "its",
-          "start": 4.14,
-          "end": 4.38
-        },
-        {
-          "word": "own",
-          "start": 4.38,
-          "end": 4.64
-        },
-        {
-          "word": "worktree",
-          "start": 4.64,
-          "end": 4.89
         }
       ],
       "voice": "poHOO1m3tBNm4Ywmzcaq"
@@ -33963,6 +34172,169 @@
       "voice": "gwU7DXdLrTvWCiUTPZG8"
     },
     {
+      "id": "tb.pip.go",
+      "speaker": "Pip",
+      "text": "Run both in your session, then come back and tell me what the chronicle said.",
+      "duration": 4.408,
+      "files": {
+        "webm": "tb.pip.go.webm",
+        "m4a": "tb.pip.go.m4a"
+      },
+      "hash": "10f7abdcaa4b2302",
+      "words": [
+        {
+          "word": "Run",
+          "start": 0,
+          "end": 0.32
+        },
+        {
+          "word": "both",
+          "start": 0.32,
+          "end": 0.667
+        },
+        {
+          "word": "in",
+          "start": 0.667,
+          "end": 0.752
+        },
+        {
+          "word": "your",
+          "start": 0.752,
+          "end": 0.94
+        },
+        {
+          "word": "session",
+          "start": 0.94,
+          "end": 1.648
+        },
+        {
+          "word": "then",
+          "start": 1.648,
+          "end": 1.872
+        },
+        {
+          "word": "come",
+          "start": 1.872,
+          "end": 2.08
+        },
+        {
+          "word": "back",
+          "start": 2.08,
+          "end": 2.46
+        },
+        {
+          "word": "and",
+          "start": 2.46,
+          "end": 2.688
+        },
+        {
+          "word": "tell",
+          "start": 2.688,
+          "end": 2.933
+        },
+        {
+          "word": "me",
+          "start": 2.933,
+          "end": 3.056
+        },
+        {
+          "word": "what",
+          "start": 3.056,
+          "end": 3.14
+        },
+        {
+          "word": "the",
+          "start": 3.14,
+          "end": 3.253
+        },
+        {
+          "word": "chronicle",
+          "start": 3.253,
+          "end": 3.76
+        },
+        {
+          "word": "said",
+          "start": 3.76,
+          "end": 4.01
+        }
+      ],
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
+    },
+    {
+      "id": "tb.pip.back",
+      "speaker": "Pip",
+      "text": "Back already? If you ran the chronicle, tell me what it said.",
+      "duration": 3.408,
+      "files": {
+        "webm": "tb.pip.back.webm",
+        "m4a": "tb.pip.back.m4a"
+      },
+      "hash": "f16fdc260236bdc1",
+      "words": [
+        {
+          "word": "Back",
+          "start": 0,
+          "end": 0.21
+        },
+        {
+          "word": "already",
+          "start": 0.21,
+          "end": 0.827
+        },
+        {
+          "word": "If",
+          "start": 0.827,
+          "end": 1.24
+        },
+        {
+          "word": "you",
+          "start": 1.24,
+          "end": 1.4
+        },
+        {
+          "word": "ran",
+          "start": 1.4,
+          "end": 1.54
+        },
+        {
+          "word": "the",
+          "start": 1.54,
+          "end": 1.653
+        },
+        {
+          "word": "chronicle",
+          "start": 1.653,
+          "end": 2.352
+        },
+        {
+          "word": "tell",
+          "start": 2.352,
+          "end": 2.533
+        },
+        {
+          "word": "me",
+          "start": 2.533,
+          "end": 2.672
+        },
+        {
+          "word": "what",
+          "start": 2.672,
+          "end": 2.827
+        },
+        {
+          "word": "it",
+          "start": 2.827,
+          "end": 2.96
+        },
+        {
+          "word": "said",
+          "start": 2.96,
+          "end": 3.21
+        }
+      ],
+      "voice": "gwU7DXdLrTvWCiUTPZG8"
+    },
+    {
       "id": "tb.pip.next",
       "speaker": "Pip",
       "text": "The Elder's waiting at the Crown, Captain. Last flight up.",
@@ -34535,6 +34907,352 @@
           "word": "checks",
           "start": 10.16,
           "end": 10.41
+        }
+      ],
+      "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    {
+      "id": "tb.elder.assignment",
+      "speaker": "Maren",
+      "text": "One more job, Captain: a light and dark theme for the Book App, in its own worktree, without touching main.",
+      "duration": 7.608,
+      "files": {
+        "webm": "tb.elder.assignment.webm",
+        "m4a": "tb.elder.assignment.m4a"
+      },
+      "hash": "da7ef2e68e24f298",
+      "words": [
+        {
+          "word": "One",
+          "start": 0,
+          "end": 0.208
+        },
+        {
+          "word": "more",
+          "start": 0.208,
+          "end": 0.46
+        },
+        {
+          "word": "job",
+          "start": 0.46,
+          "end": 0.77
+        },
+        {
+          "word": "Captain",
+          "start": 0.77,
+          "end": 1.88
+        },
+        {
+          "word": "a",
+          "start": 1.88,
+          "end": 2
+        },
+        {
+          "word": "light",
+          "start": 2,
+          "end": 2.46
+        },
+        {
+          "word": "and",
+          "start": 2.46,
+          "end": 2.72
+        },
+        {
+          "word": "dark",
+          "start": 2.72,
+          "end": 3.107
+        },
+        {
+          "word": "theme",
+          "start": 3.107,
+          "end": 3.48
+        },
+        {
+          "word": "for",
+          "start": 3.48,
+          "end": 3.62
+        },
+        {
+          "word": "the",
+          "start": 3.62,
+          "end": 3.744
+        },
+        {
+          "word": "Book",
+          "start": 3.744,
+          "end": 4.08
+        },
+        {
+          "word": "App",
+          "start": 4.08,
+          "end": 4.693
+        },
+        {
+          "word": "in",
+          "start": 4.693,
+          "end": 4.86
+        },
+        {
+          "word": "its",
+          "start": 4.86,
+          "end": 5.08
+        },
+        {
+          "word": "own",
+          "start": 5.08,
+          "end": 5.28
+        },
+        {
+          "word": "worktree",
+          "start": 5.28,
+          "end": 6.21
+        },
+        {
+          "word": "without",
+          "start": 6.21,
+          "end": 6.604
+        },
+        {
+          "word": "touching",
+          "start": 6.604,
+          "end": 7.04
+        },
+        {
+          "word": "main",
+          "start": 7.04,
+          "end": 7.29
+        }
+      ],
+      "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    {
+      "id": "tb.elder.assignment.go",
+      "speaker": "Maren",
+      "text": "Do it in the app, then come back and show me what you've got.",
+      "duration": 3.408,
+      "files": {
+        "webm": "tb.elder.assignment.go.webm",
+        "m4a": "tb.elder.assignment.go.m4a"
+      },
+      "hash": "04e355cbf9057fa1",
+      "words": [
+        {
+          "word": "Do",
+          "start": 0,
+          "end": 0.133
+        },
+        {
+          "word": "it",
+          "start": 0.133,
+          "end": 0.267
+        },
+        {
+          "word": "in",
+          "start": 0.267,
+          "end": 0.36
+        },
+        {
+          "word": "the",
+          "start": 0.36,
+          "end": 0.56
+        },
+        {
+          "word": "app",
+          "start": 0.56,
+          "end": 1.168
+        },
+        {
+          "word": "then",
+          "start": 1.168,
+          "end": 1.408
+        },
+        {
+          "word": "come",
+          "start": 1.408,
+          "end": 1.664
+        },
+        {
+          "word": "back",
+          "start": 1.664,
+          "end": 1.96
+        },
+        {
+          "word": "and",
+          "start": 1.96,
+          "end": 2.128
+        },
+        {
+          "word": "show",
+          "start": 2.128,
+          "end": 2.373
+        },
+        {
+          "word": "me",
+          "start": 2.373,
+          "end": 2.512
+        },
+        {
+          "word": "what",
+          "start": 2.512,
+          "end": 2.68
+        },
+        {
+          "word": "you've",
+          "start": 2.68,
+          "end": 2.96
+        },
+        {
+          "word": "got",
+          "start": 2.96,
+          "end": 3.21
+        }
+      ],
+      "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    {
+      "id": "tb.elder.assignment.back",
+      "speaker": "Maren",
+      "text": "Back with your theme, Captain? Show me.",
+      "duration": 2.328,
+      "files": {
+        "webm": "tb.elder.assignment.back.webm",
+        "m4a": "tb.elder.assignment.back.m4a"
+      },
+      "hash": "0def617e1013906e",
+      "words": [
+        {
+          "word": "Back",
+          "start": 0,
+          "end": 0.176
+        },
+        {
+          "word": "with",
+          "start": 0.176,
+          "end": 0.272
+        },
+        {
+          "word": "your",
+          "start": 0.272,
+          "end": 0.467
+        },
+        {
+          "word": "theme",
+          "start": 0.467,
+          "end": 0.94
+        },
+        {
+          "word": "Captain",
+          "start": 0.94,
+          "end": 1.696
+        },
+        {
+          "word": "Show",
+          "start": 1.696,
+          "end": 2
+        },
+        {
+          "word": "me",
+          "start": 2,
+          "end": 2.25
+        }
+      ],
+      "voice": "2qQJWjw5XdG80GreshqG"
+    },
+    {
+      "id": "tb.elder.assignment.done",
+      "speaker": "Maren",
+      "text": "Main's untouched, and the theme's safe in its own worktree. That's how a real crew works, Captain.",
+      "duration": 7.708,
+      "files": {
+        "webm": "tb.elder.assignment.done.webm",
+        "m4a": "tb.elder.assignment.done.m4a"
+      },
+      "hash": "3b54e7804389c691",
+      "words": [
+        {
+          "word": "Main's",
+          "start": 0,
+          "end": 0.472
+        },
+        {
+          "word": "untouched",
+          "start": 0.472,
+          "end": 1.32
+        },
+        {
+          "word": "and",
+          "start": 1.32,
+          "end": 1.7
+        },
+        {
+          "word": "the",
+          "start": 1.7,
+          "end": 1.827
+        },
+        {
+          "word": "theme's",
+          "start": 1.827,
+          "end": 2.448
+        },
+        {
+          "word": "safe",
+          "start": 2.448,
+          "end": 3.013
+        },
+        {
+          "word": "in",
+          "start": 3.013,
+          "end": 3.16
+        },
+        {
+          "word": "its",
+          "start": 3.16,
+          "end": 3.34
+        },
+        {
+          "word": "own",
+          "start": 3.34,
+          "end": 3.6
+        },
+        {
+          "word": "worktree",
+          "start": 3.6,
+          "end": 4.544
+        },
+        {
+          "word": "That's",
+          "start": 4.544,
+          "end": 5.58
+        },
+        {
+          "word": "how",
+          "start": 5.58,
+          "end": 5.8
+        },
+        {
+          "word": "a",
+          "start": 5.8,
+          "end": 5.904
+        },
+        {
+          "word": "real",
+          "start": 5.904,
+          "end": 6.24
+        },
+        {
+          "word": "crew",
+          "start": 6.24,
+          "end": 6.64
+        },
+        {
+          "word": "works",
+          "start": 6.64,
+          "end": 7.17
+        },
+        {
+          "word": "Captain",
+          "start": 7.17,
+          "end": 7.42
         }
       ],
       "voice": "2qQJWjw5XdG80GreshqG"
