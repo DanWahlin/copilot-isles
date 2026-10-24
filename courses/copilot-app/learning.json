@@ -362,10 +362,10 @@
       "quest": "Q2.4",
       "title": "Switch back to New worktree",
       "steps": [
-        "Start a session with the **+** next to your project.",
-        "In the workspace selector below the prompt box, choose **New worktree**. The app remembers your last choice, and that was **Current checkout**."
+        "Point to the `copilot-app-for-beginners` project and select **+**.",
+        "Open the workspace selector below the prompt box and choose **New worktree**. You don’t need to send a prompt: the app keeps the choice."
       ],
-      "why": "A new worktree keeps each session’s changes out of your main checkout. It’s the safe default.",
+      "why": "The app remembers your last choice, and that was **Current checkout** in Chapter 00. A new worktree keeps each session’s changes out of your main checkout.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "where-a-session-runs",
