@@ -188,6 +188,8 @@ const pose = (ex: number, ey: number, ez: number, lx: number, ly: number, lz: nu
 
 export function createOpening(o: OpeningOptions): Opening {
   const { engine } = o;
+  // The islands' terrain functions for the chart (their own chunks) start loading now.
+  void loadChartIslands().catch(() => undefined);
   let kind: OpeningKind = 'voyage';
   let beats: OpeningBeats = openingBeats(kind);
   let reduced = false;

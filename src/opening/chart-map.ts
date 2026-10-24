@@ -41,11 +41,15 @@ export function chartIsland(id: ChartIslandId): ChartIslandPlace {
 /**
  * Every island's miniature with its terrain functions: each island's are a dynamic import of its
  * own (they're the world's height and masks), so the chart waits for them with the terrain packs.
+ * Asked once (the opening asks as it's made, so the modules load where its chunk used to hold them).
  */
+let chartIslands: Promise<ChartIslandSource[]> | null = null;
 export function loadChartIslands(): Promise<ChartIslandSource[]> {
-  return Promise.all(
+  chartIslands ??= Promise.all(
     ISLAND_LIST.map(async (e, i) => ({ ...CHART_ISLANDS[i]!, ...(await e.chart.terrain()) })),
   );
+  chartIslands.catch(() => (chartIslands = null));
+  return chartIslands;
 }
 
 /**
