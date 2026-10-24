@@ -2,11 +2,11 @@
  * Course packs in Node (docs/specs/COURSE-PACKS.md): where a pack's files are, and the pack read from
  * disk the way the browser assembles it (src/course/load.ts), for tools and scripts run with tsx.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join } from 'node:path';
 import { setActiveCourse } from '../../src/course/active';
-import { DEFAULT_COURSE_ID, type CourseMeta } from '../../src/course/catalog';
-import { assemblePack, withoutMeta, type CoursePack } from '../../src/course/pack';
+import { DEFAULT_COURSE_ID } from '../../src/course/catalog';
+import { assemblePack, type CoursePack } from '../../src/course/pack';
+import { packFiles, packMeta } from './files';
 
 export const ROOT = join(import.meta.dirname, '..', '..');
 export const DEFAULT_COURSE = DEFAULT_COURSE_ID;
@@ -43,31 +43,10 @@ export function courseArg(argv: readonly string[] = process.argv.slice(2)): stri
   return v;
 }
 
-/** The pack's runtime files (everything the browser loads), by path in the pack. */
-function packFiles(id: string = DEFAULT_COURSE, root: string = ROOT): Record<string, unknown> {
-  const { dir } = coursePaths(id, root);
-  const out: Record<string, unknown> = {};
-  const walk = (d: string) => {
-    for (const name of readdirSync(d).sort()) {
-      const p = join(d, name);
-      const rel = relative(dir, p).split('\\').join('/');
-      if (statSync(p).isDirectory()) {
-        if (rel !== 'public' && rel !== 'voice') walk(p);
-      } else if (name.endsWith('.json') && rel !== 'course.json') {
-        out[rel] = JSON.parse(readFileSync(p, 'utf8'));
-      }
-    }
-  };
-  walk(dir);
-  return out;
-}
-
-function readCourseMeta(id: string = DEFAULT_COURSE, root: string = ROOT): CourseMeta {
-  return withoutMeta(JSON.parse(readFileSync(coursePaths(id, root).course, 'utf8')) as CourseMeta);
-}
-
+/** A pack read whole from disk (every chapter's part in), as the game assembles it. */
 export function readCoursePack(id: string = DEFAULT_COURSE, root: string = ROOT): CoursePack {
-  return assemblePack(readCourseMeta(id, root), packFiles(id, root));
+  const { dir } = coursePaths(id, root);
+  return assemblePack(packMeta(dir), packFiles(dir));
 }
 
 /** Reads a pack and makes it the active one (for tools that use the game's modules). */

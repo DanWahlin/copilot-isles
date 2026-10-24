@@ -136,7 +136,10 @@ export function topicOf(chapter: ChapterId, anchor: string): string | null {
  * The board's topics the player has met in the game: a Logbook page they hold, or a quiz they've
  * passed, that cites the topic's section (or a heading inside it).
  */
-export function coveredTopics(chapter: ChapterId, sources: Iterable<SourceRef>): Set<string> {
+export function coveredTopics(
+  chapter: ChapterId,
+  sources: Iterable<Pick<SourceRef, 'chapter' | 'anchor'>>,
+): Set<string> {
   const out = new Set<string>();
   for (const s of sources) {
     if (s.chapter !== chapter) continue;

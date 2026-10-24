@@ -1,54 +1,14 @@
-import { coursePack, onCourse } from './active';
+import { coursePack, coursePuzzle, onCourse } from './active';
 import { fill } from './fill';
-import type { PuzzleFile, PuzzleMechanic } from './pack';
+import type { PuzzleFile } from './pack';
 
 export { fill };
+export { GAME_PUZZLES, PUZZLE_ISLANDS } from './puzzle-islands';
 
 /**
  * Puzzle content from the active course pack (`puzzles/<name>.json`, docs/specs/COURSE-PACKS.md §4).
  * The game owns each puzzle's mechanic (its rules, sites and UI); the pack says what's in it.
  */
-
-/**
- * The puzzles the game plays, by file name, and the mechanic each one's module runs. A pack has a file
- * for each puzzle on its islands (`"disabled": true` turns one off: its site stays as scenery).
- */
-export const GAME_PUZZLES: Readonly<Record<string, PuzzleMechanic>> = {
-  'gear-rack': 'checklist',
-  palette: 'ceremony',
-  bard: 'ceremony',
-  christening: 'ceremony',
-  sluice: 'route',
-  crane: 'procedure',
-  'first-words': 'choose-tool',
-  'crate-yard': 'classify',
-  'three-helms': 'choose-tool',
-  'lost-letters': 'classify',
-  market: 'budget',
-  'channel-routing': 'route',
-  workspaces: 'match',
-  'flag-hoist': 'classify',
-  'practice-session': 'checklist',
-};
-
-/** The island each puzzle is on: a course has a file for each puzzle on the islands it uses. */
-export const PUZZLE_ISLANDS: Readonly<Record<string, string>> = {
-  'gear-rack': 'anchorage',
-  palette: 'anchorage',
-  bard: 'anchorage',
-  christening: 'anchorage',
-  sluice: 'anchorage',
-  crane: 'anchorage',
-  'first-words': 'anchorage',
-  'crate-yard': 'meridian',
-  'three-helms': 'meridian',
-  'lost-letters': 'meridian',
-  market: 'meridian',
-  'channel-routing': 'thousand-bough',
-  workspaces: 'thousand-bough',
-  'flag-hoist': 'thousand-bough',
-  'practice-session': 'thousand-bough',
-};
 
 /**
  * The quest steps each puzzle's mechanic sets or waits on (the game's words, docs/specs/COURSE-PACKS.md
@@ -137,17 +97,20 @@ export function rekey<A extends string, T>(
 
 /** A puzzle's content (typed by the mechanic's module); throws if the course hasn't got it. */
 export function puzzleContent<T extends PuzzleFile = PuzzleFile>(name: string): T {
-  const p = coursePack().puzzles[name];
+  const p = coursePuzzle(name, true);
+  if (!p && coursePack().puzzles[name])
+    throw new Error(`The puzzle "${name}" was read before its chapter part loaded (src/course/load.ts)`);
   if (!p) throw new Error(`The course "${coursePack().id}" has no puzzle "${name}" (puzzles/${name}.json)`);
   return p as T;
 }
 
 /**
  * A puzzle's content if the course has its file (a course without the puzzle's island has none), for
- * data a module keeps whether or not the puzzle runs.
+ * data a module keeps whether or not the puzzle runs. Null too before its chapter part is in: a hook
+ * that reads it runs again when the part arrives.
  */
 export function puzzleMaybe<T extends PuzzleFile = PuzzleFile>(name: string): T | null {
-  return (coursePack().puzzles[name] as T | undefined) ?? null;
+  return coursePuzzle(name, true) as T | null;
 }
 
 /** Whether the course runs this puzzle (it has the file and hasn't `"disabled": true`). */

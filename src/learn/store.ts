@@ -1,4 +1,15 @@
-import { CHAPTERS, CHESTS, GLOSSARY, PAGES, QUIZZES, TRIALS } from './content/index';
+import {
+  CHAPTER_INDEX,
+  CHAPTERS,
+  CHESTS,
+  GLOSSARY,
+  PAGE_INDEX,
+  PAGES,
+  QUIZ_INDEX,
+  QUIZZES,
+  TRIALS,
+} from './content/index';
+import { loadPageParts, loadQuizParts } from '../course/load';
 import type { ForkRef } from './fork';
 import { grade, type Answer, type Grade } from './grade';
 import { Progress } from './progress';
@@ -17,7 +28,8 @@ import {
   starfishCount,
   type StarfishIsland,
 } from '../world/starfish/spots';
-import type { Page, Quiz, SourceRef } from './types';
+import type { Page, Quiz } from './types';
+import type { SourceAnchor } from '../course/pack';
 import { coveredTopics } from './course-board';
 import type { ChapterId } from './course/chapters';
 import { COURSE } from '../course/catalog';
@@ -279,6 +291,21 @@ export class LearnStore {
     trial: ActiveQuiz['trial'] = null,
     recap: ActiveQuiz['recap'] = null,
   ): Promise<QuizOutcome> => {
+    // A quiz from a chapter whose part isn't in yet (a recap's, from an island you haven't been to
+    // this voyage): its part loads first. If it can't (offline), the quiz counts as closed.
+    if (!QUIZZES.has(quizId) && QUIZ_INDEX.has(quizId))
+      return loadQuizParts([quizId]).then(
+        () => this.askNow(quizId, trial, recap),
+        () => ({ correct: false, attempts: 0, completed: false }),
+      );
+    return this.askNow(quizId, trial, recap);
+  };
+
+  private askNow(
+    quizId: string,
+    trial: ActiveQuiz['trial'],
+    recap: ActiveQuiz['recap'],
+  ): Promise<QuizOutcome> {
     const quiz = QUIZZES.get(quizId);
     if (!quiz) return Promise.reject(new Error(`unknown quiz ${quizId}`));
     this.quizDone?.({ correct: false, attempts: 0, completed: false });
@@ -296,7 +323,7 @@ export class LearnStore {
       },
     });
     return new Promise((resolve) => (this.quizDone = resolve));
-  };
+  }
 
   submit = (answer: Answer): Grade | null => {
     const a = this.state.quiz;
@@ -432,6 +459,13 @@ export class LearnStore {
 
   /** Grants a page (from an NPC or a chest) and resolves when the reveal card is closed. */
   grantPage = (pageId: string, doubloons = 0, from: RevealFrom = 'page'): Promise<void> => {
+    // A page from a chapter whose part isn't in yet: it loads first. If it can't (offline), the page
+    // goes in the Logbook without its card.
+    if (!PAGES.has(pageId) && PAGE_INDEX.has(pageId))
+      return loadPageParts([pageId]).then(
+        () => this.grantPage(pageId, doubloons, from),
+        () => void this.filePage(pageId, doubloons),
+      );
     const page = PAGES.get(pageId);
     if (!page) return Promise.reject(new Error(`unknown page ${pageId}`));
     const fresh = this.progress.add('pages', pageId);
@@ -450,7 +484,7 @@ export class LearnStore {
    * false if it was already there.
    */
   filePage = (pageId: string, doubloons = 0): boolean => {
-    if (!PAGES.has(pageId)) throw new Error(`unknown page ${pageId}`);
+    if (!PAGE_INDEX.has(pageId)) throw new Error(`unknown page ${pageId}`);
     const fresh = this.progress.add('pages', pageId);
     if (fresh && doubloons) this.progress.addDoubloons(doubloons);
     if (fresh) this.set({ pages: this.progress.data.pages.slice(), doubloons: this.progress.data.doubloons });
@@ -528,13 +562,13 @@ export class LearnStore {
 
   /** Opens an island's course notice board, with ✓ on the topics the player has met in the game. */
   openCourseBoard = (chapter: ChapterId): void => {
-    const sources: SourceRef[] = [];
+    const sources: SourceAnchor[] = [];
     for (const id of this.state.pages) {
-      const page = PAGES.get(id);
+      const page = PAGE_INDEX.get(id);
       if (page) sources.push(page.source);
     }
     for (const [id, r] of Object.entries(this.progress.data.quizzes)) {
-      const quiz = r.passed ? QUIZZES.get(id) : undefined;
+      const quiz = r.passed ? QUIZ_INDEX.get(id) : undefined;
       if (quiz) sources.push(quiz.source);
     }
     this.set({ courseBoard: { chapter, covered: [...coveredTopics(chapter, sources)] } });
@@ -797,14 +831,17 @@ export class LearnStore {
     const d = this.progress.data;
     if (!recapGapOk(d.recap.last, now, r.minGapMinutes ?? 20)) return [];
     const chapters = exceptChapter
-      ? new Set(CHAPTERS.map((c) => c.chapter).filter((c) => c !== exceptChapter))
+      ? new Set(CHAPTER_INDEX.map((c) => c.chapter).filter((c) => c !== exceptChapter))
       : null;
-    const candidates = recapCandidates(CHAPTERS, d, {
+    const candidates = recapCandidates(CHAPTER_INDEX, d, {
       types: r.types ?? ['mc', 'scenario', 'multi'],
       exclude: r.exclude ?? [],
       chapters,
     });
-    return pickRecap(candidates, { now, count: Math.min(3, r.questions), seed: d.recap.runs + 1 });
+    const ids = pickRecap(candidates, { now, count: Math.min(3, r.questions), seed: d.recap.runs + 1 });
+    // Their chapters' parts start loading now, so the questions are in by the time Wingman asks.
+    void loadQuizParts(ids).catch(() => undefined);
+    return ids;
   };
 
   /**
@@ -932,7 +969,7 @@ export class LearnStore {
   private lastLearnedText(): string | null {
     const l = this.progress.data.lastLearned;
     if (!l) return null;
-    if (l.kind === 'page') return PAGES.get(l.id)?.title ?? null;
+    if (l.kind === 'page') return PAGE_INDEX.get(l.id)?.title ?? null;
     const q = this.state.quests.find((x) => x.id === l.id);
     return q ? `${q.title}: ${questLogLine(q.id, q.detail, this.progress.data.appTasks).line}` : null;
   }

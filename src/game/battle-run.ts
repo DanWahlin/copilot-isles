@@ -2,6 +2,7 @@ import { Vector3, type PerspectiveCamera } from 'three/webgpu';
 import type { IslesAudio } from '../audio';
 import type { Engine } from '../engine/engine';
 import type { InputState } from '../engine/input';
+import { loadQuizParts } from '../course/load';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
 import { BATTLE_PLANS, Battle, emptyBattleSnapshot, type BattlePlan } from '../world/battle/battle';
@@ -114,8 +115,11 @@ export class BattleRun {
     if (audio) void audio.sfx.preload(BATTLE_SOUNDS);
     // The battle's music buffers while you sail out, so it starts on the lookout's call.
     audio?.music.prefetch('battle');
-    // Built now and warmed while you sail out: its first real frames build nothing (skill §3).
-    this.ready = engine.counters.excuse(this.warm());
+    // Built now and warmed while you sail out: its first real frames build nothing (skill §3). The
+    // questions after its waves are a chapter's (its part loads now if it isn't in; a part that can't
+    // load leaves the wave without its question, as before).
+    const quizzes = loadQuizParts(this.plan.waves.map((w) => w.quiz).filter(Boolean)).catch(() => undefined);
+    this.ready = engine.counters.excuse(Promise.all([this.warm(), quizzes]).then(() => undefined));
   }
 
   private async warm(): Promise<void> {
