@@ -10,7 +10,17 @@ import {
 import { STARFISH } from '../../world/starfish/spots';
 import { COURSE } from '../../course/catalog';
 import { StarfishLog } from './Starfish';
-import { CHAPTERS, GLOSSARY, IMAGES, PAGES, courseUrl, imageUrl } from '../../learn/content/index';
+import {
+  CHAPTERS,
+  GLOSSARY,
+  IMAGES,
+  PAGE_INDEX,
+  PAGES,
+  courseUrl,
+  imageUrl,
+} from '../../learn/content/index';
+import { onCoursePart } from '../../course/active';
+import { loadPageParts } from '../../course/load';
 import { chapterUrl } from '../../learn/course/chapters';
 import { forkName, forkSignLabel, forkUrl, PLACE_LABEL, type ForkPlace } from '../../learn/fork';
 import {
@@ -438,17 +448,61 @@ function logbookTabs(): { id: LogbookTab; label: string }[] {
   });
 }
 
+/** Renders again as each chapter part arrives (a page that was loading has its text then). */
+function useCourseParts(): void {
+  const [, setParts] = useState(0);
+  useEffect(() => onCoursePart(() => setParts((n) => n + 1)), []);
+}
+
+/**
+ * A page whose chapter part is still loading (from an island you haven't been to this voyage): its
+ * title, and a body the height of a short page, so nothing jumps when the text comes in.
+ */
+function PageLoading({ id }: { id: string }) {
+  const [failed, setFailed] = useState(false);
+  const [tries, setTries] = useState(0);
+  useEffect(() => {
+    let live = true;
+    setFailed(false);
+    loadPageParts([id]).catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, [id, tries]);
+  return (
+    <div className="ci-page-loading" role="status" aria-live="polite">
+      {failed ? (
+        <>
+          <p>This page didn’t load. Check your connection, then try again.</p>
+          <button type="button" className="ci-btn" onClick={() => setTries((n) => n + 1)}>
+            Try again
+          </button>
+        </>
+      ) : (
+        <p>Opening the page…</p>
+      )}
+    </div>
+  );
+}
+
 export function Logbook({ store, state }: { store: LearnStore; state: LearnState }) {
   const { tab, page } = state.logbook;
-  const allPages = [...PAGES.values()];
+  useCourseParts();
+  const allPages = [...PAGE_INDEX.values()];
   const open = page ? PAGES.get(page) : undefined;
+  const opening = page && !open ? PAGE_INDEX.get(page) : undefined;
   const fill = useSetupText();
+  // The pages you hold whose chapter part isn't in yet start loading (nothing waits on them yet).
+  useEffect(() => {
+    const held = state.pages.filter((id) => !PAGES.has(id) && PAGE_INDEX.has(id));
+    if (held.length) void loadPageParts(held, 'low').catch(() => undefined);
+  }, [state.pages]);
   useKeys((e) => {
     const now = store.getState();
     if (e.repeat || state.spyglass?.full || now.forkForm || now.setupForm || now.appTask || now.badge) return;
     if (e.key === 'Escape' || e.code === 'KeyJ') {
       e.preventDefault();
-      if (open) store.openLogbook(tab, null);
+      if (open || opening) store.openLogbook(tab, null);
       else store.closeLogbook();
     }
   });
@@ -514,7 +568,16 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
               <PageBody page={open} onImage={(id) => store.inspectImage(id, open.title)} />
             </article>
           )}
-          {tab === 'pages' && !open && (
+          {tab === 'pages' && opening && (
+            <article className="ci-page-card inline">
+              <button type="button" className="ci-btn ghost back" onClick={() => store.openLogbook('pages')}>
+                ← All pages
+              </button>
+              <h2>{opening.title}</h2>
+              <PageLoading id={opening.id} />
+            </article>
+          )}
+          {tab === 'pages' && !open && !opening && (
             <ul className="ci-page-grid">
               {allPages.map((p) => {
                 const have = state.pages.includes(p.id);

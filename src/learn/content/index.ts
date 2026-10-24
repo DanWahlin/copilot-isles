@@ -9,14 +9,18 @@ import type {
   SourceRef,
   Trial,
 } from '../types';
-import { onCourse } from '../../course/active';
+import { everyCoursePart, onCourse } from '../../course/active';
+import type { ChapterIndex, PageIndex, QuizIndex } from '../../course/pack';
 import { courseAssetBase } from '../../course/catalog';
 import { COURSE_BLOB } from '../course/chapters';
 
 /**
  * The active course's teaching content (docs/specs/COURSE-PACKS.md): its chapters
  * (`courses/<id>/chapters/*.json`, in the course's order) and an index of each kind by id. They're
- * empty until a voyage loads the course pack, then filled in place.
+ * empty until a voyage loads the course pack, then filled in place. A chapter's quizzes and pages
+ * are here once its part has loaded (src/course/load.ts); the index maps (`CHAPTER_INDEX`,
+ * `QUIZ_INDEX`, `PAGE_INDEX`) list every chapter's from the start, for the recap, the Logbook's tiles,
+ * the course boards and the Continue card.
  */
 export const CHAPTERS: ChapterContent[] = [];
 
@@ -27,12 +31,21 @@ export const CHESTS = new Map<string, Chest>();
 export const GLOSSARY = new Map<string, GlossaryTerm>();
 export const TRIALS = new Map<string, Trial>();
 
+/** Every chapter's index, in the course's order. */
+export const CHAPTER_INDEX: ChapterIndex[] = [];
+/** Every quiz's id, kind and section, with its chapter, whether or not its part has loaded. */
+export const QUIZ_INDEX = new Map<string, QuizIndex & { chapter: string }>();
+/** Every page's title, picture and section, with its chapter, whether or not its part has loaded. */
+export const PAGE_INDEX = new Map<string, PageIndex & { chapter: string }>();
+
 function index<T extends { id: string }>(m: Map<string, T>, pick: (c: ChapterContent) => readonly T[]): void {
   m.clear();
   for (const c of CHAPTERS) for (const item of pick(c)) m.set(item.id, item);
 }
 
 onCourse((p) => {
+  // Runs again as each chapter's part arrives.
+  everyCoursePart();
   CHAPTERS.length = 0;
   CHAPTERS.push(...p.chapters);
   index(IMAGES, (c) => c.images);
@@ -41,6 +54,14 @@ onCourse((p) => {
   index(CHESTS, (c) => c.chests);
   index(GLOSSARY, (c) => c.glossary);
   index(TRIALS, (c) => c.trials);
+  CHAPTER_INDEX.length = 0;
+  CHAPTER_INDEX.push(...p.index);
+  QUIZ_INDEX.clear();
+  PAGE_INDEX.clear();
+  for (const c of p.index) {
+    for (const q of c.quizzes) QUIZ_INDEX.set(q.id, { ...q, chapter: c.chapter });
+    for (const pg of c.pages) PAGE_INDEX.set(pg.id, { ...pg, chapter: c.chapter });
+  }
 });
 
 /** "Open in the course ↗" link for a source ref. */

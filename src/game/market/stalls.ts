@@ -1,4 +1,4 @@
-import { hasIslandQuests, islandQuests } from '../../course/active';
+import { hasIslandQuests, islandQuestList } from '../../course/active';
 import { puzzleOn, puzzleQuest } from '../../course/puzzles';
 import type { IslandId } from '../islands';
 
@@ -52,5 +52,5 @@ export const marketStall = (island: IslandId): MarketStallSpec =>
 export function questStall(island: IslandId): boolean {
   if (!puzzleOn(MARKET_PUZZLE) || !hasIslandQuests(island)) return false;
   const quest = puzzleQuest(MARKET_PUZZLE);
-  return islandQuests(island).quests.some((q) => q.id === quest);
+  return islandQuestList(island).some((q) => q.id === quest);
 }

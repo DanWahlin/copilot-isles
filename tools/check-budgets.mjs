@@ -25,15 +25,33 @@ if (!entryKey) {
   process.exit(1);
 }
 
+// A course pack's chapter parts (src/course/split.ts) are JSON files the plugin emits next to the
+// chunks: assets/course-<id>-<chapter>-<hash>.json. Each needs its own budget row (`asset`).
+const assetsDir = join(dist, 'assets');
+const partFiles = existsSync(assetsDir)
+  ? readdirSync(assetsDir).filter((f) => /^course-[a-z0-9-]+-[0-9a-f]{10}\.json$/.test(f))
+  : [];
+const partOf = (f) => f.replace(/-[0-9a-f]{10}\.json$/, '');
+const budgeted = new Set();
+
 let failed = false;
 const rows = [];
 for (const [label, rule] of Object.entries(budgets.chunks)) {
-  const hit = rule.entry ? manifest[entryKey] : entries.map(([, v]) => v).find((v) => v.name === rule.name);
-  if (!hit) {
+  if (label.startsWith('$')) continue;
+  let file;
+  if (rule.asset) {
+    budgeted.add(rule.asset);
+    const f = partFiles.find((x) => partOf(x) === rule.asset);
+    file = f && `assets/${f}`;
+  } else {
+    const hit = rule.entry ? manifest[entryKey] : entries.map(([, v]) => v).find((v) => v.name === rule.name);
+    file = hit?.file;
+  }
+  if (!file) {
     rows.push([label, '-', `${rule.maxGzipKB}`, 'not built']);
     continue;
   }
-  const size = gz(hit.file);
+  const size = gz(file);
   const ok = size <= rule.maxGzipKB * 1024;
   if (!ok) failed = true;
   rows.push([label, kb(size), `${rule.maxGzipKB}`, ok ? 'ok' : 'OVER']);
@@ -52,6 +70,11 @@ const walk = (key) => {
 };
 walk(entryKey);
 const title = [...files].reduce((sum, f) => sum + gz(f), 0);
+for (const f of partFiles) {
+  if (budgeted.has(partOf(f))) continue;
+  failed = true;
+  rows.push([partOf(f), kb(gz(`assets/${f}`)), '-', 'NO BUDGET (add it to tools/budgets.json)']);
+}
 const titleOk = title <= budgets.titleWireMaxKB * 1024;
 if (!titleOk) failed = true;
 rows.push(['title (wire, gz)', kb(title), `${budgets.titleWireMaxKB}`, titleOk ? 'ok' : 'OVER']);

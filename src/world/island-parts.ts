@@ -36,6 +36,12 @@ export interface IslandStreamContext {
   /** Where the tier has sun shadows but the islands don't take them (cove-scene's `skipIslandShadows`). */
   skipShadows: boolean;
   disabled: boolean;
+  /**
+   * Loads the island's course data (its chapter's part, src/course/load.ts) at the stream's request
+   * priority. The stream waits for it with its terrain, so the island's quests, scripts and puzzles
+   * are in before anything on it is made; a part that fails fails the stream, which tries again.
+   */
+  courseData?: (priority: RequestPriority) => Promise<void>;
 }
 
 /**
