@@ -26,7 +26,7 @@ export const SLUICE_ID = 'P0.1';
  * P0.1 Sluice & Waterwheel (POC §4.5), in two parts:
  * - **The gate lever** (required): pull the lever under the gate's sign (the course's words,
  *   `puzzles/sluice.json`) to lift the gate. It moves the crane's quest from its `gate` step on to
- *   `crane`, so the crane's confirm lever can run.
+ *   `brief` (the crew's briefing at the crane), and the crane's confirm lever can run.
  * - **The channels** (optional, once the quest `puzzleQuest('sluice')` names reaches its `sluice`
  *   step): turn channel tiles (E clockwise, Shift+E back) until the water reaches both outlets: the
  *   wheel turns and the check gate stays jammed (the check that fails on purpose). The lanterns light,
@@ -61,7 +61,7 @@ export function createSluice(
   /** The crane job is waiting on the gate (or an older save never pulled it). */
   const actionsStep = () => {
     const q = host.quests()[craneQuest];
-    return q === C.gate || q === C.crane;
+    return q === C.gate || q === C.brief || q === C.crane;
   };
   const leverOpen = () => !gate && (actionsStep() || started());
   const tilesOpen = () => gate && started() && !solved;
@@ -86,7 +86,7 @@ export function createSluice(
   /**
    * Keeps the gate and the crane job in step: a finished crane means the gate is up (older saves
    * finished it before the lever was part of it), and a lever pulled before the crane job asked for
-   * it moves that job on to the crane.
+   * it moves that job on to its briefing at the crane.
    */
   const syncGate = (): void => {
     const q = host.quests()[craneQuest];
@@ -95,7 +95,7 @@ export function createSluice(
       site.setLever(true, true);
       save();
       refresh();
-    } else if (gate && q === C.gate) host.setQuest(craneQuest, C.crane);
+    } else if (gate && q === C.gate) host.setQuest(craneQuest, C.brief);
   };
 
   rots.forEach((r, i) => site.setRotation(i, r, true));
@@ -164,8 +164,8 @@ export function createSluice(
     save();
     refresh();
     if (actionsStep()) {
-      // That was the crane job's `gate` step: its confirm lever can run now.
-      host.setQuest(craneQuest, C.crane);
+      // That was the crane job's `gate` step: on to the crew's briefing, and its confirm lever can run.
+      if (host.quests()[craneQuest] === C.gate) host.setQuest(craneQuest, C.brief);
       host.hud.toast(T('enabledCrane'), 4.5);
       if (!quiet) void host.beat([{ say: L('workflowsOn') }], 'Suri');
     } else host.hud.toast(T('enabledTurn'), 5);

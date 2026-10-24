@@ -646,6 +646,17 @@ export function checkContent(
     if (questsOk)
       for (const [name, list] of Object.entries((p.scripts ?? {}) as Record<string, PackScriptStep[]>))
         steps(rel, at('scripts', name), list, () => false, rel);
+    // The gear rack's checks: a stale one names a script of the file, and its closing script moves the
+    // quest on (without one, the rack's quest would wait at its checks for good).
+    if (p.mechanic === 'checklist' && Array.isArray(p.checks)) {
+      const own = (p.scripts ?? {}) as Record<string, unknown>;
+      (p.checks as { stale?: { script?: string } }[]).forEach((c, i) => {
+        if (c.stale?.script && !Object.hasOwn(own, c.stale.script))
+          issue(rel, at(at('checks', i), 'stale.script'), `"${c.stale.script}" isn't one of its scripts`);
+      });
+      if (want?.length && !Object.hasOwn(own, 'checked'))
+        issue(rel, 'scripts', 'needs a "checked" script: it plays once every check has passed');
+    }
     // Cited sections: the items' own sources, and the `cites` (or `section` anchors) of its chapter.
     const items = Array.isArray(p.items) ? (p.items as Record<string, unknown>[]) : [];
     items.forEach((it, i) => {

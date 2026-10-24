@@ -43,10 +43,12 @@ Anchorage and Port Meridian's harbours stay calm. We'll adjust the later places 
 - **One habit per wave** (`PASSAGE_BATTLE` in `src/world/battle/battle.ts`; full map with verbatim
   sentences in `.plans/battle-plan.md` "Teaching map"). Wave 1, *Unchecked* and *No Dry Run*: preview
   before you run it, *"The script creates items on GitHub in your fork, so you'll preview its target and
-  planned changes before running it."* The bosun asks **N0.1**. Wave 2, *Wrong Fork* and *Wrong Account*:
-  check the target (the `Repository:` line quote above). The bosun asks **N0.2** with a fresh preview
-  that names the original course repository and ends with `Dry run complete. No changes were made.` Both
-  questions are cited to 00 §Add the Course Practice Items.
+  planned changes before running it."* The bosun asks **N0.1**. Wave 2, *Missing Tool* and *Stale Version*:
+  check your tools, *"Install only the tools that are missing … then run the checks again"* (00 §Check
+  Your Tools in Terminal). The bosun asks **N0.3**: the version checks print `command not found` for Git
+  and the LTS major for Node.js, so you install Git (not everything, and not Node.js) and run the checks
+  again. Until 2026-10 wave 2 asked **N0.2** (the `Repository:` line), which repeated the crane and Trial
+  item T0.5; now the battle reviews two of the chapter's objectives instead of one.
 - **The reward** is the same as everywhere (§2.1's last bullet): a right answer lets you **pick** a
   double-shotted volley or quick repairs. A wrong answer shows the "why" and the course link, and you still
   get the base repairs.

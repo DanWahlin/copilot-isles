@@ -133,11 +133,17 @@ so VS Code and other editors check your edit as you type and show each field's d
   its content (an order, a twist's answer) is a voice line too.
 - **Cited reasons**: the crate yard's items have a `source`; the Lost Letters' `cites` and the Flag
   Hoist's `section` anchors are in the file's `chapter`. The content check holds them to the lock.
+- **The gear rack** (`gear-rack.json`, a checklist) runs one check per press while its quest is at
+  `checks`: `scripts.intro` plays at the first press, a check's `stale` prints an out-of-date
+  `output` first and plays the script it names (the next run prints the right one), a check's `notes`
+  show on one kind of computer (`windows`, `mac`, `linux`), and `scripts.checked` plays once every
+  check has passed (it must move the quest on). Keep a `stale` version's `output` in step with the
+  real world (the Copilot app course's `node -v` tracks the version nodejs.org marks LTS).
 - **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
   does nothing. Change the quests that wait on it too (their step won't finish by itself).
 - **`quest`**: the quest the puzzle plays in. It must have the steps the puzzle's mechanic sets and
-  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `crane` and `solved`, the
-  crate yard's `crates` and `solved`…). If the quest calls one of them something else, map it in
+  waits on (`PUZZLE_STEPS` in `src/course/puzzles.ts`: the crane's `gate`, `brief`, `crane` and
+  `solved`, the gear rack's `checks`, the crate yard's `crates` and `solved`…). If the quest calls one of them something else, map it in
   **`steps`** (game step → the quest's step: the Copilot app course's crane has
   `"steps": { "gate": "actions" }`); the game reads every mechanic step through it
   (`puzzleSteps(name)`, resolved once per course). Every quest also ends at `done`, the game's step

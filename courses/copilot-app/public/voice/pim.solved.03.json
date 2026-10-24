@@ -1,7 +1,7 @@
 {
   "id": "pim.solved.03",
   "speaker": "Pim",
-  "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready.",
+  "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your next order ready.",
   "words": [
     {
       "word": "Your",
@@ -46,32 +46,32 @@
     {
       "word": "Juno’s",
       "start": 2.957583,
-      "end": 3.404
+      "end": 3.392875
     },
     {
       "word": "got",
-      "start": 3.404,
+      "start": 3.392875,
       "end": 3.582583
     },
     {
       "word": "your",
       "start": 3.582583,
-      "end": 3.705375
+      "end": 3.694208
     },
     {
-      "word": "first",
-      "start": 3.705375,
-      "end": 4.0625
+      "word": "next",
+      "start": 3.694208,
+      "end": 3.984375
     },
     {
       "word": "order",
-      "start": 4.0625,
-      "end": 4.330375
+      "start": 3.984375,
+      "end": 4.241083
     },
     {
       "word": "ready",
-      "start": 4.330375,
-      "end": 4.580375
+      "start": 4.241083,
+      "end": 4.491083
     }
   ]
 }

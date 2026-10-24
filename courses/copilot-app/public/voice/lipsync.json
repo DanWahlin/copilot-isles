@@ -30,6 +30,25 @@
       ],
       "v": "XABFCBCABCBABABAEBCBCBCFCAFBCBAX"
     },
+    "suri.actions.01": {
+      "h": "d2d9f6759000d1b4",
+      "e": "neutral",
+      "t": [
+        0, 1, 4, 4, 8, 11, 7, 52, 8, 11, 7, 7, 7, 8, 29, 38, 32, 21, 14, 7, 7, 14, 21, 14, 7, 14, 14, 17, 23,
+        12, 16, 7, 7, 7, 7, 7, 21, 40, 6, 27, 7, 7, 8, 7, 6, 14, 7, 7, 14, 31, 19, 35, 7, 14, 10, 12, 14, 12,
+        20
+      ],
+      "v": "XCBABDBAECGBABXCEGECBCBCBCAXAFBCHCGEXCBCBACFECGEFECBCABCAX"
+    },
+    "suri.actions.02": {
+      "h": "131379f151996765",
+      "e": "happy",
+      "t": [
+        0, 3, 7, 21, 7, 49, 28, 7, 7, 7, 14, 7, 14, 28, 7, 40, 13, 8, 22, 6, 6, 8, 14, 14, 21, 7, 7, 14, 21,
+        7, 14, 8, 42, 36, 21, 8, 13, 8, 9, 7, 7, 14, 10, 6, 5, 21, 7, 14, 8, 8, 7, 28, 20
+      ],
+      "v": "XCBCBFECGEBEDCXCABABADHBCBCBCBABXCABABFCFABCBCBABEBX"
+    },
     "suri.brief.01": {
       "h": "36b831dd4fade5ca",
       "e": "neutral",
@@ -174,14 +193,20 @@
       ],
       "v": "XBCBHCABXBABACBXBAFBFCBGCHBCABEBXBABCDBABAHCABX"
     },
+    "pim.brief.fork": {
+      "h": "882951812ca3a563",
+      "e": "neutral",
+      "t": [0, 9, 31, 7, 7, 28, 14, 23, 13, 8, 6, 19, 84, 4, 8, 16, 14, 14, 21, 7, 21, 14, 14, 74],
+      "v": "XFGFBCBCABCXBACBDBCBCBX"
+    },
     "pim.brief.02": {
-      "h": "6c9e383270ba5287",
+      "h": "a5e989830616e9ff",
       "e": "neutral",
       "t": [
-        0, 8, 4, 11, 21, 7, 9, 21, 8, 12, 14, 19, 7, 11, 6, 13, 8, 13, 7, 70, 12, 16, 7, 21, 7, 7, 35, 7, 28,
-        7, 14, 21, 75
+        0, 9, 25, 7, 9, 17, 8, 25, 7, 28, 7, 10, 6, 13, 8, 13, 7, 70, 12, 16, 7, 21, 7, 7, 35, 7, 28, 7, 14,
+        21, 75
       ],
-      "v": "XBCBCABABXBCABEACHXABGFBFBCBGEBX"
+      "v": "XBCABABCBCABEACHXABGFBFBCBGEBX"
     },
     "pol.brief.02": {
       "h": "1a3727fcff0100e3",
@@ -192,13 +217,13 @@
       "v": "XBCBADBEBHCBCBAFGECBXEBCBCBX"
     },
     "pim.brief.03": {
-      "h": "6429153393c96e95",
-      "e": "neutral",
+      "h": "41a06762b6f19955",
+      "e": "happy",
       "t": [
-        0, 7, 7, 6, 7, 8, 54, 7, 34, 7, 14, 21, 71, 12, 14, 7, 14, 28, 7, 14, 21, 7, 7, 8, 27, 22, 4, 11, 7,
-        8, 8, 21, 7, 7, 7, 14, 21, 23, 19, 7, 14, 21, 19, 10, 17, 31, 14, 75
+        0, 8, 6, 26, 7, 21, 22, 14, 8, 26, 71, 12, 18, 5, 18, 28, 7, 7, 7, 28, 7, 8, 47, 5, 18, 42, 18, 5, 25,
+        8, 7, 28, 14, 14, 75
       ],
-      "v": "XBCBABCBGEBXAFBCBGEBFBABXBCBADBCBCFBABCBCBCBCBX"
+      "v": "XCBGEBCABXAFECBGECFBABCEBXBCACFCBX"
     },
     "pol.brief.actions": {
       "h": "10baedf8e90bc535",
@@ -225,6 +250,24 @@
         0, 9, 22, 7, 38, 14, 8, 13, 7, 7, 8, 14, 21, 14, 8, 13, 7, 20, 3, 8, 9, 8, 17, 14, 7, 7, 21, 14, 74
       ],
       "v": "XBCABAEFBACBEACHXBABADBEBFBX"
+    },
+    "pim.solved.fork": {
+      "h": "6c9c7f5c741971a8",
+      "e": "neutral",
+      "t": [
+        0, 8, 8, 7, 7, 8, 14, 14, 7, 14, 7, 28, 7, 7, 28, 7, 21, 27, 5, 5, 7, 7, 7, 6, 16, 7, 35, 7, 14, 14,
+        7, 83, 21, 14, 7, 7, 7, 7, 7, 10, 19, 14, 21, 7, 14, 35, 14, 21, 74
+      ],
+      "v": "XBGCADBEBHCGEBCEBFABACABCBEBCHXFGECBABABCFBCBCBX"
+    },
+    "pol.solved.issues": {
+      "h": "540d5d675a637b34",
+      "e": "concerned",
+      "t": [
+        0, 13, 16, 14, 7, 7, 7, 21, 14, 14, 7, 8, 20, 14, 77, 20, 7, 21, 7, 21, 35, 28, 14, 34, 6, 13, 7, 21,
+        7, 21, 31, 53, 8, 7, 41, 75
+      ],
+      "v": "XBFGEFBGFBABCBEDBGFBCBXBCGBEBXBABCX"
     },
     "pol.refuse.guild.01": {
       "h": "8244c7006f9a8545",
@@ -258,6 +301,15 @@
         14, 21, 14, 7, 7, 14, 28, 78
       ],
       "v": "XBGFBXBCBCABGEBXBABFBCBADBEBEFBEFX"
+    },
+    "pol.refuse.actions.01": {
+      "h": "2714a0a93a334561",
+      "e": "happy",
+      "t": [
+        0, 11, 11, 21, 16, 7, 14, 35, 89, 5, 12, 14, 7, 21, 7, 7, 7, 7, 14, 7, 14, 7, 28, 28, 14, 79, 12, 14,
+        7, 14, 28, 7, 14, 7, 21, 14, 8, 28, 33, 28, 14, 35, 14, 14, 37, 6, 13, 7, 42, 7, 42, 76
+      ],
+      "v": "XBCAGCBXCEGFBFECGEFBDBEGXAFBCBGECFBABXBCBCAXBCBCBCX"
     },
     "nell.papers.app": {
       "h": "ff6ced76b6cd870a",
@@ -336,6 +388,15 @@
       ],
       "v": "XBCFBFBCGEACBXBFBAFCEBCBCEBEBFCBFBX"
     },
+    "ezra.fork.register": {
+      "h": "c782555f9a4cf69b",
+      "e": "neutral",
+      "t": [
+        0, 3, 10, 7, 42, 58, 68, 7, 21, 8, 6, 12, 7, 21, 21, 32, 9, 7, 7, 14, 7, 8, 9, 14, 7, 21, 28, 8, 19,
+        7, 21, 14, 12
+      ],
+      "v": "XGEBXBCBACBCBECBEFDCAECEFBABCEBX"
+    },
     "ezra.fork.03": {
       "h": "50c9a4b73553c430",
       "e": "neutral",
@@ -389,6 +450,15 @@
       ],
       "v": "XBCBCBEABDAFBCBCBCXBECACBGBGBFBCBABDAHCGBGEFEBCBEFBCBCBGCBX"
     },
+    "bo.deck.rack": {
+      "h": "9b79358bba3c3954",
+      "e": "neutral",
+      "t": [
+        0, 3, 8, 7, 7, 14, 8, 4, 18, 63, 6, 12, 7, 7, 6, 6, 8, 15, 8, 6, 12, 14, 28, 7, 21, 7, 7, 7, 7, 28,
+        28, 14, 8, 15, 7, 17
+      ],
+      "v": "XBCBCACBXBCBCACAFACBCBFBCBCEFBEACHX"
+    },
     "bo.gear.brief.01": {
       "h": "a24615bf65debaa9",
       "e": "neutral",
@@ -400,14 +470,22 @@
       "v": "XCBCEFEHBXEACGFBCDCBGFACBCBABEACAXCEBCAXBCHCBAHCBXBCBEACHX"
     },
     "bo.gear.brief.02": {
-      "h": "7a0a96ed731c1df7",
+      "h": "f5a1212b97333f44",
       "e": "neutral",
       "t": [
-        0, 1, 7, 6, 8, 14, 35, 7, 7, 44, 7, 14, 7, 7, 7, 7, 14, 14, 7, 7, 35, 7, 14, 7, 7, 9, 4, 18, 14, 14,
-        48, 13, 21, 8, 22, 7, 7, 14, 35, 10, 19, 51, 5, 5, 14, 7, 46, 8, 12, 14, 14, 14, 14, 8, 10, 7, 21, 7,
-        28, 7, 7, 7, 14, 14, 7, 7, 7, 7, 14, 21, 8, 18, 28, 16
+        0, 1, 8, 8, 10, 5, 8, 16, 28, 14, 60, 6, 5, 49, 21, 7, 10, 7, 13, 14, 21, 14, 28, 28, 7, 12, 53, 15,
+        14, 8, 35, 7, 14, 7, 28, 10, 18, 16
       ],
-      "v": "XBAEFBCBXBDBFBCGEGEBCBECACBCBXBFABCGEBAEXGBCEBACBGECAEFBCBCBGEBCECBCEACBX"
+      "v": "XBADCABCBXBCBECACBCBFCDBAXBFABGEBCAEX"
+    },
+    "bo.gear.lts": {
+      "h": "452e0ffd4e1b5c5c",
+      "e": "neutral",
+      "t": [
+        0, 3, 14, 7, 7, 14, 7, 7, 14, 8, 21, 9, 6, 20, 31, 14, 21, 7, 7, 7, 14, 14, 21, 14, 7, 7, 7, 14, 7, 7,
+        7, 7, 7, 14, 21, 7, 7, 14, 7, 14, 7, 7, 7, 7, 8, 23, 21, 14
+      ],
+      "v": "XBCBGEBCACABCXBEFBCBCBCBGEBCECBCEBCBCBCECEBACBX"
     },
     "bo.gear.brief.03": {
       "h": "43da6504dc911eea",
@@ -430,22 +508,19 @@
       "v": "XFCAEBXBCABCHDBCBEFBCBABABCAXBCBCBEBCBCBCBAFBEFBCEBEFGECBX"
     },
     "bo.signed.02": {
-      "h": "62e7eff94e547c7e",
+      "h": "b9ebbf0543ad0a19",
       "e": "neutral",
       "t": [
-        0, 6, 6, 49, 19, 12, 7, 7, 42, 7, 14, 14, 21, 53, 12, 14, 8, 5, 4, 8, 21, 14, 7, 14, 11, 35, 7, 14, 8,
-        7, 21, 21, 19, 16, 7, 14, 14, 7, 14, 21, 7, 21, 8, 29, 25
+        0, 4, 4, 49, 15, 14, 7, 49, 7, 14, 14, 21, 47, 13, 21, 10, 33, 7, 22, 3, 8, 10, 5, 18, 14, 35, 10, 10,
+        21, 21, 43, 45, 28, 11, 11, 21, 7, 21, 7, 21, 14, 7, 13
       ],
-      "v": "BCBXBCEBCBCBXABACBAEHCBABCBABCBXBCBCBCBCBABX"
+      "v": "BCBXBEBCBCBXCBABCBABABCBCAGEBXBEABHCEBHCBX"
     },
     "juno.brief.01": {
-      "h": "31017a0c13619acb",
+      "h": "441bc62f3157025b",
       "e": "neutral",
-      "t": [
-        0, 5, 14, 7, 7, 7, 30, 14, 7, 7, 14, 8, 8, 21, 55, 8, 7, 7, 7, 11, 6, 43, 20, 7, 21, 7, 7, 21, 8, 12,
-        7, 7, 14, 14, 14, 14, 6
-      ],
-      "v": "XFCEFBFGCBACBXBCBCABCBCBGBFACHGCBEFX"
+      "t": [0, 4, 18, 7, 16, 7, 28, 8, 7, 30, 16, 7, 7, 7, 18, 4, 4, 14, 14, 14, 21, 8, 7, 20, 28, 21, 9],
+      "v": "XBCAFCABCBEFCAHCBCBFACBEBX"
     },
     "juno.brief.02": {
       "h": "21b08b01d340b44d",
@@ -562,13 +637,13 @@
       "v": "XBCBCFBCBFACABXBEACHBCBACBDBCB"
     },
     "pim.solved.03": {
-      "h": "8b7cd6214667abce",
+      "h": "9e297b302f098fb6",
       "e": "neutral",
       "t": [
-        0, 9, 15, 7, 14, 7, 8, 15, 14, 7, 8, 9, 7, 7, 21, 23, 12, 8, 26, 81, 16, 7, 7, 7, 14, 21, 7, 14, 7,
-        35, 35, 75
+        0, 9, 15, 7, 14, 7, 8, 15, 14, 7, 8, 9, 7, 7, 21, 23, 12, 8, 27, 80, 20, 7, 7, 14, 21, 14, 14, 14, 7,
+        7, 35, 76
       ],
-      "v": "XFGEBABFBACBFBACABXFCEFDFGEBEBX"
+      "v": "XFGEBABFBACBFBACABXFEFDFCBEBEBX"
     },
     "nell.palette.02": {
       "h": "9952f37f36a4636a",
@@ -621,6 +696,25 @@
       ],
       "v": "XBABCABCXABGEFBACBCBABCBDCAEFACBEBDBXBCBFCBCBDCFGBCAX"
     },
+    "nell.takeaways.01": {
+      "h": "07a8875a4cfe237e",
+      "e": "neutral",
+      "t": [
+        0, 3, 8, 7, 7, 21, 14, 14, 7, 21, 30, 47, 14, 28, 37, 51, 19, 15, 5, 12, 8, 21, 7, 21, 7, 10, 4, 8,
+        16, 7, 14, 7, 14, 7, 28, 7, 14, 7, 14, 7, 28, 14, 21, 21, 7, 7, 7, 15, 12
+      ],
+      "v": "ABGEFBCBHXBFBAXBXBCAFBCBDCACBEFBCEGECBCBCEBFECXB"
+    },
+    "nell.takeaways.02": {
+      "h": "fc1e01bdb0af45a1",
+      "e": "neutral",
+      "t": [
+        0, 3, 15, 21, 14, 9, 5, 11, 14, 38, 38, 14, 9, 7, 21, 21, 22, 20, 7, 14, 7, 8, 35, 13, 13, 7, 25, 15,
+        28, 7, 28, 58, 9, 35, 21, 21, 7, 25, 44, 53, 14, 21, 7, 7, 21, 21, 7, 21, 15, 6, 13, 28, 7, 7, 14, 8,
+        7, 6, 7, 7, 7, 7, 7, 10, 25, 21, 28, 17
+      ],
+      "v": "XFBCACHCABCABHBXBHCBAFBDBXBCBCABCBFCAXBFGECBDCBABCBCBCABGEBCBCABCBX"
+    },
     "nell.trial.02": {
       "h": "f897db85c9b2c514",
       "e": "happy",
@@ -637,13 +731,13 @@
       "v": "XFBAECABCX"
     },
     "lyra.idle.01": {
-      "h": "31bb53c1afd4c101",
+      "h": "ba62e8671f8fd2a3",
       "e": "neutral",
       "t": [
-        0, 9, 9, 7, 21, 7, 28, 21, 7, 7, 14, 44, 19, 12, 4, 32, 82, 28, 11, 19, 14, 7, 14, 21, 7, 35, 7, 14,
-        35, 7, 14, 7, 8, 7, 27, 53, 4, 4, 7, 7, 8, 17, 7, 7, 7, 28, 7, 28, 86
+        0, 9, 9, 7, 14, 14, 28, 21, 7, 7, 14, 44, 19, 12, 4, 32, 82, 27, 12, 21, 14, 7, 7, 63, 14, 14, 35, 21,
+        28, 14, 7, 8, 18, 7, 7, 14, 21, 7, 28, 87
       ],
-      "v": "XCGBDBCBCBECABCXCACBFCFBFBCFGCBAHCBCBCBAHCBFBFCX"
+      "v": "XCGBDBCBCBECABCXCACBFCFBDBFBCBAHCBFBFCX"
     },
     "lyra.soundcheck.01": {
       "h": "70fe0d1431154439",
@@ -664,22 +758,22 @@
       "v": "XABGEFBEBCBCBFBFBCBXFBCBAHCBCEBXHCBEBCBCBFBCBCBX"
     },
     "lyra.soundcheck.03": {
-      "h": "4b489a7a5fcee809",
+      "h": "fb343d45af72990f",
       "e": "neutral",
       "t": [
-        0, 10, 17, 7, 14, 7, 7, 21, 21, 7, 28, 8, 15, 14, 21, 24, 12, 11, 13, 25, 7, 28, 23, 4, 4, 14, 14, 14,
-        7, 21, 44, 7, 21, 14, 28, 35, 8, 22, 7, 21, 21, 7, 14, 19, 5, 16, 5, 39, 87
+        0, 10, 22, 7, 7, 7, 14, 14, 28, 7, 21, 8, 16, 58, 12, 11, 12, 26, 7, 28, 23, 4, 4, 14, 14, 14, 7, 14,
+        7, 42, 10, 49, 14, 50, 6, 12, 12, 46, 7, 7, 14, 8, 8, 14, 28, 85
       ],
-      "v": "XFGBCBCBCBACBCBACABDBXBCBDBGEBCEFCBACGCBFCFECEFX"
+      "v": "XFGBCBCBCBACBACABCBXBCBDBGECBFBCBCBABCBCABEBX"
     },
     "lyra.soundcheck.04": {
-      "h": "04e3b67d90e5a88e",
+      "h": "c2ecbe62188646cd",
       "e": "neutral",
       "t": [
-        0, 10, 19, 14, 14, 7, 7, 7, 23, 7, 8, 14, 71, 5, 12, 10, 4, 14, 21, 7, 14, 7, 14, 7, 22, 9, 42, 14,
-        42, 7, 35, 13, 16, 99, 8, 28, 14, 7, 7, 7, 14, 28, 14, 94
+        0, 1, 8, 15, 14, 8, 11, 56, 21, 14, 14, 7, 21, 14, 28, 101, 4, 4, 7, 10, 4, 21, 14, 14, 7, 7, 21, 7,
+        22, 6, 6, 28, 14, 7, 35, 21, 35, 12, 18, 100, 7, 42, 14, 7, 7, 21, 89
       ],
-      "v": "XCBCABAEBAEBFCFEHCBFCBCACBCFBFABXCBCGBHDCBX"
+      "v": "XAEBAEBCBDCBDBXBCBFEHCBFCBCACBEBCFBFABXCBFBCBX"
     },
     "lyra.done.01": {
       "h": "a8fe161b23cd1910",
@@ -1022,6 +1116,16 @@
       ],
       "v": "XCGBAHCBXBGBFXBCBCBCBCGCBABEBADCBEBXBEFBABDBCBCBCX"
     },
+    "mer.anders.solved.02": {
+      "h": "a4f4493e73867bf7",
+      "e": "neutral",
+      "t": [
+        0, 12, 24, 7, 29, 9, 7, 7, 7, 35, 21, 14, 7, 7, 12, 25, 14, 28, 14, 7, 57, 20, 7, 7, 28, 101, 7, 13,
+        7, 7, 7, 35, 7, 7, 7, 8, 14, 14, 14, 14, 19, 5, 18, 8, 7, 13, 27, 14, 21, 7, 14, 11, 5, 5, 14, 7, 21,
+        89
+      ],
+      "v": "XBCACBFCBDBFBABCFBCBCBCBXFECBCBCEBADBEBDCBABABCFCEABDBCBX"
+    },
     "mer.anders.next": {
       "h": "289f41db77e1836c",
       "e": "neutral",
@@ -1211,6 +1315,34 @@
       ],
       "v": "XBFBCBAEBEBCGBABCBCBFBCBCBCAEBX"
     },
+    "mer.oren.market": {
+      "h": "94fafea650fbb7fd",
+      "e": "neutral",
+      "t": [
+        0, 12, 10, 35, 7, 21, 14, 7, 14, 23, 15, 55, 8, 5, 18, 8, 10, 42, 15, 5, 12, 14, 7, 22, 23, 7, 7, 21,
+        14, 26, 6, 13, 25, 7, 24, 7, 41, 54, 7, 21, 104, 21, 21, 7, 14, 7, 7, 21, 7, 7, 28, 96
+      ],
+      "v": "XCBCFBCHBAFAEFADBAHDBCXBFBFBXBCDCBEABCBXBCGBCBDBGBX"
+    },
+    "mer.oren.market.wait": {
+      "h": "927937976b975576",
+      "e": "neutral",
+      "t": [
+        0, 15, 37, 8, 15, 42, 14, 7, 21, 15, 5, 18, 7, 14, 14, 21, 8, 7, 20, 109, 7, 7, 35, 7, 7, 21, 21, 29,
+        5, 12, 25, 7, 24, 7, 10, 15, 70, 14, 21, 95
+      ],
+      "v": "XFADBCEBAHDBCBCABCXCBFBGEBXBCDCBEACBCBX"
+    },
+    "mer.oren.practiced": {
+      "h": "381375d0b719a47a",
+      "e": "neutral",
+      "t": [
+        0, 2, 8, 8, 28, 35, 103, 6, 27, 7, 63, 93, 24, 28, 49, 7, 7, 7, 8, 16, 14, 21, 14, 14, 21, 18, 54, 14,
+        7, 21, 35, 14, 7, 8, 43, 7, 7, 8, 13, 2, 8, 7, 12, 9, 4, 25, 7, 7, 14, 32, 5, 47, 14, 8, 24, 7, 14, 7,
+        28, 94
+      ],
+      "v": "XACEBXBFGBXBFBCEFAECBGEBXBFEFDBEACFBACABAEACEBCGBFBCABCFEBX"
+    },
     "mer.oren.next": {
       "h": "5e866169c1c78292",
       "e": "neutral",
@@ -1253,6 +1385,16 @@
       ],
       "v": "XADBABGCBCBCBABGCBFBCEBCABCBXBCBAHCBADBABEX"
     },
+    "mer.pell.prompts": {
+      "h": "c49ee0bbfb3ef1bd",
+      "e": "neutral",
+      "t": [
+        0, 9, 21, 7, 21, 14, 7, 7, 7, 7, 7, 7, 21, 78, 15, 7, 6, 21, 21, 7, 7, 14, 37, 10, 14, 8, 18, 7, 21,
+        7, 8, 14, 26, 15, 28, 14, 7, 35, 9, 5, 4, 8, 13, 7, 21, 14, 21, 7, 7, 14, 7, 7, 21, 14, 91, 8, 14, 14,
+        7, 22, 29, 33, 5, 18, 84
+      ],
+      "v": "XCBEBGCEBCECXACBCEFHDBEBADCDBACBFBCEBABDABCEBECEBCBCBXBCBCABFECX"
+    },
     "mer.pell.05": {
       "h": "74792d996b8133d4",
       "e": "neutral",
@@ -1281,6 +1423,78 @@
       "e": "neutral",
       "t": [0, 5, 18, 14, 7, 7, 63, 92, 9, 28, 21, 7, 7, 7, 7, 21, 14, 14, 90, 6, 12, 21, 8, 24, 21, 77],
       "v": "XCBGCBXFBEFBCBCBCXHCBACBX"
+    },
+    "mer.pell.letters": {
+      "h": "e152535a3cedbc89",
+      "e": "neutral",
+      "t": [0, 5, 8, 8, 39, 21, 8, 9, 7, 14, 35, 7, 7, 7, 28, 7, 42, 14, 28, 7, 28, 7, 21, 7, 28, 14, 7, 83],
+      "v": "XCABFABFBCBGCBCBCBHBCECBCBX"
+    },
+    "mer.pell.letters.02": {
+      "h": "58ae22d5faad3780",
+      "e": "neutral",
+      "t": [
+        0, 8, 10, 14, 35, 7, 14, 21, 14, 21, 7, 14, 21, 7, 21, 7, 14, 7, 63, 90, 6, 6, 14, 7, 56, 14, 21, 7,
+        13, 5, 18, 21, 24, 4, 18, 7, 8, 8, 28, 8, 6, 26, 14, 7, 83
+      ],
+      "v": "XGCBFCBCEFGBCBCBGBXBGFCBCBDABEHXBEFACBACBCBX"
+    },
+    "mer.pell.letters.wait": {
+      "h": "c4d9782b966041cd",
+      "e": "neutral",
+      "t": [0, 10, 6, 12, 21, 14, 7, 7, 8, 6, 5, 21, 31, 14, 8, 5, 26, 16, 25, 14, 28, 7, 7, 14, 81],
+      "v": "XBHBDECACBCBCABCXBCEFGBX"
+    },
+    "mer.pell.letter.ok": {
+      "h": "6dff0ade6d41e0ff",
+      "e": "happy",
+      "t": [0, 11, 14, 14, 28, 90, 9, 14, 7, 28, 28, 80],
+      "v": "XGCBXDFBCBX"
+    },
+    "mer.pell.letter.customize": {
+      "h": "9f2b762c8e98b48a",
+      "e": "neutral",
+      "t": [
+        0, 10, 10, 21, 28, 7, 7, 17, 11, 8, 16, 7, 28, 14, 14, 92, 10, 8, 5, 25, 7, 8, 16, 8, 35, 7, 35, 21,
+        14, 8, 6, 12, 7, 28, 22, 28, 7, 7, 8, 16, 14, 81
+      ],
+      "v": "XBCEFGXBAEBFDCXFACBCABABCBCBACBGFXBCBADBX"
+    },
+    "mer.pell.letter.decoy": {
+      "h": "b9e2c2a51925d5e1",
+      "e": "neutral",
+      "t": [
+        0, 5, 7, 14, 21, 7, 21, 23, 22, 7, 28, 7, 28, 87, 8, 8, 25, 7, 9, 7, 14, 7, 21, 14, 28, 8, 5, 5, 21,
+        7, 21, 14, 18, 22, 8, 8, 11, 5, 5, 3, 8, 8, 17, 4, 26, 80
+      ],
+      "v": "XBFBCBXBDBCBXFABCADCHCGBADBCBEFXBABABDABADCBX"
+    },
+    "mer.pell.letters.solved": {
+      "h": "da65a8ebf771d24d",
+      "e": "happy",
+      "t": [
+        0, 9, 8, 7, 14, 7, 7, 14, 21, 8, 17, 7, 28, 91, 22, 7, 21, 7, 14, 8, 6, 5, 14, 35, 21, 21, 7, 63, 19,
+        26, 7, 7, 9, 27, 7, 21, 7, 19, 81
+      ],
+      "v": "XCGBHBEBAHCBXBCEFBACBEBCBCBXBCBAECBCAX"
+    },
+    "mer.pell.letters.debrief": {
+      "h": "4440281cdeb02904",
+      "e": "neutral",
+      "t": [
+        0, 9, 6, 5, 7, 7, 7, 7, 42, 8, 13, 14, 8, 5, 5, 21, 7, 7, 8, 14, 14, 23, 15, 14, 35, 14, 7, 7, 7, 7,
+        7, 7, 7, 14, 81, 15, 4, 4, 63, 7, 7, 14, 27, 4, 25, 13, 19, 7, 14, 7, 14, 63, 81
+      ],
+      "v": "XBCHCBCBADBABGBCBADBXBCBCECBCHCGBXABDBCGFBFBABCBEFBX"
+    },
+    "mer.pell.letters.again": {
+      "h": "32b061f3b422ea3c",
+      "e": "neutral",
+      "t": [
+        0, 7, 12, 14, 8, 14, 7, 7, 7, 7, 7, 14, 7, 14, 21, 14, 7, 8, 37, 11, 8, 5, 26, 92, 7, 6, 7, 10, 4, 8,
+        5, 5, 21, 21, 21, 6, 5, 7, 7, 7, 7, 21, 14, 21, 7, 10, 82
+      ],
+      "v": "XCFACBCHCGEBHBCBABCABCXBCBDCACBCBXBGFBHCFGBCAX"
     },
     "mer.admiral.wait": {
       "h": "ffa14218aa9ac843",
@@ -1332,6 +1546,33 @@
       "t": [0, 11, 15, 14, 7, 7, 63, 23, 11, 6, 33, 47, 8, 15, 28, 14, 7, 13, 7, 21, 7, 28, 43],
       "v": "XGCBFBCABCXAEBCBABCGFX"
     },
+    "mer.helm.order.interactive": {
+      "h": "f1f9c8cb788e8023",
+      "e": "neutral",
+      "t": [
+        0, 7, 9, 14, 21, 28, 95, 39, 8, 27, 8, 13, 35, 8, 22, 88, 6, 6, 28, 14, 7, 14, 7, 7, 7, 14, 21, 14,
+        27, 20, 14, 21, 7, 7, 49, 88, 7, 14, 14, 7, 8, 8, 42, 82
+      ],
+      "v": "XGCBFXBAFADBABXCBFBGHGBCEFCBEBCGBCXFBCHAGBX"
+    },
+    "mer.helm.wrong.interactive.plan": {
+      "h": "0b160e3ed65a7aa6",
+      "e": "neutral",
+      "t": [
+        0, 2, 8, 10, 14, 14, 21, 7, 14, 7, 21, 7, 28, 21, 7, 7, 8, 22, 7, 48, 7, 21, 7, 56, 7, 42, 96, 15, 7,
+        7, 21, 21, 7, 14, 7, 7, 49, 80
+      ],
+      "v": "XAHCFBDBCEFEBCEAFGBCBCBCFXFEBFEHCGBCX"
+    },
+    "mer.helm.wrong.interactive.autopilot": {
+      "h": "f4432f6157215c14",
+      "e": "neutral",
+      "t": [
+        0, 7, 6, 13, 8, 14, 7, 7, 14, 7, 7, 28, 21, 14, 28, 7, 21, 21, 35, 26, 10, 35, 14, 14, 14, 42, 28, 14,
+        81
+      ],
+      "v": "XBEACBHBFCBFCBCBCBXBFBEHBECX"
+    },
     "mer.helm.interactive.take": {
       "h": "93385fb460526b24",
       "e": "neutral",
@@ -1362,11 +1603,79 @@
       "t": [0, 7, 17, 14, 7, 7, 7, 7, 28, 8, 24, 7, 7, 28, 7, 28, 7, 14, 7, 89],
       "v": "XCBEFBCBAEBFBEBHCBX"
     },
+    "mer.helm.order.plan": {
+      "h": "098a83701d57dc30",
+      "e": "neutral",
+      "t": [
+        0, 8, 13, 21, 21, 7, 21, 30, 5, 11, 14, 8, 13, 42, 89, 10, 8, 18, 14, 8, 56, 32, 9, 7, 7, 35, 14, 14,
+        7, 8, 11, 7, 14, 7, 7, 8, 7, 34, 87, 5, 19, 21, 7, 14, 83
+      ],
+      "v": "XBCEBECBCBACBXBAEFABXBEFBCFBABGEFBACBXFBCHAX"
+    },
+    "mer.helm.wrong.plan.autopilot": {
+      "h": "ef6b7a303909610a",
+      "e": "happy",
+      "t": [
+        0, 9, 9, 7, 7, 8, 22, 21, 99, 9, 8, 19, 42, 7, 14, 7, 7, 14, 8, 19, 14, 8, 6, 27, 14, 88, 10, 7, 21,
+        14, 21, 14, 88
+      ],
+      "v": "XEFBAEFXBACBFCFCBAEFABEBXBDBGCBX"
+    },
+    "mer.helm.wrong.plan.interactive": {
+      "h": "9eecdb6f3232a59a",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 21, 7, 21, 7, 7, 21, 21, 14, 21, 28, 32, 6, 13, 9, 8, 21, 7, 28, 7, 15, 88, 29, 8, 18, 14,
+        8, 4, 4, 28, 14, 20, 10, 7, 7, 7, 7, 7, 7, 7, 21, 28, 14, 14, 21, 21, 82
+      ],
+      "v": "XBECBGFHBCBFBFCADBCDBAXBAEFACBEBXBEFBFDBCEFBGCBX"
+    },
     "mer.helm.plan.take": {
       "h": "80fac2ca2c71e795",
       "e": "neutral",
       "t": [0, 1, 8, 11, 42, 7, 17, 88, 34, 7, 14, 7, 14, 21, 7, 35, 91, 28, 8, 13, 7, 7, 70, 81],
       "v": "XAHCHAXBCFBCBDBXBABGEFX"
+    },
+    "mer.helm.plan.approve.draft": {
+      "h": "05be19fa20ccb9e8",
+      "e": "happy",
+      "t": [
+        0, 3, 7, 7, 24, 7, 7, 14, 8, 8, 8, 4, 25, 7, 42, 7, 21, 8, 16, 35, 19, 24, 7, 7, 42, 91, 6, 13, 28,
+        21, 28, 7, 14, 14, 21, 85, 30, 8, 13, 35, 27, 14, 7, 14, 7, 7, 7, 14, 7, 14, 28, 81
+      ],
+      "v": "XCAFGCBABACBCBCEACBXBCBFXHCFEBCBEFXBAHCBCBCBCBCBCBX"
+    },
+    "mer.helm.plan.exit": {
+      "h": "587273eb72ddb1fd",
+      "e": "neutral",
+      "t": [
+        0, 7, 7, 20, 8, 18, 7, 21, 7, 8, 14, 14, 7, 8, 5, 40, 21, 28, 14, 27, 5, 26, 10, 7, 8, 45, 7, 13, 21,
+        14, 7, 14, 88, 11, 8, 18, 28, 63, 7, 21, 7, 42, 81
+      ],
+      "v": "XCBAHCHBAFBCACBEBGXCFABABCABCHGXBAHCBFCGBX"
+    },
+    "mer.helm.plan.suggest": {
+      "h": "790bbd5f0e4d680f",
+      "e": "neutral",
+      "t": [
+        0, 4, 16, 28, 28, 89, 4, 18, 14, 21, 7, 7, 7, 7, 7, 14, 7, 21, 89, 15, 7, 21, 7, 7, 7, 14, 21, 79
+      ],
+      "v": "XBCBXCBDEBCEBCBEFXCGCBCHCBX"
+    },
+    "mer.helm.plan.exit.revised": {
+      "h": "63a18a483cf69b80",
+      "e": "neutral",
+      "t": [
+        0, 8, 35, 7, 24, 6, 27, 11, 6, 8, 47, 7, 13, 23, 7, 7, 7, 21, 21, 7, 28, 14, 78, 12, 25, 8, 13, 14,
+        35, 7, 21, 14, 82
+      ],
+      "v": "XFBXBFABABCABCHGBECBGXABAHCBCDEX"
+    },
+    "mer.helm.plan.suggest.revised": {
+      "h": "e2ce41b87c6c68bb",
+      "e": "neutral",
+      "t": [0, 9, 52, 7, 28, 7, 7, 7, 21, 14, 91, 11, 14, 14, 21, 7, 7, 7, 7, 14, 14, 7, 35, 81],
+      "v": "XBCBEFCDEXCBCBCHCGFBCBX"
     },
     "mer.helm.plan.go": {
       "h": "cf8ef79dc26d5ac6",
@@ -1389,6 +1698,33 @@
       "t": [0, 8, 6, 13, 7, 14, 49, 8, 17, 14, 7, 49, 14, 21, 7, 83],
       "v": "XHCBEBAEBFBGCBX"
     },
+    "mer.helm.order.autopilot": {
+      "h": "695388ecf57dee5f",
+      "e": "neutral",
+      "t": [
+        0, 8, 10, 7, 14, 14, 7, 21, 78, 14, 14, 19, 5, 16, 5, 60, 21, 90, 16, 7, 14, 14, 14, 7, 28, 24, 21, 7,
+        7, 14, 8, 4, 4, 21, 14, 14, 89, 5, 18, 21, 7, 14, 83
+      ],
+      "v": "XHCBEBEXBCFECEFBXBFCBGCBXBCBEACBHCBXFBCHAX"
+    },
+    "mer.helm.wrong.autopilot.interactive": {
+      "h": "2f17a44b0daea7a5",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 21, 7, 21, 7, 70, 21, 7, 14, 7, 14, 8, 15, 16, 11, 75, 85, 5, 11, 14, 7, 7, 28, 28, 7, 7,
+        28, 14, 21, 82
+      ],
+      "v": "XBECBGBFBCGBADCBXBFCBGCBCBCBCBX"
+    },
+    "mer.helm.wrong.autopilot.plan": {
+      "h": "5f38a95f82c233b4",
+      "e": "neutral",
+      "t": [
+        0, 1, 8, 11, 7, 21, 14, 14, 14, 7, 42, 7, 14, 7, 14, 14, 21, 21, 92, 7, 14, 7, 7, 21, 8, 13, 14, 45,
+        7, 14, 21, 14, 21, 7, 7, 28, 86
+      ],
+      "v": "XAHCFBDBCBCBGFGCBXDCBCBAHCBCBCBFBGFX"
+    },
     "mer.helm.autopilot.take": {
       "h": "3e30ce02d36af0da",
       "e": "neutral",
@@ -1406,6 +1742,344 @@
         14, 7, 28, 82
       ],
       "v": "XDBACBCBDCAXBEBCBCBABGEBCBEABGCBX"
+    },
+    "mer.market.hello": {
+      "h": "0ba0746779c393fc",
+      "e": "happy",
+      "t": [
+        0, 5, 8, 28, 28, 8, 6, 41, 57, 10, 28, 8, 11, 56, 8, 5, 5, 14, 8, 14, 14, 7, 76, 28, 7, 14, 7, 7, 14,
+        21, 7, 14, 49, 9, 7, 7, 13, 6, 40, 7, 21, 7, 14, 7, 18, 79, 12, 18, 14, 8, 6, 6, 7, 7, 7, 28, 14, 8,
+        20, 5
+      ],
+      "v": "XCECABCXFCAFBADBCADCBXBCBCEBDBGBGBCADBGBCBDAXABEADBCHBEBAEX"
+    },
+    "mer.market.open": {
+      "h": "d06cd0edd36b8a90",
+      "e": "neutral",
+      "t": [
+        0, 4, 6, 19, 7, 7, 13, 2, 8, 8, 7, 16, 14, 14, 32, 6, 12, 14, 21, 21, 8, 4, 4, 14, 14, 23, 7, 27, 7,
+        35, 14, 14, 7, 28, 14, 5
+      ],
+      "v": "ABCBDABABAEFBXBCBCBADBCHBCBCBCGBDBX"
+    },
+    "mer.market.auto": {
+      "h": "23560762edc69e71",
+      "e": "concerned",
+      "t": [
+        0, 4, 7, 6, 21, 14, 7, 14, 7, 7, 8, 15, 7, 7, 14, 39, 12, 7, 19, 23, 21, 8, 5, 18, 14, 14, 28, 7, 35,
+        7, 8, 20, 14, 14, 35, 14, 7, 21, 14, 52, 22, 14, 7, 7, 14, 8, 18, 21, 9, 13, 21, 4
+      ],
+      "v": "XEBEFBCEBACBCHXBCAFBADBGEFBCHEFBFCBFDBXBCEBEACBACBX"
+    },
+    "mer.market.right": {
+      "h": "4e73b8e88310d9f9",
+      "e": "happy",
+      "t": [0, 3, 44, 19, 5, 32, 23, 35, 8, 12, 21, 7, 7, 14, 8, 24, 21, 7, 25, 7, 38, 8, 27, 21],
+      "v": "XBDCBXBABDBGBACBCDCBAEB"
+    },
+    "mer.market.fair": {
+      "h": "7b51f464b80b39a1",
+      "e": "happy",
+      "t": [0, 3, 16, 7, 28, 19, 5, 32, 47, 5, 25, 14, 7, 7, 10, 8, 7, 21, 7, 35, 7, 14, 4],
+      "v": "XBCBDCBXHBGCBABCBEBEAX"
+    },
+    "mer.market.keep": {
+      "h": "d0c112b313289805",
+      "e": "neutral",
+      "t": [
+        0, 7, 7, 6, 28, 14, 28, 32, 38, 10, 14, 9, 6, 13, 28, 7, 35, 7, 14, 7, 28, 7, 7, 28, 21, 14, 24, 15,
+        7, 7, 7, 7, 28, 14, 46, 7, 8, 28, 7, 35, 40, 8, 7, 7, 28, 28, 10, 15, 14, 7, 14, 7, 28, 4
+      ],
+      "v": "XBCBDBXBCEADBHDBGEBCGEBGDBGECFBFBXCABFCXBCBEBAEBCHGBX"
+    },
+    "mer.market.over.effort": {
+      "h": "4199d8ed7c847be0",
+      "e": "neutral",
+      "t": [0, 3, 20, 21, 7, 14, 7, 14, 7, 7, 7, 28, 21, 78, 31, 7, 21, 7, 56, 4],
+      "v": "XCBGBGCBFBFBXBGEFBX"
+    },
+    "mer.market.short": {
+      "h": "dbeeeb676c713a61",
+      "e": "neutral",
+      "t": [
+        0, 3, 9, 7, 14, 14, 14, 28, 24, 23, 8, 30, 8, 12, 8, 7, 7, 14, 14, 70, 38, 7, 7, 7, 21, 21, 7, 7, 8,
+        6, 5, 7, 21, 21, 14, 9, 15, 7, 14, 7, 21
+      ],
+      "v": "XCDBFDBXBABAEACBCHXBCBFBECBADBCHBEAEBCGB"
+    },
+    "mer.market.hard.auto": {
+      "h": "62da75b19683465d",
+      "e": "neutral",
+      "t": [
+        0, 7, 8, 7, 14, 7, 14, 7, 7, 7, 8, 7, 6, 7, 14, 14, 21, 7, 11, 4, 39, 104, 10, 14, 7, 8, 30, 28, 70,
+        7, 7, 21, 28, 14, 28, 28, 21, 23, 27, 8, 27, 9, 6, 6, 7, 21, 22, 6, 13, 28, 7, 7, 7, 14, 7, 14, 4
+      ],
+      "v": "XEBEFBEFBADBCHCBDABCXDCBABEBCEBCEFEGXCABADBCHBCBCBECGEBX"
+    },
+    "mer.market.broke": {
+      "h": "f62da316838d8419",
+      "e": "neutral",
+      "t": [
+        0, 5, 6, 5, 14, 21, 7, 7, 35, 69, 10, 21, 7, 14, 49, 14, 7, 7, 56, 14, 8, 15, 14, 14, 14, 7, 7, 14,
+        14, 9, 4
+      ],
+      "v": "XCEFDBGBXBCBEBCBHBCACBFGCEBCAX"
+    },
+    "mer.market.done": {
+      "h": "ae8e6a7c9371db79",
+      "e": "happy",
+      "t": [
+        0, 3, 7, 14, 28, 8, 9, 7, 8, 29, 14, 14, 12, 7, 21, 14, 28, 39, 11, 14, 14, 14, 14, 7, 8, 6, 27, 14,
+        8, 7, 21, 5
+      ],
+      "v": "XCGBAECAEBXBCBDBXFDBDBCADBCABCX"
+    },
+    "mer.market.early": {
+      "h": "0ea27e344a4bf4de",
+      "e": "concerned",
+      "t": [
+        0, 4, 5, 5, 7, 21, 7, 21, 10, 4, 32, 78, 7, 6, 7, 14, 49, 8, 5, 18, 21, 7, 8, 7, 27, 10, 6, 19, 7, 21,
+        49, 27, 8, 17, 7, 7, 7, 35, 14, 21, 21, 7, 7, 4
+      ],
+      "v": "XCDBCBCABCXCEBCBADBHCACBABEGEBCACBFCBCBCECX"
+    },
+    "mer.market.practiced": {
+      "h": "3c82427231f9773f",
+      "e": "neutral",
+      "t": [
+        0, 5, 19, 7, 7, 14, 11, 32, 35, 8, 32, 35, 8, 7, 35, 8, 29, 16, 18, 7, 7, 8, 7, 7, 7, 7, 14, 14, 4
+      ],
+      "v": "XBEBCABCABXBCBACABCBACEBFCBX"
+    },
+    "desmond.market.hello": {
+      "h": "691865aecad37a82",
+      "e": "happy",
+      "t": [
+        0, 3, 9, 28, 8, 22, 12, 6, 19, 40, 11, 7, 7, 7, 21, 7, 9, 4, 18, 10, 5, 4, 14, 8, 5, 33, 63, 19, 7,
+        14, 12, 6, 19, 14, 35, 7, 28, 14, 7, 7, 11, 50, 8, 7, 8, 31, 35, 14, 14, 7, 61, 12, 15, 21, 8, 7, 14,
+        7, 21, 26, 14, 9, 28, 27
+      ],
+      "v": "XFCAFXBCXBGFBCBADBAEBEADBXCBEADCHBGBCBEAXCBACBDBGBABEABCHBEBAEX"
+    },
+    "desmond.market.open": {
+      "h": "4bfc49575a97933b",
+      "e": "neutral",
+      "t": [
+        0, 3, 20, 7, 14, 7, 7, 20, 12, 2, 8, 7, 20, 14, 62, 8, 35, 21, 9, 6, 6, 42, 21, 7, 28, 7, 14, 14, 14,
+        14, 31
+      ],
+      "v": "XFBCBEABABAEBXBCBADBCBCBCGBCBX"
+    },
+    "desmond.market.auto": {
+      "h": "96bd915159e32e26",
+      "e": "concerned",
+      "t": [
+        0, 7, 5, 4, 21, 14, 28, 7, 8, 20, 21, 63, 12, 7, 15, 31, 7, 9, 21, 14, 28, 41, 6, 5, 7, 14, 14, 8, 29,
+        20, 7, 14, 30, 7, 7, 7, 14, 7, 7, 14, 7, 42, 37, 9, 6, 27, 21, 27, 7, 7, 7, 7, 7, 8, 14, 28, 11
+      ],
+      "v": "XEBEFCBACBXBCABCABGFXBCBCHEFBFCBEFBCBFDBXBACBXBCBEBEACBX"
+    },
+    "desmond.market.right": {
+      "h": "5471ac72319015e7",
+      "e": "happy",
+      "t": [
+        0, 3, 41, 14, 28, 38, 25, 13, 14, 7, 9, 10, 14, 7, 7, 7, 8, 23, 21, 7, 7, 7, 19, 5, 39, 8, 9, 21, 13
+      ],
+      "v": "XBDBXBCBCABDBGBACBGEBDCBADBX"
+    },
+    "desmond.market.fair": {
+      "h": "b1feaf3a798db48d",
+      "e": "happy",
+      "t": [0, 4, 10, 7, 35, 14, 21, 68, 18, 7, 14, 13, 7, 14, 14, 7, 7, 35, 7, 22, 4],
+      "v": "XBCBDBXBGCABCBGEBEAX"
+    },
+    "desmond.market.keep": {
+      "h": "0cf74adfaa723f7d",
+      "e": "neutral",
+      "t": [
+        0, 3, 12, 7, 7, 42, 14, 114, 17, 15, 14, 7, 14, 11, 5, 11, 7, 14, 42, 14, 14, 7, 21, 14, 28, 35, 13,
+        7, 14, 7, 7, 35, 14, 7, 7, 28, 61, 8, 8, 20, 21, 7, 28, 50, 13, 7, 35, 7, 35, 19, 11, 16, 21, 14, 14,
+        7, 21, 5
+      ],
+      "v": "XBCBFBXBXBCBADBCEBGEBCGBXBCBCBFBGCBXCABEFCXCBEBFBAEBCGCBX"
+    },
+    "desmond.market.over.effort": {
+      "h": "f29a315267e31749",
+      "e": "neutral",
+      "t": [
+        0, 5, 23, 7, 7, 14, 7, 14, 7, 7, 7, 21, 28, 21, 50, 25, 6, 6, 21, 7, 21, 14, 7, 21, 7, 28, 7, 7, 21,
+        37
+      ],
+      "v": "XCBCGEBGECBFBXCBCBGEBFCBCGCBX"
+    },
+    "desmond.market.short": {
+      "h": "f6795b272852baad",
+      "e": "neutral",
+      "t": [
+        0, 13, 8, 21, 7, 7, 21, 10, 7, 28, 44, 10, 14, 8, 16, 7, 63, 8, 16, 8, 4, 4, 14, 21, 42, 11, 15, 35,
+        7, 7, 7, 7, 7, 14, 21, 14, 11, 5, 4, 14, 35, 10, 14, 7, 21, 7, 7, 7, 12, 11, 1
+      ],
+      "v": "XDBFBCABCXCBAHCBAEAEBGBXBXBCBFBCBEBADBCEAEBCGEBXBX"
+    },
+    "desmond.market.hard.auto": {
+      "h": "f929f4bae2e05523",
+      "e": "neutral",
+      "t": [
+        0, 5, 6, 5, 14, 8, 38, 9, 5, 5, 49, 7, 14, 28, 28, 129, 7, 7, 14, 7, 7, 8, 31, 19, 5, 47, 33, 14, 7,
+        7, 21, 26, 6, 6, 21, 7, 21, 21, 35, 30, 9, 26, 5, 18, 7, 7, 10, 5, 11, 21, 7, 30, 52, 7, 14, 7, 7, 14,
+        7, 15, 12
+      ],
+      "v": "XEBEABADBCBDBCXGBCBDABDCBCEBEFBEBEFEGXCBCEFBCADBCHBCBECBGEXB"
+    },
+    "desmond.market.broke": {
+      "h": "1acce846b3f55833",
+      "e": "neutral",
+      "t": [
+        0, 5, 7, 6, 7, 7, 14, 7, 7, 21, 7, 28, 105, 5, 11, 21, 28, 28, 42, 28, 7, 49, 71, 25, 10, 14, 14, 7,
+        7, 14, 21, 7, 7, 29, 7, 21, 10
+      ],
+      "v": "XCEFBDBGBCBXBCBCEFBCBXCACBFCFGCECGFX"
+    },
+    "desmond.market.done": {
+      "h": "e9d22c1c495a6279",
+      "e": "happy",
+      "t": [
+        0, 9, 14, 7, 28, 7, 8, 15, 7, 8, 26, 14, 26, 42, 14, 35, 129, 29, 7, 7, 21, 12, 7, 6, 14, 7, 7, 14, 9,
+        7, 20, 4
+      ],
+      "v": "XCGBEADCAEBXBDBXFCEFADBCHBCABCX"
+    },
+    "desmond.market.early": {
+      "h": "fda132676c15ad14",
+      "e": "neutral",
+      "t": [
+        0, 3, 7, 7, 7, 19, 5, 25, 12, 8, 7, 12, 82, 8, 8, 7, 35, 14, 7, 7, 14, 14, 7, 14, 8, 29, 12, 9, 14,
+        14, 28, 47, 6, 5, 28, 7, 14, 56, 7, 12, 4, 8, 14, 14, 8, 19, 21, 21, 67, 25, 14, 42, 7, 6, 21, 7, 14,
+        35, 4
+      ],
+      "v": "XEFBDEFXBCAXAEBDCBCGEBCABABEFCXCBEBCBCAEAEBAEBCXCADBCBHCBX"
+    },
+    "desmond.market.bye": {
+      "h": "78a0cce41c7711d2",
+      "e": "happy",
+      "t": [
+        0, 4, 15, 7, 7, 7, 7, 7, 21, 21, 11, 6, 33, 28, 14, 14, 7, 11, 7, 48, 7, 28, 14, 7, 7, 21, 7, 14, 9,
+        8, 35, 28, 12
+      ],
+      "v": "XBCBGBCBCABCBCBDABCBEBCBCGBADBEX"
+    },
+    "tb.lani.market.hello": {
+      "h": "97cb29d80cdd48bf",
+      "e": "happy",
+      "t": [
+        0, 33, 26, 8, 72, 11, 7, 49, 8, 7, 13, 7, 8, 12, 56, 24, 9, 7, 35, 14, 7, 7, 14, 42, 12, 27, 26, 5,
+        18, 8, 7, 6, 14, 14, 14, 14, 42, 7, 7, 14, 25, 33, 12, 6, 20, 9, 4, 4, 14, 21, 14, 35, 21, 9, 38, 7,
+        21, 7, 7, 42, 4
+      ],
+      "v": "XCABCDBADCHADBXBCBDBHCBXBDCBADBCHBGBCBEAXABEADBCHBEBAEBDBGBX"
+    },
+    "tb.lani.market.open": {
+      "h": "008d988106240654",
+      "e": "neutral",
+      "t": [
+        0, 1, 6, 7, 20, 14, 7, 32, 10, 7, 7, 8, 28, 14, 51, 5, 39, 21, 9, 6, 19, 28, 28, 28, 7, 56, 7, 14, 7,
+        7, 21, 7, 7, 7, 1
+      ],
+      "v": "XABCBEAEGBAEBXBCBAEBHCBCBCGEBCBCHX"
+    },
+    "tb.lani.market.auto": {
+      "h": "668da63b9a6036fa",
+      "e": "neutral",
+      "t": [
+        0, 7, 11, 21, 7, 21, 14, 7, 21, 7, 14, 8, 11, 14, 14, 14, 40, 17, 9, 27, 28, 21, 9, 6, 6, 14, 7, 14,
+        7, 7, 21, 14, 23, 12, 21, 7, 8, 20, 28, 7, 35, 14, 7, 14, 14, 14, 21, 13, 31, 15, 22, 14, 7, 7, 12,
+        20, 14, 14, 13, 26, 14, 7, 14, 8, 24, 42
+      ],
+      "v": "XEBCBDBCEBACBCHXBCAFBAEBCHGEBCBXBCHEFBFCBCBFDBXBXBCDBXBCBABEBCADB"
+    },
+    "tb.lani.market.right": {
+      "h": "bb559b93507ce1b2",
+      "e": "happy",
+      "t": [0, 9, 10, 7, 21, 7, 8, 5, 5, 51, 29, 17, 23, 14, 8, 8, 21, 7, 7, 14, 8, 24, 21, 4],
+      "v": "XBCBCAHCBCBCBABDBGBACBX"
+    },
+    "tb.lani.market.fair": {
+      "h": "2faddc80a300a18b",
+      "e": "neutral",
+      "t": [0, 4, 37, 14, 49, 38, 36, 22, 14, 21, 16, 97, 4],
+      "v": "XBCBXBCGCABX"
+    },
+    "tb.lani.market.keep": {
+      "h": "225c3860c062d5c0",
+      "e": "neutral",
+      "t": [
+        0, 3, 41, 7, 28, 47, 17, 7, 7, 28, 14, 14, 14, 34, 12, 7, 7, 8, 6, 12, 7, 7, 14, 7, 19, 5, 59, 6, 62,
+        7, 14, 7, 17, 10, 8, 6, 10, 28, 40, 12, 6, 20, 14, 28, 28, 14, 7, 28, 28, 11, 18, 7, 21, 28, 28
+      ],
+      "v": "XBCBXBFBFBGDBECBADCHEFGDCBCBGEFBCBACBXABEFCBCBEBAEBDCB"
+    },
+    "tb.lani.market.over.effort": {
+      "h": "6c9a91adf9261121",
+      "e": "neutral",
+      "t": [
+        0, 3, 23, 7, 14, 7, 14, 7, 7, 7, 14, 7, 21, 14, 35, 22, 17, 19, 47, 14, 14, 7, 8, 8, 7, 14, 21, 7, 7,
+        8, 18, 8, 17, 7, 42, 4
+      ],
+      "v": "XCBCGBGECBFBCBXBXBDBCABCBFBCABAHCBX"
+    },
+    "tb.lani.market.short": {
+      "h": "9121f02298e6e637",
+      "e": "neutral",
+      "t": [
+        0, 6, 6, 5, 14, 21, 7, 35, 7, 14, 14, 17, 54, 8, 18, 8, 13, 7, 14, 24, 12, 7, 42, 26, 4, 15, 6, 26,
+        21, 7, 7, 8, 4, 4, 14, 21, 16, 13, 10, 18, 7, 7, 7, 42, 4
+      ],
+      "v": "XCDBCGBFDCXBAEACBCHBCBDCBFBECBADBCHBEAEBCGBX"
+    },
+    "tb.lani.market.hard.auto": {
+      "h": "f6d64d861aa2b6ba",
+      "e": "neutral",
+      "t": [
+        0, 4, 8, 7, 21, 21, 7, 14, 11, 6, 26, 14, 15, 14, 7, 49, 7, 26, 108, 40, 14, 7, 14, 14, 7, 14, 21, 21,
+        7, 21, 14, 7, 7, 7, 42, 21, 28, 14, 28, 14, 21, 42, 10, 5, 5, 21, 14, 14, 7, 7, 8, 11, 7, 14, 7, 35, 5
+      ],
+      "v": "XEBCBCBADCHCBGBEAXDBCHCBCBFBEFBCBCECBEGCBAEBCHBCBAEBCGBX"
+    },
+    "tb.lani.market.broke": {
+      "h": "6c4efbefe4aaa2e8",
+      "e": "neutral",
+      "t": [
+        0, 6, 6, 19, 7, 14, 14, 14, 7, 89, 10, 7, 8, 13, 7, 63, 7, 21, 21, 7, 7, 7, 14, 46, 27, 9, 18, 20, 5,
+        11, 21, 14, 7, 7, 7, 14, 14, 8, 4
+      ],
+      "v": "XCBGBDBGBCBAHCBCEBCBHCBCACBFBFGCECBCAX"
+    },
+    "tb.lani.market.done": {
+      "h": "b7fd57223a173fa6",
+      "e": "happy",
+      "t": [
+        0, 14, 7, 7, 28, 30, 9, 33, 21, 20, 24, 7, 21, 21, 7, 42, 39, 23, 42, 28, 28, 7, 14, 10, 7, 20, 7, 29,
+        17, 10, 7, 28, 1
+      ],
+      "v": "XBCEFAEBXBCBECBXFBCBCEADCHBCABCX"
+    },
+    "tb.lani.market.early": {
+      "h": "1f1c7cae575b28dd",
+      "e": "neutral",
+      "t": [
+        0, 3, 5, 4, 28, 7, 7, 42, 8, 5, 40, 43, 7, 20, 32, 7, 6, 8, 25, 7, 8, 10, 56, 28, 28, 11, 7, 20, 7,
+        17, 7, 21, 14, 39, 22, 8, 39, 8, 34, 16, 35, 7, 7, 14, 21, 4
+      ],
+      "v": "XCDBCBCABCXEBCECAEBAEBCBADCHBHCGBCABABEBHCBCX"
+    },
+    "tb.lani.market.bye": {
+      "h": "e5c70a64e290ee1e",
+      "e": "neutral",
+      "t": [
+        0, 8, 11, 7, 7, 11, 60, 30, 23, 14, 28, 10, 5, 39, 42, 9, 14, 7, 21, 7, 56, 18, 7, 7, 7, 14, 21, 14,
+        14, 15, 4, 11, 14, 14, 28, 7, 4
+      ],
+      "v": "XEGCABXBHCABCXCEBDCBCBCEBECBXBCFBCBX"
     },
     "juno.cabin.01": {
       "h": "8582b8ca28ad4d40",
@@ -1803,6 +2477,42 @@
       ],
       "v": "XBFBXBCHBFECBABCBFBADBEBFBCFEBGEBXBCBCXB"
     },
+    "tb.fen.r3.intro": {
+      "h": "e8448dbaa43f03f6",
+      "e": "happy",
+      "t": [
+        0, 6, 5, 12, 56, 42, 7, 14, 35, 14, 28, 7, 21, 7, 21, 7, 21, 25, 43, 7, 21, 7, 14, 32, 8, 15, 21, 28,
+        7, 14, 10, 19, 13, 5, 19, 21
+      ],
+      "v": "XHCBCGBFCBEFBCHBXBCEBEBABFBFBAECBCB"
+    },
+    "tb.fen.ws.worktree": {
+      "h": "605706586d0e2c85",
+      "e": "neutral",
+      "t": [
+        0, 11, 14, 35, 8, 68, 7, 42, 40, 10, 42, 56, 16, 2, 7, 7, 6, 19, 14, 7, 7, 16, 8, 21, 38, 10, 63, 21,
+        14, 7, 28, 8, 5, 32, 16, 15
+      ],
+      "v": "XBFABCBXCFBABACADBGBACBXCBCBEFACBXB"
+    },
+    "tb.fen.ws.checkout": {
+      "h": "f34416d8ba54dfa8",
+      "e": "neutral",
+      "t": [
+        0, 6, 43, 7, 7, 7, 38, 21, 14, 19, 5, 25, 21, 56, 8, 7, 14, 28, 14, 21, 14, 14, 7, 7, 52, 18, 7, 42,
+        63, 7, 7, 7, 21, 14, 7, 7, 1
+      ],
+      "v": "XBCBFBEFCEFBXFCDBCBGBGEBCBFBCBGBGEBX"
+    },
+    "tb.fen.ws.cloud": {
+      "h": "fe48156fee84b1dd",
+      "e": "neutral",
+      "t": [
+        0, 11, 5, 5, 14, 7, 21, 14, 7, 21, 7, 7, 28, 7, 7, 28, 68, 70, 7, 14, 14, 42, 7, 7, 8, 13, 21, 14, 21,
+        21, 7, 21, 56, 7, 42, 21, 18
+      ],
+      "v": "XBCBGFBFBCFEGFCXBCBCBCBADBECEBEBGBXB"
+    },
     "tb.fen.round3": {
       "h": "b78f68a243b4dc51",
       "e": "neutral",
@@ -1865,6 +2575,15 @@
         21, 7, 7, 14, 7, 7, 21, 14, 7, 28, 8, 8, 35, 21, 7, 8, 29, 28, 35, 49, 14, 35, 37
       ],
       "v": "XFBCBAECBGCBCBABCBCBCEFCGBXBCGBCGEBCBCACBCBAEBCBHBX"
+    },
+    "tb.fen.app": {
+      "h": "38be75c949b65f5a",
+      "e": "concerned",
+      "t": [
+        0, 5, 28, 7, 40, 7, 6, 14, 7, 49, 21, 7, 34, 12, 27, 42, 42, 7, 7, 7, 8, 8, 21, 14, 14, 14, 28, 14, 7,
+        21, 39, 4, 25, 7, 7, 7, 14, 21, 7, 8, 9, 21, 14, 11
+      ],
+      "v": "XBCAFBEFBCHBABFBFECACBHBDBCBCACBGEFECBABCBX"
     },
     "tb.fen.oneatatime": {
       "h": "69bdb536e13dbca0",
@@ -1953,6 +2672,21 @@
       "e": "neutral",
       "t": [0, 8, 22, 21, 51, 55, 7, 35, 7, 7, 28, 7, 14, 7, 14, 13],
       "v": "XCBXFBFBCBGCEBX"
+    },
+    "tb.ines.order.5": {
+      "h": "b3c4f9fa4177c1d6",
+      "e": "happy",
+      "t": [0, 1, 7, 15, 21, 7, 32, 16, 8, 17, 56, 7, 21, 8, 22, 14, 7, 8, 6, 82, 25, 8, 47, 21],
+      "v": "XACHCBEACBFCABCBACBFABX"
+    },
+    "tb.ines.order.6": {
+      "h": "08b4c454f67434ab",
+      "e": "neutral",
+      "t": [
+        0, 11, 5, 5, 21, 7, 21, 101, 12, 7, 7, 70, 14, 21, 14, 11, 8, 28, 32, 5, 5, 42, 7, 8, 15, 7, 7, 14,
+        21, 88, 19, 46, 21, 14, 14, 28, 41
+      ],
+      "v": "XHCBFCXCHCBEFBABEBCDBCADBCEBXCBFBCBX"
     },
     "tb.ines.flag.ok": {
       "h": "f4fda8df5f40b897",
@@ -2203,698 +2937,6 @@
       "e": "happy",
       "t": [0, 3, 9, 14, 7, 7, 21, 21, 9, 5, 26, 56, 13, 28, 8, 19, 5, 53, 14, 21, 7, 21, 14, 7, 4],
       "v": "XGCBFBCABCXBCADCBCFBCECX"
-    },
-    "pim.brief.fork": {
-      "h": "882951812ca3a563",
-      "e": "neutral",
-      "t": [0, 9, 31, 7, 7, 28, 14, 23, 13, 8, 6, 19, 84, 4, 8, 16, 14, 14, 21, 7, 21, 14, 14, 74],
-      "v": "XFGFBCBCABCXBACBDBCBCBX"
-    },
-    "ezra.fork.register": {
-      "h": "c782555f9a4cf69b",
-      "e": "neutral",
-      "t": [
-        0, 3, 10, 7, 42, 58, 68, 7, 21, 8, 6, 12, 7, 21, 21, 32, 9, 7, 7, 14, 7, 8, 9, 14, 7, 21, 28, 8, 19,
-        7, 21, 14, 12
-      ],
-      "v": "XGEBXBCBACBCBECBEFDCAECEFBABCEBX"
-    },
-    "mer.pell.letters": {
-      "h": "e152535a3cedbc89",
-      "e": "neutral",
-      "t": [0, 5, 8, 8, 39, 21, 8, 9, 7, 14, 35, 7, 7, 7, 28, 7, 42, 14, 28, 7, 28, 7, 21, 7, 28, 14, 7, 83],
-      "v": "XCABFABFBCBGCBCBCBHBCECBCBX"
-    },
-    "mer.pell.letters.02": {
-      "h": "58ae22d5faad3780",
-      "e": "neutral",
-      "t": [
-        0, 8, 10, 14, 35, 7, 14, 21, 14, 21, 7, 14, 21, 7, 21, 7, 14, 7, 63, 90, 6, 6, 14, 7, 56, 14, 21, 7,
-        13, 5, 18, 21, 24, 4, 18, 7, 8, 8, 28, 8, 6, 26, 14, 7, 83
-      ],
-      "v": "XGCBFCBCEFGBCBCBGBXBGFCBCBDABEHXBEFACBACBCBX"
-    },
-    "mer.pell.letters.wait": {
-      "h": "c4d9782b966041cd",
-      "e": "neutral",
-      "t": [0, 10, 6, 12, 21, 14, 7, 7, 8, 6, 5, 21, 31, 14, 8, 5, 26, 16, 25, 14, 28, 7, 7, 14, 81],
-      "v": "XBHBDECACBCBCABCXBCEFGBX"
-    },
-    "mer.pell.letter.ok": {
-      "h": "6dff0ade6d41e0ff",
-      "e": "happy",
-      "t": [0, 11, 14, 14, 28, 90, 9, 14, 7, 28, 28, 80],
-      "v": "XGCBXDFBCBX"
-    },
-    "mer.pell.letter.customize": {
-      "h": "9f2b762c8e98b48a",
-      "e": "neutral",
-      "t": [
-        0, 10, 10, 21, 28, 7, 7, 17, 11, 8, 16, 7, 28, 14, 14, 92, 10, 8, 5, 25, 7, 8, 16, 8, 35, 7, 35, 21,
-        14, 8, 6, 12, 7, 28, 22, 28, 7, 7, 8, 16, 14, 81
-      ],
-      "v": "XBCEFGXBAEBFDCXFACBCABABCBCBACBGFXBCBADBX"
-    },
-    "mer.pell.letter.decoy": {
-      "h": "b9e2c2a51925d5e1",
-      "e": "neutral",
-      "t": [
-        0, 5, 7, 14, 21, 7, 21, 23, 22, 7, 28, 7, 28, 87, 8, 8, 25, 7, 9, 7, 14, 7, 21, 14, 28, 8, 5, 5, 21,
-        7, 21, 14, 18, 22, 8, 8, 11, 5, 5, 3, 8, 8, 17, 4, 26, 80
-      ],
-      "v": "XBFBCBXBDBCBXFABCADCHCGBADBCBEFXBABABDABADCBX"
-    },
-    "mer.pell.letters.solved": {
-      "h": "da65a8ebf771d24d",
-      "e": "happy",
-      "t": [
-        0, 9, 8, 7, 14, 7, 7, 14, 21, 8, 17, 7, 28, 91, 22, 7, 21, 7, 14, 8, 6, 5, 14, 35, 21, 21, 7, 63, 19,
-        26, 7, 7, 9, 27, 7, 21, 7, 19, 81
-      ],
-      "v": "XCGBHBEBAHCBXBCEFBACBEBCBCBXBCBAECBCAX"
-    },
-    "mer.pell.letters.debrief": {
-      "h": "4440281cdeb02904",
-      "e": "neutral",
-      "t": [
-        0, 9, 6, 5, 7, 7, 7, 7, 42, 8, 13, 14, 8, 5, 5, 21, 7, 7, 8, 14, 14, 23, 15, 14, 35, 14, 7, 7, 7, 7,
-        7, 7, 7, 14, 81, 15, 4, 4, 63, 7, 7, 14, 27, 4, 25, 13, 19, 7, 14, 7, 14, 63, 81
-      ],
-      "v": "XBCHCBCBADBABGBCBADBXBCBCECBCHCGBXABDBCGFBFBABCBEFBX"
-    },
-    "mer.pell.letters.again": {
-      "h": "32b061f3b422ea3c",
-      "e": "neutral",
-      "t": [
-        0, 7, 12, 14, 8, 14, 7, 7, 7, 7, 7, 14, 7, 14, 21, 14, 7, 8, 37, 11, 8, 5, 26, 92, 7, 6, 7, 10, 4, 8,
-        5, 5, 21, 21, 21, 6, 5, 7, 7, 7, 7, 21, 14, 21, 7, 10, 82
-      ],
-      "v": "XCFACBCHCGEBHBCBABCABCXBCBDCACBCBXBGFBHCFGBCAX"
-    },
-    "suri.actions.01": {
-      "h": "d2d9f6759000d1b4",
-      "e": "neutral",
-      "t": [
-        0, 1, 4, 4, 8, 11, 7, 52, 8, 11, 7, 7, 7, 8, 29, 38, 32, 21, 14, 7, 7, 14, 21, 14, 7, 14, 14, 17, 23,
-        12, 16, 7, 7, 7, 7, 7, 21, 40, 6, 27, 7, 7, 8, 7, 6, 14, 7, 7, 14, 31, 19, 35, 7, 14, 10, 12, 14, 12,
-        20
-      ],
-      "v": "XCBABDBAECGBABXCEGECBCBCBCAXAFBCHCGEXCBCBACFECGEFECBCABCAX"
-    },
-    "suri.actions.02": {
-      "h": "efae2629f9d8c6d5",
-      "e": "happy",
-      "t": [
-        0, 10, 7, 28, 25, 13, 7, 21, 14, 7, 7, 14, 7, 7, 7, 28, 7, 52, 12, 6, 20, 7, 7, 14, 7, 7, 21, 8, 6,
-        52, 8, 13, 8, 11, 7, 7, 14, 11, 7, 6, 21, 7, 14, 8, 19, 28, 18
-      ],
-      "v": "CBCABEFECGEBDBDCXACFBCBCBCABCABABFCFABCBCBABCX"
-    },
-    "pim.solved.fork": {
-      "h": "6c9c7f5c741971a8",
-      "e": "neutral",
-      "t": [
-        0, 8, 8, 7, 7, 8, 14, 14, 7, 14, 7, 28, 7, 7, 28, 7, 21, 27, 5, 5, 7, 7, 7, 6, 16, 7, 35, 7, 14, 14,
-        7, 83, 21, 14, 7, 7, 7, 7, 7, 10, 19, 14, 21, 7, 14, 35, 14, 21, 74
-      ],
-      "v": "XBGCADBEBHCGEBCEBFABACABCBEBCHXFGECBABABCFBCBCBX"
-    },
-    "pol.refuse.actions.01": {
-      "h": "2714a0a93a334561",
-      "e": "happy",
-      "t": [
-        0, 11, 11, 21, 16, 7, 14, 35, 89, 5, 12, 14, 7, 21, 7, 7, 7, 7, 14, 7, 14, 7, 28, 28, 14, 79, 12, 14,
-        7, 14, 28, 7, 14, 7, 21, 14, 8, 28, 33, 28, 14, 35, 14, 14, 37, 6, 13, 7, 42, 7, 42, 76
-      ],
-      "v": "XBCAGCBXCEGFBFECGEFBDBEGXAFBCBGECFBABXBCBCAXBCBCBCX"
-    },
-    "tb.fen.r3.intro": {
-      "h": "e8448dbaa43f03f6",
-      "e": "happy",
-      "t": [
-        0, 6, 5, 12, 56, 42, 7, 14, 35, 14, 28, 7, 21, 7, 21, 7, 21, 25, 43, 7, 21, 7, 14, 32, 8, 15, 21, 28,
-        7, 14, 10, 19, 13, 5, 19, 21
-      ],
-      "v": "XHCBCGBFCBEFBCHBXBCEBEBABFBFBAECBCB"
-    },
-    "tb.fen.ws.worktree": {
-      "h": "605706586d0e2c85",
-      "e": "neutral",
-      "t": [
-        0, 11, 14, 35, 8, 68, 7, 42, 40, 10, 42, 56, 16, 2, 7, 7, 6, 19, 14, 7, 7, 16, 8, 21, 38, 10, 63, 21,
-        14, 7, 28, 8, 5, 32, 16, 15
-      ],
-      "v": "XBFABCBXCFBABACADBGBACBXCBCBEFACBXB"
-    },
-    "tb.fen.ws.checkout": {
-      "h": "f34416d8ba54dfa8",
-      "e": "neutral",
-      "t": [
-        0, 6, 43, 7, 7, 7, 38, 21, 14, 19, 5, 25, 21, 56, 8, 7, 14, 28, 14, 21, 14, 14, 7, 7, 52, 18, 7, 42,
-        63, 7, 7, 7, 21, 14, 7, 7, 1
-      ],
-      "v": "XBCBFBEFCEFBXFCDBCBGBGEBCBFBCBGBGEBX"
-    },
-    "tb.fen.ws.cloud": {
-      "h": "fe48156fee84b1dd",
-      "e": "neutral",
-      "t": [
-        0, 11, 5, 5, 14, 7, 21, 14, 7, 21, 7, 7, 28, 7, 7, 28, 68, 70, 7, 14, 14, 42, 7, 7, 8, 13, 21, 14, 21,
-        21, 7, 21, 56, 7, 42, 21, 18
-      ],
-      "v": "XBCBGFBFBCFEGFCXBCBCBCBADBECEBEBGBXB"
-    },
-    "tb.fen.app": {
-      "h": "38be75c949b65f5a",
-      "e": "concerned",
-      "t": [
-        0, 5, 28, 7, 40, 7, 6, 14, 7, 49, 21, 7, 34, 12, 27, 42, 42, 7, 7, 7, 8, 8, 21, 14, 14, 14, 28, 14, 7,
-        21, 39, 4, 25, 7, 7, 7, 14, 21, 7, 8, 9, 21, 14, 11
-      ],
-      "v": "XBCAFBEFBCHBABFBFECACBHBDBCBCACBGEFECBABCBX"
-    },
-    "tb.ines.order.5": {
-      "h": "b3c4f9fa4177c1d6",
-      "e": "happy",
-      "t": [0, 1, 7, 15, 21, 7, 32, 16, 8, 17, 56, 7, 21, 8, 22, 14, 7, 8, 6, 82, 25, 8, 47, 21],
-      "v": "XACHCBEACBFCABCBACBFABX"
-    },
-    "tb.ines.order.6": {
-      "h": "08b4c454f67434ab",
-      "e": "neutral",
-      "t": [
-        0, 11, 5, 5, 21, 7, 21, 101, 12, 7, 7, 70, 14, 21, 14, 11, 8, 28, 32, 5, 5, 42, 7, 8, 15, 7, 7, 14,
-        21, 88, 19, 46, 21, 14, 14, 28, 41
-      ],
-      "v": "XHCBFCXCHCBEFBABEBCDBCADBCEBXCBFBCBX"
-    },
-    "mer.anders.solved.02": {
-      "h": "a4f4493e73867bf7",
-      "e": "neutral",
-      "t": [
-        0, 12, 24, 7, 29, 9, 7, 7, 7, 35, 21, 14, 7, 7, 12, 25, 14, 28, 14, 7, 57, 20, 7, 7, 28, 101, 7, 13,
-        7, 7, 7, 35, 7, 7, 7, 8, 14, 14, 14, 14, 19, 5, 18, 8, 7, 13, 27, 14, 21, 7, 14, 11, 5, 5, 14, 7, 21,
-        89
-      ],
-      "v": "XBCACBFCBDBFBABCFBCBCBCBXFECBCBCEBADBEBDCBABABCFCEABDBCBX"
-    },
-    "mer.helm.order.interactive": {
-      "h": "f1f9c8cb788e8023",
-      "e": "neutral",
-      "t": [
-        0, 7, 9, 14, 21, 28, 95, 39, 8, 27, 8, 13, 35, 8, 22, 88, 6, 6, 28, 14, 7, 14, 7, 7, 7, 14, 21, 14,
-        27, 20, 14, 21, 7, 7, 49, 88, 7, 14, 14, 7, 8, 8, 42, 82
-      ],
-      "v": "XGCBFXBAFADBABXCBFBGHGBCEFCBEBCGBCXFBCHAGBX"
-    },
-    "mer.helm.wrong.interactive.plan": {
-      "h": "0b160e3ed65a7aa6",
-      "e": "neutral",
-      "t": [
-        0, 2, 8, 10, 14, 14, 21, 7, 14, 7, 21, 7, 28, 21, 7, 7, 8, 22, 7, 48, 7, 21, 7, 56, 7, 42, 96, 15, 7,
-        7, 21, 21, 7, 14, 7, 7, 49, 80
-      ],
-      "v": "XAHCFBDBCEFEBCEAFGBCBCBCFXFEBFEHCGBCX"
-    },
-    "mer.helm.wrong.interactive.autopilot": {
-      "h": "f4432f6157215c14",
-      "e": "neutral",
-      "t": [
-        0, 7, 6, 13, 8, 14, 7, 7, 14, 7, 7, 28, 21, 14, 28, 7, 21, 21, 35, 26, 10, 35, 14, 14, 14, 42, 28, 14,
-        81
-      ],
-      "v": "XBEACBHBFCBFCBCBCBXBFBEHBECX"
-    },
-    "mer.helm.order.plan": {
-      "h": "098a83701d57dc30",
-      "e": "neutral",
-      "t": [
-        0, 8, 13, 21, 21, 7, 21, 30, 5, 11, 14, 8, 13, 42, 89, 10, 8, 18, 14, 8, 56, 32, 9, 7, 7, 35, 14, 14,
-        7, 8, 11, 7, 14, 7, 7, 8, 7, 34, 87, 5, 19, 21, 7, 14, 83
-      ],
-      "v": "XBCEBECBCBACBXBAEFABXBEFBCFBABGEFBACBXFBCHAX"
-    },
-    "mer.helm.wrong.plan.autopilot": {
-      "h": "ef6b7a303909610a",
-      "e": "happy",
-      "t": [
-        0, 9, 9, 7, 7, 8, 22, 21, 99, 9, 8, 19, 42, 7, 14, 7, 7, 14, 8, 19, 14, 8, 6, 27, 14, 88, 10, 7, 21,
-        14, 21, 14, 88
-      ],
-      "v": "XEFBAEFXBACBFCFCBAEFABEBXBDBGCBX"
-    },
-    "mer.helm.wrong.plan.interactive": {
-      "h": "9eecdb6f3232a59a",
-      "e": "neutral",
-      "t": [
-        0, 8, 11, 21, 7, 21, 7, 7, 21, 21, 14, 21, 28, 32, 6, 13, 9, 8, 21, 7, 28, 7, 15, 88, 29, 8, 18, 14,
-        8, 4, 4, 28, 14, 20, 10, 7, 7, 7, 7, 7, 7, 7, 21, 28, 14, 14, 21, 21, 82
-      ],
-      "v": "XBECBGFHBCBFBFCADBCDBAXBAEFACBEBXBEFBFDBCEFBGCBX"
-    },
-    "mer.helm.plan.approve.draft": {
-      "h": "05be19fa20ccb9e8",
-      "e": "happy",
-      "t": [
-        0, 3, 7, 7, 24, 7, 7, 14, 8, 8, 8, 4, 25, 7, 42, 7, 21, 8, 16, 35, 19, 24, 7, 7, 42, 91, 6, 13, 28,
-        21, 28, 7, 14, 14, 21, 85, 30, 8, 13, 35, 27, 14, 7, 14, 7, 7, 7, 14, 7, 14, 28, 81
-      ],
-      "v": "XCAFGCBABACBCBCEACBXBCBFXHCFEBCBEFXBAHCBCBCBCBCBCBX"
-    },
-    "mer.helm.plan.exit": {
-      "h": "587273eb72ddb1fd",
-      "e": "neutral",
-      "t": [
-        0, 7, 7, 20, 8, 18, 7, 21, 7, 8, 14, 14, 7, 8, 5, 40, 21, 28, 14, 27, 5, 26, 10, 7, 8, 45, 7, 13, 21,
-        14, 7, 14, 88, 11, 8, 18, 28, 63, 7, 21, 7, 42, 81
-      ],
-      "v": "XCBAHCHBAFBCACBEBGXCFABABCABCHGXBAHCBFCGBX"
-    },
-    "mer.helm.plan.suggest": {
-      "h": "790bbd5f0e4d680f",
-      "e": "neutral",
-      "t": [
-        0, 4, 16, 28, 28, 89, 4, 18, 14, 21, 7, 7, 7, 7, 7, 14, 7, 21, 89, 15, 7, 21, 7, 7, 7, 14, 21, 79
-      ],
-      "v": "XBCBXCBDEBCEBCBEFXCGCBCHCBX"
-    },
-    "mer.helm.plan.exit.revised": {
-      "h": "63a18a483cf69b80",
-      "e": "neutral",
-      "t": [
-        0, 8, 35, 7, 24, 6, 27, 11, 6, 8, 47, 7, 13, 23, 7, 7, 7, 21, 21, 7, 28, 14, 78, 12, 25, 8, 13, 14,
-        35, 7, 21, 14, 82
-      ],
-      "v": "XFBXBFABABCABCHGBECBGXABAHCBCDEX"
-    },
-    "mer.helm.plan.suggest.revised": {
-      "h": "e2ce41b87c6c68bb",
-      "e": "neutral",
-      "t": [0, 9, 52, 7, 28, 7, 7, 7, 21, 14, 91, 11, 14, 14, 21, 7, 7, 7, 7, 14, 14, 7, 35, 81],
-      "v": "XBCBEFCDEXCBCBCHCGFBCBX"
-    },
-    "mer.helm.order.autopilot": {
-      "h": "695388ecf57dee5f",
-      "e": "neutral",
-      "t": [
-        0, 8, 10, 7, 14, 14, 7, 21, 78, 14, 14, 19, 5, 16, 5, 60, 21, 90, 16, 7, 14, 14, 14, 7, 28, 24, 21, 7,
-        7, 14, 8, 4, 4, 21, 14, 14, 89, 5, 18, 21, 7, 14, 83
-      ],
-      "v": "XHCBEBEXBCFECEFBXBFCBGCBXBCBEACBHCBXFBCHAX"
-    },
-    "mer.helm.wrong.autopilot.interactive": {
-      "h": "2f17a44b0daea7a5",
-      "e": "neutral",
-      "t": [
-        0, 8, 11, 21, 7, 21, 7, 70, 21, 7, 14, 7, 14, 8, 15, 16, 11, 75, 85, 5, 11, 14, 7, 7, 28, 28, 7, 7,
-        28, 14, 21, 82
-      ],
-      "v": "XBECBGBFBCGBADCBXBFCBGCBCBCBCBX"
-    },
-    "mer.helm.wrong.autopilot.plan": {
-      "h": "5f38a95f82c233b4",
-      "e": "neutral",
-      "t": [
-        0, 1, 8, 11, 7, 21, 14, 14, 14, 7, 42, 7, 14, 7, 14, 14, 21, 21, 92, 7, 14, 7, 7, 21, 8, 13, 14, 45,
-        7, 14, 21, 14, 21, 7, 7, 28, 86
-      ],
-      "v": "XAHCFBDBCBCBGFGCBXDCBCBAHCBCBCBFBGFX"
-    },
-    "mer.market.hello": {
-      "h": "0ba0746779c393fc",
-      "e": "happy",
-      "t": [
-        0, 5, 8, 28, 28, 8, 6, 41, 57, 10, 28, 8, 11, 56, 8, 5, 5, 14, 8, 14, 14, 7, 76, 28, 7, 14, 7, 7, 14,
-        21, 7, 14, 49, 9, 7, 7, 13, 6, 40, 7, 21, 7, 14, 7, 18, 79, 12, 18, 14, 8, 6, 6, 7, 7, 7, 28, 14, 8,
-        20, 5
-      ],
-      "v": "XCECABCXFCAFBADBCADCBXBCBCEBDBGBGBCADBGBCBDAXABEADBCHBEBAEX"
-    },
-    "mer.market.open": {
-      "h": "d06cd0edd36b8a90",
-      "e": "neutral",
-      "t": [
-        0, 4, 6, 19, 7, 7, 13, 2, 8, 8, 7, 16, 14, 14, 32, 6, 12, 14, 21, 21, 8, 4, 4, 14, 14, 23, 7, 27, 7,
-        35, 14, 14, 7, 28, 14, 5
-      ],
-      "v": "ABCBDABABAEFBXBCBCBADBCHBCBCBCGBDBX"
-    },
-    "mer.market.auto": {
-      "h": "23560762edc69e71",
-      "e": "concerned",
-      "t": [
-        0, 4, 7, 6, 21, 14, 7, 14, 7, 7, 8, 15, 7, 7, 14, 39, 12, 7, 19, 23, 21, 8, 5, 18, 14, 14, 28, 7, 35,
-        7, 8, 20, 14, 14, 35, 14, 7, 21, 14, 52, 22, 14, 7, 7, 14, 8, 18, 21, 9, 13, 21, 4
-      ],
-      "v": "XEBEFBCEBACBCHXBCAFBADBGEFBCHEFBFCBFDBXBCEBEACBACBX"
-    },
-    "mer.market.right": {
-      "h": "4e73b8e88310d9f9",
-      "e": "happy",
-      "t": [0, 3, 44, 19, 5, 32, 23, 35, 8, 12, 21, 7, 7, 14, 8, 24, 21, 7, 25, 7, 38, 8, 27, 21],
-      "v": "XBDCBXBABDBGBACBCDCBAEB"
-    },
-    "mer.market.over.effort": {
-      "h": "4199d8ed7c847be0",
-      "e": "neutral",
-      "t": [0, 3, 20, 21, 7, 14, 7, 14, 7, 7, 7, 28, 21, 78, 31, 7, 21, 7, 56, 4],
-      "v": "XCBGBGCBFBFBXBGEFBX"
-    },
-    "mer.market.short": {
-      "h": "dbeeeb676c713a61",
-      "e": "neutral",
-      "t": [
-        0, 3, 9, 7, 14, 14, 14, 28, 24, 23, 8, 30, 8, 12, 8, 7, 7, 14, 14, 70, 38, 7, 7, 7, 21, 21, 7, 7, 8,
-        6, 5, 7, 21, 21, 14, 9, 15, 7, 14, 7, 21
-      ],
-      "v": "XCDBFDBXBABAEACBCHXBCBFBECBADBCHBEAEBCGB"
-    },
-    "mer.market.broke": {
-      "h": "f62da316838d8419",
-      "e": "neutral",
-      "t": [
-        0, 5, 6, 5, 14, 21, 7, 7, 35, 69, 10, 21, 7, 14, 49, 14, 7, 7, 56, 14, 8, 15, 14, 14, 14, 7, 7, 14,
-        14, 9, 4
-      ],
-      "v": "XCEFDBGBXBCBEBCBHBCACBFGCEBCAX"
-    },
-    "mer.market.done": {
-      "h": "ae8e6a7c9371db79",
-      "e": "happy",
-      "t": [
-        0, 3, 7, 14, 28, 8, 9, 7, 8, 29, 14, 14, 12, 7, 21, 14, 28, 39, 11, 14, 14, 14, 14, 7, 8, 6, 27, 14,
-        8, 7, 21, 5
-      ],
-      "v": "XCGBAECAEBXBCBDBXFDBDBCADBCABCX"
-    },
-    "mer.market.fair": {
-      "h": "7b51f464b80b39a1",
-      "e": "happy",
-      "t": [0, 3, 16, 7, 28, 19, 5, 32, 47, 5, 25, 14, 7, 7, 10, 8, 7, 21, 7, 35, 7, 14, 4],
-      "v": "XBCBDCBXHBGCBABCBEBEAX"
-    },
-    "desmond.market.hello": {
-      "h": "691865aecad37a82",
-      "e": "happy",
-      "t": [
-        0, 3, 9, 28, 8, 22, 12, 6, 19, 40, 11, 7, 7, 7, 21, 7, 9, 4, 18, 10, 5, 4, 14, 8, 5, 33, 63, 19, 7,
-        14, 12, 6, 19, 14, 35, 7, 28, 14, 7, 7, 11, 50, 8, 7, 8, 31, 35, 14, 14, 7, 61, 12, 15, 21, 8, 7, 14,
-        7, 21, 26, 14, 9, 28, 27
-      ],
-      "v": "XFCAFXBCXBGFBCBADBAEBEADBXCBEADCHBGBCBEAXCBACBDBGBABEABCHBEBAEX"
-    },
-    "desmond.market.bye": {
-      "h": "78a0cce41c7711d2",
-      "e": "happy",
-      "t": [
-        0, 4, 15, 7, 7, 7, 7, 7, 21, 21, 11, 6, 33, 28, 14, 14, 7, 11, 7, 48, 7, 28, 14, 7, 7, 21, 7, 14, 9,
-        8, 35, 28, 12
-      ],
-      "v": "XBCBGBCBCABCBCBDABCBEBCBCGBADBEX"
-    },
-    "tb.lani.market.hello": {
-      "h": "97cb29d80cdd48bf",
-      "e": "happy",
-      "t": [
-        0, 33, 26, 8, 72, 11, 7, 49, 8, 7, 13, 7, 8, 12, 56, 24, 9, 7, 35, 14, 7, 7, 14, 42, 12, 27, 26, 5,
-        18, 8, 7, 6, 14, 14, 14, 14, 42, 7, 7, 14, 25, 33, 12, 6, 20, 9, 4, 4, 14, 21, 14, 35, 21, 9, 38, 7,
-        21, 7, 7, 42, 4
-      ],
-      "v": "XCABCDBADCHADBXBCBDBHCBXBDCBADBCHBGBCBEAXABEADBCHBEBAEBDBGBX"
-    },
-    "tb.lani.market.bye": {
-      "h": "e5c70a64e290ee1e",
-      "e": "neutral",
-      "t": [
-        0, 8, 11, 7, 7, 11, 60, 30, 23, 14, 28, 10, 5, 39, 42, 9, 14, 7, 21, 7, 56, 18, 7, 7, 7, 14, 21, 14,
-        14, 15, 4, 11, 14, 14, 28, 7, 4
-      ],
-      "v": "XEGCABXBHCABCXCEBDCBCBCEBECBXBCFBCBX"
-    },
-    "desmond.market.open": {
-      "h": "4bfc49575a97933b",
-      "e": "neutral",
-      "t": [
-        0, 3, 20, 7, 14, 7, 7, 20, 12, 2, 8, 7, 20, 14, 62, 8, 35, 21, 9, 6, 6, 42, 21, 7, 28, 7, 14, 14, 14,
-        14, 31
-      ],
-      "v": "XFBCBEABABAEBXBCBADBCBCBCGBCBX"
-    },
-    "desmond.market.auto": {
-      "h": "96bd915159e32e26",
-      "e": "concerned",
-      "t": [
-        0, 7, 5, 4, 21, 14, 28, 7, 8, 20, 21, 63, 12, 7, 15, 31, 7, 9, 21, 14, 28, 41, 6, 5, 7, 14, 14, 8, 29,
-        20, 7, 14, 30, 7, 7, 7, 14, 7, 7, 14, 7, 42, 37, 9, 6, 27, 21, 27, 7, 7, 7, 7, 7, 8, 14, 28, 11
-      ],
-      "v": "XEBEFCBACBXBCABCABGFXBCBCHEFBFCBEFBCBFDBXBACBXBCBEBEACBX"
-    },
-    "desmond.market.right": {
-      "h": "5471ac72319015e7",
-      "e": "happy",
-      "t": [
-        0, 3, 41, 14, 28, 38, 25, 13, 14, 7, 9, 10, 14, 7, 7, 7, 8, 23, 21, 7, 7, 7, 19, 5, 39, 8, 9, 21, 13
-      ],
-      "v": "XBDBXBCBCABDBGBACBGEBDCBADBX"
-    },
-    "desmond.market.fair": {
-      "h": "b1feaf3a798db48d",
-      "e": "happy",
-      "t": [0, 4, 10, 7, 35, 14, 21, 68, 18, 7, 14, 13, 7, 14, 14, 7, 7, 35, 7, 22, 4],
-      "v": "XBCBDBXBGCABCBGEBEAX"
-    },
-    "desmond.market.over.effort": {
-      "h": "f29a315267e31749",
-      "e": "neutral",
-      "t": [
-        0, 5, 23, 7, 7, 14, 7, 14, 7, 7, 7, 21, 28, 21, 50, 25, 6, 6, 21, 7, 21, 14, 7, 21, 7, 28, 7, 7, 21,
-        37
-      ],
-      "v": "XCBCGEBGECBFBXCBCBGEBFCBCGCBX"
-    },
-    "desmond.market.short": {
-      "h": "f6795b272852baad",
-      "e": "neutral",
-      "t": [
-        0, 13, 8, 21, 7, 7, 21, 10, 7, 28, 44, 10, 14, 8, 16, 7, 63, 8, 16, 8, 4, 4, 14, 21, 42, 11, 15, 35,
-        7, 7, 7, 7, 7, 14, 21, 14, 11, 5, 4, 14, 35, 10, 14, 7, 21, 7, 7, 7, 12, 11, 1
-      ],
-      "v": "XDBFBCABCXCBAHCBAEAEBGBXBXBCBFBCBEBADBCEAEBCGEBXBX"
-    },
-    "desmond.market.broke": {
-      "h": "1acce846b3f55833",
-      "e": "neutral",
-      "t": [
-        0, 5, 7, 6, 7, 7, 14, 7, 7, 21, 7, 28, 105, 5, 11, 21, 28, 28, 42, 28, 7, 49, 71, 25, 10, 14, 14, 7,
-        7, 14, 21, 7, 7, 29, 7, 21, 10
-      ],
-      "v": "XCEFBDBGBCBXBCBCEFBCBXCACBFCFGCECGFX"
-    },
-    "desmond.market.done": {
-      "h": "e9d22c1c495a6279",
-      "e": "happy",
-      "t": [
-        0, 9, 14, 7, 28, 7, 8, 15, 7, 8, 26, 14, 26, 42, 14, 35, 129, 29, 7, 7, 21, 12, 7, 6, 14, 7, 7, 14, 9,
-        7, 20, 4
-      ],
-      "v": "XCGBEADCAEBXBDBXFCEFADBCHBCABCX"
-    },
-    "tb.lani.market.open": {
-      "h": "008d988106240654",
-      "e": "neutral",
-      "t": [
-        0, 1, 6, 7, 20, 14, 7, 32, 10, 7, 7, 8, 28, 14, 51, 5, 39, 21, 9, 6, 19, 28, 28, 28, 7, 56, 7, 14, 7,
-        7, 21, 7, 7, 7, 1
-      ],
-      "v": "XABCBEAEGBAEBXBCBAEBHCBCBCGEBCBCHX"
-    },
-    "tb.lani.market.auto": {
-      "h": "668da63b9a6036fa",
-      "e": "neutral",
-      "t": [
-        0, 7, 11, 21, 7, 21, 14, 7, 21, 7, 14, 8, 11, 14, 14, 14, 40, 17, 9, 27, 28, 21, 9, 6, 6, 14, 7, 14,
-        7, 7, 21, 14, 23, 12, 21, 7, 8, 20, 28, 7, 35, 14, 7, 14, 14, 14, 21, 13, 31, 15, 22, 14, 7, 7, 12,
-        20, 14, 14, 13, 26, 14, 7, 14, 8, 24, 42
-      ],
-      "v": "XEBCBDBCEBACBCHXBCAFBAEBCHGEBCBXBCHEFBFCBCBFDBXBXBCDBXBCBABEBCADB"
-    },
-    "tb.lani.market.right": {
-      "h": "bb559b93507ce1b2",
-      "e": "happy",
-      "t": [0, 9, 10, 7, 21, 7, 8, 5, 5, 51, 29, 17, 23, 14, 8, 8, 21, 7, 7, 14, 8, 24, 21, 4],
-      "v": "XBCBCAHCBCBCBABDBGBACBX"
-    },
-    "tb.lani.market.fair": {
-      "h": "2faddc80a300a18b",
-      "e": "neutral",
-      "t": [0, 4, 37, 14, 49, 38, 36, 22, 14, 21, 16, 97, 4],
-      "v": "XBCBXBCGCABX"
-    },
-    "tb.lani.market.over.effort": {
-      "h": "6c9a91adf9261121",
-      "e": "neutral",
-      "t": [
-        0, 3, 23, 7, 14, 7, 14, 7, 7, 7, 14, 7, 21, 14, 35, 22, 17, 19, 47, 14, 14, 7, 8, 8, 7, 14, 21, 7, 7,
-        8, 18, 8, 17, 7, 42, 4
-      ],
-      "v": "XCBCGBGECBFBCBXBXBDBCABCBFBCABAHCBX"
-    },
-    "tb.lani.market.short": {
-      "h": "9121f02298e6e637",
-      "e": "neutral",
-      "t": [
-        0, 6, 6, 5, 14, 21, 7, 35, 7, 14, 14, 17, 54, 8, 18, 8, 13, 7, 14, 24, 12, 7, 42, 26, 4, 15, 6, 26,
-        21, 7, 7, 8, 4, 4, 14, 21, 16, 13, 10, 18, 7, 7, 7, 42, 4
-      ],
-      "v": "XCDBCGBFDCXBAEACBCHBCBDCBFBECBADBCHBEAEBCGBX"
-    },
-    "tb.lani.market.broke": {
-      "h": "6c4efbefe4aaa2e8",
-      "e": "neutral",
-      "t": [
-        0, 6, 6, 19, 7, 14, 14, 14, 7, 89, 10, 7, 8, 13, 7, 63, 7, 21, 21, 7, 7, 7, 14, 46, 27, 9, 18, 20, 5,
-        11, 21, 14, 7, 7, 7, 14, 14, 8, 4
-      ],
-      "v": "XCBGBDBGBCBAHCBCEBCBHCBCACBFBFGCECBCAX"
-    },
-    "tb.lani.market.done": {
-      "h": "b7fd57223a173fa6",
-      "e": "happy",
-      "t": [
-        0, 14, 7, 7, 28, 30, 9, 33, 21, 20, 24, 7, 21, 21, 7, 42, 39, 23, 42, 28, 28, 7, 14, 10, 7, 20, 7, 29,
-        17, 10, 7, 28, 1
-      ],
-      "v": "XBCEFAEBXBCBECBXFBCBCEADCHBCABCX"
-    },
-    "mer.oren.market": {
-      "h": "94fafea650fbb7fd",
-      "e": "neutral",
-      "t": [
-        0, 12, 10, 35, 7, 21, 14, 7, 14, 23, 15, 55, 8, 5, 18, 8, 10, 42, 15, 5, 12, 14, 7, 22, 23, 7, 7, 21,
-        14, 26, 6, 13, 25, 7, 24, 7, 41, 54, 7, 21, 104, 21, 21, 7, 14, 7, 7, 21, 7, 7, 28, 96
-      ],
-      "v": "XCBCFBCHBAFAEFADBAHDBCXBFBFBXBCDCBEABCBXBCGBCBDBGBX"
-    },
-    "mer.oren.market.wait": {
-      "h": "927937976b975576",
-      "e": "neutral",
-      "t": [
-        0, 15, 37, 8, 15, 42, 14, 7, 21, 15, 5, 18, 7, 14, 14, 21, 8, 7, 20, 109, 7, 7, 35, 7, 7, 21, 21, 29,
-        5, 12, 25, 7, 24, 7, 10, 15, 70, 14, 21, 95
-      ],
-      "v": "XFADBCEBAHDBCBCABCXCBFBGEBXBCDCBEACBCBX"
-    },
-    "mer.oren.practiced": {
-      "h": "381375d0b719a47a",
-      "e": "neutral",
-      "t": [
-        0, 2, 8, 8, 28, 35, 103, 6, 27, 7, 63, 93, 24, 28, 49, 7, 7, 7, 8, 16, 14, 21, 14, 14, 21, 18, 54, 14,
-        7, 21, 35, 14, 7, 8, 43, 7, 7, 8, 13, 2, 8, 7, 12, 9, 4, 25, 7, 7, 14, 32, 5, 47, 14, 8, 24, 7, 14, 7,
-        28, 94
-      ],
-      "v": "XACEBXBFGBXBFBCEFAECBGEBXBFEFDBEACFBACABAEACEBCGBFBCABCFEBX"
-    },
-    "mer.pell.prompts": {
-      "h": "c49ee0bbfb3ef1bd",
-      "e": "neutral",
-      "t": [
-        0, 9, 21, 7, 21, 14, 7, 7, 7, 7, 7, 7, 21, 78, 15, 7, 6, 21, 21, 7, 7, 14, 37, 10, 14, 8, 18, 7, 21,
-        7, 8, 14, 26, 15, 28, 14, 7, 35, 9, 5, 4, 8, 13, 7, 21, 14, 21, 7, 7, 14, 7, 7, 21, 14, 91, 8, 14, 14,
-        7, 22, 29, 33, 5, 18, 84
-      ],
-      "v": "XCBEBGCEBCECXACBCEFHDBEBADCDBACBFBCEBABDABCEBECEBCBCBXBCBCABFECX"
-    },
-    "mer.market.keep": {
-      "h": "d0c112b313289805",
-      "e": "neutral",
-      "t": [
-        0, 7, 7, 6, 28, 14, 28, 32, 38, 10, 14, 9, 6, 13, 28, 7, 35, 7, 14, 7, 28, 7, 7, 28, 21, 14, 24, 15,
-        7, 7, 7, 7, 28, 14, 46, 7, 8, 28, 7, 35, 40, 8, 7, 7, 28, 28, 10, 15, 14, 7, 14, 7, 28, 4
-      ],
-      "v": "XBCBDBXBCEADBHDBGEBCGEBGDBGECFBFBXCABFCXBCBEBAEBCHGBX"
-    },
-    "mer.market.hard.auto": {
-      "h": "62da75b19683465d",
-      "e": "neutral",
-      "t": [
-        0, 7, 8, 7, 14, 7, 14, 7, 7, 7, 8, 7, 6, 7, 14, 14, 21, 7, 11, 4, 39, 104, 10, 14, 7, 8, 30, 28, 70,
-        7, 7, 21, 28, 14, 28, 28, 21, 23, 27, 8, 27, 9, 6, 6, 7, 21, 22, 6, 13, 28, 7, 7, 7, 14, 7, 14, 4
-      ],
-      "v": "XEBEFBEFBADBCHCBDABCXDCBABEBCEBCEFEGXCABADBCHBCBCBECGEBX"
-    },
-    "mer.market.early": {
-      "h": "0ea27e344a4bf4de",
-      "e": "concerned",
-      "t": [
-        0, 4, 5, 5, 7, 21, 7, 21, 10, 4, 32, 78, 7, 6, 7, 14, 49, 8, 5, 18, 21, 7, 8, 7, 27, 10, 6, 19, 7, 21,
-        49, 27, 8, 17, 7, 7, 7, 35, 14, 21, 21, 7, 7, 4
-      ],
-      "v": "XCDBCBCABCXCEBCBADBHCACBABEGEBCACBFCBCBCECX"
-    },
-    "mer.market.practiced": {
-      "h": "3c82427231f9773f",
-      "e": "neutral",
-      "t": [
-        0, 5, 19, 7, 7, 14, 11, 32, 35, 8, 32, 35, 8, 7, 35, 8, 29, 16, 18, 7, 7, 8, 7, 7, 7, 7, 14, 14, 4
-      ],
-      "v": "XBEBCABCABXBCBACABCBACEBFCBX"
-    },
-    "desmond.market.keep": {
-      "h": "0cf74adfaa723f7d",
-      "e": "neutral",
-      "t": [
-        0, 3, 12, 7, 7, 42, 14, 114, 17, 15, 14, 7, 14, 11, 5, 11, 7, 14, 42, 14, 14, 7, 21, 14, 28, 35, 13,
-        7, 14, 7, 7, 35, 14, 7, 7, 28, 61, 8, 8, 20, 21, 7, 28, 50, 13, 7, 35, 7, 35, 19, 11, 16, 21, 14, 14,
-        7, 21, 5
-      ],
-      "v": "XBCBFBXBXBCBADBCEBGEBCGBXBCBCBFBGCBXCABEFCXCBEBFBAEBCGCBX"
-    },
-    "desmond.market.hard.auto": {
-      "h": "f929f4bae2e05523",
-      "e": "neutral",
-      "t": [
-        0, 5, 6, 5, 14, 8, 38, 9, 5, 5, 49, 7, 14, 28, 28, 129, 7, 7, 14, 7, 7, 8, 31, 19, 5, 47, 33, 14, 7,
-        7, 21, 26, 6, 6, 21, 7, 21, 21, 35, 30, 9, 26, 5, 18, 7, 7, 10, 5, 11, 21, 7, 30, 52, 7, 14, 7, 7, 14,
-        7, 15, 12
-      ],
-      "v": "XEBEABADBCBDBCXGBCBDABDCBCEBEFBEBEFEGXCBCEFBCADBCHBCBECBGEXB"
-    },
-    "desmond.market.early": {
-      "h": "fda132676c15ad14",
-      "e": "neutral",
-      "t": [
-        0, 3, 7, 7, 7, 19, 5, 25, 12, 8, 7, 12, 82, 8, 8, 7, 35, 14, 7, 7, 14, 14, 7, 14, 8, 29, 12, 9, 14,
-        14, 28, 47, 6, 5, 28, 7, 14, 56, 7, 12, 4, 8, 14, 14, 8, 19, 21, 21, 67, 25, 14, 42, 7, 6, 21, 7, 14,
-        35, 4
-      ],
-      "v": "XEFBDEFXBCAXAEBDCBCGEBCABABEFCXCBEBCBCAEAEBAEBCXCADBCBHCBX"
-    },
-    "tb.lani.market.keep": {
-      "h": "225c3860c062d5c0",
-      "e": "neutral",
-      "t": [
-        0, 3, 41, 7, 28, 47, 17, 7, 7, 28, 14, 14, 14, 34, 12, 7, 7, 8, 6, 12, 7, 7, 14, 7, 19, 5, 59, 6, 62,
-        7, 14, 7, 17, 10, 8, 6, 10, 28, 40, 12, 6, 20, 14, 28, 28, 14, 7, 28, 28, 11, 18, 7, 21, 28, 28
-      ],
-      "v": "XBCBXBFBFBGDBECBADCHEFGDCBCBGEFBCBACBXABEFCBCBEBAEBDCB"
-    },
-    "tb.lani.market.hard.auto": {
-      "h": "f6d64d861aa2b6ba",
-      "e": "neutral",
-      "t": [
-        0, 4, 8, 7, 21, 21, 7, 14, 11, 6, 26, 14, 15, 14, 7, 49, 7, 26, 108, 40, 14, 7, 14, 14, 7, 14, 21, 21,
-        7, 21, 14, 7, 7, 7, 42, 21, 28, 14, 28, 14, 21, 42, 10, 5, 5, 21, 14, 14, 7, 7, 8, 11, 7, 14, 7, 35, 5
-      ],
-      "v": "XEBCBCBADCHCBGBEAXDBCHCBCBFBEFBCBCECBEGCBAEBCHBCBAEBCGBX"
-    },
-    "tb.lani.market.early": {
-      "h": "1f1c7cae575b28dd",
-      "e": "neutral",
-      "t": [
-        0, 3, 5, 4, 28, 7, 7, 42, 8, 5, 40, 43, 7, 20, 32, 7, 6, 8, 25, 7, 8, 10, 56, 28, 28, 11, 7, 20, 7,
-        17, 7, 21, 14, 39, 22, 8, 39, 8, 34, 16, 35, 7, 7, 14, 21, 4
-      ],
-      "v": "XCDBCBCABCXEBCECAEBAEBCBADCHBHCGBCABABEBHCBCX"
     }
   }
 }

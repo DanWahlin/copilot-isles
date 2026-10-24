@@ -1,127 +1,117 @@
 {
   "id": "bo.signed.02",
   "speaker": "Bo",
-  "text": "Deck's ready, and your gear checks out. Pim and Pol add the practice items next, at the crane at the end of the pier.",
+  "text": "Deck's ready, and your gear checks out. Next, the practice items, but Actions come first. Suri's at her mill, along the quay.",
   "words": [
     {
       "word": "Deck's",
       "start": 0.07,
-      "end": 0.35
+      "end": 0.31
     },
     {
       "word": "ready",
-      "start": 0.35,
-      "end": 0.75
+      "start": 0.31,
+      "end": 0.71
     },
     {
       "word": "and",
-      "start": 0.75,
-      "end": 0.91
+      "start": 0.71,
+      "end": 0.87
     },
     {
       "word": "your",
-      "start": 0.91,
-      "end": 1.15
+      "start": 0.87,
+      "end": 1.07
     },
     {
       "word": "gear",
-      "start": 1.15,
-      "end": 1.43
+      "start": 1.07,
+      "end": 1.39
     },
     {
       "word": "checks",
-      "start": 1.43,
-      "end": 1.75
+      "start": 1.39,
+      "end": 1.67
     },
     {
       "word": "out",
-      "start": 1.75,
-      "end": 2.63
+      "start": 1.67,
+      "end": 2.389
     },
     {
-      "word": "Pim",
-      "start": 2.63,
-      "end": 2.949
-    },
-    {
-      "word": "and",
-      "start": 2.949,
-      "end": 3.15
-    },
-    {
-      "word": "Pol",
-      "start": 3.15,
-      "end": 3.469
-    },
-    {
-      "word": "add",
-      "start": 3.469,
-      "end": 3.59
+      "word": "Next",
+      "start": 2.389,
+      "end": 2.75
     },
     {
       "word": "the",
-      "start": 3.59,
-      "end": 3.75
+      "start": 2.75,
+      "end": 2.869
     },
     {
       "word": "practice",
-      "start": 3.75,
-      "end": 4.15
+      "start": 2.869,
+      "end": 3.309
     },
     {
       "word": "items",
-      "start": 4.15,
-      "end": 4.51
+      "start": 3.309,
+      "end": 3.71
     },
     {
-      "word": "next",
-      "start": 4.51,
-      "end": 5.07
+      "word": "but",
+      "start": 3.71,
+      "end": 3.869
+    },
+    {
+      "word": "Actions",
+      "start": 3.869,
+      "end": 4.31
+    },
+    {
+      "word": "come",
+      "start": 4.31,
+      "end": 4.59
+    },
+    {
+      "word": "first",
+      "start": 4.59,
+      "end": 5.47
+    },
+    {
+      "word": "Suri's",
+      "start": 5.47,
+      "end": 5.95
     },
     {
       "word": "at",
-      "start": 5.07,
-      "end": 5.19
+      "start": 5.95,
+      "end": 6.07
+    },
+    {
+      "word": "her",
+      "start": 6.07,
+      "end": 6.27
+    },
+    {
+      "word": "mill",
+      "start": 6.27,
+      "end": 6.63
+    },
+    {
+      "word": "along",
+      "start": 6.63,
+      "end": 6.95
     },
     {
       "word": "the",
-      "start": 5.19,
-      "end": 5.31
+      "start": 6.95,
+      "end": 7.11
     },
     {
-      "word": "crane",
-      "start": 5.31,
-      "end": 5.75
-    },
-    {
-      "word": "at",
-      "start": 5.75,
-      "end": 5.87
-    },
-    {
-      "word": "the",
-      "start": 5.87,
-      "end": 5.99
-    },
-    {
-      "word": "end",
-      "start": 5.99,
-      "end": 6.19
-    },
-    {
-      "word": "of",
-      "start": 6.19,
-      "end": 6.31
-    },
-    {
-      "word": "the",
-      "start": 6.31,
-      "end": 6.43
-    },
-    {
-      "word": "pier",
-      "start": 6.43,
-      "end": 6.68
+      "word": "quay",
+      "start": 7.11,
+      "end": 7.36
     }
   ]
 }
