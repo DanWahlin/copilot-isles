@@ -44,8 +44,9 @@ vi.mock('./meridian', async (importOriginal) => ({
 
 const { createMeridianStream } = await import('./meridian-stream');
 const { createThousandBoughStream } = await import('./thousand-bough/stream');
+const { ISLANDS } = await import('../../game/islands');
 
-function context() {
+function context(island: (typeof ISLANDS)[keyof typeof ISLANDS]) {
   const scene = new Scene();
   const heightField = new CompositeHeightField();
   const shipObstacles: CircleObstacle[] = [{ x: 1, z: 1, r: 1 } as CircleObstacle];
@@ -61,20 +62,22 @@ function context() {
     skipShadows: false,
     disabled: false,
     sky: { mood: { fogScale: 1, hazeTint: [1, 1, 1] as [number, number, number], fill: 1, exposure: 1 } },
+    island,
+    nearLoads: () => true,
   };
 }
 
 describe.each([
-  ['Port Meridian', createMeridianStream],
-  ['Thousand-Bough', createThousandBoughStream],
-] as const)('%s stream that fails part-way', (_name, create) => {
+  ['Port Meridian', createMeridianStream, ISLANDS.meridian],
+  ['Thousand-Bough', createThousandBoughStream, ISLANDS['thousand-bough']],
+] as const)('%s stream that fails part-way', (_name, create, island) => {
   beforeEach(() => {
     terrains.length = 0;
     loadTerrainPack.mockClear();
   });
 
   it('takes back what it had added, and waits before it tries again', async () => {
-    const ctx = context();
+    const ctx = context(island);
     const stream = create(ctx);
     const before = ctx.scene.children.length;
     vi.spyOn(console, 'warn').mockImplementation(() => {});

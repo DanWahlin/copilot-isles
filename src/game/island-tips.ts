@@ -1,3 +1,4 @@
+import { ISLAND_IDS } from '../islands/registry';
 import type { StarfishIsland } from '../world/starfish/spots';
 import { COURSE, islandHooks, onCourseSelected, type CourseMeta } from '../course/catalog';
 
@@ -9,8 +10,8 @@ import { COURSE, islandHooks, onCourseSelected, type CourseMeta } from '../cours
  */
 export type HudSpot = 'tracker' | 'compass' | 'starfish';
 
-/** The welcome's tip lines per island: the task list and compass, then the island's starfish. */
-const ISLANDS: readonly StarfishIsland[] = ['anchorage', 'meridian', 'thousand-bough'];
+/** The welcome's tip lines per island (every island in the registry): the task list and compass, then the island's starfish. */
+const ISLANDS: readonly StarfishIsland[] = ISLAND_IDS;
 
 const tipsOf = (c: CourseMeta) =>
   Object.fromEntries(ISLANDS.map((i) => [i, islandHooks(i, c).tips])) as Record<

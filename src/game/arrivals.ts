@@ -1,164 +1,20 @@
-import { courseIsland } from '../course/catalog';
-import type { ChartLabelId } from '../learn/content/labels';
-import { MERIDIAN } from '../world/islands/meridian';
-import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
-import { COVE } from '../world/layout';
+import { ISLAND_LIST, type IslandId } from '../islands/registry';
+import type { IslandArrival } from '../islands/arrival';
 import type { CameraShot } from './follow-camera';
 import type { FlyKey } from './flyover';
 
-export type IslandId = 'anchorage' | 'meridian' | 'thousand-bough';
-
-/**
- * An island's first-landfall flyover: the camera comes in low over the sea, passes the ship, sweeps
- * across the island for a bird's-eye look, and settles behind the captain, where Wingman takes over.
- */
-export interface IslandArrival {
-  id: IslandId;
-  /** The title card over the flight: the chapter, the island, and what you'll do there. */
-  card: { eyebrow: string; title: string; line: string };
-  /**
-   * The chart label shown in the card's place (docs/specs/LOWER-THIRDS.md): the parchment with what
-   * the island teaches and its course chapter. Islands without one keep the plain title card.
-   */
-  label?: ChartLabelId;
-  /** From the open sea across the island; the descent to the captain is added at landing. */
-  keys: readonly FlyKey[];
-  /** Seconds for the whole flight, landing included. */
-  seconds: number;
-  /** When the card comes up and how long it stays, in seconds into the flight. */
-  cardAt: number;
-  cardFor: number;
-  /**
-   * The shorter flight after the opening's dive into the chart (the chart already showed the whole
-   * island): in low over the sea, over the ship, and round to behind the captain.
-   */
-  fromChart?: { keys: readonly FlyKey[]; seconds: number; cardAt: number; cardFor: number };
-  /**
-   * Where the flight lingers just before handing over (over the captain's shoulder on the island's
-   * landmark), instead of looking straight ahead; the flight then eases down to the follow camera.
-   */
-  landingShot?: CameraShot;
-}
-
-/** An island's title card: the course's chapter line and teaching line over the island's name. */
-function arrivalCard(island: IslandId, title: string): IslandArrival['card'] {
-  const a = courseIsland(island)?.arrival;
-  return { eyebrow: a?.eyebrow ?? '', title, line: a?.line ?? '' };
-}
+export type { IslandId };
+export type { IslandArrival };
 
 /** The flight to fly: the island's own, or its shorter one after the opening's chart dive. */
 export function arrivalFlight(arrival: IslandArrival, fromChart: boolean): IslandArrival {
   return fromChart && arrival.fromChart ? { ...arrival, ...arrival.fromChart } : arrival;
 }
 
-/**
- * Anchorage Cay: in from the north over open water and past the brigantine, then a slow circle round
- * the harbour (the lighthouse, the quay and the village with the palm hills behind), and down to the
- * captain on the quay.
- */
-export const ANCHORAGE_ARRIVAL: IslandArrival = {
-  id: 'anchorage',
-  card: arrivalCard('anchorage', 'Anchorage Cay'),
-  label: 'arrival:anchorage',
-  keys: [
-    { x: -15, y: 8, z: -400, tx: -95, ty: 10, tz: -105, pace: 1.3 },
-    { x: -70, y: 17, z: -250, tx: -103, ty: 8, tz: -100, pace: 1.1 },
-    { x: -90, y: 36, z: -155, tx: -106, ty: 5, tz: -85, pace: 0.7 },
-    { x: -46, y: 30, z: -118, tx: -104, ty: 7, tz: -58, pace: 0.85 },
-    { x: -34, y: 34, z: -52, tx: -118, ty: 6, tz: -62, pace: 0.9 },
-    { x: -150, y: 34, z: -128, tx: -100, ty: 6, tz: -62, pace: 1 },
-    { x: -138, y: 40, z: -24, tx: COVE.mooring.x, ty: 4, tz: COVE.mooring.z + 10, pace: 0.85 },
-  ],
-  seconds: 19,
-  cardAt: 2.2,
-  // The chart label has more to read than a title (docs/specs/LOWER-THIRDS.md).
-  cardFor: 6.4,
-  fromChart: {
-    keys: [
-      // Out of the chart's sea: low over the water north of the harbour, the ship ahead.
-      { x: -48, y: 9, z: -330, tx: COVE.mooring.x, ty: 7, tz: COVE.mooring.z, pace: 1.2 },
-      { x: -78, y: 18, z: -215, tx: COVE.mooring.x, ty: 6, tz: COVE.mooring.z, pace: 1 },
-      // Over the ship's masts…
-      { x: -112, y: 26, z: -150, tx: COVE.mooring.x, ty: 4, tz: COVE.mooring.z + 12, pace: 0.7 },
-      // …and swinging out west of the quay, so the camera arcs round behind the captain (not over).
-      { x: -152, y: 19, z: -96, tx: COVE.spawn.x, ty: 3, tz: COVE.spawn.z, pace: 0.8 },
-    ],
-    seconds: 12,
-    cardAt: 1.2,
-    cardFor: 6.4,
-  },
-};
-
-const M = MERIDIAN;
-
-/**
- * Port Meridian: in from the south-west over open water, past the lighthouse and into the walled
- * basin, over your ship on the east arm, up across the town to the citadel for the view over the
- * bay, and round and down to the captain on the arm.
- */
-export const MERIDIAN_ARRIVAL: IslandArrival = {
-  id: 'meridian',
-  card: arrivalCard('meridian', 'Port Meridian'),
-  label: 'arrival:meridian',
-  keys: [
-    // A slow glide in over the wide view while the title card's up, then on past the lighthouse.
-    { x: 550, y: 8, z: -500, tx: M.mole.lighthouse.x, ty: 9, tz: M.mole.lighthouse.z, pace: 0.45 },
-    { x: 674, y: 14, z: -590, tx: M.harbor.berth.x, ty: 5, tz: M.harbor.berth.z, pace: 1.15 },
-    { x: 746, y: 24, z: -668, tx: M.harbor.berth.x, ty: 4, tz: M.harbor.berth.z, pace: 0.7 },
-    { x: 704, y: 34, z: -724, tx: 668, ty: 9, tz: -796, pace: 0.8 },
-    { x: 615, y: 58, z: -680, tx: 720, ty: 22, tz: -842, pace: 0.85 },
-    {
-      x: 848,
-      y: 70,
-      z: -720,
-      tx: M.pads.citadel.x,
-      ty: M.pads.citadel.height + 2,
-      tz: M.pads.citadel.z,
-      pace: 1,
-    },
-    { x: 835, y: 52, z: -742, tx: 690, ty: 8, tz: -700, pace: 0.9 },
-    { x: 790, y: 34, z: -718, tx: M.harbor.landing.x, ty: 4, tz: M.harbor.landing.z, pace: 0.75 },
-  ],
-  seconds: 19,
-  // The chart label comes up over the wide opening (the whole harbour, the town and the citadel
-  // behind) and, in its corner, stays to be read while the camera drops past the lighthouse.
-  cardAt: 0.6,
-  cardFor: 6.4,
-};
-
-const TB = THOUSAND_BOUGH;
-
-/**
- * Thousand-Bough Isle (spec §9.5): the whole island from the south-west with the banyan in the
- * ridge's saddle, into the cove mouth over the ship, up the Fern Walk, under the canopy, straight up
- * through the Sky Window above the mist, out over the east canopy toward Great Falls, and down to the
- * captain on the wharf.
- */
-export const THOUSAND_BOUGH_ARRIVAL: IslandArrival = {
-  id: 'thousand-bough',
-  card: arrivalCard('thousand-bough', 'Thousand-Bough Isle'),
-  label: 'arrival:thousand-bough',
-  keys: [
-    { x: 1700, y: 12, z: -1020, tx: TB.tree.x, ty: 48, tz: TB.tree.z, pace: 0.45 },
-    { x: 1890, y: 16, z: -1215, tx: TB.harbor.berth.x, ty: 6, tz: TB.harbor.berth.z, pace: 1.1 },
-    { x: 1925, y: 26, z: -1345, tx: TB.rootGate.x, ty: 18, tz: TB.rootGate.z, pace: 0.75 },
-    { x: 2010, y: 24, z: -1536, tx: TB.tree.x, ty: 45, tz: TB.tree.z, pace: 0.7 },
-    { x: 2010, y: 64, z: -1534, tx: TB.harbor.berth.x, ty: 6, tz: TB.harbor.berth.z, pace: 0.6 },
-    { x: 2070, y: 58, z: -1500, tx: 2140, ty: 40, tz: -1640, pace: 0.8 },
-    { x: 1975, y: 22, z: -1330, tx: TB.harbor.landing.x, ty: 4, tz: TB.harbor.landing.z, pace: 0.75 },
-  ],
-  landingShot: TB.harbor.landingShot,
-  seconds: 28,
-  cardAt: 0.6,
-  // The chart label unrolls (1.1 s) and has more to read than a title: long enough to read it twice.
-  cardFor: 6.4,
-};
-
-export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = {
-  anchorage: ANCHORAGE_ARRIVAL,
-  meridian: MERIDIAN_ARRIVAL,
-  'thousand-bough': THOUSAND_BOUGH_ARRIVAL,
-};
+/** Every island's first-landfall flyover (each island's entry in src/islands/), by id. */
+export const ARRIVALS: Readonly<Record<IslandId, IslandArrival>> = Object.fromEntries(
+  ISLAND_LIST.map((e) => [e.id, e.arrival]),
+) as Record<IslandId, IslandArrival>;
 
 /**
  * The whole flight for a captain standing at `captain`: the island's keys, then a descent from

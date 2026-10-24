@@ -3,8 +3,7 @@ import { activateCourse } from './load';
 import { COURSE, COURSES, DEFAULT_COURSE_ID, PLAYABLE_IDS, courseVoiced } from './catalog';
 import { coursePack } from './active';
 import { puzzleOn } from './puzzles';
-import { meridianOpen } from '../game/meridian-open';
-import { thousandBoughOpen } from '../game/thousand-bough-open';
+import { islandOpen } from '../islands/open';
 import { openIslands } from '../game/islands';
 import { npcScript, questTracker } from '../game/cove-quests';
 import { migrateQuests } from '../game/story';
@@ -47,8 +46,8 @@ describe('the Copilot CLI course pack', () => {
     expect(coursePack().id).toBe('copilot-cli');
     expect(courseVoiced()).toBe(false);
     expect(COURSE.islands.map((i) => i.island)).toEqual(['anchorage']);
-    expect(meridianOpen()).toBe(false);
-    expect(thousandBoughOpen()).toBe(false);
+    expect(islandOpen('meridian')).toBe(false);
+    expect(islandOpen('thousand-bough')).toBe(false);
     expect(openIslands().map((i) => i.id)).toEqual(['anchorage']);
     // Uncharted: the other islands have no chapter in this course.
     expect(ARCHIPELAGO.filter((i) => i.chapter).map((i) => i.id)).toEqual(['anchorage']);

@@ -1,122 +1,22 @@
-import type { IslandMusic } from '../audio/music/tracks';
-import { MERIDIAN } from '../world/islands/meridian';
-import { THOUSAND_BOUGH, insideThousandBough } from '../world/islands/thousand-bough/layout';
-import { COVE } from '../world/layout';
-import { ARRIVALS, type IslandArrival, type IslandId } from './arrivals';
-import { meridianOpen } from './meridian-open';
-import { thousandBoughOpen } from './thousand-bough-open';
+import { islandOpen } from '../islands/open';
+import {
+  HOME_ISLAND,
+  ISLAND_LIST,
+  ISLAND_REGISTRY,
+  STREAMED_ISLANDS,
+  type IslandId,
+} from '../islands/registry';
+import type { IslandBerth, IslandEntry } from '../islands/types';
 
 export type { IslandId };
+export type { IslandBerth, IslandMood } from '../islands/types';
 
-interface Pose {
-  x: number;
-  z: number;
-  heading: number;
-}
-
-/** An island's air: haze density × `fogScale`, haze colour × `hazeTint` (spec ISLAND-02 §2.4). */
-export interface IslandMood {
-  fogScale: number;
-  hazeTint: readonly [number, number, number];
-}
-
-/**
- * An island you can moor at: where the ship lies alongside, where you step ashore, what plays, and
- * what the compass calls it while you're sailing there.
- */
-export interface IslandBerth {
-  id: IslandId;
-  name: string;
-  /** The compass label for sailing home to it. */
-  berthLabel: string;
-  /** The dock prompt near the berth. */
-  dockLabel: string;
-  /** Where the ship moors (the dock assist target); its port side lies against the quay. */
-  mooring: Pose;
-  /** Which way you face after stepping ashore beside the gangway (toward the town). */
-  landingHeading: number;
-  /** A fast-travel spot on the quay by the berth. */
-  quay: Pose;
-  music: IslandMusic;
-  /** The island's time of day: solar hours and the sun path's rotation (degrees). */
-  sky: { hours: number; azimuth: number };
-  arrival: IslandArrival;
-  /** The island's air (fog and haze), blended in on the passage like the sky; identity without one. */
-  mood?: IslandMood;
-  /** Whether it's inside the island's waters (for saves, travel, and which island you're on). */
-  contains(x: number, z: number): boolean;
-}
-
-export const ISLANDS: Readonly<Record<IslandId, IslandBerth>> = {
-  anchorage: {
-    id: 'anchorage',
-    name: 'Anchorage Cay',
-    berthLabel: 'Anchorage pier',
-    dockLabel: 'Dock at the pier',
-    mooring: COVE.mooring,
-    landingHeading: 0,
-    quay: { ...COVE.spawn },
-    music: 'anchorage',
-    sky: { hours: 16.2, azimuth: 0 },
-    arrival: ARRIVALS.anchorage,
-    contains: (x, z) => Math.hypot(x, z) < 330,
-  },
-  meridian: {
-    id: 'meridian',
-    name: 'Port Meridian',
-    berthLabel: 'Port Meridian',
-    dockLabel: 'Dock at Port Meridian',
-    mooring: MERIDIAN.harbor.berth,
-    // Up the harbour toward the plaza: the terraces, the clock tower and the citadel in one frame.
-    landingHeading: -2.81,
-    quay: MERIDIAN.harbor.landing,
-    music: 'meridian',
-    // Golden hour, the sun low in the south-west: it lights the town's face across the harbour.
-    sky: { hours: 17.35, azimuth: -45 },
-    arrival: ARRIVALS.meridian,
-    contains: (x, z) =>
-      x >= MERIDIAN.bounds.minX &&
-      x <= MERIDIAN.bounds.maxX &&
-      z >= MERIDIAN.bounds.minZ &&
-      z <= MERIDIAN.bounds.maxZ,
-  },
-  'thousand-bough': {
-    id: 'thousand-bough',
-    name: 'Thousand-Bough Isle',
-    berthLabel: 'Thousand-Bough Isle',
-    dockLabel: 'Dock at the Root Wharf',
-    mooring: THOUSAND_BOUGH.harbor.berth,
-    // Up the Fern Walk to the great banyan: the wharf, the little sister tree and the trunk in one frame.
-    landingHeading: THOUSAND_BOUGH.harbor.landing.heading,
-    quay: THOUSAND_BOUGH.harbor.landing,
-    music: 'thousand-bough',
-    // Late golden hour going to dusk: the sun 6° up in the WNW (bearing 290°), side-lighting the decks
-    // from the wharf while the valley sits in blue-green shade.
-    sky: { hours: 17.77, azimuth: 13.5 },
-    // The valley's mist: a thicker, cooler haze over the island.
-    mood: THOUSAND_BOUGH.mood,
-    arrival: ARRIVALS['thousand-bough'],
-    contains: insideThousandBough,
-  },
-};
+/** Every island's berth, music, sky and arrival (src/islands/registry.ts), by id. */
+export const ISLANDS: Readonly<Record<IslandId, IslandEntry>> = ISLAND_REGISTRY;
 
 /** How each island's light reaches out over the sea: full within `full` m of its centre, none past `reach`. */
-const SKY_REACH: readonly {
-  id: Exclude<IslandId, 'anchorage'>;
-  x: number;
-  z: number;
-  reach: number;
-  full: number;
-}[] = [
-  { id: 'meridian', x: MERIDIAN.center.x, z: MERIDIAN.center.z, reach: 900, full: 400 },
-  // Wider than Meridian's: on the passage from Meridian the light turns toward dusk half way across.
-  {
-    id: 'thousand-bough',
-    x: THOUSAND_BOUGH.center.x,
-    z: THOUSAND_BOUGH.center.z,
-    ...THOUSAND_BOUGH.skyReach,
-  },
-];
+const SKY_REACH: readonly { id: IslandId; x: number; z: number; reach: number; full: number }[] =
+  ISLAND_LIST.flatMap((e) => (e.skyReach ? [{ id: e.id, x: e.center.x, z: e.center.z, ...e.skyReach }] : []));
 
 /**
  * The sky at sea: Anchorage's afternoon until you're well out, easing into each island's own light
@@ -124,7 +24,7 @@ const SKY_REACH: readonly {
  * by how close each is (hours and azimuth written to `out`).
  */
 export function passageSky(x: number, z: number, out: { hours: number; azimuth: number }): void {
-  const a = ISLANDS.anchorage.sky;
+  const a = ISLANDS[HOME_ISLAND].sky;
   let sum = 0,
     most = 0,
     hours = 0,
@@ -185,16 +85,13 @@ export function passageMood(
   out.hazeTint[2] = mix(b);
 }
 
-/** The island whose waters (x, z) are in, falling back to Anchorage for the open sea. */
+/** The island whose waters (x, z) are in, falling back to the home island (Anchorage) for the open sea. */
 export function islandAt(x: number, z: number): IslandId {
-  if (ISLANDS.meridian.contains(x, z)) return 'meridian';
-  return ISLANDS['thousand-bough'].contains(x, z) ? 'thousand-bough' : 'anchorage';
+  for (const e of STREAMED_ISLANDS) if (e.contains(x, z)) return e.id;
+  return HOME_ISLAND;
 }
 
-/** The islands you can dock at right now. */
+/** The islands you can dock at right now, in voyage order. */
 export function openIslands(): IslandBerth[] {
-  const open = [ISLANDS.anchorage];
-  if (meridianOpen()) open.push(ISLANDS.meridian);
-  if (thousandBoughOpen()) open.push(ISLANDS['thousand-bough']);
-  return open;
+  return ISLAND_LIST.filter((e) => islandOpen(e.id));
 }

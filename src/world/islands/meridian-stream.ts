@@ -19,9 +19,8 @@ import {
   disposeTree,
   removeIslandGround,
   singlePassWaterOnLite,
-  type IslandStreamContext,
 } from '../island-parts';
-import { freeInSlices, StreamLifecycle, type StreamState } from '../stream-lifecycle';
+import { freeInSlices, StreamLifecycle } from '../stream-lifecycle';
 import {
   MERIDIAN,
   createMeridianRocks,
@@ -33,84 +32,21 @@ import {
 import { meridianPlantsSliced } from './meridian-plants';
 import { MERIDIAN_FLORA } from './meridian-flora';
 import { createMeridianSilhouette } from './meridian-silhouette';
-import { footprintDistance, type IslandFootprint } from './footprint';
+import { FarCull } from '../far-cull';
+import { footprintDistance } from './footprint';
+import type { IslandStream, IslandStreamCreateContext } from './island-stream';
 import { SilhouetteSwap } from './silhouette-swap';
 import { createMeridianWaterMesh } from './meridian-water-mesh';
 import { SMALL_ROCKS } from './stream-stones';
 
 /**
- * Port Meridian's distances (m, `footprintDistance`: from its centre as if its shore were round): it
- * streams in within `load`, is drawn (not its silhouette) within `show` (resident or not; a band
- * either side, `SWAP_HYSTERESIS`, keeps it from flickering there), and may be freed once you're
- * past `unload` (see game/residency.ts). Its north-east cliffs are ~700 m off Thousand-Bough's
- * mooring (1 005 here): `unload` stays under that, so it's freed while you're there.
+ * Port Meridian's stream (its registry entry, src/islands/meridian.ts, holds its ranges and outline):
+ * its world is the town, with the camera-only blockers of its coastal rocks.
  */
-export const MERIDIAN_RANGE = { load: 880, show: 760, unload: 950 } as const;
-
-/**
- * Port Meridian's outline (`measureFootprint(meridianHeight, …)`, 32 bearings; a test keeps it in
- * step): its ranges go by `footprintDistance`, so the swap is as far off its north-east cliffs as
- * off its town.
- */
-export const MERIDIAN_FOOTPRINT: IslandFootprint = {
-  x: MERIDIAN.center.x,
-  z: MERIDIAN.center.z,
-  radii: [
-    340, 328, 300, 280, 248, 236, 224, 212, 200, 192, 212, 288, 292, 304, 292, 320, 336, 332, 316, 280, 252,
-    232, 236, 232, 268, 312, 328, 380, 440, 496, 496, 352,
-  ],
-};
-
-export interface MeridianStream {
-  silhouette: Group;
-  /** Resolves once the silhouette's mesh is built (a few grid rows a breath). */
-  readonly silhouetteReady: Promise<void>;
-  terrain: CreatedTerrain | null;
-  foam: Mesh | null;
-  town: MeridianTownSystem | null;
+export interface MeridianStream extends IslandStream<MeridianTownSystem> {
+  readonly town: MeridianTownSystem | null;
   /** Camera-only blockers for its coastal rocks, built in slices before `town` is set. */
-  rockCameraBlockers: CameraBlockerBox[];
-  ready: boolean;
-  /** Where it is: absent, loading, resident or unloading. */
-  readonly state: StreamState;
-  /** How many times it has streamed in this voyage (each load's content is set up once). */
-  readonly loads: number;
-  /**
-   * Starts streaming Port Meridian (once per residency; later calls share it). Nothing of it loads
-   * until something needs it: boarding for it, the chart's pick, a save or a jump there, or coming
-   * within its `load` range. Resolves with the town once terrain and town are in the scene (hidden), or null if
-   * Meridian is disabled or failed. After an unload, the next call streams it again. `priority` 'low'
-   * is a prefetch (the likely next island): its download shares the line with the music.
-   */
-  load(priority?: RequestPriority, retry?: boolean): Promise<MeridianTownSystem | null>;
-  /** Resolves when the current (or next) load has finished (it doesn't start the stream). */
-  readonly townReady: Promise<MeridianTownSystem | null>;
-  /** Hears every load (the first and each reload after an unload). */
-  onReady(fn: (town: MeridianTownSystem) => void): () => void;
-  /**
-   * Frees the island (terrain, water, foam, town, plants, gulls, its height field and ship obstacles)
-   * a part a frame; the silhouette stays. Whoever put things on it takes them off first.
-   */
-  unload(): Promise<void>;
-  /** Meridian's own roots (terrain, foam, town, gulls, plants) for a warm-up, once streamed. */
-  roots(): Object3D[];
-  /**
-   * Hands Meridian's visibility to a warm-up running from afar (the frame loop stops showing and
-   * hiding it, but keeps updating it; the silhouette stays as it is).
-   */
-  hold(on: boolean): void;
-  /** True while a warm-up holds it. */
-  readonly held: boolean;
-  /** Per frame: streams in by range, shows or hides by range, and runs the town and gulls. */
-  update(camera: PerspectiveCamera, dt: number, t: number): void;
-  /** Roots the harbour mirror leaves out (pushed onto `out`). */
-  mirrorHidden(out: (Object3D | null | undefined)[]): void;
-  dispose(): void;
-}
-
-export interface MeridianStreamContext extends IslandStreamContext {
-  /** Whether coming near streams the island in (a course that doesn't use it leaves the silhouette). */
-  nearLoads?: () => boolean;
+  readonly rockCameraBlockers: CameraBlockerBox[];
 }
 
 /**
@@ -119,15 +55,17 @@ export interface MeridianStreamContext extends IslandStreamContext {
  * them before they're first drawn. Until then (and while the camera's far) its silhouette stands on
  * the horizon.
  */
-export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream {
+export function createMeridianStream(ctx: IslandStreamCreateContext): MeridianStream {
   const { scene, tier } = ctx;
+  const { ranges, footprint, center } = ctx.island;
   const far = ctx.disabled
     ? { group: new Group(), ready: Promise.resolve() }
     : createMeridianSilhouette(tier.tier, ctx.breathe);
   const silhouette = far.group;
   scene.add(silhouette);
   let held = false;
-  const swap = new SilhouetteSwap(MERIDIAN_RANGE.show);
+  const swap = new SilhouetteSwap(ranges.show);
+  const detail = new FarCull(center.x, center.z, ranges.detail, tier.detailCullRatio);
   let plants: VegetationPatch | null = null;
   let birds: BirdsSystem | null = null;
   let water: WaterStrips | null = null;
@@ -272,10 +210,14 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
       if (life.state !== 'loading' || p !== 'low') priority = p;
       return life.load(retry);
     },
-    get townReady() {
+    get world(): MeridianTownSystem | null {
+      return self.town;
+    },
+    get worldReady() {
       return life.ready;
     },
     onReady: (fn: (town: MeridianTownSystem) => void) => life.onReady(fn),
+    detail,
     unload: () => life.unload(),
     roots(): Object3D[] {
       const roots: (Object3D | null | undefined)[] = [
@@ -294,10 +236,11 @@ export function createMeridianStream(ctx: MeridianStreamContext): MeridianStream
       return held;
     },
     update(camera: PerspectiveCamera, dt: number, t: number) {
-      const d = footprintDistance(MERIDIAN_FOOTPRINT, camera.position.x, camera.position.z);
+      detail.update(camera.position.x, camera.position.z);
+      const d = footprintDistance(footprint, camera.position.x, camera.position.z);
       const near = !swap.update(d);
       const show = near || held;
-      if (d < MERIDIAN_RANGE.load && (ctx.nearLoads?.() ?? true)) void life.load();
+      if (d < ranges.load && ctx.nearLoads()) void life.load();
       const { terrain, foam, town } = self;
       if (self.ready && terrain && foam) {
         if (!held) {

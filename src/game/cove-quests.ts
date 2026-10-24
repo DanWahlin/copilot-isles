@@ -2,7 +2,7 @@ import { courseScript, islandQuests, onCourse } from '../course/active';
 import { COURSE } from '../course/catalog';
 import type { QuestDef, QuestTarget } from '../course/pack';
 import { beatSteps, pickBeat, type Beat } from './beats';
-import { meridianOpen } from './meridian-open';
+import { islandOpen } from '../islands/open';
 import { optionalTargets, startedQuests, type QuestTracker, type TrackerStatus } from './quest-list';
 import type { ScriptStep } from './script';
 import type { QuestState } from './story';
@@ -47,7 +47,7 @@ const script = (name: string) => courseScript(ISLAND, name);
  */
 const pointToMeridian = (steps: readonly ScriptStep[]): readonly ScriptStep[] => {
   const { line, meridianOpen: open } = COURSE.hooks.sail;
-  return meridianOpen() && open
+  return islandOpen('meridian') && open
     ? steps.map((s) => ('say' in s && s.say === line ? { say: open } : s))
     : steps;
 };

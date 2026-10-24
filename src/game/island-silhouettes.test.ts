@@ -3,18 +3,19 @@ import { describe, expect, it } from 'vitest';
 import { footprintDistance, measureFootprint } from '../world/islands/footprint';
 import { MERIDIAN, meridianHeight } from '../world/islands/meridian';
 import { createMeridianSilhouette, MERIDIAN_SILHOUETTE_SKY } from '../world/islands/meridian-silhouette';
-import { MERIDIAN_FOOTPRINT } from '../world/islands/meridian-stream';
 import { thousandBoughHeightDry } from '../world/islands/thousand-bough/height';
 import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
-import { THOUSAND_BOUGH_FOOTPRINT } from '../world/islands/thousand-bough/stream';
 import {
   createThousandBoughSilhouette,
   THOUSAND_BOUGH_SILHOUETTE_SKY,
 } from '../world/islands/thousand-bough/tree/silhouette';
 import { ANCHORAGE_SILHOUETTE_SKY } from '../world/islands/anchorage/silhouette';
-import { ANCHORAGE_FOOTPRINT } from '../world/islands/anchorage/stream';
 import { coveHeight } from '../world/terrain/cove-height';
 import { ISLANDS } from './islands';
+
+const MERIDIAN_FOOTPRINT = ISLANDS.meridian.footprint;
+const THOUSAND_BOUGH_FOOTPRINT = ISLANDS['thousand-bough'].footprint;
+const ANCHORAGE_FOOTPRINT = ISLANDS.anchorage.footprint;
 
 const breathe = async () => {};
 

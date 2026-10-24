@@ -267,11 +267,7 @@ const key = (code: string, down: boolean) => {
   settled: () => {
     const shadow = (cove.sky.sun.shadow as typeof cove.sky.sun.shadow & { shadowNode?: CachedSunShadowNode })
       .shadowNode;
-    const streams = {
-      anchorage: cove.anchorage,
-      meridian: cove.meridian,
-      'thousand-bough': cove.thousandBough,
-    };
+    const streams = cove.residents;
     const out = {
       warms,
       warming: shadow?.warming ?? 0,
@@ -295,7 +291,6 @@ const key = (code: string, down: boolean) => {
     if (snap) seaState.snap();
     return { chosen: seaState.chosen, fixed: seaState.fixed, settled: seaState.settled, live: seaState.live };
   },
-  lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
-  liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
-  mooringLines: (on: boolean) => cove.meridian.town?.setMooringLines(on),
+  /** An island's content hooks (Port Meridian's lighthouse, lift car and mooring lines), by island id. */
+  island: (id: string) => session?.debug.island(id) ?? null,
 };

@@ -1,3 +1,4 @@
+import type { IslandId } from '../islands/registry';
 import { ARCHIPELAGO, ARCH_H, ARCH_W } from '../ui/chart/archipelago';
 import { coveHeight, coveMasks } from '../world/terrain/cove-height';
 import { meridianHeight, meridianMasks } from '../world/islands/meridian';
@@ -19,7 +20,8 @@ export const CHART_D = (CHART_W * ARCH_H) / ARCH_W;
  */
 export const CHART_LIFT = 1.6;
 
-export type ChartIslandId = 'anchorage' | 'meridian' | 'thousand-bough';
+/** Every island in the registry has a miniature here (its terrain's height and masks). */
+export type ChartIslandId = IslandId;
 
 export interface ChartIslandSource {
   id: ChartIslandId;

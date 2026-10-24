@@ -1,7 +1,7 @@
 import type { ChartData, ChartPoint } from '../ui/bridge';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
-import { meridianOpen } from './meridian-open';
-import { thousandBoughOpen } from './thousand-bough-open';
+import { islandOpen } from '../islands/open';
+import { ISLAND_IDS } from '../islands/registry';
 import { COVE } from '../world/layout';
 import { extractShoreline } from '../world/terrain/bake';
 import { coveHeight } from '../world/terrain/cove-height';
@@ -136,11 +136,7 @@ export function buildChart(
   const { coast, reef } = coveCoast();
   const points = coveTravelPoints(anchors).map(({ id, label, kind, x, y }) => ({ id, label, kind, x, y }));
   // The island you're on is current; the others you can reach are charted.
-  const open = new Set([
-    'anchorage',
-    ...(meridianOpen() ? ['meridian'] : []),
-    ...(thousandBoughOpen() ? ['thousand-bough'] : []),
-  ]);
+  const open = new Set<string>(ISLAND_IDS.filter(islandOpen));
   const islands = ARCHIPELAGO.map((i) =>
     open.has(i.id) ? { ...i, status: i.id === here ? ('current' as const) : ('visited' as const) } : i,
   );

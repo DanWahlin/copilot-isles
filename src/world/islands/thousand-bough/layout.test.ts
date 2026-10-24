@@ -34,7 +34,7 @@ import { flumeColliders } from './flume';
 import { makeBuckets } from './village/pieces';
 import { thousandBoughRockSpots, rockTop, STARFISH_STONE } from './rocks';
 import { mistCards } from './mist';
-import { THOUSAND_BOUGH_ARRIVAL } from '../../../game/arrivals';
+import { THOUSAND_BOUGH_ARRIVAL } from '../../../islands/thousand-bough';
 import type { CircleObstacle, WaveSampler } from '../../contracts';
 import { ShipDynamics } from '../../ship/dynamics';
 import { BRIGANTINE_CAPSULES } from '../../ship/lines';

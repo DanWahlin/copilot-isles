@@ -1,10 +1,5 @@
+import { ISLAND_IDS, islandEntry } from '../../islands/registry';
 import { STARFISH, starfishOn, type StarfishIsland } from '../../world/starfish/spots';
-
-const ISLAND_NAMES: Record<StarfishIsland, string> = {
-  anchorage: 'Anchorage Cay',
-  meridian: 'Port Meridian',
-  'thousand-bough': 'Thousand-Bough Isle',
-};
 
 /** A small coral starfish, drawn (no image to load). */
 export function StarfishIcon({ dim = false }: { dim?: boolean }) {
@@ -72,9 +67,7 @@ export function StarfishPurse({ count }: { count: number }) {
 
 /** The Logbook's Starfish tab: each island's starfish, found ones named, the rest as hints. */
 export function StarfishLog({ found, here }: { found: readonly string[]; here: StarfishIsland | null }) {
-  const islands = (Object.keys(ISLAND_NAMES) as StarfishIsland[]).sort((a, b) =>
-    a === here ? -1 : b === here ? 1 : 0,
-  );
+  const islands = [...ISLAND_IDS].sort((a, b) => (a === here ? -1 : b === here ? 1 : 0));
   const total = STARFISH.filter((s) => found.includes(s.id)).length;
   return (
     <div className="ci-starfish-log">
@@ -89,7 +82,7 @@ export function StarfishLog({ found, here }: { found: readonly string[]; here: S
         return (
           <section key={id}>
             <h3>
-              {ISLAND_NAMES[id]}
+              {islandEntry(id).name}
               <small>
                 {got}/{all.length}
                 {got === all.length ? ' · all found!' : ''}
