@@ -2428,6 +2428,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         pendingResume = false;
         const summary = learn.resumeSummary();
         if (summary) await learn.showResume(summary);
+        // The card's "Open the checklist" opens the Logbook: the recap waits until it's closed.
+        await learn.logbookClosed();
       }
       if (pendingRecap !== null && !disposed) {
         const except = pendingRecap || null;

@@ -165,7 +165,7 @@
       "title": "Enable workflows on your fork",
       "steps": [
         "In your browser, open your fork on GitHub.com and select the **Actions** tab.",
-        "If you see **Workflows aren’t being run on this forked repository**, select **I understand my workflows, go ahead and enable them**."
+        "If you see **Workflows aren't being run on this forked repository**, select **I understand my workflows, go ahead and enable them**."
       ],
       "why": "New forks turn workflows off. With them on, GitHub runs the practice exercises’ automated checks.",
       "source": {
@@ -436,8 +436,8 @@
             "text": "The **Plan** tab"
           },
           {
-            "id": "settings",
-            "text": "**Settings**"
+            "id": "changes",
+            "text": "The **Changes** tab"
           }
         ],
         "answer": "usage",
