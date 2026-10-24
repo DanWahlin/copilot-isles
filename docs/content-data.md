@@ -44,17 +44,32 @@ course-specific in code after step 5") lists what's left: only the game's own.
   tagline, the credits, the chart's chapters and topics, the arrival cards, the practice values.
   `COURSE` is the active course, a live binding: `selectCourse(id)` switches it when you choose a course
   (or Continue), and modules that derive from it listen with `onCourseSelected`.
-- **A voyage** (New Voyage or Continue) loads the rest (`src/course/load.ts`): Vite builds every JSON
-  file of a pack, but `course.json` and `voice/`, into one lazy chunk, `course-<id>` (≤ 80 KB gz,
-  `tools/budgets.json`). It loads behind the cabin, beside the island's code, and the pack is active
-  before the session reads any of it.
+- **A voyage** (New Voyage or Continue) loads the rest (`src/course/load.ts`) in parts
+  ([COURSE-PACKS.md](specs/COURSE-PACKS.md) §2, `src/course/split.ts`). The build splits every JSON
+  file of a pack, but `course.json` and `voice/`, into:
+  - **the core**, one lazy chunk, `course-<id>` (≤ 40 KB gz): the shared files, and each chapter's
+    index, images, chests, glossary and Trials, each island's tracker, quest list, `story` and
+    `signs`, and each puzzle's `mechanic`, `quest`, `steps` and `disabled`;
+  - **a part per chapter**, a JSON file (≤ 28 KB gz each): the chapter's quizzes, pages, `voiced` and
+    `cited`, and its island's compass targets, beats, scripts and barks, and its puzzles' content.
+
+  The core and Anchorage's part load behind the cabin, beside the island's code, and the pack is
+  active before the session reads any of it. Another island's part loads when the island streams
+  in, or when something asks for it (a recap's quiz, a Logbook page, a battle's question).
+  `npm run content:check` lists each part's size against its budget in `tools/budgets.json`: when a
+  chapter grows past its budget, move content to another chapter, or raise the budget and say why.
 - **The snapshot and the voice** are static files, served as `<base>courses/<id>/` (`course/…`,
   `voice/…`) from the pack's `public/` folder: `vite.config.ts` serves it in dev and copies it into
   `dist/courses/<id>/` for the build, so a sub-path deploy (GitHub Pages) works.
 - **In code**, read pack data through `src/course/active.ts` (`coursePack()`, `courseScript()`,
   `barksFor()`) and `src/course/puzzles.ts` (`puzzleContent()`, `textOf()`, `lineOf()`, `puzzleOn()`),
   or keep what you derive from it in an `onCourse` hook, never at module top level: a module may load
-  before the pack does. `course.json` (`COURSE`, `src/course/catalog.ts`) is there from the start. Node tools read a pack with `tools/course-pack/read.ts`
+  before the pack does. A hook that reads an island's scripts or a puzzle's content before its chapter
+  part is in gets the core only (no scripts, `puzzleMaybe` null), and runs again when the part
+  arrives. Outside a hook, read a chapter's part only where it's sure to be in (on its island), or
+  load it first (`loadIslandPart`, `loadQuizParts`, `loadPageParts` in `src/course/load.ts`): a read
+  too early logs an error. For a quiz's or page's title or kind anywhere, use the index
+  (`QUIZ_INDEX`, `PAGE_INDEX`, `CHAPTER_INDEX` in `src/learn/content/index.ts`). `course.json` (`COURSE`, `src/course/catalog.ts`) is there from the start. Node tools read a pack with `tools/course-pack/read.ts`
   (`activateCourseFromDisk`), and Vitest activates the default pack before every test file
   (`src/course/test-setup.ts`).
 

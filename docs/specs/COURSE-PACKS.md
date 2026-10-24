@@ -119,18 +119,49 @@ snapshot are static files fetched by URL.**
 
 - `src/course/catalog.ts` imports every pack's `course.json` (one line per course, so Node tools can
   read it too; ≈ 2 KB gz each). That's all the title screen loads: title, tagline, language, islands.
-- `src/course/load.ts`: `loadCourse(id)` pulls the rest with a lazy `import.meta.glob`;
-  `manualChunks` puts `courses/<id>/**/*.json` in one chunk, `course-<id>` (built: 49 KB gz for
-  `copilot-app`). Budget: ≤ 80 KB gz per pack in `tools/budgets.json`, and `check:budgets` fails if the
-  entry imports a pack chunk statically.
+- **The pack loads in parts (issue 304).** One chunk per pack grew with each chapter (78.8 of 80 KB gz
+  with three chapters; eight would be ~200 KB). Now the build splits each pack (`src/course/split.ts`,
+  the Vite plugin `tools/course-pack/vite-plugin.mjs`) into:
+  - **The core**, the lazy chunk `course-<id>`: the shared files (`labels`, `boards`, `market`,
+    `models`, `learning`, and the lock's chapter and section titles), and for each chapter its index
+    (each quiz's id, type and section; each page's id, title, picture and section), its images,
+    chests, glossary and Trials; for each island its tracker, quest list, `story` and `signs`; for
+    each puzzle its `mechanic`, `quest`, `steps`, `chapter` and `disabled`. A puzzle the game runs on
+    every island (the Model Market, `SHARED_PUZZLES`) stays whole in the core. Built: 19.0 KB gz for
+    `copilot-app`, 3.9 KB for `copilot-cli`; budget 40 KB each.
+  - **A part per chapter**, a JSON file `assets/course-<id>-<chapter>-<hash>.json`: the chapter's
+    quizzes, pages, `voiced` and `cited`, and its island's (`course.json` → `islands`) compass
+    targets, beats, scripts and barks, and its puzzles' content. Built: 14.1, 19.7 and 15.7 KB gz
+    (chapters 00-02); budget 28 KB each, one row per part (`check:budgets` and `content:check` fail on
+    a part without one). The browser's copy leaves out what the game never reads: the scripts'
+    `notes`, the lock's hashes, terms and images, and each file's `$schema` and `$comment`.
+- `src/course/load.ts`: `activateCourse(id, { islands })` loads the core and the parts of the islands
+  named, then activates the pack. The flow names Anchorage (it's built with the world); dev pages and
+  tests load every part. The other parts load when:
+  - their island streams in: `IslandStreamContext.courseData(priority)`, which `cove-scene` sets for
+    Port Meridian and Thousand-Bough. The stream waits for it with its terrain pack, at the same
+    request priority (`'low'` for a prefetch), so a save, a jump or the chart has the part before
+    anything on the island is made;
+  - something asks for them: a quiz (`store.ask`, the recap, which starts the load when it picks its
+    questions), a page (`store.grantPage`, the Logbook: a page that's loading shows its title and a
+    body of fixed height, and the Logbook starts the loads of the pages you hold at low priority),
+    or a battle's questions (`BattleRun.ready`).
+  A part fetch tries 3 times (1 s, then 3 s apart). If it still fails, nothing keeps the failure: a
+  stream fails and tries again (`StreamLifecycle`), a quiz counts as closed, a page goes in the
+  Logbook without its card, and the Logbook page offers "Try again".
 - The flow loads and activates the pack at New Voyage / Continue, in parallel with `islandCode`
-  (`flow.ts`), behind the cabin. The title never fetches it (no idle prefetch).
+  (`flow.ts`), behind the cabin. The title never fetches it (no idle prefetch). `check:budgets` fails if
+  the entry imports a pack chunk statically.
 - Game modules read pack data through `src/course/active.ts` (`coursePack()`, `courseScript()`,
-  `barksFor()`) or rebuild what they derive in an `onCourse` hook (live `export let` bindings), never at
-  module top level. Node tools read a pack with `tools/course-pack/read.ts`; Vitest activates the default
-  pack before every test file (`src/course/test-setup.ts`).
-- Vite hashes the chunk, so the service worker's cache-first `/assets/` rule covers it, and Pages'
-  sub-path works through `BASE_URL` as today.
+  `islandQuests()`, `barksFor()`, and the puzzle accessors in `puzzles.ts`) or rebuild what they derive
+  in an `onCourse` hook (live `export let` bindings), never at module top level. Before a chapter's
+  part is in, the accessors give its island's and puzzles' core only (empty targets, beats and scripts;
+  `puzzleMaybe` null) and note which hook read it; when the part arrives (`addCoursePart`), only those
+  hooks run again, in the order they registered. A read outside a hook before its part is in logs an
+  error (the play tests fail on it). Node tools read a whole pack with `tools/course-pack/read.ts`;
+  Vitest activates the default pack, every part in, before every test file (`src/course/test-setup.ts`).
+- Vite hashes the chunk and the plugin hashes each part, so the service worker's cache-first `/assets/`
+  rule covers both, and Pages' sub-path works (a part's URL is relative to its core chunk).
 - Types: `src/learn/types.ts` stays the contract; loaders cast validated JSON to it. `ChapterId` stops
   being a compile-time union (it's a string checked by the content check and tests).
 - The pack's `public/` folder is served by a small Vite plugin (`coursePackAssets`): dev middleware maps
@@ -653,6 +684,9 @@ path), `npm run test:e2e`, `tools/flowtest.mjs`, and `npm run check:memory` (hea
 ## 10. Decisions for Dan
 
 - **D1. Build-time packs** (lazy chunk per course) rather than JSON fetched at runtime. Recommended.
+  Since issue 304, a pack's core is the chunk and each chapter's part is a hashed JSON file the build
+  emits (Dan: "Split it: load each chapter's data when its island loads"): still built from the pack,
+  but fetched so a prefetch can be low priority.
 - **D2. One folder per pack, audio and snapshot included** (`courses/<id>/public/`, served by a small Vite
   plugin) rather than binaries under `public/courses/<id>/`. Recommended.
 - **D3. Characters belong to the game** (look and name; Nell is Nell in every course); voices, lines and
