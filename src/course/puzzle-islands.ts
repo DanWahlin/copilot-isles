@@ -45,3 +45,9 @@ export const PUZZLE_ISLANDS: Readonly<Record<string, string>> = {
   'flag-hoist': 'thousand-bough',
   'practice-session': 'thousand-bough',
 };
+
+/**
+ * Puzzles the game runs on more than one island (the Model Market has a stall on each island): their
+ * content loads with the course's core, not with one chapter's part (src/course/split.ts).
+ */
+export const SHARED_PUZZLES: ReadonlySet<string> = new Set(['market']);

@@ -2,7 +2,7 @@ import type { CourseLock } from '../learn/course/lock';
 import type { ChapterContent } from '../learn/types';
 import type { CourseMeta } from './catalog';
 import { chapterIndex, type IslandQuestsFile, type PackFiles, type PuzzleFile } from './pack';
-import { PUZZLE_ISLANDS } from './puzzle-islands';
+import { PUZZLE_ISLANDS, SHARED_PUZZLES } from './puzzle-islands';
 
 /**
  * How a course pack loads in parts (docs/specs/COURSE-PACKS.md §2). The voyage loads the **core**:
@@ -25,9 +25,12 @@ export function islandChapter(meta: Pick<CourseMeta, 'islands'>, island: string)
   return meta.islands.find((i) => i.island === island)?.chapter ?? null;
 }
 
-/** The chapter a puzzle's part goes with (its island's), or null for a puzzle on no course island. */
+/**
+ * The chapter a puzzle's part goes with (its island's), or null for a puzzle on no course island or
+ * on every island (its content is in the core).
+ */
 export function puzzleChapter(meta: Pick<CourseMeta, 'islands'>, name: string): string | null {
-  const island = PUZZLE_ISLANDS[name];
+  const island = SHARED_PUZZLES.has(name) ? undefined : PUZZLE_ISLANDS[name];
   return island ? islandChapter(meta, island) : null;
 }
 

@@ -28,7 +28,7 @@ let pending = new Set<string>();
 let running: Hook | null = null;
 /** Hook → the chapter parts it read before they were in. */
 const missed = new Map<Hook, Set<string>>();
-/** Chapter parts read outside a hook before they were in (each warned once). */
+/** Chapter parts read outside a hook before they were in (each reported once, as an error: the play tests fail on it). */
 const warned = new Set<string>();
 const partListeners = new Set<(chapter: string) => void>();
 
@@ -51,7 +51,7 @@ function missing(chapter: string | null): boolean {
     m.add(chapter);
   } else if (!warned.has(chapter)) {
     warned.add(chapter);
-    console.warn(`[course] chapter ${chapter}'s part was read before it loaded (src/course/load.ts)`);
+    console.error(`[course] chapter ${chapter}'s part was read before it loaded (src/course/load.ts)`);
   }
   return true;
 }
