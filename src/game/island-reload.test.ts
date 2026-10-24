@@ -136,7 +136,8 @@ describe('an island rebuilt after an unload reads the save', () => {
     };
     const learn = new LearnStore(new Progress(storage));
     learn.refundStarfish(5);
-    const quests: Record<string, string> = {};
+    // Oren's lesson is done: the stalls grade (the market's `lesson.taught`).
+    const quests: Record<string, string> = { 'Q1.6': 'done' };
     const host = {
       learn,
       hud: { toast: vi.fn() },

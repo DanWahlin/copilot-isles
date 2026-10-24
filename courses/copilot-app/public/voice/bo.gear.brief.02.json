@@ -1,177 +1,102 @@
 {
   "id": "bo.gear.brief.02",
   "speaker": "Bo",
-  "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number. For Node, compare the first number with the LTS version on the download page.",
+  "text": "Commands run there. Run each check on my rack, one at a time. Each should print a version number.",
   "words": [
     {
       "word": "Commands",
       "start": 0.07,
-      "end": 0.47
+      "end": 0.51
     },
     {
       "word": "run",
-      "start": 0.47,
-      "end": 0.67
+      "start": 0.51,
+      "end": 0.79
     },
     {
       "word": "there",
-      "start": 0.67,
-      "end": 1.27
+      "start": 0.79,
+      "end": 1.55
     },
     {
-      "word": "Start",
-      "start": 1.27,
-      "end": 1.59
+      "word": "Run",
+      "start": 1.55,
+      "end": 1.83
     },
     {
-      "word": "with",
-      "start": 1.59,
-      "end": 1.75
+      "word": "each",
+      "start": 1.83,
+      "end": 2.07
     },
     {
-      "word": "the",
-      "start": 1.75,
-      "end": 1.87
+      "word": "check",
+      "start": 2.07,
+      "end": 2.389
     },
     {
-      "word": "four",
-      "start": 1.87,
-      "end": 2.11
-    },
-    {
-      "word": "version",
-      "start": 2.11,
+      "word": "on",
+      "start": 2.389,
       "end": 2.469
     },
     {
-      "word": "checks",
-      "start": 2.469,
-      "end": 2.789
-    },
-    {
-      "word": "on",
-      "start": 2.789,
-      "end": 2.949
-    },
-    {
       "word": "my",
-      "start": 2.949,
-      "end": 3.15
+      "start": 2.469,
+      "end": 2.75
     },
     {
       "word": "rack",
+      "start": 2.75,
+      "end": 3.15
+    },
+    {
+      "word": "one",
       "start": 3.15,
-      "end": 3.909
+      "end": 3.389
     },
     {
-      "word": "Each",
-      "start": 3.909,
-      "end": 4.23
-    },
-    {
-      "word": "should",
-      "start": 4.23,
-      "end": 4.47
-    },
-    {
-      "word": "print",
-      "start": 4.47,
-      "end": 4.67
+      "word": "at",
+      "start": 3.389,
+      "end": 3.55
     },
     {
       "word": "a",
-      "start": 4.67,
-      "end": 4.71
+      "start": 3.55,
+      "end": 3.59
+    },
+    {
+      "word": "time",
+      "start": 3.59,
+      "end": 4.03
+    },
+    {
+      "word": "Each",
+      "start": 4.03,
+      "end": 4.75
+    },
+    {
+      "word": "should",
+      "start": 4.75,
+      "end": 4.99
+    },
+    {
+      "word": "print",
+      "start": 4.99,
+      "end": 5.23
+    },
+    {
+      "word": "a",
+      "start": 5.23,
+      "end": 5.27
     },
     {
       "word": "version",
-      "start": 4.71,
-      "end": 5.11
+      "start": 5.27,
+      "end": 5.67
     },
     {
       "word": "number",
-      "start": 5.11,
-      "end": 6.03
-    },
-    {
-      "word": "For",
-      "start": 6.03,
-      "end": 6.23
-    },
-    {
-      "word": "Node",
-      "start": 6.23,
-      "end": 6.75
-    },
-    {
-      "word": "compare",
-      "start": 6.75,
-      "end": 7.11
-    },
-    {
-      "word": "the",
-      "start": 7.11,
-      "end": 7.23
-    },
-    {
-      "word": "first",
-      "start": 7.23,
-      "end": 7.51
-    },
-    {
-      "word": "number",
-      "start": 7.51,
-      "end": 7.79
-    },
-    {
-      "word": "with",
-      "start": 7.79,
-      "end": 7.95
-    },
-    {
-      "word": "the",
-      "start": 7.95,
-      "end": 8.149
-    },
-    {
-      "word": "L",
-      "start": 8.149,
-      "end": 8.229
-    },
-    {
-      "word": "T",
-      "start": 8.229,
-      "end": 8.51
-    },
-    {
-      "word": "S",
-      "start": 8.51,
-      "end": 8.629
-    },
-    {
-      "word": "version",
-      "start": 8.629,
-      "end": 8.95
-    },
-    {
-      "word": "on",
-      "start": 8.95,
-      "end": 9.069
-    },
-    {
-      "word": "the",
-      "start": 9.069,
-      "end": 9.19
-    },
-    {
-      "word": "download",
-      "start": 9.19,
-      "end": 9.629
-    },
-    {
-      "word": "page",
-      "start": 9.629,
-      "end": 9.879
+      "start": 5.67,
+      "end": 5.92
     }
   ]
 }

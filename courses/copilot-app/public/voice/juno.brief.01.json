@@ -1,77 +1,62 @@
 {
   "id": "juno.brief.01",
   "speaker": "Juno",
-  "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order.",
+  "text": "Setup’s done, Captain, so let’s ask the crew about the course.",
   "words": [
     {
-      "word": "Juno",
-      "start": 0,
-      "end": 0.464
-    },
-    {
-      "word": "your",
-      "start": 0.464,
-      "end": 0.773
-    },
-    {
-      "word": "first",
-      "start": 0.773,
-      "end": 1.104
-    },
-    {
-      "word": "mate",
-      "start": 1.104,
-      "end": 1.587
-    },
-    {
       "word": "Setup’s",
-      "start": 1.587,
-      "end": 2.448
+      "start": 0,
+      "end": 0.432
     },
     {
       "word": "done",
-      "start": 2.448,
-      "end": 2.933
+      "start": 0.432,
+      "end": 0.69
+    },
+    {
+      "word": "Captain",
+      "start": 0.69,
+      "end": 1.36
     },
     {
       "word": "so",
-      "start": 2.933,
-      "end": 3.06
+      "start": 1.36,
+      "end": 1.6
     },
     {
       "word": "let’s",
-      "start": 3.06,
-      "end": 3.296
+      "start": 1.6,
+      "end": 1.98
     },
     {
-      "word": "give",
-      "start": 3.296,
-      "end": 3.4
+      "word": "ask",
+      "start": 1.98,
+      "end": 2.18
     },
     {
       "word": "the",
-      "start": 3.4,
-      "end": 3.568
+      "start": 2.18,
+      "end": 2.288
     },
     {
       "word": "crew",
-      "start": 3.568,
-      "end": 3.8
+      "start": 2.288,
+      "end": 2.52
     },
     {
-      "word": "their",
-      "start": 3.8,
-      "end": 4.053
+      "word": "about",
+      "start": 2.52,
+      "end": 2.74
     },
     {
-      "word": "first",
-      "start": 4.053,
-      "end": 4.373
+      "word": "the",
+      "start": 2.74,
+      "end": 2.857
     },
     {
-      "word": "order",
-      "start": 4.373,
-      "end": 4.623
+      "word": "course",
+      "start": 2.857,
+      "end": 3.107
     }
   ]
 }

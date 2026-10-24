@@ -1,12 +1,16 @@
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
 import { fill, puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
+import type { OsId } from '../../learn/setup';
+import type { ScriptStep } from '../../game/script';
 
 /**
  * Bo's gear check (POC §4.4), a checklist. Pure logic (no three.js): one piece of gear per tool
- * on Bo's rack, and what the terminal prints when you run the checks there. Every check passes: the game
- * can't see your machine, so it never claims a tool is missing. The checks themselves are the course
- * pack's (`puzzles/gear-rack.json`: for the Copilot app course, "Check your tools in Terminal").
+ * on Bo's rack, and what the terminal prints when you run each check there. The game can't see your
+ * machine, so it never claims a tool is missing: a check prints its version, or, the first time, the
+ * out-of-date one the course wants you to catch (`stale`), and the next run prints the right one. The
+ * checks themselves are the course pack's (`puzzles/gear-rack.json`: for the Copilot app course,
+ * "Check your tools in Terminal").
  */
 export type GearId = 'compass' | 'lantern' | 'rope' | 'spyglass';
 
@@ -16,12 +20,24 @@ export interface GearDef {
   tool: string;
   command: string;
   output: string;
+  /**
+   * What the first run prints instead (an out-of-date version), and the script of the file's
+   * `scripts` it plays then. The next run prints `output`.
+   */
+  stale?: { output: string; script: string };
+  /** A tip shown with its result on one kind of computer (Bo's caption). */
+  notes?: Partial<Record<OsId, string>>;
 }
 
 /** `puzzles/gear-rack.json`. */
 export interface GearRackFile extends PuzzleFile {
   /** In hanging order, left to right on the rack. */
   checks: readonly GearDef[];
+  /**
+   * `intro` plays at the first press while the quest is at its checks, `checked` once every check has
+   * passed, and a stale check plays the one it names.
+   */
+  scripts?: Readonly<Record<string, readonly ScriptStep[]>>;
 }
 
 export const gearContent = () => puzzleContent<GearRackFile>('gear-rack');
@@ -50,13 +66,12 @@ export const YOUR_HANDLE = 'your-handle';
  */
 export function gearReadout(handle: string = YOUR_HANDLE, host = 'github.com'): string[] {
   const lines: string[] = [];
-  const c = gearContent();
-  for (const g of c.checks) lines.push(`$ ${g.command}`, g.output);
-  lines.push(textOf(c, 'signIn'), textOf(c, 'signedIn', { host, handle }));
+  for (const g of gearContent().checks) lines.push(`$ ${g.command}`, g.output);
+  lines.push(...signInLines(handle, host));
   return lines;
 }
 
-export type GearTone = 'cmd' | 'you' | 'ok';
+export type GearTone = 'cmd' | 'you' | 'ok' | 'other';
 
 /** How a readout line is inked: commands, your account, and version numbers. */
 export function gearTone(line: string, handle: string = YOUR_HANDLE): GearTone | undefined {
@@ -66,5 +81,41 @@ export function gearTone(line: string, handle: string = YOUR_HANDLE): GearTone |
   if (line.endsWith(fill(signedIn.slice(signedIn.indexOf('{host}') + '{host}'.length), { handle })))
     return 'you';
   if (gear().some((g) => g.output === line)) return 'ok';
+  if (gear().some((g) => g.stale?.output === line)) return 'other';
   return undefined;
+}
+
+/** Where you are in the checks at the rack: the next one to run, and what Terminal shows so far. */
+export interface GearRun {
+  /** The index of the next check to run (`checks.length` once every one has passed). */
+  readonly next: number;
+  /** The next check has printed its out-of-date output, so its next run prints the right one. */
+  readonly staleShown: boolean;
+  readonly lines: readonly string[];
+}
+
+export const GEAR_START: GearRun = { next: 0, staleShown: false, lines: [] };
+
+/** One press at the rack: runs the next check and says what it printed. */
+export function runGearCheck(
+  run: GearRun,
+  checks: readonly GearDef[],
+): { run: GearRun; check: GearDef | null; stale: boolean; done: boolean } {
+  const check = checks[run.next];
+  if (!check) return { run, check: null, stale: false, done: true };
+  const stale = !!check.stale && !run.staleShown;
+  const lines = [...run.lines, `$ ${check.command}`, stale ? check.stale!.output : check.output];
+  const next = stale ? run.next : run.next + 1;
+  return {
+    run: { next, staleShown: stale, lines },
+    check,
+    stale,
+    done: next >= checks.length,
+  };
+}
+
+/** The checks' readout with GitHub CLI's sign-in after it (`gearReadout`'s last two lines). */
+export function signInLines(handle: string = YOUR_HANDLE, host = 'github.com'): string[] {
+  const c = gearContent();
+  return [textOf(c, 'signIn'), textOf(c, 'signedIn', { host, handle })];
 }

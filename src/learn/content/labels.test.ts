@@ -117,7 +117,7 @@ describe('chart labels (docs/specs/LOWER-THIRDS.md)', () => {
   it('build the chapter line and a spoken version without separators', () => {
     expect(chapterLine(CHART_LABELS['puzzle:P2.3'])).toBe('Course Chapter 02 · Context syntax');
     expect(chapterLine(CHART_LABELS['battle:passage-anchorage-meridian'])).toBe(
-      'Questions from Course Chapter 00 · Add the course practice items',
+      'Questions from Course Chapter 00 · Setup',
     );
     const spoken = spokenLabel(CHART_LABELS['puzzle:P2.1']);
     expect(spoken).not.toContain('·');

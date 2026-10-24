@@ -42,7 +42,7 @@ describe('Meridian quest line', () => {
           if ('file' in s) expect(PAGES.has(s.file), s.file).toBe(true);
           if ('term' in s) expect(GLOSSARY.has(s.term), s.term).toBe(true);
           if ('trial' in s) expect(TRIALS.has(s.trial), s.trial).toBe(true);
-          if ('show' in s) expect(s.show).toMatch(/^ch0[01]\//);
+          if ('show' in s) expect(s.show).toMatch(/^(ch0[01]|shared)\//);
         }
     for (const id of MERIDIAN_WELCOME) expect(voiced.has(id), id).toBe(true);
   });
@@ -69,6 +69,14 @@ describe('Meridian quest line', () => {
     q['Q1.5'] = 'solved'; // the Three Helms
     talk('rhea');
     talk('oren');
+    // Oren sends you to Gilda's Model Market for his practice; the market moves Q1.6 on.
+    expect(q['Q1.6']).toBe('market');
+    expect(meridianTarget(q)).toMatchObject({ ids: ['market:counter'] });
+    talk('oren');
+    expect(q['Q1.6']).toBe('market');
+    q['Q1.6'] = 'practiced'; // the market's practice (puzzles/market.json → lesson)
+    talk('oren');
+    expect(q['Q1.6']).toBe('done');
     talk('pell');
     expect(q['Q1.7']).toBe('letters');
     q['Q1.7'] = 'solved'; // the Lost Letters
@@ -87,6 +95,31 @@ describe('Meridian quest line', () => {
     const retry = meridianNpcScript('admiral', { 'Q1.7': 'done', 'Q1.8': 'exam' })!.steps;
     expect(retry[0]).toEqual({ say: 'mer.admiral.retry' });
     expect(retry).toContainEqual({ trial: 'A1' });
+  });
+
+  it('keeps Oren’s talk short, practises at the market, and moves prompt history to Pell', () => {
+    const before = { 'Q1.1': 'done', 'Q1.2': 'done', 'Q1.3': 'done', 'Q1.4': 'done', 'Q1.5': 'done' };
+    const intro = meridianNpcScript('oren', { ...before, 'Q1.6': 'start' })!.steps;
+    // One check (the model control) before the practice, and the setup form; Retry's check comes after.
+    expect(intro.filter((s) => 'quiz' in s)).toEqual([{ quiz: 'H1.3' }]);
+    expect(intro).toContainEqual({ askSetup: 'model' });
+    expect(intro.at(-1)).toEqual({ quest: 'Q1.6', step: 'market' });
+    expect(intro.some((s) => 'askSetup' in s && s.askSetup === 'os')).toBe(false);
+    expect(meridianNpcScript('oren', { ...before, 'Q1.6': 'market' })!.steps).toEqual([
+      { say: 'mer.oren.market.wait' },
+    ]);
+    const debrief = meridianNpcScript('oren', { ...before, 'Q1.6': 'practiced' })!.steps;
+    expect(debrief.filter((s) => 'quiz' in s)).toEqual([{ quiz: 'R1.1' }]);
+    expect(debrief).toContainEqual({ quest: 'Q1.6', step: 'done' });
+    expect(meridianTarget({ ...before, 'Q1.6': 'practiced' })).toMatchObject({
+      ids: ['lift:bottom', 'npc:oren'],
+    });
+    const pell = meridianNpcScript('pell', { ...before, 'Q1.6': 'done', 'Q1.7': 'solved' })!.steps;
+    const at = (x: object) => pell.findIndex((s) => JSON.stringify(s) === JSON.stringify(x));
+    expect(at({ say: 'mer.pell.prompts' })).toBeGreaterThan(-1);
+    expect(at({ askSetup: 'os' })).toBe(at({ say: 'mer.pell.prompts' }) + 1);
+    expect(at({ quiz: 'N1.5' })).toBe(at({ askSetup: 'os' }) + 1);
+    expect(at({ file: 'pg1.prompts' })).toBeGreaterThan(at({ quiz: 'N1.5' }));
   });
 
   it('sends you to Pell’s letters, debriefs once they’re filed, and offers them to older saves', () => {

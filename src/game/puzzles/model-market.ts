@@ -8,6 +8,7 @@ import {
   GILDA_TEXT,
   JOBS,
   JOB_DOUBLOONS,
+  MAX_PRICE,
   effortLastTime,
   feedback,
   jobById,
@@ -21,7 +22,8 @@ import {
   type Hire,
   type JobId,
 } from '../market/jobs';
-import { GILDA_KEYS, MARKET, type GildaKey } from '../../content/market';
+import { GILDA_KEYS, MARKET, type GildaKey, type QuestKeeperKey } from '../../content/market';
+import { applyRules, whenHolds, type When } from '../story';
 import { MARKET_PUZZLE, questStall, type MarketStallSpec } from '../market/stalls';
 import { firstModel, modelsIn, savedHireName } from '../market/models';
 import { AUTO_HIRE } from '../../learn/progress';
@@ -43,6 +45,7 @@ const HELLO_RANGE = 9;
 const SHOP_HELLO_RANGE = 4.5;
 /** You're "at the market" (the chart label, Wingman's hints, the keeper's light) this close. */
 const NEAR = 6;
+const NO_LINE = { voice: null, text: '' } as const;
 /** At another keeper's stall, only at the counter (Wingman's hints by Tamsin stay hers). */
 const SHOP_NEAR = 3.5;
 
@@ -59,6 +62,25 @@ export interface MarketHost extends PuzzleHost {
   filePage(id: string): void;
   /** Lights an islander for the counter's close-up (the talk shot's light), or puts it out. */
   spotlight(npc: string, on: boolean): void;
+}
+
+/**
+ * The market puzzle file's lesson (`lesson` in `puzzles/market.json`): when the course has taught
+ * models and effort (`taught`: every stall grades from then on; before it, its keeper says `early`),
+ * when the quest's stall runs the lesson's practice (`practice`: a quick look right-sized, then a hard
+ * job and a Retry of it, with the keeper staking you the starfish), and the steps it sets when the
+ * practice is done (`practiced`). Without one, every stall grades from the start and there's no practice.
+ */
+export interface MarketLesson {
+  taught: When;
+  practice?: When;
+  practiced?: Readonly<Record<string, string>>;
+}
+
+/** The practice's two parts: a quick look right-sized, and a Retry of a hard job. */
+export interface MarketPractice {
+  quick: boolean;
+  retry: boolean;
 }
 
 /** A new work order: Auto, with the smallest category (and `model`) ready behind it. */
@@ -91,12 +113,19 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   /** Another stall's keeper's own lines (every one voiced; a stall never plays Gilda's voice). */
   const own = stall.lines === 'gilda' ? null : (MARKET.keepers?.[stall.island] ?? null);
   /** The keeper's line for a moment: its voice id (none: caption only) and its words. */
-  const lineFor = (key: GildaKey): { voice: string | null; text: string } =>
-    own
-      ? own[key]
-      : stall.lines === 'gilda'
-        ? { voice: GILDA[key], text: GILDA_TEXT[GILDA[key]] ?? '' }
-        : { voice: null, text: GILDA_TEXT[GILDA[key]] ?? '' };
+  const lineFor = (key: GildaKey | QuestKeeperKey): { voice: string | null; text: string } => {
+    if (own) return (own as Partial<Record<string, { voice: string; text: string }>>)[key] ?? NO_LINE;
+    const voice = GILDA[key];
+    if (!voice) return NO_LINE;
+    return { voice: stall.lines === 'gilda' ? voice : null, text: GILDA_TEXT[voice] ?? '' };
+  };
+  const lesson = puzzleContent<PuzzleFile & { lesson?: MarketLesson }>(MARKET_PUZZLE).lesson ?? null;
+  /** The course has taught models and effort: the stall grades (before it, the keeper says `early`). */
+  const taught = () => !lesson || whenHolds(lesson.taught, host.quests());
+  /** The quest's stall is running the lesson's practice. */
+  const practicing = () => story && !!lesson?.practice && whenHolds(lesson.practice, host.quests());
+  /** This session's practice (a quick look already done right-sized, in the save, counts too). */
+  const practice: MarketPractice = { quick: false, retry: false };
   const pad = new PadEdges();
   let open = false;
   let openedOnce = false;
@@ -111,6 +140,12 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   let last: Hire | null = null;
 
   const doneIds = (): JobId[] => JOBS.filter((j) => progress?.data.market.jobs[j.id]?.done).map((j) => j.id);
+  const practiceView = (): MarketPractice | null => {
+    if (!practicing()) return null;
+    if (!practice.quick)
+      practice.quick = JOBS.some((j) => j.size === 'quick' && progress?.data.market.jobs[j.id]?.done);
+    return { ...practice };
+  };
   const jobsView = () =>
     JOBS.map((j) => {
       const s = progress?.data.market.jobs[j.id];
@@ -135,6 +170,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     notice: null,
     says: null,
     reduced: false,
+    practice: null,
   });
   /** Wingman's second hint was given: the next work order glows on a hire that fits. */
   let glow = false;
@@ -143,7 +179,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
 
   /** The keeper's lines, said in their voice (and written on the work order while it's open). */
   let speaking = 0;
-  const speak = (keys: readonly GildaKey[]) => {
+  const speak = (keys: readonly (GildaKey | QuestKeeperKey)[]) => {
     const lines = keys.map((k) => lineFor(k).voice).filter((v): v is string => !!v);
     if (!lines.length) return;
     const n = ++speaking;
@@ -151,8 +187,12 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       if (speaking === n) speaking = 0;
     });
   };
-  const words = (keys: readonly GildaKey[]) => keys.map((k) => lineFor(k).text).join(' ');
-  const say = (...keys: GildaKey[]) => {
+  const words = (keys: readonly (GildaKey | QuestKeeperKey)[]) =>
+    keys
+      .map((k) => lineFor(k).text)
+      .filter(Boolean)
+      .join(' ');
+  const say = (...keys: (GildaKey | QuestKeeperKey)[]) => {
     view.set({ says: words(keys) });
     speak(keys);
   };
@@ -160,7 +200,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   const counterId = `${stall.puzzle}:counter`;
   host.interactions.add({
     id: counterId,
-    label: () => T('interact', { keeper }),
+    label: () => T(taught() ? 'interact' : 'interactEarly', { keeper }),
     x: site.counter.x,
     y: site.counter.y,
     z: site.counter.z,
@@ -171,8 +211,36 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     onInteract: () => void openMarket(),
   });
 
+  /** Before the course's model lesson: the keeper says so (the work order stays shut). */
+  function early(): void {
+    if (speaking) return;
+    speak(['early']);
+  }
+
+  /**
+   * The lesson's practice at the quest's stall: the keeper stakes you, so the purse never sits below
+   * the dearest hire (the practice is on the story's path, so it can't wait on starfish you haven't found).
+   */
+  function stake(): void {
+    if (!practicing() || !host.learn) return;
+    const short = MAX_PRICE - purse();
+    if (short <= 0) return;
+    host.learn.refundStarfish(short, 0);
+    view.set({ purse: purse(), notice: T('practiceStake', { keeper, n: short }) });
+  }
+
+  /** The practice is done (both parts): the story moves on, and the keeper says so after the grade. */
+  function practiced(): boolean {
+    if (!lesson?.practiced || !practicing() || !practice.quick || !practice.retry) return false;
+    applyRules([{ when: lesson.practice, set: lesson.practiced }], host.quests(), (id, step) =>
+      host.setQuest(id, step),
+    );
+    return true;
+  }
+
   async function openMarket(): Promise<void> {
     if (open || !host.learn) return;
+    if (!taught()) return early();
     open = true;
     // The E that opened the stall is still down: it mustn't also pick a job.
     pad.arm();
@@ -204,7 +272,9 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       notice: null,
       says: hello.length ? words(hello) : null,
       reduced: host.reducedMotion(),
+      practice: practiceView(),
     });
+    stake();
     if (hello.includes('done')) {
       // The board was finished at other stalls: her task's done now, and that's what she says.
     } else if (purse() === 0) say('broke');
@@ -365,6 +435,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       return;
     }
     const f = feedback(job, hire);
+    const retried = !!v.retry;
     const was = progress?.data.market.jobs[job.id]?.done ?? false;
     const refund = f.outcome === 'right' ? refundFor(job, hire) : 0;
     const doubloons = f.outcome === 'right' && !was ? JOB_DOUBLOONS[job.size] : 0;
@@ -380,6 +451,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     const done = doneIds();
     site.setDone(done);
     host.audio?.sfx.oneShot(f.outcome === 'right' ? 'chime_solve' : 'quill', site.counter, 0.7);
+    // The lesson's practice: a quick look right-sized, and a Retry of a hard job (whatever its grade).
+    const inPractice = practicing();
+    if (inPractice) {
+      if (job.size === 'quick' && f.outcome === 'right') practice.quick = true;
+      if (job.size === 'hard' && retried) practice.retry = true;
+    }
+    const finished = inPractice && practiced();
     view.set({
       screen: 'result',
       result: { job: job.id, hire, feedback: f, paid: cost, refund, doubloons },
@@ -388,20 +466,24 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       retry: null,
       notice: null,
       hint: null,
+      practice: finished ? null : practiceView(),
     });
+    stake();
+    const after: (GildaKey | QuestKeeperKey)[] = finished ? ['practiced'] : [];
     if (f.outcome === 'right' && !was) {
       filePage();
       if (done.length === JOBS.length) {
         complete();
-        return say(f.key, 'done');
+        return say(f.key, 'done', ...after);
       }
     }
-    say(f.key);
+    say(f.key, ...after);
   }
 
   function retry(kind: 'model' | 'effort'): void {
     const v = view.get();
-    if (!open || v.screen !== 'result' || !v.result || v.result.feedback.outcome !== 'short') return;
+    if (!open || v.screen !== 'result' || !v.result || !v.result.feedback.retry) return;
+    const again = v.result.feedback.retry === 'again';
     const plan = retryPlan(last ?? v.result.hire, kind);
     const h = plan.last;
     // The same job, nothing chosen in the picker it's about: you choose the different model (or effort).
@@ -419,7 +501,9 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       says: null,
       notice:
         plan.live === 'model'
-          ? T(h.auto ? 'retryAutoNotice' : 'retryModelNotice', { model: h.auto ? T('auto') : h.model })
+          ? T(h.auto ? 'retryAutoNotice' : again ? 'retryAgainNotice' : 'retryModelNotice', {
+              model: h.auto ? T('auto') : h.model,
+            })
           : T('retryEffortNotice', { model: h.auto ? '' : h.model }),
     });
   }
@@ -442,11 +526,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
 
   /** The quest's keeper has something to say as you come up (her hello, or the finished board). */
   const arrivalDue = () =>
-    story
-      ? !!progress &&
-        (!progress.data.market.greeted ||
-          (doneIds().length === JOBS.length && host.quests()[quest] !== 'done'))
-      : !!own && !greetedHere;
+    !taught()
+      ? false
+      : story
+        ? !!progress &&
+          (!progress.data.market.greeted ||
+            (doneIds().length === JOBS.length && host.quests()[quest] !== 'done'))
+        : !!own && !greetedHere;
 
   /**
    * As you come up (or open the stall): the quest's keeper says hello the first time in a save (it
@@ -506,12 +592,12 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       if (pad.edge(p, 0)) pay();
       if (pad.edge(p, 1)) back();
     } else {
-      const short = v.result?.feedback.outcome === 'short';
+      const again = v.result?.feedback.retry;
       if (pad.edge(p, 0)) {
-        if (short) retry('effort');
+        if (again === 'short') retry('effort');
         else back();
       }
-      if (pad.edge(p, 2) && short) retry('model');
+      if (pad.edge(p, 2) && again) retry('model');
       if (pad.edge(p, 1)) back();
     }
   }
@@ -521,13 +607,13 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     // Every stall's first visit shows the market's chart label (once a save).
     label: MARKET_PUZZLE,
     // At the stall with the work order closed (the chart label waits for you there, not over it).
-    engaged: () => !open && !!host.learn && dist() < near,
+    engaged: () => !open && !!host.learn && dist() < near && taught(),
     hintKey: () => {
       const v = view.get();
-      return `${v.screen}:${v.job ?? ''}:${v.retry ? 'retry' : ''}:${doneIds().length}`;
+      return `${v.screen}:${v.job ?? ''}:${v.retry ? 'retry' : ''}:${doneIds().length}:${taught()}`;
     },
     hint(tier: HintTier) {
-      if (!host.learn || dist() > near) return null;
+      if (!host.learn || dist() > near || !taught()) return null;
       const v = view.get();
       // A Retry: choosing is yours (the hint says how, never what).
       if (v.screen === 'hire' && v.retry) return T('hintRetry');
@@ -560,6 +646,8 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
         purse: purse(),
         done: doneIds(),
         market: progress?.data.market,
+        taught: taught(),
+        practice: practicing() ? { ...practice } : null,
       }),
       open: () => openMarket(),
       pickJob: (id: JobId) => pickJob(id),

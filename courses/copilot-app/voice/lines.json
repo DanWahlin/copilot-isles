@@ -20,7 +20,7 @@
     {
       "id": "wingman.welcome.01",
       "speaker": "Wingman",
-      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and first mate."
+      "text": "Ahoy, Captain! Up here! I'm Wingman, your parrot and navigator."
     },
     {
       "id": "wingman.welcome.02",
@@ -30,7 +30,7 @@
     {
       "id": "wingman.welcome.03",
       "speaker": "Wingman",
-      "text": "We're on Anchorage Cay, where you'll set up the app. Nell's by the harbourmaster's door, so start with her."
+      "text": "We're on Anchorage Cay. This course works like a recording studio, and setup's your soundcheck. Nell's by the harbourmaster's door, so start with her."
     },
     {
       "id": "wingman.welcome.04",
@@ -85,7 +85,7 @@
     {
       "id": "suri.actions.02",
       "speaker": "Suri",
-      "text": "Gate’s up, so your workflows are on! Back to the crane, Captain. Come see me once your practice items are in."
+      "text": "Gate’s up, so your workflows are on! Now Pim and Pol’s crane, at the end of the pier. Come see me once your practice items are in."
     },
     {
       "id": "suri.brief.01",
@@ -183,7 +183,7 @@
     {
       "id": "pim.brief.02",
       "speaker": "Pim",
-      "text": "Then the setup script, in the app's Terminal. Preview it with --dry-run first."
+      "text": "The setup script runs in the app's Terminal. Preview it with --dry-run first."
     },
     {
       "id": "pol.brief.02",
@@ -193,7 +193,7 @@
     {
       "id": "pim.brief.03",
       "speaker": "Pim",
-      "text": "Same here: Actions first. Pull the gate lever at Suri’s mill, then aim our crane at your ship, Dry-Run, and --yes."
+      "text": "Actions first, Captain! Pull the gate lever at Suri’s mill, along the quay, then come back to us."
     },
     {
       "id": "pol.brief.actions",
@@ -217,6 +217,11 @@
         "+": "plus"
       },
       "text": "If the Repository line ever isn’t yours, you probably added the original. Add your fork from the + next to Sessions instead."
+    },
+    {
+      "id": "pol.solved.issues",
+      "speaker": "Pol",
+      "text": "And if your fork’s issues are missing afterwards, turn on Issues under Settings, then Features, and run the script again."
     },
     {
       "id": "pol.refuse.guild.01",
@@ -332,6 +337,11 @@
       "text": "Then send a short prompt to create the session. It’s on the page I’ve just given you: name the top-level folders, and don’t change any files."
     },
     {
+      "id": "bo.deck.rack",
+      "speaker": "Bo",
+      "text": "Session made? Then step up to my rack, and we’ll check your tools in Terminal."
+    },
+    {
       "id": "bo.gear.brief.01",
       "speaker": "Bo",
       "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal."
@@ -339,7 +349,12 @@
     {
       "id": "bo.gear.brief.02",
       "speaker": "Bo",
-      "text": "Commands run there. Start with the four version checks on my rack. Each should print a version number. For Node, compare the first number with the LTS version on the download page.",
+      "text": "Commands run there. Run each check on my rack, one at a time. Each should print a version number."
+    },
+    {
+      "id": "bo.gear.lts",
+      "speaker": "Bo",
+      "text": "See that first number, Captain? It’s lower than the LTS version on the Node.js download page.",
       "sub": {
         "LTS": "L T S"
       }
@@ -360,12 +375,12 @@
     {
       "id": "bo.signed.02",
       "speaker": "Bo",
-      "text": "Deck's ready, and your gear checks out. Pim and Pol add the practice items next, at the crane at the end of the pier."
+      "text": "Deck's ready, and your gear checks out. Next, the practice items, but Actions come first. Suri's at her mill, along the quay."
     },
     {
       "id": "juno.brief.01",
       "speaker": "Juno",
-      "text": "Juno, your first mate. Setup’s done, so let’s give the crew their first order."
+      "text": "Setup’s done, Captain, so let’s ask the crew about the course."
     },
     {
       "id": "juno.brief.02",
@@ -444,7 +459,7 @@
     {
       "id": "pim.solved.03",
       "speaker": "Pim",
-      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your first order ready."
+      "text": "Your first mate’s waiting by your ship, Captain. Juno’s got your next order ready."
     },
     {
       "id": "nell.palette.02",
@@ -482,6 +497,16 @@
       "text": "Setup's done, Captain. Before your ship gets her name, there's the Harbormaster's Trial: eight questions on what you've set up."
     },
     {
+      "id": "nell.takeaways.01",
+      "speaker": "Nell",
+      "text": "Before you sail, three things to keep. The app’s your desktop control center for agent-driven coding work."
+    },
+    {
+      "id": "nell.takeaways.02",
+      "speaker": "Nell",
+      "text": "Your sample app is samples/book-app-web, and your fork’s stocked with practice items for the chapters ahead."
+    },
+    {
       "id": "nell.trial.02",
       "speaker": "Nell",
       "text": "The Seal of Anchorage, and well earned. Now, about that ship."
@@ -509,7 +534,7 @@
     {
       "id": "lyra.idle.01",
       "speaker": "Lyra",
-      "text": "Every island has a song, Captain. Come back once your crew’s heard your first words, and I’ll play you this one."
+      "text": "Every island has a song, Captain. Come back once your crew’s answered you, and I’ll play you this one."
     },
     {
       "id": "lyra.soundcheck.01",
@@ -524,12 +549,12 @@
     {
       "id": "lyra.soundcheck.03",
       "speaker": "Lyra",
-      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your own deck, and a first word to your crew."
+      "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your gear checked, and the practice items loaded."
     },
     {
       "id": "lyra.soundcheck.04",
       "speaker": "Lyra",
-      "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead."
+      "text": "Port Meridian’s next on the chart. There you’ll learn why the app matters and tour its rooms. I’ll see you there."
     },
     {
       "id": "lyra.done.01",
@@ -639,7 +664,7 @@
     {
       "id": "mer.mina.customize",
       "speaker": "Mina",
-      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins and canvases. You won’t need those until later chapters.",
+      "text": "And the Outfitter is Customize, for skills, MCP servers, plugins, extensions and canvases. You won’t need those until later chapters.",
       "sub": {
         "MCP": "M C P"
       }
@@ -662,7 +687,7 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, Pull requests, Issues, Automations, Customize. You know your way around now!"
+      "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!"
     },
     {
       "id": "mer.lyra.wait",
@@ -855,7 +880,7 @@
     {
       "id": "mer.oren.05",
       "speaker": "Oren",
-      "text": "For a quick explanation, keep the defaults. For a hard bug across several files, try a stronger model and higher effort."
+      "text": "For a tour or a quick explanation, keep Auto or your current model, on its default effort. For a hard bug across several files, consider a model suited to complex coding, and more effort."
     },
     {
       "id": "mer.oren.06",
@@ -879,6 +904,21 @@
       "id": "mer.oren.08",
       "speaker": "Oren",
       "text": "And you can change the model or effort mid-session, without changing the mode."
+    },
+    {
+      "id": "mer.oren.market",
+      "speaker": "Oren",
+      "text": "Now try it yourself, at Gilda's Model Market in the plaza: a quick look, then a hard job, and Retry it. She'll cover the starfish."
+    },
+    {
+      "id": "mer.oren.market.wait",
+      "speaker": "Oren",
+      "text": "Gilda's market is down in the plaza, Captain. A quick look first, then a hard job and its Retry."
+    },
+    {
+      "id": "mer.oren.practiced",
+      "speaker": "Oren",
+      "text": "Back already? Then you've seen it. A quick look needs no more than the defaults, and Retry runs a hard job again with another model or effort, without retyping a word."
     },
     {
       "id": "mer.oren.next",
@@ -907,6 +947,11 @@
       "sub": {
         "API": "A P I"
       }
+    },
+    {
+      "id": "mer.pell.prompts",
+      "speaker": "Pell",
+      "text": "And a record of your own. Press Control R, or Command R on a Mac, to see your recent prompts across all your sessions. Search them, and reuse one."
     },
     {
       "id": "mer.pell.05",
@@ -1004,7 +1049,7 @@
     {
       "id": "mer.admiral.next",
       "speaker": "Admiral",
-      "text": "Chapter 02 is sessions, worktrees and context. That island’s still being charted, but the course is ready when you are."
+      "text": "Chapter 02 is sessions, worktrees and context. Thousand-Bough Isle’s to the north-east, and your ship’s ready when you are."
     },
     {
       "id": "mer.admiral.done",
@@ -1157,9 +1202,9 @@
       "text": "Right-sized! That's a fair price for this job."
     },
     {
-      "id": "mer.market.over",
+      "id": "mer.market.keep",
       "speaker": "Gilda",
-      "text": "That's a lot of starfish for a quick look. Auto would've done it."
+      "text": "Right-sized. Your model on its default effort is fine for a quick look. A bigger one just costs more starfish."
     },
     {
       "id": "mer.market.over.effort",
@@ -1172,9 +1217,9 @@
       "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort."
     },
     {
-      "id": "mer.market.short.auto",
+      "id": "mer.market.hard.auto",
       "speaker": "Gilda",
-      "text": "With Auto on, the effort setting's hidden. For a job this hard, turn Auto off, then pick a model and a higher effort."
+      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort."
     },
     {
       "id": "mer.market.broke",
@@ -1185,6 +1230,16 @@
       "id": "mer.market.done",
       "speaker": "Gilda",
       "text": "Every job on the board, right-sized. You've got an eye for models, Captain!"
+    },
+    {
+      "id": "mer.market.early",
+      "speaker": "Gilda",
+      "text": "Not yet, Captain! Oren teaches models up at the observatory. Come back when he sends you down."
+    },
+    {
+      "id": "mer.market.practiced",
+      "speaker": "Gilda",
+      "text": "That's Oren's practice done, Captain. Ride the lift back up and tell him how it went."
     },
     {
       "id": "desmond.market.hello",
@@ -1212,9 +1267,9 @@
       "text": "Right-sized! A fair price for this job."
     },
     {
-      "id": "desmond.market.over",
+      "id": "desmond.market.keep",
       "speaker": "Desmond",
-      "text": "That's plenty of starfish for a quick look. Auto would have handled it."
+      "text": "Right-sized. That model on its default effort does a quick look fine. A bigger one just costs you more starfish."
     },
     {
       "id": "desmond.market.over.effort",
@@ -1227,9 +1282,9 @@
       "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort."
     },
     {
-      "id": "desmond.market.short.auto",
+      "id": "desmond.market.hard.auto",
       "speaker": "Desmond",
-      "text": "With Auto on, the effort setting stays hidden. For a hard job, switch Auto off, then pick a model and a higher effort."
+      "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort."
     },
     {
       "id": "desmond.market.broke",
@@ -1240,6 +1295,11 @@
       "id": "desmond.market.done",
       "speaker": "Desmond",
       "text": "Every job on the board, right-sized. You know your models, Captain!"
+    },
+    {
+      "id": "desmond.market.early",
+      "speaker": "Desmond",
+      "text": "Hold on, Captain. Models and effort come in Chapter 01, and Oren teaches them on Port Meridian. Come back after his lesson."
     },
     {
       "id": "desmond.market.bye",
@@ -1272,9 +1332,9 @@
       "text": "Right-sized, and a fair price for the job."
     },
     {
-      "id": "tb.lani.market.over",
+      "id": "tb.lani.market.keep",
       "speaker": "Lani",
-      "text": "That's a lot of starfish for a quick look. Auto could have done it."
+      "text": "Right-sized. A quick look's fine on the model you've got, at its default effort. Bigger ones just cost more starfish."
     },
     {
       "id": "tb.lani.market.over.effort",
@@ -1287,9 +1347,9 @@
       "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort."
     },
     {
-      "id": "tb.lani.market.short.auto",
+      "id": "tb.lani.market.hard.auto",
       "speaker": "Lani",
-      "text": "Auto keeps the effort setting hidden. For a job this hard, turn Auto off, then choose a model and a higher effort."
+      "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort."
     },
     {
       "id": "tb.lani.market.broke",
@@ -1300,6 +1360,11 @@
       "id": "tb.lani.market.done",
       "speaker": "Lani",
       "text": "The whole board, right-sized! You really know your models, Captain."
+    },
+    {
+      "id": "tb.lani.market.early",
+      "speaker": "Lani",
+      "text": "Not just yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson."
     },
     {
       "id": "tb.lani.market.bye",

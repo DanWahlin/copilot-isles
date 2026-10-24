@@ -1,0 +1,142 @@
+{
+  "id": "desmond.market.hard.auto",
+  "speaker": "Desmond",
+  "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort.",
+  "words": [
+    {
+      "word": "Auto",
+      "start": 0,
+      "end": 0.366
+    },
+    {
+      "word": "picked",
+      "start": 0.366,
+      "end": 0.68
+    },
+    {
+      "word": "a",
+      "start": 0.68,
+      "end": 0.8
+    },
+    {
+      "word": "model",
+      "start": 0.8,
+      "end": 1.26
+    },
+    {
+      "word": "and",
+      "start": 1.26,
+      "end": 1.5
+    },
+    {
+      "word": "got",
+      "start": 1.5,
+      "end": 1.707
+    },
+    {
+      "word": "it",
+      "start": 1.707,
+      "end": 1.84
+    },
+    {
+      "word": "done",
+      "start": 1.84,
+      "end": 2.76
+    },
+    {
+      "word": "For",
+      "start": 2.76,
+      "end": 3.64
+    },
+    {
+      "word": "a",
+      "start": 3.64,
+      "end": 3.76
+    },
+    {
+      "word": "job",
+      "start": 3.76,
+      "end": 4.048
+    },
+    {
+      "word": "this",
+      "start": 4.048,
+      "end": 4.336
+    },
+    {
+      "word": "hard",
+      "start": 4.336,
+      "end": 4.92
+    },
+    {
+      "word": "you",
+      "start": 4.92,
+      "end": 5.08
+    },
+    {
+      "word": "can",
+      "start": 5.08,
+      "end": 5.264
+    },
+    {
+      "word": "also",
+      "start": 5.264,
+      "end": 5.577
+    },
+    {
+      "word": "switch",
+      "start": 5.577,
+      "end": 6.016
+    },
+    {
+      "word": "Auto",
+      "start": 6.016,
+      "end": 6.5
+    },
+    {
+      "word": "off",
+      "start": 6.5,
+      "end": 7.568
+    },
+    {
+      "word": "then",
+      "start": 7.568,
+      "end": 7.806
+    },
+    {
+      "word": "choose",
+      "start": 7.806,
+      "end": 8.12
+    },
+    {
+      "word": "a",
+      "start": 8.12,
+      "end": 8.253
+    },
+    {
+      "word": "model",
+      "start": 8.253,
+      "end": 8.84
+    },
+    {
+      "word": "and",
+      "start": 8.84,
+      "end": 9.28
+    },
+    {
+      "word": "a",
+      "start": 9.28,
+      "end": 9.417
+    },
+    {
+      "word": "higher",
+      "start": 9.417,
+      "end": 9.84
+    },
+    {
+      "word": "effort",
+      "start": 9.84,
+      "end": 10.09
+    }
+  ]
+}

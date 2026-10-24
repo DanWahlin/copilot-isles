@@ -1,102 +1,112 @@
 {
   "id": "lyra.soundcheck.04",
   "speaker": "Lyra",
-  "text": "Next comes Port Meridian, where you’ll learn why the app matters and tour its rooms. I’ll travel on ahead.",
+  "text": "Port Meridian’s next on the chart. There you’ll learn why the app matters and tour its rooms. I’ll see you there.",
   "words": [
     {
-      "word": "Next",
-      "start": 0.052625,
-      "end": 0.447375
-    },
-    {
-      "word": "comes",
-      "start": 0.447375,
-      "end": 0.723666
-    },
-    {
       "word": "Port",
-      "start": 0.723666,
-      "end": 1.052625
+      "start": 0.052625,
+      "end": 0.35525
     },
     {
-      "word": "Meridian",
-      "start": 1.052625,
-      "end": 1.934208
+      "word": "Meridian’s",
+      "start": 0.35525,
+      "end": 1.078958
     },
     {
-      "word": "where",
-      "start": 1.934208,
-      "end": 2.131583
-    },
-    {
-      "word": "you’ll",
-      "start": 2.131583,
-      "end": 2.35525
-    },
-    {
-      "word": "learn",
-      "start": 2.35525,
-      "end": 2.697375
-    },
-    {
-      "word": "why",
-      "start": 2.697375,
-      "end": 2.973666
-    },
-    {
-      "word": "the",
-      "start": 2.973666,
-      "end": 3.10525
-    },
-    {
-      "word": "app",
-      "start": 3.10525,
-      "end": 3.276333
-    },
-    {
-      "word": "matters",
-      "start": 3.276333,
-      "end": 3.828958
-    },
-    {
-      "word": "and",
-      "start": 3.828958,
-      "end": 4.092125
-    },
-    {
-      "word": "tour",
-      "start": 4.092125,
-      "end": 4.407875
-    },
-    {
-      "word": "its",
-      "start": 4.407875,
-      "end": 4.565791
-    },
-    {
-      "word": "rooms",
-      "start": 4.565791,
-      "end": 6.118416
-    },
-    {
-      "word": "I’ll",
-      "start": 6.118416,
-      "end": 6.315791
-    },
-    {
-      "word": "travel",
-      "start": 6.315791,
-      "end": 6.828958
+      "word": "next",
+      "start": 1.078958,
+      "end": 1.5
     },
     {
       "word": "on",
-      "start": 6.828958,
-      "end": 6.986833
+      "start": 1.5,
+      "end": 1.64475
     },
     {
-      "word": "ahead",
-      "start": 6.986833,
-      "end": 7.236833
+      "word": "the",
+      "start": 1.64475,
+      "end": 1.75
+    },
+    {
+      "word": "chart",
+      "start": 1.75,
+      "end": 3.276333
+    },
+    {
+      "word": "There",
+      "start": 3.276333,
+      "end": 3.421041
+    },
+    {
+      "word": "you’ll",
+      "start": 3.421041,
+      "end": 3.684208
+    },
+    {
+      "word": "learn",
+      "start": 3.684208,
+      "end": 4.026333
+    },
+    {
+      "word": "why",
+      "start": 4.026333,
+      "end": 4.315791
+    },
+    {
+      "word": "the",
+      "start": 4.315791,
+      "end": 4.473666
+    },
+    {
+      "word": "app",
+      "start": 4.473666,
+      "end": 4.64475
+    },
+    {
+      "word": "matters",
+      "start": 4.64475,
+      "end": 5.197375
+    },
+    {
+      "word": "and",
+      "start": 5.197375,
+      "end": 5.447375
+    },
+    {
+      "word": "tour",
+      "start": 5.447375,
+      "end": 5.776333
+    },
+    {
+      "word": "its",
+      "start": 5.776333,
+      "end": 5.934208
+    },
+    {
+      "word": "rooms",
+      "start": 5.934208,
+      "end": 7.526333
+    },
+    {
+      "word": "I’ll",
+      "start": 7.526333,
+      "end": 7.75
+    },
+    {
+      "word": "see",
+      "start": 7.75,
+      "end": 8.013166
+    },
+    {
+      "word": "you",
+      "start": 8.013166,
+      "end": 8.184208
+    },
+    {
+      "word": "there",
+      "start": 8.184208,
+      "end": 8.434208
     }
   ]
 }

@@ -256,6 +256,42 @@
   font: 800 1rem/1.3 var(--ci-ui);
 }
 
+.ci-mm-practice {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border: 2px dashed #8a5a2b;
+  border-radius: 10px;
+  background: rgba(255, 248, 228, 0.7);
+}
+.ci-mm-practice h3 {
+  margin: 0 0 4px;
+  color: #6b3b14;
+  font: 800 1rem/1.3 var(--ci-ui);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ci-mm-practice ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #4a2410;
+  font: 700 1rem/1.4 var(--ci-ui);
+}
+.ci-mm-practice li.is-done {
+  color: #2f6b34;
+}
+.ci-mm-practice .ci-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .ci-mm-foot {
   display: flex;
   flex-wrap: wrap;
