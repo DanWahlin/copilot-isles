@@ -1,5 +1,6 @@
 import type { TerrainRegions } from '../terrain/terrain-regions';
 import { anchorageTerrainRegions } from './anchorage/terrain-regions';
+import { keelhavenTerrainRegions } from './keelhaven/terrain-regions';
 import { meridianTerrainRegions } from './meridian-terrain-regions';
 import { thousandBoughTerrainRegions } from './thousand-bough/terrain-regions';
 
@@ -8,4 +9,5 @@ export const ISLAND_TERRAIN_REGIONS: readonly TerrainRegions[] = [
   anchorageTerrainRegions,
   meridianTerrainRegions,
   thousandBoughTerrainRegions,
+  keelhavenTerrainRegions,
 ];

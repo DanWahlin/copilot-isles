@@ -16,6 +16,8 @@ public/packs/meridian/terrain.bin
 public/packs/meridian/terrain.json
 public/packs/thousand-bough/terrain.bin
 public/packs/thousand-bough/terrain.json
+public/packs/keelhaven/terrain.bin
+public/packs/keelhaven/terrain.json
 
 # Downloaded CC0 source kits (fetch scripts re-create them; sha256-pinned)
 tools/.cache/
