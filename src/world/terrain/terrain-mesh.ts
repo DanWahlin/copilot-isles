@@ -23,7 +23,40 @@ interface ChunkGeometrySet {
   step: number;
   geometry: BufferGeometry;
   triangles: number;
+  /** The ground grid's vertices (the first `cols × rows` of the buffer, before the skirts). */
+  cols: number;
+  rows: number;
 }
+
+/** The vertex data a level morph eases (height, normal, light and masks). */
+const MORPHED: readonly (readonly [name: string, size: number, first: number, end: number])[] = [
+  ['position', 3, 1, 2],
+  ['normal', 3, 0, 3],
+  ['terrainLight', 4, 0, 4],
+  ['terrainMask', 4, 0, 4],
+];
+const MORPH_CHANNELS = 12;
+
+/** Scratch for one running morph: the level's own values (rest) and where it starts (from). */
+interface MorphSlot {
+  rest: Float32Array;
+  from: Float32Array;
+}
+
+/** A chunk easing from the level it showed to the one it shows now (`morphFrames`). */
+interface LevelMorph {
+  set: ChunkGeometrySet;
+  slot: MorphSlot;
+  frame: number;
+}
+
+/** How many chunks can ease at once; past that, a chunk swaps at once (rare: a jump). */
+const MORPH_SLOTS = 16;
+/**
+ * The largest level that eases (grid vertices): every level on Lite, Low and Medium; High's and
+ * Ultra's finest (1 m, 16 641 a chunk) swaps at once (its slots would hold 25 MB).
+ */
+const MORPH_MAX_VERTICES = 4500;
 
 interface TerrainChunk {
   mesh: Mesh;
@@ -35,6 +68,7 @@ interface TerrainChunk {
   maxZ: number;
   geometries: ChunkGeometrySet[];
   current: number;
+  morph: LevelMorph | null;
 }
 
 type TerrainHeightGrid = HeightGridData;
@@ -75,6 +109,58 @@ export interface CreateTerrainOptions {
    * (`TerrainWaterCaps`), so a stream or a pool isn't hidden by a coarse level in the distance.
    */
   freshWater?: TerrainFreshWater | null;
+  /**
+   * Coarse levels take the mean height over each vertex's footprint (the same tent filter as their
+   * normals and light), not the one grid point under it: fine relief (flutes on a tall wall) then
+   * doesn't alias into a jagged level, and two levels differ less where they swap. The finest level
+   * keeps the point (the walked ground). Default off: other islands' levels stay as they are.
+   */
+  prefilter?: boolean;
+  /** A merged far block's triangle cap (Lite and Low; default `MAX_MERGED_TRIANGLES`). */
+  maxMergedTriangles?: number;
+  /**
+   * When a chunk changes level, its new level starts on the old level's surface and eases to its own
+   * shape over this many frames (no pop where a tall wall changes level). It changes the chunk's
+   * vertex heights only (a buffer update, no new geometry or shader). Default 0: levels swap at once.
+   */
+  morphFrames?: number;
+}
+
+/**
+ * A value of a level's drawn surface at (x, z) (its height, or a channel of its normal, light or masks),
+ * interpolated over its grid's current vertices like the GPU does: two triangles a cell, split along
+ * the (x1, z0)–(x0, z1) diagonal, as `buildChunkGeometry` makes them.
+ */
+function levelSurfaceValue(
+  set: ChunkGeometrySet,
+  values: ArrayLike<number>,
+  size: number,
+  offset: number,
+  minX: number,
+  maxX: number,
+  minZ: number,
+  maxZ: number,
+  x: number,
+  z: number,
+): number {
+  const { cols, rows, step } = set;
+  const fx = Math.min(cols - 1, Math.max(0, (x - minX) / step));
+  const fz = Math.min(rows - 1, Math.max(0, (z - minZ) / step));
+  const ix = Math.min(cols - 2, Math.floor(fx));
+  const iz = Math.min(rows - 2, Math.floor(fz));
+  // The last column and row end at the chunk's edge, which can be nearer than a full step.
+  const x0 = minX + ix * step;
+  const x1 = ix + 1 === cols - 1 ? maxX : x0 + step;
+  const z0 = minZ + iz * step;
+  const z1 = iz + 1 === rows - 1 ? maxZ : z0 + step;
+  const tx = Math.min(1, Math.max(0, (x - x0) / (x1 - x0)));
+  const tz = Math.min(1, Math.max(0, (z - z0) / (z1 - z0)));
+  const a = values[(iz * cols + ix) * size + offset]!;
+  const b = values[(iz * cols + ix + 1) * size + offset]!;
+  const c = values[((iz + 1) * cols + ix) * size + offset]!;
+  const d = values[((iz + 1) * cols + ix + 1) * size + offset]!;
+  if (tx + tz <= 1) return a + (b - a) * tx + (c - a) * tz;
+  return d + (c - d) * (1 - tx) + (b - d) * (1 - tz);
 }
 
 type RecessBox = NonNullable<CreateTerrainOptions['recessSteep']>;
@@ -298,6 +384,15 @@ function meshVertexHeight(
   if (!recessBox || x < recessBox.minX || x > recessBox.maxX || z < recessBox.minZ || z > recessBox.maxZ)
     return h;
   return recessedHeight(data, x, z, h, step * 0.5 + 0.5);
+}
+
+/** The tent-filtered mean height over a `footprint`-wide patch round (x, z) (`FOOTPRINT_TAPS`). */
+function filteredHeight(data: TerrainBakeData, x: number, z: number, footprint: number): number {
+  let h = 0;
+  for (const [oz, wz] of FOOTPRINT_TAPS)
+    for (const [ox, wx] of FOOTPRINT_TAPS)
+      h += sampleFloat(data.heights, data, x + ox * footprint, z + oz * footprint) * wx * wz;
+  return h;
 }
 
 /** The lowest baked height at the grid points in a rectangle (clamped to the grid). */
@@ -699,9 +794,13 @@ function pushVertex(
   finest: FinestRecess | null,
   footprint: number,
   caps: TerrainWaterCaps | null,
+  prefilter = false,
 ): number {
   const vertex = sampleVertex(data, x, z, footprint);
-  const h = meshVertexHeight(data, x, z, step, recessBox, finest);
+  const h =
+    prefilter && footprint > data.cell
+      ? filteredHeight(data, x, z, footprint)
+      : meshVertexHeight(data, x, z, step, recessBox, finest);
   positions.push(x, caps ? caps.heightAt(x, z, step, h) : h, z);
   normals.push(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
   masks.push(vertex.mask[0], vertex.mask[1], vertex.mask[2], vertex.mask[3]);
@@ -723,6 +822,7 @@ function* buildChunkGeometry(
   finestStep = step,
   finest: FinestRecess | null = null,
   caps: TerrainWaterCaps | null = null,
+  prefilter = false,
 ): Generator<void, ChunkGeometrySet, void> {
   const vertexRecess = levelRecess(step, finestStep, recessBox);
   // The finest level (the walked one) keeps the bake; coarser ones keep under the fresh water.
@@ -759,6 +859,7 @@ function* buildChunkGeometry(
           finestRecess,
           step > finestStep ? step : 0,
           levelCaps,
+          prefilter,
         ),
       );
     }
@@ -850,7 +951,7 @@ function* buildChunkGeometry(
   geometry.setIndex(indices);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
-  return { step, geometry, triangles: indices.length / 3 };
+  return { step, geometry, triangles: indices.length / 3, cols, rows };
 }
 
 /** Every chunk's geometry for one level of detail, built at once (tests and tools; the caller disposes). */
@@ -931,6 +1032,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     createTerrainMaterial({ tier: tier.tier, cloudShadowNode: options.cloudShadowNode }),
   );
   const chunks: TerrainChunk[] = [];
+  const morphFrames = options.morphFrames ?? 0;
   const steps = stepsForTier(tier);
   const thresholds = terrainLodThresholds(tier);
   const coarsest = steps[steps.length - 1]!;
@@ -958,6 +1060,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
             steps[0],
             heightField.recess,
             caps,
+            options.prefilter ?? false,
           ),
         );
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
@@ -975,6 +1078,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
         maxZ: z1,
         geometries,
         current: geometries.length - 1,
+        morph: null,
       });
     }
   }
@@ -1017,7 +1121,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       for (let lod = 0; lod <= coarsestLod; lod++) {
         let triangles = 0;
         for (const i of members) triangles += chunks[i]!.geometries[lod]!.triangles;
-        if (lod < firstMergedLod || triangles > MAX_MERGED_TRIANGLES) {
+        if (lod < firstMergedLod || triangles > (options.maxMergedTriangles ?? MAX_MERGED_TRIANGLES)) {
           meshes.push(null);
           continue;
         }
@@ -1055,12 +1159,17 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       if (pinned === null) {
         level = coarsestLod;
         for (const i of block.members) {
-          if (covered[i]) {
+          // A chunk still easing to its level isn't the block's shape yet.
+          if (covered[i] || chunks[i]!.morph) {
             level = -1;
             break;
           }
           level = Math.min(level, chunks[i]!.current);
         }
+        // A morphing terrain's block draws only when its chunks are all at its level: drawn finer, a
+        // coarser member would jump to the block's level without easing.
+        if (level >= 0 && morphFrames > 0)
+          for (const i of block.members) if (chunks[i]!.current !== level) level = -1;
         if (level >= 0 && block.meshes[level]) for (const i of block.members) covered[i] = 1;
       }
       for (let lod = 0; lod < block.meshes.length; lod++) {
@@ -1073,9 +1182,99 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   const showLod = (chunk: (typeof chunks)[number], lod: number) => {
     const next = Math.min(chunk.geometries.length - 1, lod);
     if (next === chunk.current) return;
+    const from = chunk.geometries[chunk.current]!;
     chunk.current = next;
-    chunk.mesh.geometry = chunk.geometries[next]!.geometry;
+    const set = chunk.geometries[next]!;
+    chunk.mesh.geometry = set.geometry;
     chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, TERRAIN_CHUNK_SIZE);
+    if (morphFrames > 0 && pinned === null) startMorph(chunk, from, set);
+  };
+  // The morph slots, sized for the largest level that eases.
+  let largest = 0;
+  for (const chunk of chunks)
+    for (const set of chunk.geometries) {
+      const count = set.cols * set.rows;
+      if (count <= MORPH_MAX_VERTICES) largest = Math.max(largest, count);
+    }
+  const freeSlots: MorphSlot[] = [];
+  if (morphFrames > 0)
+    for (let i = 0; i < MORPH_SLOTS; i++)
+      freeSlots.push({
+        rest: new Float32Array(largest * MORPH_CHANNELS),
+        from: new Float32Array(largest * MORPH_CHANNELS),
+      });
+  /** Ends a morph: the level gets its own values back, and the slot is free. */
+  const endMorph = (chunk: TerrainChunk) => {
+    const morph = chunk.morph;
+    if (!morph) return;
+    writeMorph(morph.set, morph.slot, 1);
+    freeSlots.push(morph.slot);
+    chunk.morph = null;
+  };
+  /**
+   * The new level starts on the surface the chunk showed. A level too big for a slot, or with no slot
+   * free, swaps at once. The finest level changes at 40 m or more from the camera, and only for 24
+   * frames, so the ground you walk on is always the gameplay height field's.
+   */
+  const startMorph = (chunk: TerrainChunk, from: ChunkGeometrySet, set: ChunkGeometrySet) => {
+    const slot = set.cols * set.rows <= MORPH_MAX_VERTICES ? freeSlots.pop() : undefined;
+    if (slot) {
+      const positions = set.geometry.getAttribute('position').array;
+      const count = set.cols * set.rows;
+      // Its own values (it isn't easing: only the shown level does), and the shown surface's (as it
+      // is now, even mid-morph) where it starts.
+      let channel = 0;
+      for (const [name, size, first, end] of MORPHED) {
+        const own = set.geometry.getAttribute(name).array;
+        const shown = from.geometry.getAttribute(name).array;
+        for (let c = first; c < end; c++, channel++)
+          for (let i = 0; i < count; i++) {
+            slot.rest[i * MORPH_CHANNELS + channel] = own[i * size + c]!;
+            slot.from[i * MORPH_CHANNELS + channel] = levelSurfaceValue(
+              from,
+              shown,
+              size,
+              c,
+              chunk.minX,
+              chunk.maxX,
+              chunk.minZ,
+              chunk.maxZ,
+              positions[i * 3]!,
+              positions[i * 3 + 2]!,
+            );
+          }
+      }
+    }
+    // The level it left gets its own values back (it isn't drawn now).
+    endMorph(chunk);
+    if (!slot) return;
+    chunk.morph = { set, slot, frame: 0 };
+    writeMorph(set, slot, 0);
+  };
+  /** Writes a level's values `t` of the way from where its morph started to its own. */
+  const writeMorph = (set: ChunkGeometrySet, slot: MorphSlot, t: number) => {
+    const k = t * t * (3 - 2 * t);
+    const count = set.cols * set.rows;
+    let channel = 0;
+    for (const [name, size, first, end] of MORPHED) {
+      const attribute = set.geometry.getAttribute(name);
+      const array = attribute.array as Float32Array;
+      for (let c = first; c < end; c++, channel++)
+        for (let i = 0; i < count; i++) {
+          const o = i * MORPH_CHANNELS + channel;
+          array[i * size + c] = slot.from[o]! + (slot.rest[o]! - slot.from[o]!) * k;
+        }
+      attribute.needsUpdate = true;
+    }
+  };
+  const stepMorphs = () => {
+    for (const chunk of chunks) {
+      const morph = chunk.morph;
+      if (!morph) continue;
+      morph.frame++;
+      if (morph.frame >= morphFrames) endMorph(chunk);
+      else writeMorph(morph.set, morph.slot, morph.frame / morphFrames);
+    }
   };
   yield;
   const rocks = options.createRocks
@@ -1089,6 +1288,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     heightGrid,
     update(camera: Camera) {
       const { x, z } = camera.position;
+      if (morphFrames > 0) stepMorphs();
       for (const chunk of chunks) {
         const distance = chunkBoxDistance(x, z, chunk.minX, chunk.maxX, chunk.minZ, chunk.maxZ);
         showLod(chunk, pinned ?? pickTerrainLod(distance, chunk.current, thresholds));
@@ -1097,7 +1297,12 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     },
     setLod(lod: number | null) {
       pinned = lod;
-      if (lod !== null) for (const chunk of chunks) showLod(chunk, lod);
+      if (lod !== null)
+        for (const chunk of chunks) {
+          // A warm-up draws each level's own shape.
+          endMorph(chunk);
+          showLod(chunk, lod);
+        }
       placeBlocks();
     },
     lodCount: blocks.length ? mergedLod + 1 : steps.length,
