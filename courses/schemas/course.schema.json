@@ -578,6 +578,60 @@
           }
         }
       }
+    },
+    "recap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questions"],
+      "description": "Wingman's spaced, interleaved recap: short questions from quizzes the player has met, when they land on an island or come back. Left out, there's none.",
+      "properties": {
+        "questions": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "description": "How many questions a recap asks."
+        },
+        "types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["mc", "scenario", "multi"]
+          },
+          "description": "The quiz kinds it may ask (default all three)."
+        },
+        "exclude": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Quizzes it never asks."
+        },
+        "minGapMinutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The least time between two recaps (default 20)."
+        },
+        "reward": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "doubloons": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "starfish": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            }
+          },
+          "description": "Doubloons per question right first time; starfish for a recap with every answer right."
+        }
+      }
     }
   },
   "$defs": {

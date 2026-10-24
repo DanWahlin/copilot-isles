@@ -162,6 +162,7 @@ describe('the content checks report broken edits by entry', () => {
     q.barks.nobody = ['Hello!'];
     expect(paths(issuesWith('quests/anchorage.json', q))).toEqual(['scripts["nell.papers"][5].extra']);
     delete (q.scripts['nell.papers'][5] as { extra?: boolean }).extra;
+    // The app task the old script handed off (learning.json) is handed off nowhere now.
     expect(paths(issuesWith('quests/anchorage.json', q))).toEqual([
       'scripts["nell.papers"][0]',
       'scripts["nell.papers"][1]',
@@ -169,6 +170,7 @@ describe('the content checks report broken edits by entry', () => {
       'scripts["nell.papers"][3]',
       'scripts["nell.papers"][4]',
       'barks.nobody',
+      'appTasks[0].id',
     ]);
   });
 
@@ -309,6 +311,56 @@ describe('the content checks report broken edits by entry', () => {
     const m = market();
     (m.categories[0] as { acts: string }).acts = 'large';
     expect(paths(issuesWith('market.json', m))).toContain('categories');
+  });
+
+  it('learning.json: app tasks, objectives, reflections and learned lines that don’t resolve', () => {
+    type Learning = {
+      appTasks: Record<string, unknown>[];
+      objectives: { text: string; covers: Record<string, string[]>; source: { hash: string } }[];
+      reflections: { chapter: string; choices: { id: string }[] }[];
+      learned: Record<string, string>;
+    };
+    const l = json<Learning>(`${PACK}/learning.json`);
+    l.appTasks[0] = {
+      ...l.appTasks[0],
+      quest: 'Q9.9',
+      seen: { ...(l.appTasks[0]!.seen as object), answer: 'nope' },
+    };
+    l.appTasks[1] = { ...l.appTasks[1], check: { kind: 'branchExists' } };
+    // An app-only quest can finish on confirm; a main quest can't wait on the app.
+    l.appTasks[2] = { ...l.appTasks[2], completes: { quest: 'Q0.3', step: 'done' } };
+    l.objectives[0]!.text = 'Install the app in one click';
+    l.objectives[1]!.covers = { quizzes: ['Q9.9'], appTasks: ['A9.9'], puzzles: ['nope'] };
+    l.objectives[2]!.source.hash = '000000000000';
+    l.reflections[1]!.chapter = l.reflections[0]!.chapter;
+    l.reflections[2]!.choices.push({ id: l.reflections[2]!.choices[0]!.id, text: 'Again' } as { id: string });
+    l.learned['Q0.10'] = 'You passed the Trial.';
+    expect(paths(issuesWith('learning.json', l))).toEqual([
+      'appTasks[0].quest',
+      'appTasks[0].seen.answer',
+      'appTasks[1].check.branch',
+      'appTasks[2].completes.quest',
+      'objectives[0].text',
+      'objectives[1].covers.quizzes[0]',
+      'objectives[1].covers.appTasks[0]',
+      'objectives[1].covers.puzzles[0]',
+      'objectives[2].source',
+      'reflections[1].chapter',
+      'reflections[1].source.chapter',
+      'reflections[2].choices[4].id',
+      // Q0.2's only app task now names another quest.
+      'learned["Q0.2"]',
+      'learned["Q0.10"]',
+    ]);
+    const q = quests('meridian');
+    q.scripts.lyra = [...q.scripts.lyra!, { appTask: 'A9.9' }];
+    expect(paths(issuesWith('quests/meridian.json', q))).toEqual([
+      `scripts.lyra[${q.scripts.lyra.length - 1}]`,
+    ]);
+    const c = meta();
+    c.recap = { questions: 2, exclude: ['Q9.9'] };
+    expect(paths(issuesWith('course.json', c))).toEqual(['recap.exclude[0]']);
+    expect(paths(issuesWith('course.json', { ...c, recap: { questions: 9 } }))).toEqual(['recap.questions']);
   });
 
   it('an island sign the game asks for that’s missing, or one it doesn’t ask for', () => {

@@ -401,6 +401,17 @@
         {
           "type": "object",
           "additionalProperties": false,
+          "required": ["appTask"],
+          "properties": {
+            "appTask": {
+              "description": "\"Do this in the app\": a real-app task (learning.json) on a card with I did it and Later.",
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
           "required": ["script"],
           "properties": {
             "script": {

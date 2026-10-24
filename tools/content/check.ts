@@ -63,6 +63,7 @@ import { boardTopics, type CourseBoardTopic } from '../../src/learn/course-board
 import type { CourseLock } from '../../src/learn/course/lock';
 import { normalizeForCompare, parseSections } from '../../src/learn/course/sections';
 import type { ChapterContent, SourceRef } from '../../src/learn/types';
+import type { LearningFile } from '../../src/learn/learning';
 import { ARCHIPELAGO } from '../../src/ui/chart/archipelago';
 import { COURSE_BOARDS, type CourseBoardPlacement } from '../../src/world/islands/course-boards';
 import { meridianHeight } from '../../src/world/islands/meridian';
@@ -94,6 +95,7 @@ export const PACK_FILES: readonly { file: string; schema: string }[] = [
   { file: 'lock.json', schema: 'lock.schema.json' },
   { file: 'voice/lines.json', schema: 'voice-lines.schema.json' },
   { file: 'voice/cast.json', schema: 'voice-cast.schema.json' },
+  { file: 'learning.json', schema: 'learning.schema.json' },
   // One schema per mechanic: the file's own `mechanic` picks it.
   { file: 'puzzles/*.json', schema: 'puzzle-<mechanic>.schema.json' },
 ];
@@ -102,7 +104,7 @@ export const PACK_FILES: readonly { file: string; schema: string }[] = [
  * Files a pack may leave out: the Model Market's two (a course without Port Meridian's market) and the
  * cast (a text-only course). The checks below say when one's needed.
  */
-const OPTIONAL_FILES = new Set(['market.json', 'models.json', 'voice/cast.json']);
+const OPTIONAL_FILES = new Set(['market.json', 'models.json', 'voice/cast.json', 'learning.json']);
 
 /** Every schema in `courses/schemas/`, with the puzzles' one per mechanic. */
 export const PACK_SCHEMAS: readonly string[] = PACK_FILES.flatMap((f) =>
@@ -357,6 +359,7 @@ export function checkContent(
     chest: new Set<string>(),
     term: new Set<string>(),
     trial: new Set<string>(),
+    appTask: new Set<string>(),
   };
   const unique = (rel: string, path: string, kind: keyof typeof ids, id: string) => {
     if (ids[kind].has(id)) issue(rel, path, `${kind} "${id}" is used twice in the course`);
@@ -373,6 +376,10 @@ export function checkContent(
     c.glossary.forEach((g, i) => unique(rel, `glossary[${i}].id`, 'term', g.id));
     c.trials.forEach((t, i) => unique(rel, `trials[${i}].id`, 'trial', t.id));
   }
+  const learning = get<LearningFile>('learning.json');
+  learning?.appTasks.forEach((t, i) => unique('learning.json', `appTasks[${i}].id`, 'appTask', t.id));
+  /** App tasks a script hands off (one no script names is never shown). */
+  const handedOff = new Set<string>();
   const sha12 = (p: string) => createHash('sha256').update(readFileSync(p)).digest('hex').slice(0, 12);
   for (const [rel, c] of chapters) {
     const src = (path: string, s: SourceRef) => {
@@ -454,6 +461,10 @@ export function checkContent(
         if (!isScript(s.script)) issue(rel, path, `"${s.script}" isn't a script of ${island}`);
       }
       if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line);
+      if ('appTask' in s) {
+        has('appTask', s.appTask, 'an app task (learning.json)');
+        handedOff.add(s.appTask);
+      }
     });
 
   // Quests: islands, quest steps, every script step, barks, beats.
@@ -671,6 +682,113 @@ export function checkContent(
       );
     }
   }
+
+  // Learning systems (learning.json): app tasks, objectives, reflections; and course.json's recap.
+  if (learning && questsOk) checkLearning(learning);
+  function checkLearning(l: LearningFile): void {
+    const rel = 'learning.json';
+    const islandChapters = new Set(meta!.islands.map((i) => i.chapter));
+    const inCourse = (path: string, chapter: string) => {
+      if (!islandChapters.has(chapter))
+        issue(rel, path, `${chapter} isn't the chapter of one of the course's islands (course.json)`);
+    };
+    const source = (path: string, chapter: string, s: Cite) => {
+      cite(rel, path, s);
+      if (s.chapter !== chapter) issue(rel, `${path}.chapter`, `should be ${chapter}, the item's chapter`);
+    };
+    const optionIds = (path: string, options: readonly { id: string }[]) => {
+      const seen = new Set<string>();
+      options.forEach((o, i) => {
+        if (seen.has(o.id)) issue(rel, `${path}[${i}].id`, `"${o.id}" is used twice`);
+        seen.add(o.id);
+      });
+      return seen;
+    };
+    l.appTasks.forEach((t, i) => {
+      const path = `appTasks[${i}]`;
+      inCourse(`${path}.chapter`, t.chapter);
+      source(`${path}.source`, t.chapter, t.source);
+      if (t.quest) questStep(rel, `${path}.quest`, t.quest, null);
+      if (t.seen && !optionIds(`${path}.seen.options`, t.seen.options).has(t.seen.answer))
+        issue(rel, `${path}.seen.answer`, `"${t.seen.answer}" isn't one of its options`);
+      if (t.check?.kind === 'branchExists' && !t.check.branch)
+        issue(rel, `${path}.check.branch`, 'branchExists needs the branch to look for');
+      if (t.check?.branch?.includes('{practiceBranch}') && !meta!.practice)
+        issue(rel, `${path}.check.branch`, '{practiceBranch} needs course.json\'s "practice"');
+      if (t.completes) {
+        questStep(rel, `${path}.completes`, t.completes.quest, t.completes.step);
+        // Never blocking a player without the app: only an optional quest can wait on the app.
+        if (questDefs.get(t.completes.quest) && !questDefs.get(t.completes.quest)!.optional)
+          issue(
+            rel,
+            `${path}.completes.quest`,
+            `${t.completes.quest} isn't optional: the app can't hold up the story`,
+          );
+      }
+      if (!handedOff.has(t.id))
+        issue(
+          rel,
+          `${path}.id`,
+          `no script hands "${t.id}" off: add { "appTask": "${t.id}" } where it's taught`,
+        );
+    });
+    const objectiveIds = new Set<string>();
+    l.objectives.forEach((o, i) => {
+      const path = `objectives[${i}]`;
+      if (objectiveIds.has(o.id)) issue(rel, `${path}.id`, `"${o.id}" is used twice`);
+      objectiveIds.add(o.id);
+      inCourse(`${path}.chapter`, o.chapter);
+      source(`${path}.source`, o.chapter, o.source);
+      const s = sectionOf(o.source.chapter, o.source.anchor);
+      if (s && !normalizeForCompare(s.markdown).includes(normalizeForCompare(o.text)))
+        issue(
+          rel,
+          `${path}.text`,
+          `isn't word for word in ${o.source.chapter}#${o.source.anchor} any more: copy the course's objective again`,
+        );
+      o.covers.quests?.forEach((q, j) => questStep(rel, `${path}.covers.quests[${j}]`, q, null));
+      o.covers.quizzes?.forEach((q, j) => {
+        if (!ids.quiz.has(q))
+          issue(rel, `${path}.covers.quizzes[${j}]`, `"${q}" isn't a quiz in this course`);
+      });
+      o.covers.appTasks?.forEach((t, j) => {
+        if (!ids.appTask.has(t)) issue(rel, `${path}.covers.appTasks[${j}]`, `"${t}" isn't an app task`);
+      });
+      // A disabled puzzle just doesn't count on the map (the puzzle file's own issues are reported there).
+      o.covers.puzzles?.forEach((n, j) => {
+        if (!Object.hasOwn(GAME_PUZZLES, n))
+          issue(rel, `${path}.covers.puzzles[${j}]`, `"${n}" isn't a puzzle the game plays`);
+      });
+    });
+    const reflected = new Set<string>();
+    l.reflections.forEach((r, i) => {
+      const path = `reflections[${i}]`;
+      if (reflected.has(r.chapter)) issue(rel, `${path}.chapter`, `${r.chapter} has a reflection already`);
+      reflected.add(r.chapter);
+      inCourse(`${path}.chapter`, r.chapter);
+      source(`${path}.source`, r.chapter, r.source);
+      optionIds(`${path}.choices`, r.choices);
+    });
+    for (const q of Object.keys(l.learned)) {
+      questStep(rel, at('learned', q), q, null);
+      if (!l.appTasks.some((t) => t.quest === q))
+        issue(rel, at('learned', q), `${q} has no app tasks: its done line is the one the Logbook shows`);
+    }
+  }
+  if (!files.includes('learning.json'))
+    for (const [rel, q] of quests)
+      for (const [name, list] of Object.entries(q.scripts))
+        list.forEach((st, i) => {
+          if ('appTask' in st)
+            issue(
+              rel,
+              `${at('scripts', name)}[${i}]`,
+              'hands off an app task, but the course has no learning.json',
+            );
+        });
+  meta.recap?.exclude?.forEach((q, i) => {
+    if (!ids.quiz.has(q)) issue('course.json', `recap.exclude[${i}]`, `"${q}" isn't a quiz in this course`);
+  });
 
   // Migrations: what they move a save to is this course's.
   const mig = meta.migrations;
