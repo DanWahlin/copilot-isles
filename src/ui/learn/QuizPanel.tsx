@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { COURSE } from '../../course/catalog';
+import { usePadFocus } from '../hooks/pad-focus';
 import { courseUrl } from '../../learn/content/index';
 import { CourseLink } from './CourseMarkdown';
 import { plainSetupText } from '../../learn/setup';
@@ -18,7 +20,11 @@ const TYPE_LABEL = {
 } as const;
 
 export function QuizPanel({ store, active }: { store: LearnStore; active: ActiveQuiz }) {
-  const { quiz, last, trial } = active;
+  const { quiz, last, trial, recap } = active;
+  const root = useRef<HTMLElement>(null);
+  // The gamepad: the d-pad moves between the answers and buttons, A picks, B closes (as Esc). The
+  // arrows stay the ordering and hotspot cards' own.
+  usePadFocus(root, store.closeQuiz, false);
   // The panel is keyed per quiz instance (LearnLayer), so pending starts fresh for each quiz, and it
   // survives a retry so an unchanged ordering/matching answer can be checked again after edits.
   const [pending, setPending] = useState<Answer | null>(null);
@@ -59,14 +65,19 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
   return (
     <div className="ci-quiz-backdrop">
       <section
-        className={`ci-quiz ci-quiz-${quiz.type}`}
+        ref={root}
+        className={`ci-quiz ci-quiz-${quiz.type}${recap ? ' ci-quiz-recap' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="ci-quiz-prompt"
       >
         <header className="ci-quiz-head">
           <span className="ci-quiz-kicker">
-            {trial ? `${trial.title} · ${trial.index + 1} of ${trial.total}` : TYPE_LABEL[quiz.type]}
+            {trial
+              ? `${trial.title} · ${trial.index + 1} of ${trial.total}`
+              : recap
+                ? `🦜 Wingman remembers · ${recap.index + 1} of ${recap.total}`
+                : TYPE_LABEL[quiz.type]}
           </span>
           {trial && (
             <span className="ci-quiz-dots" aria-hidden>
@@ -75,10 +86,22 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
               ))}
             </span>
           )}
-          <button type="button" className="ci-quiz-close" onClick={store.closeQuiz} aria-label="Close (Esc)">
+          <button
+            type="button"
+            className="ci-quiz-close"
+            onClick={store.closeQuiz}
+            aria-label={recap ? 'Skip the recap (Esc)' : 'Close (Esc)'}
+          >
             ×
           </button>
         </header>
+        {recap && recap.index === 0 && (
+          <p className="ci-quiz-situation ci-quiz-recap-intro">
+            A quick look back at{' '}
+            {COURSE.islands.find((i) => i.chapter === quiz.source.chapter)?.label ?? 'an earlier chapter'}. No
+            score to lose: answer, or skip with <kbd>Esc</kbd>.
+          </p>
+        )}
 
         {quiz.type === 'scenario' && quiz.situation && (
           <p className="ci-quiz-situation">
@@ -128,6 +151,11 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
         <footer className="ci-quiz-foot">
           <CourseLink source={quiz.source} fallback={courseUrl(quiz.source)} />
           <span className="ci-quiz-actions">
+            {recap && !last?.correct && (
+              <button type="button" className="ci-btn ghost" onClick={store.closeQuiz}>
+                <kbd>Esc</kbd> {last ? 'Move on' : 'Skip the recap'}
+              </button>
+            )}
             {canHint && !last?.correct && (
               <button type="button" className="ci-btn ghost" onClick={store.hint}>
                 <kbd>Q</kbd> Ask Wingman

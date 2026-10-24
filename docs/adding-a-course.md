@@ -41,6 +41,15 @@ Then edit, in `courses/<id>/`:
 - **`labels.json`**, **`boards.json`**, **`voice/lines.json`** (every line's id, speaker and text).
 - Leave out `market.json` and `models.json` unless the course teaches models, and `voice/cast.json` for a
   text-only pack.
+- **Optional, for the learning systems** ([content-data.md](content-data.md), COURSE-PACKS.md §11):
+  `learning.json` (the steps a learner takes in the real tool, handed off from your scripts with
+  `{ "appTask": "<id>" }` on a card with **I did it** and **Later**; each chapter's learning objectives,
+  quoted, with what covers them, for the Logbook's Course map; a reflection before each Seal; the
+  Logbook's line for a quest whose app part isn't confirmed yet), and `course.json` → `recap` for
+  Wingman's spaced recap of the quizzes a player has met. Without them the game has no app cards,
+  checklist, map or recap for the course, and nothing breaks. Where a task leaves public evidence on
+  GitHub (a fork, a branch, a pull request), give it a `check`: players who opt in can confirm it
+  without a token.
 
 **Teaching accuracy:** every teaching line cites its course chapter and section. Don't invent commands,
 flags or UI names: use only what the course says. Player copy uses friendly contractions.

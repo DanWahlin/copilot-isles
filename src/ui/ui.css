@@ -498,6 +498,10 @@
   line-height: 1.35;
 }
 
+.ci-setting-note.wide {
+  margin-left: 0;
+}
+
 .ci-setting-row em {
   color: var(--ci-muted);
   font-style: normal;

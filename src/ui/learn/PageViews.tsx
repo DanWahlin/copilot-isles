@@ -21,9 +21,17 @@ import {
   OS_NAMES,
   type SetupKind,
 } from '../../learn/setup';
-import type { LearnState, LearnStore, LogbookTab, RevealFrom } from '../../learn/store';
+import {
+  chartedIslands,
+  type LearnState,
+  type LearnStore,
+  type LogbookTab,
+  type RevealFrom,
+} from '../../learn/store';
 import type { Page } from '../../learn/types';
 import { CourseGlossaryEntry, CourseImg, CourseLink, FromTheCourse, useCourseImage } from './CourseMarkdown';
+import { LEARNING, questLogLine } from '../../learn/learning';
+import { AppChecklistView, CourseMapView } from './LogbookLearning';
 import { ForkContext, Rich, SetupContext, useSetupText } from './Rich';
 
 /** Chapters to look in for a course picture (the one whose folder holds it is tried first). */
@@ -414,8 +422,21 @@ const TABS: { id: LogbookTab; label: string }[] = [
   { id: 'pages', label: 'Pages' },
   { id: 'glossary', label: 'Glossary' },
   { id: 'quests', label: 'Quests' },
+  { id: 'map', label: 'Course map' },
+  { id: 'app', label: 'App checklist' },
   { id: 'starfish', label: 'Starfish' },
 ];
+
+/** The tabs this course has: the Course map needs objectives, a reflection or a Seal; the checklist app tasks. */
+function logbookTabs(): { id: LogbookTab; label: string }[] {
+  const l = LEARNING.file;
+  return TABS.flatMap((t) => {
+    if (t.id === 'app') return l.appTasks.length ? [{ ...t, label: l.labels.checklist || t.label }] : [];
+    if (t.id === 'map')
+      return l.objectives.length || l.reflections.length || chartedIslands().some((i) => i.seal) ? [t] : [];
+    return [t];
+  });
+}
 
 export function Logbook({ store, state }: { store: LearnStore; state: LearnState }) {
   const { tab, page } = state.logbook;
@@ -423,7 +444,8 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
   const open = page ? PAGES.get(page) : undefined;
   const fill = useSetupText();
   useKeys((e) => {
-    if (e.repeat || state.spyglass?.full || store.getState().forkForm || store.getState().setupForm) return;
+    const now = store.getState();
+    if (e.repeat || state.spyglass?.full || now.forkForm || now.setupForm || now.appTask || now.badge) return;
     if (e.key === 'Escape' || e.code === 'KeyJ') {
       e.preventDefault();
       if (open) store.openLogbook(tab, null);
@@ -448,7 +470,7 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
           </button>
         </header>
         <nav className="ci-logbook-tabs" role="tablist">
-          {TABS.map((t) => (
+          {logbookTabs().map((t) => (
             <button
               key={t.id}
               type="button"
@@ -471,6 +493,12 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
               {t.id === 'starfish' && (
                 <small>
                   {STARFISH.filter((f) => state.starfish.includes(f.id)).length}/{STARFISH.length}
+                </small>
+              )}
+              {t.id === 'app' && (
+                <small>
+                  {LEARNING.file.appTasks.filter((a) => state.appTasks[a.id]?.status === 'done').length}/
+                  {LEARNING.file.appTasks.length}
                 </small>
               )}
             </button>
@@ -531,21 +559,41 @@ export function Logbook({ store, state }: { store: LearnStore; state: LearnState
           {tab === 'starfish' && (
             <StarfishLog found={state.starfish} here={state.starfishIsland?.id ?? null} />
           )}
+          {tab === 'map' && <CourseMapView store={store} state={state} />}
+          {tab === 'app' && <AppChecklistView store={store} state={state} />}
           {tab === 'quests' && <SetupCard store={store} />}
           {tab === 'quests' && (
             <ul className="ci-quests">
               {state.quests.length === 0 && (
                 <li className="locked">No quests yet. Talk to the harbourmaster.</li>
               )}
-              {state.quests.map((q) => (
-                <li key={q.id} className={q.done ? 'done' : ''}>
-                  <b>{q.done ? '✓' : '◆'}</b>
-                  <span>
-                    <strong>{q.title}</strong>
-                    <small>{fill(q.detail)}</small>
-                  </span>
-                </li>
-              ))}
+              {state.quests.map((q) => {
+                // A finished quest only claims its app work once the player's confirmed it.
+                const log = q.done ? questLogLine(q.id, q.detail, state.appTasks) : null;
+                return (
+                  <li key={q.id} className={q.done ? 'done' : ''} data-quest={q.id}>
+                    <b>{q.done ? '✓' : '◆'}</b>
+                    <span>
+                      <strong>{q.title}</strong>
+                      <small>{fill(log?.line ?? q.detail)}</small>
+                      {log?.app === 'done' && (
+                        <small className="ci-lj-applabel done">
+                          <span aria-hidden>✓</span> Done in the app
+                        </small>
+                      )}
+                      {log?.app === 'open' && (
+                        <button
+                          type="button"
+                          className="ci-lj-applabel open"
+                          onClick={() => store.openLogbook('app')}
+                        >
+                          {`Not ticked in your ${LEARNING.file.labels.checklist || 'checklist'} yet`}
+                        </button>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

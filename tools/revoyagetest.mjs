@@ -6,6 +6,7 @@
 // voyage's warm-up, or the title's renderer.info.memory differing from the first title's.
 // node tools/revoyagetest.mjs [--base=http://localhost:5301] [--tier=medium] [--webgl]
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
+import { passLearningPauses } from './lib/learning-cards.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -55,6 +56,8 @@ async function voyage(name, start, play, beforeQuit) {
   } else await flow('continueVoyage()');
   await until('playing');
   await page.waitForTimeout(1500);
+  // Continue's "where you left off" card (and a due recap) come first.
+  if (start !== 'new') await passLearningPauses(page);
   await S('s.debug.skipArrival()');
   await page.waitForFunction(() => window.__flow.debugSession.debug.state().mode === 'walk', null, {
     timeout: 20_000,

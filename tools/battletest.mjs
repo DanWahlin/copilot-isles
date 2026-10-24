@@ -10,6 +10,7 @@
 //   [--only=play|skip] [--sea=calm|breeze|fresh|gale] (the Sea state setting: the battle must still fight
 //   on its own fixed sea, today's Breeze, and the harbour must show the setting's)
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
+import { passLearningPauses } from './lib/learning-cards.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -60,7 +61,9 @@ async function voyage() {
   await waitForTitle(page, 90_000);
   await page.evaluate(() => window.__flow.continueVoyage());
   await playing();
-  await page.waitForTimeout(2500);
+  // Continue shows where you left off once ashore (and a recap, if one's due): past them first.
+  await passLearningPauses(page);
+  await page.waitForTimeout(1000);
   return page;
 }
 

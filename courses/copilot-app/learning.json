@@ -1,0 +1,774 @@
+{
+  "$schema": "../schemas/learning.schema.json",
+  "$comment": "The learning systems (docs/content-data.md, COURSE-PACKS.md \"Learning systems\"): real-app tasks the scripts hand off with {\"appTask\": id}, the chapters' learning objectives (quoted from each chapter's Learning Objectives) and what covers them, the reflection before each Seal (the Key Takeaways). The quests' own done lines say what you learned, so `learned` is empty: the Logbook adds whether the app work is confirmed.",
+  "labels": {
+    "kicker": "Do this in the Copilot app",
+    "checklist": "App checklist",
+    "tool": "the Copilot app"
+  },
+  "appTasks": [
+    {
+      "id": "A0.1",
+      "chapter": "00-setup",
+      "quest": "Q0.2",
+      "title": "Install the app and sign in",
+      "steps": [
+        "Download and install the GitHub Copilot app for your computer.",
+        "Open it and select **Sign in to GitHub**, then sign in with your GitHub account.",
+        "At **Connect your repositories**, leave every repository unselected and select **Continue**."
+      ],
+      "why": "Every chapter starts in the app: it’s where you give Copilot’s agents their orders.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "installation",
+        "hash": "bf12cef33675"
+      },
+      "link": {
+        "label": "Download the Copilot app",
+        "url": "https://github.com/features/ai/github-app"
+      },
+      "seen": {
+        "prompt": "Which view does the app open once you’re in?",
+        "options": [
+          {
+            "id": "new",
+            "text": "**New**"
+          },
+          {
+            "id": "prs",
+            "text": "**Pull requests**"
+          },
+          {
+            "id": "settings",
+            "text": "**Settings**"
+          }
+        ],
+        "answer": "new",
+        "explain": "The app opens the **New** view. If it shows a short tip about a new feature, you can close it."
+      }
+    },
+    {
+      "id": "A0.2",
+      "chapter": "00-setup",
+      "quest": "Q0.3",
+      "title": "Fork the course repository",
+      "steps": [
+        "Open the course repository’s fork page on GitHub.com and create your fork.",
+        "Your fork is your own copy of the repository, under your GitHub account."
+      ],
+      "why": "Your practice work lands in your own copy, not the course’s.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "connect-to-your-repository",
+        "hash": "fda261a1fa97"
+      },
+      "link": {
+        "label": "Fork the course repository",
+        "url": "https://github.com/github/copilot-app-for-beginners/fork"
+      },
+      "check": {
+        "kind": "repoExists"
+      }
+    },
+    {
+      "id": "A0.3",
+      "chapter": "00-setup",
+      "quest": "Q0.3",
+      "title": "Add your fork under Sessions",
+      "steps": [
+        "In the app, select **+** next to **Sessions**, then **Add GitHub repository**.",
+        "Type `copilot-app-for-beginners` and select your fork: the result that starts with your GitHub username."
+      ],
+      "why": "The app downloads a local copy (clones it), so its sessions can work in your repository.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "connect-to-your-repository",
+        "hash": "fda261a1fa97"
+      },
+      "seen": {
+        "prompt": "Where does your fork show up once it’s added?",
+        "options": [
+          {
+            "id": "sidebar",
+            "text": "In the sidebar, under **Sessions**"
+          },
+          {
+            "id": "settings",
+            "text": "In **Settings**"
+          },
+          {
+            "id": "prs",
+            "text": "In the **Pull requests** view"
+          }
+        ],
+        "answer": "sidebar",
+        "explain": "The app clones your fork and adds the project to the sidebar, under **Sessions**."
+      }
+    },
+    {
+      "id": "A0.4",
+      "chapter": "00-setup",
+      "quest": "Q0.4",
+      "title": "Start your setup session",
+      "steps": [
+        "Point to `copilot-app-for-beginners` in the sidebar and select the **+** that appears next to it.",
+        "In the workspace selector below the prompt box, choose **Current checkout**.",
+        "Send the short prompt from your Logbook page: name the top-level folders, and don’t change any files."
+      ],
+      "why": "This one-time setup session uses the clone that’s already on your machine.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      }
+    },
+    {
+      "id": "A0.5",
+      "chapter": "00-setup",
+      "quest": "Q0.4",
+      "title": "Check your tools in Terminal",
+      "steps": [
+        "Select **View** > **Toggle Review Panel**, then **Terminal** (no tab? **+**, then **Terminal**).",
+        "Run `git --version`, `node -v`, `npm -v` and `gh --version`. Each should print a version number.",
+        "Run `gh auth status` and check it shows the account that owns your fork."
+      ],
+      "why": "The setup script and later exercises use these tools, and GitHub CLI has its own sign-in.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "check-your-tools-in-terminal",
+        "hash": "a098a1855e14"
+      },
+      "seen": {
+        "prompt": "For `node -v`, what do you compare the first number with?",
+        "options": [
+          {
+            "id": "lts",
+            "text": "The **LTS** version on the Node.js download page"
+          },
+          {
+            "id": "npm",
+            "text": "The number `npm -v` printed"
+          },
+          {
+            "id": "any",
+            "text": "Nothing: any number is fine"
+          }
+        ],
+        "answer": "lts",
+        "explain": "Compare the first number with the **LTS** version on the Node.js download page. If yours is lower, install the LTS version."
+      }
+    },
+    {
+      "id": "A0.6",
+      "chapter": "00-setup",
+      "quest": "Q0.7",
+      "title": "Enable workflows on your fork",
+      "steps": [
+        "In your browser, open your fork on GitHub.com and select the **Actions** tab.",
+        "If you see **Workflows aren't being run on this forked repository**, select **I understand my workflows, go ahead and enable them**."
+      ],
+      "why": "New forks turn workflows off. With them on, GitHub runs the practice exercises’ automated checks.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      }
+    },
+    {
+      "id": "A0.7",
+      "chapter": "00-setup",
+      "quest": "Q0.7",
+      "title": "Run the setup script",
+      "steps": [
+        "In the same **Terminal** tab, from the repository root, run `node .github/scripts/setup-training-scenarios.js --dry-run`.",
+        "Check that the `Repository:` line shows your fork.",
+        "Then run `node .github/scripts/setup-training-scenarios.js --yes` and wait for `Setup complete.`"
+      ],
+      "why": "Later chapters use the labels, issues, practice branches and pull requests it makes in your fork.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "add-the-course-practice-items",
+        "hash": "15d697dd1d02"
+      },
+      "check": {
+        "kind": "branchExists",
+        "branch": "{practiceBranch}"
+      },
+      "seen": {
+        "prompt": "How does the dry run end?",
+        "options": [
+          {
+            "id": "dry",
+            "text": "`Dry run complete. No changes were made.`"
+          },
+          {
+            "id": "setup",
+            "text": "`Setup complete.`"
+          },
+          {
+            "id": "failed",
+            "text": "`Setup failed`"
+          }
+        ],
+        "answer": "dry",
+        "explain": "The preview ends with `Dry run complete. No changes were made.` Only `--yes` creates the practice items, and ends with `Setup complete.`"
+      }
+    },
+    {
+      "id": "A0.8",
+      "chapter": "00-setup",
+      "quest": "Q0.8",
+      "title": "Ask the agent about the course",
+      "steps": [
+        "Go back to the prompt box of your project session (not Terminal).",
+        "Send the overview prompt from your Logbook page: an overview of the course repository, focused on the learning path and `samples/book-app-web`."
+      ],
+      "why": "Requests for the agent go in the prompt box; commands go in Terminal.",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learn-more-about-the-course-repository",
+        "hash": "104572df79ac"
+      },
+      "seen": {
+        "prompt": "Which folder does the summary name as the web sample for later exercises?",
+        "options": [
+          {
+            "id": "book",
+            "text": "`samples/book-app-web`"
+          },
+          {
+            "id": "scripts",
+            "text": "`.github/scripts`"
+          },
+          {
+            "id": "root",
+            "text": "The repository root"
+          }
+        ],
+        "answer": "book",
+        "explain": "The app should summarize the course structure and identify `samples/book-app-web` as the web sample used for later exercises."
+      }
+    },
+    {
+      "id": "A1.1",
+      "chapter": "01-tour-the-app",
+      "quest": "Q1.3",
+      "title": "Ask a question in a chat",
+      "steps": [
+        "Select **+** next to **Sessions**, then **Chat**.",
+        "Check that the project picker below the prompt box shows **Chat**.",
+        "Send the prompt on your Logbook page: when to use a chat, and when a project session."
+      ],
+      "why": "Chats are for questions: no branch, no worktree, and no files change.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "chat-sessions",
+        "hash": "9d8ea69782bc"
+      },
+      "seen": {
+        "prompt": "What does the app create for a chat?",
+        "options": [
+          {
+            "id": "none",
+            "text": "No branch or worktree"
+          },
+          {
+            "id": "worktree",
+            "text": "A new worktree"
+          },
+          {
+            "id": "pr",
+            "text": "A pull request"
+          }
+        ],
+        "answer": "none",
+        "explain": "The app doesn’t create a branch or worktree for a chat, and no files change."
+      }
+    },
+    {
+      "id": "A1.2",
+      "chapter": "01-tour-the-app",
+      "quest": "Q1.4",
+      "title": "Tour the sample in your project session",
+      "steps": [
+        "Go back to the project session you made in Chapter 00. It’s under `copilot-app-for-beginners` in the sidebar.",
+        "Send the tour prompt on your Logbook page."
+      ],
+      "why": "The tour gives you a picture of `samples/book-app-web` before the hands-on exercises.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "project-sessions",
+        "hash": "b8e172159d21"
+      },
+      "seen": {
+        "prompt": "What should the tour refer to?",
+        "options": [
+          {
+            "id": "paths",
+            "text": "Paths under `samples/book-app-web`"
+          },
+          {
+            "id": "settings",
+            "text": "The app’s **Settings**"
+          },
+          {
+            "id": "prs",
+            "text": "Your pull requests"
+          }
+        ],
+        "answer": "paths",
+        "explain": "The app should describe the sample’s purpose, technologies, main files, data flow and tests, refer to paths under `samples/book-app-web`, and leave the files unchanged."
+      }
+    },
+    {
+      "id": "A1.3",
+      "chapter": "01-tour-the-app",
+      "quest": "Q1.6",
+      "title": "Try the model controls",
+      "steps": [
+        "In your project session, select **Interactive** mode below the prompt box.",
+        "Open the model control. Keep **Auto** or your current model, and the default effort.",
+        "Send the prompt on your Logbook page about how `filterBooks` searches."
+      ],
+      "why": "Keep the defaults for simple tasks, and you can change the model or effort mid-session.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "try-the-controls",
+        "hash": "1a9a4b2f69f1"
+      },
+      "seen": {
+        "prompt": "Which file should the answer refer to?",
+        "options": [
+          {
+            "id": "app",
+            "text": "`samples/book-app-web/src/App.tsx`"
+          },
+          {
+            "id": "readme",
+            "text": "The repository’s `README.md`"
+          },
+          {
+            "id": "pkg",
+            "text": "`package.json`"
+          }
+        ],
+        "answer": "app",
+        "explain": "It should explain that search matches titles and authors without depending on letter case, and refer to `samples/book-app-web/src/App.tsx`."
+      }
+    },
+    {
+      "id": "A2.1",
+      "chapter": "02-sessions-worktrees-context",
+      "quest": "Q2.4",
+      "title": "Switch back to New worktree",
+      "steps": [
+        "Point to the `copilot-app-for-beginners` project and select **+**.",
+        "Open the workspace selector below the prompt box and choose **New worktree**. You don’t need to send a prompt: the app keeps the choice."
+      ],
+      "why": "The app remembers your last choice, and that was **Current checkout** in Chapter 00. A new worktree keeps each session’s changes out of your main checkout.",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "where-a-session-runs",
+        "hash": "a55a83c1ff55"
+      }
+    },
+    {
+      "id": "A2.2",
+      "chapter": "02-sessions-worktrees-context",
+      "quest": "Q2.7",
+      "title": "Start a session from the practice branch",
+      "steps": [
+        "Point to the project and select **Create from**. On **Branches**, select `practice-empty-state-copy`.",
+        "Set **Mode** to **Plan**, type `{issue}`, select **Improve the empty state copy**, and ask for a plan.",
+        "Exit plan mode, run the Book App and note the empty state, then ask it to implement the plan and compare."
+      ],
+      "why": "A session from a branch, with the issue attached as context, starts with everything the task needs.",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
+        "hash": "6db80a8de549"
+      }
+    },
+    {
+      "id": "A2.3",
+      "chapter": "02-sessions-worktrees-context",
+      "quest": "Q2.8",
+      "title": "Check the session with slash commands",
+      "steps": [
+        "In the same session, send `/chronicle standup`.",
+        "Then send `/context`, and select the **Context** bar for its breakdown.",
+        "Ask Copilot to stop the session’s development server."
+      ],
+      "why": "They show what the session did, and how much context and AI credits it’s using.",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "exercise-check-the-session-with-slash-commands",
+        "hash": "0eb8259b8b60"
+      }
+    },
+    {
+      "id": "A2.4",
+      "chapter": "02-sessions-worktrees-context",
+      "quest": "Q2.A",
+      "title": "Your turn: a light and dark theme",
+      "steps": [
+        "Select **Create from**, and on **Branches** select `main` for a new worktree session.",
+        "In **Plan** mode, attach `@samples/book-app-web/src` and ask for a small plan for a light and dark theme toggle, then implement it.",
+        "Check the diff and the preview in both themes, run the tests and build, then send `/chronicle standup`."
+      ],
+      "why": "The chapter’s whole workflow, on your own, without touching `main`.",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "assignment",
+        "hash": "a6fd57783531"
+      }
+    }
+  ],
+  "objectives": [
+    {
+      "id": "O0.1",
+      "chapter": "00-setup",
+      "text": "Install and set up the GitHub Copilot app",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
+      },
+      "covers": {
+        "quests": ["Q0.2"],
+        "quizzes": ["H0.1", "T0.6"],
+        "appTasks": ["A0.1"]
+      }
+    },
+    {
+      "id": "O0.2",
+      "chapter": "00-setup",
+      "text": "Connect your fork of the course repository as a project and start a project session",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
+      },
+      "covers": {
+        "quests": ["Q0.3", "Q0.4"],
+        "quizzes": ["H0.2", "S0.3", "H0.4", "T0.10", "T0.1"],
+        "appTasks": ["A0.2", "A0.3", "A0.4"]
+      }
+    },
+    {
+      "id": "O0.3",
+      "chapter": "00-setup",
+      "text": "Check the required tools in the app's **Terminal** tab",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
+      },
+      "covers": {
+        "puzzles": ["gear-rack"],
+        "quizzes": ["S0.1", "S0.4", "N0.3", "T0.9"],
+        "appTasks": ["A0.5"]
+      }
+    },
+    {
+      "id": "O0.4",
+      "chapter": "00-setup",
+      "text": "Run the setup script that creates the course's labels, practice issues, branches, and pull requests",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "learning-objectives",
+        "hash": "4350d5f5c0ab"
+      },
+      "covers": {
+        "puzzles": ["crane"],
+        "quizzes": ["T0.3", "T0.4", "N0.1", "N0.2", "T0.5", "T0.8"],
+        "appTasks": ["A0.6", "A0.7"]
+      }
+    },
+    {
+      "id": "O1.1",
+      "chapter": "01-tour-the-app",
+      "text": "Explain why you should use the GitHub Copilot app compared to using Copilot in an editor or Copilot CLI in the terminal",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.1"],
+        "quizzes": ["M1.1", "A1.2"]
+      }
+    },
+    {
+      "id": "O1.2",
+      "chapter": "01-tour-the-app",
+      "text": "Identify key app features and settings",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.2"],
+        "puzzles": ["lost-letters"],
+        "quizzes": ["A1.3", "H1.1", "H1.4"]
+      }
+    },
+    {
+      "id": "O1.3",
+      "chapter": "01-tour-the-app",
+      "text": "Choose between a chat and a project session for a task",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.3"],
+        "puzzles": ["crate-yard"],
+        "quizzes": ["H1.2", "A1.4", "A1.1", "A1.11", "N1.6", "A1.5"],
+        "appTasks": ["A1.1", "A1.2"]
+      }
+    },
+    {
+      "id": "O1.4",
+      "chapter": "01-tour-the-app",
+      "text": "Explain the session modes: Interactive, Plan, and Autopilot",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "puzzles": ["three-helms"],
+        "quizzes": ["M1.2", "A1.6", "A1.8", "A1.10", "N1.1"]
+      }
+    },
+    {
+      "id": "O1.5",
+      "chapter": "01-tour-the-app",
+      "text": "Select a model and reasoning effort based on task complexity",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.6"],
+        "quizzes": ["H1.3", "N1.2", "A1.7", "A1.9"],
+        "appTasks": ["A1.3"]
+      }
+    },
+    {
+      "id": "O1.6",
+      "chapter": "01-tour-the-app",
+      "text": "Use prompt history to reuse and search previous prompts",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.7"],
+        "quizzes": ["N1.5"]
+      }
+    },
+    {
+      "id": "O1.7",
+      "chapter": "01-tour-the-app",
+      "text": "Retry a response with a different model or reasoning effort",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {
+        "quests": ["Q1.6"],
+        "quizzes": ["R1.1"]
+      }
+    },
+    {
+      "id": "O1.8",
+      "chapter": "01-tour-the-app",
+      "text": "Try voice dictation (optional)",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "learning-objectives",
+        "hash": "10570b2bca05"
+      },
+      "covers": {}
+    },
+    {
+      "id": "O2.1",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Start a worktree-backed session from a branch and attach an issue as context",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.7"],
+        "quizzes": ["K2.9", "H2.3", "T2.6"],
+        "appTasks": ["A2.2"]
+      }
+    },
+    {
+      "id": "O2.2",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Explain what a git worktree is and how it keeps each session's changes out of your `main` checkout",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.2", "Q2.3"],
+        "quizzes": ["K2.2", "M2.1", "T2.2", "K2.1", "T2.1"]
+      }
+    },
+    {
+      "id": "O2.3",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Add relevant context to a session so Copilot can understand the task and its supporting information",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.6"],
+        "quizzes": ["K2.3"]
+      }
+    },
+    {
+      "id": "O2.4",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Use multiple ways to attach context: type `@` for files, `#` for issues, or drag and drop files from your computer",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.6"],
+        "quizzes": ["T2.5"]
+      }
+    },
+    {
+      "id": "O2.5",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Decide between working in your current checkout, an isolated worktree, or a cloud sandbox",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.4"],
+        "puzzles": ["channel-routing"],
+        "quizzes": ["H2.1", "K2.4", "T2.3", "T2.4", "T2.10"],
+        "appTasks": ["A2.1"]
+      }
+    },
+    {
+      "id": "O2.6",
+      "chapter": "02-sessions-worktrees-context",
+      "text": "Use `/chronicle standup` and `/context` to review a session",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "learning-objectives",
+        "hash": "69a77e05c88a"
+      },
+      "covers": {
+        "quests": ["Q2.8"],
+        "quizzes": ["H2.6", "T2.11", "T2.9"],
+        "appTasks": ["A2.3"]
+      }
+    }
+  ],
+  "reflections": [
+    {
+      "chapter": "00-setup",
+      "prompt": "Before your Seal: which of these will you use first?",
+      "source": {
+        "chapter": "00-setup",
+        "anchor": "key-takeaways",
+        "hash": "4da1d85cc5fe"
+      },
+      "choices": [
+        {
+          "id": "control",
+          "text": "The app as the control center for my agent work"
+        },
+        {
+          "id": "sample",
+          "text": "`samples/book-app-web`, the sample the course uses"
+        },
+        {
+          "id": "practice",
+          "text": "The practice branches, issues and pull requests the setup script made"
+        }
+      ]
+    },
+    {
+      "chapter": "01-tour-the-app",
+      "prompt": "Before your Seal: which of these will you use first?",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "key-takeaways",
+        "hash": "863dccd1b579"
+      },
+      "choices": [
+        {
+          "id": "editor",
+          "text": "Keep my editor for deep coding, and open the app for agent work"
+        },
+        {
+          "id": "surfaces",
+          "text": "Find my way by the work surfaces: New, Pull requests, Issues, Automations, Customize and Sessions"
+        },
+        {
+          "id": "kinds",
+          "text": "Chats for questions, project sessions for repository work"
+        },
+        {
+          "id": "modes",
+          "text": "Interactive, Plan or Autopilot, for how much the agent does on its own"
+        },
+        {
+          "id": "effort",
+          "text": "The default model and effort for simple tasks, more effort for complex work"
+        }
+      ]
+    },
+    {
+      "chapter": "02-sessions-worktrees-context",
+      "prompt": "Before your Seal: which of these will you use first?",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "key-takeaways",
+        "hash": "f1ddff6b1420"
+      },
+      "choices": [
+        {
+          "id": "sessions",
+          "text": "Sessions as focused workspaces with their own branch, diff and history"
+        },
+        {
+          "id": "worktree",
+          "text": "A new worktree as my safe default"
+        },
+        {
+          "id": "ports",
+          "text": "Different ports for parallel previews"
+        },
+        {
+          "id": "context",
+          "text": "`@` for files, `#` for issues, `/` for commands"
+        }
+      ]
+    }
+  ],
+  "learned": {}
+}

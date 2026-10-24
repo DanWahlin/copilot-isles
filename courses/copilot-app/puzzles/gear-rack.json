@@ -79,6 +79,9 @@
         "quiz": "S0.1"
       },
       {
+        "appTask": "A0.5"
+      },
+      {
         "page": "pg.terminal",
         "doubloons": 10
       },

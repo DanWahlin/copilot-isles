@@ -156,6 +156,11 @@ export interface SessionOptions {
   onChart?: () => void;
   /** Quizzes, spyglass, chests, and the Logbook (the session freezes while one is open). */
   learn?: LearnStore | null;
+  /**
+   * A Continue: once the player's ashore and nothing else is on, the "where you left off" card, then
+   * Wingman's recap if one's due.
+   */
+  resume?: boolean;
   /** Sea battles already fought or skipped (from the save). */
   battles?: readonly string[];
   /** A sea battle was won or skipped (save it now). */
@@ -277,6 +282,11 @@ export interface GameSession {
     hint(): void;
     /** Plays Wingman's welcome (the flight and his lines). */
     welcome(): Promise<void>;
+    /**
+     * Queues a learning pause for the next quiet moment ashore: the "where you left off" card
+     * (`resume`), Wingman's recap (`recap`, leaving out `except`'s chapter), or both.
+     */
+    learningPause(what: { resume?: boolean; recap?: boolean; except?: string }): void;
     /** Wingman's flight phase and position (tests). */
     wingman(): { phase: string; x: number; y: number; z: number } | null;
     /** The arrival flyover's phase and seconds in (tests). */
@@ -2300,6 +2310,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hud.setSailing(false);
     hud.setHelp(WALK_HELP);
     mode = 'walk';
+    pendingRecap = islandChapterOf(to.id) || '';
     const landfall = firstLandfall();
     input.enabled = !landfall;
     if (landfall) startArrival(berth.arrival, false);
@@ -2643,6 +2654,37 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   }
   /** The whole welcome is on (Juno's look at the tree, the pause while Wingman takes off, his lines). */
   let welcomeRunning = false;
+  // The learning systems' pauses, at a natural break once you're ashore and nothing else is on: the
+  // "where you left off" card on Continue, then Wingman's spaced recap (src/learn/recap.ts), which
+  // also follows a landfall (from the other islands' chapters).
+  let pendingResume = !!o.resume;
+  /** A recap to offer: `null` none, `''` from every chapter, or a chapter to leave out (where you landed). */
+  let pendingRecap: string | null = o.resume ? '' : null;
+  let learningIdle = 0;
+  let learningRunning = false;
+  async function runLearningPause(): Promise<void> {
+    if (!learn || learningRunning) return;
+    learningRunning = true;
+    try {
+      if (pendingResume) {
+        pendingResume = false;
+        const summary = learn.resumeSummary();
+        if (summary) await learn.showResume(summary);
+        // The card's "Open the checklist" opens the Logbook: the recap waits until it's closed.
+        await learn.logbookClosed();
+      }
+      if (pendingRecap !== null && !disposed) {
+        const except = pendingRecap || null;
+        pendingRecap = null;
+        const ids = learn.recapDue(except);
+        if (ids.length) await learn.runRecap(ids);
+      }
+    } finally {
+      learningRunning = false;
+      learningIdle = 0;
+    }
+  }
+  const islandChapterOf = (id: string) => COURSE.islands.find((i) => i.island === id)?.chapter ?? '';
   async function playWelcome(lines: string[]): Promise<void> {
     // Thousand-Bough: Juno's first look at the great tree plays over the tree, framed from over the
     // captain's shoulder (the arrival's last hold), before Wingman flies up.
@@ -3022,6 +3064,21 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         }
 
         if (hintTimer > 0 && (hintTimer -= dt) <= 0 && !dialogue.active) void welcome();
+        // A learning pause waits for a quiet moment ashore (no talk, script, welcome or battle).
+        if (
+          (pendingResume || pendingRecap !== null) &&
+          mode === 'walk' &&
+          !arriving &&
+          !dialogue.active &&
+          !scriptRunning &&
+          !welcomeRunning &&
+          !tbModal &&
+          !battles.active &&
+          hintTimer <= 0
+        ) {
+          learningIdle += dt;
+          if (learningIdle > 1.2 && !learningRunning) void runLearningPause();
+        } else learningIdle = 0;
         if (introCut && s.stirring) introCut();
         if (s.hint && (mode === 'walk' || mode === 'sail') && !dialogue.active && !scriptRunning && !tbModal)
           hint();
@@ -3412,6 +3469,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       gangway: () => ({ down: gangwayDown, foot: { ...plank.foot }, top: { ...plank.top } }),
       hint,
       welcome,
+      learningPause: (what) => {
+        if (what.resume) pendingResume = true;
+        if (what.recap) pendingRecap = what.except ? islandChapterOf(what.except) : '';
+      },
       wingman: () =>
         wingman
           ? {
