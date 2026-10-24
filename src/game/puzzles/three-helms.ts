@@ -80,6 +80,8 @@ export interface HelmsHost extends PuzzleHost {
   say(ids: readonly string[]): Promise<void>;
   /** Holds a camera shot (null goes back to the sailing camera). */
   frame(shot: CameraShot | null): void;
+  /** The sea lanes' route from (fx, fz) to (tx, tz), goal last: round harbour walls and headlands. */
+  seaPath(fx: number, fz: number, tx: number, tz: number): readonly { x: number; z: number }[];
   /** Brings her alongside the island's berth and puts you ashore; resolves on the quay. */
   dockHome(): Promise<void>;
 }
@@ -115,6 +117,16 @@ type ChoiceKind = 'order' | 'heading' | 'review';
 
 /** How far (m) outside the course the sea starts easing to its fixed state (~20 s under sail). */
 const FIXED_SEA_MARGIN = 120;
+/** The crew's approach stops this far (m) short of the buoy. */
+const APPROACH_SHORT = 20;
+/** The crew gives the wheel back if she hasn't moved this far (m) in `APPROACH_STALL` seconds… */
+const APPROACH_MOVE = 3;
+const APPROACH_STALL = 8;
+/** …or the approach has taken this long (s). */
+const APPROACH_MAX = 150;
+/** The crew can't make way (wind, a wall): your wheel again (game chrome, the same on any course). */
+const APPROACH_GIVE_BACK =
+  'She’s not making way here, so the crew’s given you the wheel back. Steer into open water with A and D, then press Q again.';
 
 /**
  * P1.2 The Three Helms (Rhea): three orders sailed in your own ship out in Port Meridian's
@@ -463,16 +475,45 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
     buoys.showRoute(null);
   }
 
-  /** The crew sails you up to the next buoy (Wingman's third hint), then hands the wheel back. */
+  /** Where the crew's approach has got to: when she last moved, and how long it's been going. */
+  const approachFrom = { x: 0, z: 0 };
+  let approachStill = 0;
+  let approachFor = 0;
+
+  /**
+   * The crew sails you up to the next buoy (Wingman's third hint) by the sea lanes, round the
+   * harbour walls rather than through them, then hands the wheel back. If she can't make way (the
+   * wind's dead ahead, or something's in the way) the crew gives the wheel back rather than hold her
+   * there (`update`).
+   */
   function approach(mode: HelmMode): void {
     const b = MERIDIAN_HELMS[mode].buoy;
     const p = here();
-    const d = distTo(b);
-    const k = Math.max(0, d - 20) / (d || 1);
+    const route = host.seaPath(p.x, p.z, b.x, b.z).filter((q) => Math.hypot(q.x - p.x, q.z - p.z) > 8);
+    const last = route.length > 1 ? route[route.length - 2]! : p;
+    const d = Math.hypot(b.x - last.x, b.z - last.z);
+    const k = Math.max(0, d - APPROACH_SHORT) / (d || 1);
+    const course = [
+      p,
+      ...route.slice(0, -1),
+      { x: last.x + (b.x - last.x) * k, z: last.z + (b.z - last.z) * k },
+    ];
     token++;
     run = { mode, phase: 'approach', leg: 0, taken: false, tried: [], headings: [], revised: false };
     host.crewHelm(true);
-    host.ship.followSpline([p, { x: p.x + (b.x - p.x) * k, z: p.z + (b.z - p.z) * k }], 5);
+    host.ship.followSpline(course, 5);
+    approachFrom.x = p.x;
+    approachFrom.z = p.z;
+    approachStill = 0;
+    approachFor = 0;
+  }
+
+  /** The approach is stuck or too long: the wheel's yours again. */
+  function giveBack(): void {
+    run = null;
+    host.ship.clearAutopilot();
+    host.crewHelm(false);
+    host.hud.toast(APPROACH_GIVE_BACK, 7);
   }
 
   /** A high shot over a route from behind the ship (the \`review\` helm's chart). */
@@ -581,9 +622,19 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
       }
       return T('hintRun');
     },
-    update() {
+    update(dt: number) {
       if (!run) return;
       if (!host.afloat() && run.phase !== 'docking' && run.phase !== 'wrap') return abandon();
+      if (run.phase === 'approach' && !host.ship.autopilotComplete) {
+        const p = pose();
+        approachFor += dt;
+        if (Math.hypot(p.x - approachFrom.x, p.z - approachFrom.z) > APPROACH_MOVE) {
+          approachFrom.x = p.x;
+          approachFrom.z = p.z;
+          approachStill = 0;
+        } else approachStill += dt;
+        if (approachStill > APPROACH_STALL || approachFor > APPROACH_MAX) return giveBack();
+      }
       if (!host.ship.autopilotComplete) return;
       if (run.phase === 'approach') {
         run = null;

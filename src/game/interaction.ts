@@ -66,12 +66,10 @@ export class Interactions {
    * preferring ones you can use right now. For pointing the compass at a quest's next step.
    */
   nearest(ids: readonly string[], x: number, z: number): Interactable | null {
-    const matches = (id: string) =>
-      ids.some((m) => (m.endsWith('*') ? id.startsWith(m.slice(0, -1)) : id === m));
     let best: Interactable | null = null;
     let bestScore = Infinity;
     for (const it of this.items) {
-      if (!matches(it.id)) continue;
+      if (!idMatches(ids, it.id)) continue;
       // Anything usable beats anything that isn't, so the marker moves on as a puzzle's parts do.
       const score = Math.hypot(it.x - x, it.z - z) + (it.enabled && !it.enabled() ? 1e6 : 0);
       if (score < bestScore) {
@@ -83,11 +81,17 @@ export class Interactions {
   }
 
   /** Everything within `r` metres of (x, z), nearest first, and whether it's usable now (tests). */
-  within(x: number, z: number, r: number): { id: string; y: number; d: number; on: boolean }[] {
+  within(
+    x: number,
+    z: number,
+    r: number,
+  ): { id: string; x: number; y: number; z: number; d: number; on: boolean }[] {
     return this.items
       .map((it) => ({
         id: it.id,
+        x: it.x,
         y: it.y,
+        z: it.z,
         d: Math.hypot(it.x - x, it.z - z),
         on: !it.enabled || it.enabled(),
       }))
@@ -100,4 +104,21 @@ export class Interactions {
     this.current.onInteract(back);
     return true;
   }
+}
+
+/** Whether `id` is one of `ids` (a trailing `*` matches a prefix). Allocates nothing (the compass asks each frame). */
+function idMatches(ids: readonly string[], id: string): boolean {
+  for (let k = 0; k < ids.length; k++) {
+    const m = ids[k]!;
+    const last = m.length - 1;
+    if (m.charCodeAt(last) !== 42) {
+      if (id === m) return true;
+      continue;
+    }
+    if (id.length < last) continue;
+    let same = true;
+    for (let i = 0; i < last && same; i++) same = id.charCodeAt(i) === m.charCodeAt(i);
+    if (same) return true;
+  }
+  return false;
 }

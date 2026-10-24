@@ -165,6 +165,22 @@
     "Q0.11:sail": {
       "ids": ["ship:board"],
       "label": "The gangway"
+    },
+    "Q0.6:start": {
+      "ids": ["npc:suri"],
+      "label": "Suri Okoye"
+    },
+    "Q0.6:sluice": {
+      "ids": ["mill:tile"],
+      "label": "The mill race"
+    },
+    "Q0.6:solved": {
+      "ids": ["npc:suri"],
+      "label": "Suri"
+    },
+    "Q0.9:start": {
+      "ids": ["npc:lyra"],
+      "label": "Lyra Wren"
     }
   },
   "beats": [
