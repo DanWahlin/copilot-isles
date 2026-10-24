@@ -14,6 +14,7 @@
 //                             [--from=admiral|oren|pell|market] [--setup=enter|skip]
 // (--from=market plays only the market and its reload.)
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerCard, cardOpen, cardState } from './lib/learning-cards.mjs';
 import { answerSetupForm, logbookPage, setupPlan } from './lib/setup-forms.mjs';
 
 const opt = parseFlags();
@@ -76,11 +77,25 @@ const plan = setupPlan(opt.setup);
 const subtitles = new Set();
 const seen = new Set();
 /** Drives dialogue, quizzes, and reveals until `done(state)` or the timeout; `every` runs each tick. */
+/** App tasks the run puts off with Later (the rest it confirms with I did it). */
+const cardPlan = { later: [] };
 async function drive(label, done, ms = 150000, every = null) {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) {
     const s = await learnState();
     if (done(s)) return s;
+    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off).
+    const card = await page.evaluate(cardState);
+    if (cardOpen(card)) {
+      await answerCard(page, card, {
+        shot,
+        fail: (m) => logs.push(`[meridiantest] ${m}`),
+        seen,
+        plan: cardPlan,
+      });
+      await page.waitForTimeout(300);
+      continue;
+    }
     if (every) await every(s);
     if (s.subtitle) subtitles.add(s.subtitle);
     if (s.subtitle.includes('prompt box: press') && !seen.has('subtitle-shortcut')) {

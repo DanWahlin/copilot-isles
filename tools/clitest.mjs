@@ -8,6 +8,7 @@
 // on with E. Screenshots at each beat.
 // node tools/clitest.mjs [--base=http://localhost:5301] [--webgl] [--out=/tmp/shots/cli]
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { answerCard, cardOpen, cardState } from './lib/learning-cards.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://localhost:5301';
@@ -66,11 +67,25 @@ const caption = () =>
 const seen = new Set();
 const captions = [];
 /** Drives captions, quizzes, and reveals until `done(state)`. Captions move on with E. */
+/** App tasks the run puts off with Later (the rest it confirms with I did it). */
+const cardPlan = { later: [] };
 async function drive(label, done, ms = 120000) {
   const t0 = Date.now();
   while (Date.now() - t0 < ms) {
     const s = await learnState();
     if (done(s)) return s;
+    // The learning systems' cards (app tasks, a reflection, a Seal card, where you left off).
+    const card = await page.evaluate(cardState);
+    if (cardOpen(card)) {
+      await answerCard(page, card, {
+        shot,
+        fail: (m) => logs.push(`[clitest] ${m}`),
+        seen,
+        plan: cardPlan,
+      });
+      await page.waitForTimeout(300);
+      continue;
+    }
     if (s.quiz) {
       if (!seen.has(s.quiz.id)) {
         seen.add(s.quiz.id);

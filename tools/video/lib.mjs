@@ -298,6 +298,10 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
           reveal: l.reveal?.page.id ?? null,
           banner: l.banner?.title ?? null,
           forkForm: l.forkForm?.from ?? null,
+          // The learning systems' cards (src/ui/learn/LearningCards.tsx).
+          appTask: l.appTask ? { id: l.appTask.task.id, phase: l.appTask.phase } : null,
+          card: l.reflection ? 'reflection' : l.badge ? 'badge' : l.resume ? 'resume' : null,
+          recap: !!l.quiz?.recap,
           dialogue: st?.dialogue ?? false,
           welcome: st?.welcome ?? false,
           mode: st?.mode,
@@ -517,6 +521,9 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
           quiet = null;
           await api.answerQuiz({ wrong: wrongFirst.includes(s.quiz.id) && !wrongDone.has(s.quiz.id) });
           wrongDone.add(s.quiz.id);
+        } else if (s.appTask || s.card) {
+          quiet = null;
+          await api.answerCard(s, { readMs });
         } else if (s.reveal || s.banner) {
           quiet = null;
           await pause(readMs);
@@ -533,6 +540,33 @@ export function makeApi(page, rec, { log = () => undefined } = {}) {
       }
       log('converse timed out');
       return api.learn();
+    },
+
+    /**
+     * A learning card, as a player would: a "Do this in the app" card is read, then I did it (E), or
+     * Later (Esc) when `later`; "What did you see?" gets its first option (1); a reflection its first
+     * choice; a Seal card or the Continue card, Onward (E).
+     */
+    async answerCard(s, { readMs = 3200, later = false } = {}) {
+      if (s.appTask?.phase === 'ask') {
+        api.mark(`apptask ${s.appTask.id}`);
+        await pause(readMs + 1200);
+        await api.press(later ? 'Escape' : 'KeyE');
+      } else if (s.appTask?.phase === 'seen') {
+        api.mark(`apptask ${s.appTask.id} seen`);
+        await pause(readMs - 600);
+        await api.press('Digit1');
+      } else if (s.appTask) {
+        await pause(readMs - 600);
+        await api.press('KeyE');
+      } else if (s.card === 'reflection') {
+        await pause(readMs);
+        await api.press('Digit1');
+      } else {
+        await pause(readMs);
+        await api.press('KeyE');
+      }
+      await pause(800);
     },
 
     /** Answers the open quiz through its own keys (or a click for a hotspot), then Continue (E). */
@@ -693,7 +727,16 @@ export async function skipTalk(page, ms = 60_000) {
     const s = await page.evaluate(() => {
       const l = window.__dev.learn.getState();
       const st = window.__dev.state();
-      return { busy: !!(st.dialogue || st.welcome || l.quiz || l.reveal || l.banner), quiz: !!l.quiz };
+      // A learning card is put aside (an app task for later, the rest closed).
+      if (l.appTask) window.__dev.learn.appTaskContinue();
+      if (l.reflection) window.__dev.learn.chooseReflection(null);
+      if (l.badge) window.__dev.learn.closeBadge();
+      if (l.resume) window.__dev.learn.closeResume();
+      const card = !!(l.appTask || l.reflection || l.badge || l.resume);
+      return {
+        busy: !!(st.dialogue || st.welcome || l.quiz || l.reveal || l.banner || card),
+        quiz: !!l.quiz,
+      };
     });
     if (!s.busy) {
       if (++quiet > 6) return;
