@@ -401,7 +401,7 @@ Two things can't be fully live, and that's why they stay authored:
 
 ### 8.2 Runtime fetch
 
-- **Where from:** `https://raw.githubusercontent.com/github/copilot-app-for-beginners/<ref>/…`, meaning each chapter's `README.md`, `GLOSSARY.md`, and the `assets/*.webp` those files reference. Raw GitHub sends `Access-Control-Allow-Origin: *` and `max-age=300` (verified 2026-09-26). `<ref>` defaults to `main`, and `?course=<sha>` pins a commit for testing. We **never call the GitHub REST API**, since it only allows 60 unauthenticated requests per hour per IP.
+- **Where from:** `https://raw.githubusercontent.com/github/copilot-app-for-beginners/<ref>/…`, meaning each chapter's `README.md`, `GLOSSARY.md`, and the `assets/*.webp` those files reference. Raw GitHub sends `Access-Control-Allow-Origin: *` and `max-age=300` (verified 2026-09-26). `<ref>` defaults to `main`, and `?course=<sha>` pins a commit for testing. We **never call the GitHub REST API**, since it only allows 60 unauthenticated requests per hour per IP. (The one exception is the player's: with Settings → GitHub checks on, the Logbook's App checklist can ask the public API, without a token, whether a step left evidence in their fork, one request per check, waiting out the limit: COURSE-PACKS.md §11.)
 - **Parsing:** a small `CourseSource` module splits each README into sections `{anchor, title, markdown, images[]}`:
   - Anchors use GitHub's heading-slug rules, so they match the "Open in the course ↗" links.
   - It handles both `![alt](path)` and `<img src alt>`, resolved relative to the chapter folder (e.g. `../assets/github-copilot-app.webp`).
@@ -452,7 +452,7 @@ One scheduled GitHub Actions workflow, **`weekly-refresh.yml`**, keeps everythin
 
 - Content is authored per island in typed TS modules: NPCs, dialogue, chests, quizzes, puzzles. Every teaching line is tagged with its **source chapter + section** and carries an **"Open in the course ↗"** link.
 - Authored text paraphrases in the game's voice. Anything that should read *exactly* like the course comes from the live excerpt instead of being copied.
-- Anything a learner does "for real" in the app is an optional **"Try it in the app"** side quest that links to the chapter. The game itself is self-contained.
+- Anything a learner does "for real" in the app is an optional **"Try it in the app"** side quest that links to the chapter. The game itself is self-contained. Each one is handed off on a **"Do this in the app"** card (the steps, why, the course link, **I did it** / **Later**; Later never holds the story up), kept in the Logbook's **App checklist**, and a quest's Logbook line only claims the app part once the player confirms it (`learning.json`, COURSE-PACKS.md §11).
 - **Licensing and privacy:** the course's full MIT notice in the credits covers fetched content, just as it covers bundled content. Fetching from `raw.githubusercontent.com` means GitHub sees the player's IP (the same as clicking a course link), so the credits' privacy note says so. If we add a CSP, it has to allow `raw.githubusercontent.com` in `connect-src` and `img-src`.
 - **Roadmap:** Chapters 00 and 01 were authored before `CourseSource` existed. When it's built, migrate both chapters to it, and author later chapters against anchors from the start.
 

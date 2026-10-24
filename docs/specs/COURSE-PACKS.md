@@ -7,7 +7,10 @@ migrations, the legacy saves' course) is pack data, so no game code names a ques
 game acts on its own mechanic ids, each pack binds its ids to them (`acts`), and the last course words
 left the code, so a scan of `src/` finds no course id or word. Each step's dump
 of derived data is byte-identical before and after, except the diffs §9 documents. Decisions D1-D5
-(§10) are approved as recommended.
+(§10) are approved as recommended. The learning systems (real-app hand-offs, the App checklist,
+Wingman's recap, the Course map, the reflection before a Seal, Seal cards and the certificate, the
+Continue card, opt-in GitHub checks) read a pack's `learning.json` and `course.json` → `recap`
+(§11, "Learning systems").
 
 Dan's ask: put everything course-related in data, so the same game can teach other courses, and players
 can (eventually) pick a topic. The game stays neutral; a **course pack** supplies every course word, the
@@ -58,6 +61,7 @@ courses/
     market.json                  the Model Market                    (was content/market.json)
     models.json                  Copilot models from GitHub Docs     (was content/models.json)
     lock.json                    snapshot commit, section and image hashes (was content/course.lock.json)
+    learning.json                app tasks, objectives, reflections, honest quest lines (optional, §11)
     voice/lines.json             every voice line: id, speaker, text (was tools/voice/lines.testcove.json)
     voice/cast.json              speaker → service, voice, model, prosody, fx (step 2)
     public/                      served as <base>courses/copilot-app/
@@ -156,7 +160,11 @@ all):
   quest's `steps`), `cue` (a cue the island's session knows), `askSetup` kinds;
 - every island and NPC id is the game's (the game exports its island and cast ids for the check);
 - every chapter in `islands[]` is in `source.chapters` and the lock;
-- today's rules stay: market economy, board topics, models listed once, labels' sources.
+- today's rules stay: market economy, board topics, models listed once, labels' sources;
+- `learning.json` (§11): every app task is handed off by a script, cites a section of its chapter, and
+  names a quest, an answer and a check that resolve; an app-only `completes` quest is optional;
+  every objective is word for word in its section and covers quests, puzzles, quizzes and app tasks
+  that exist; one reflection per chapter; `learned` lines only for quests with app tasks.
 
 `src/learn/course/refs.test.ts` and `tools/course/drift.ts` read packs instead of TS modules.
 
@@ -650,3 +658,63 @@ path), `npm run test:e2e`, `tools/flowtest.mjs`, and `npm run check:memory` (hea
 - **D4. The game's name** ("Copilot Isles", the chart's cartouche, `index.html`): keep as the game's brand,
   or make the archipelago's name per course later. Keep for now.
 - **D5. Saves keyed by course in step 3**, not step 1 (step 1 changes no save key). Recommended.
+
+## 11. Learning systems (`learning.json`, `course.json` → `recap`)
+
+The learning journey review (October 2026) found the real-app part of each chapter spoken
+mid-dialogue and never checked (while the Logbook ticked "✓ Your fork is added under Sessions" even
+when it was skipped), no spaced review across islands, and no answer to "where am I and what's
+next". These systems are generic and data-driven: a pack opts in with data, and a pack without it
+(`copilot-cli` today) gets none of them, with nothing to change.
+
+| System | Pack data | Game code |
+| --- | --- | --- |
+| **"Do this in the app"** card: steps, why, the course link, **I did it** / **Later** (Later never holds the story up), then an optional "What did you see?" | `learning.json` → `appTasks[]`; a script step `{ "appTask": "A0.3" }` where it's taught | `src/learn/learning.ts`, `LearnStore.askAppTask`, `src/ui/learn/LearningCards.tsx` |
+| **App checklist** (Logbook): every task by chapter, done / later / not reached, open its steps or tick it later | the same tasks; `labels.checklist` names the tab | `src/ui/learn/LogbookLearning.tsx` |
+| **Honest ticks:** a finished quest's Logbook line claims its app work only once every one of its tasks is confirmed | `learned` (quest → the line until then); each task's `quest` | `questLogLine` |
+| **App-only quests** that finish on confirm (the Lantern House) | a task's `completes: { quest, step }` (an optional quest) | `onAppTaskDone` in `session.ts` |
+| **Wingman's recap** at a landfall (other chapters) and on Continue: 1-3 questions from quizzes you've met, spaced (Leitner boxes) and interleaved, skippable, no fail state, doubloons and a starfish | `course.json` → `recap` (`questions`, `types`, `exclude`, `minGapMinutes`, `reward`) | `src/learn/recap.ts` (pure), `LearnStore.recapDue`/`runRecap`, `QuizPanel`'s recap mode |
+| **Course map** (Logbook): each objective with Practised / Quizzed / Done in the app, what's next, the reflection picked, the Seal and its card | `objectives[]` (quoted from Learning Objectives) with `covers` | `src/learn/mastery.ts` (pure) |
+| **Reflection** before each Seal (after the Trial's last answer, before the banner), once, skippable | `reflections[]` (the Key Takeaways as choices) | `LearnStore.askReflection` in `runTrial` |
+| **Seal card and certificate**: an image drawn in the browser and the words to copy; nothing uploaded | `course.json` (title, repository, island labels) and each chapter's Trial Seal | `src/learn/badge.ts`, `BadgeCard` |
+| **Where you left off** on Continue: island, task, last thing learned, next step, app steps waiting (no streaks) | none | `src/learn/resume.ts`, `session.ts` (`resume`) |
+| **GitHub checks** (opt-in, Settings): a public, unauthenticated API request per check, rate-limit aware; failure keeps the player's word | a task's `check: { kind: repoExists \| branchExists \| prOpened, branch? }` (`{practiceBranch}`) | `src/learn/github-check.ts` |
+
+```json
+{
+  "id": "A0.7",
+  "chapter": "00-setup",
+  "quest": "Q0.7",
+  "title": "Run the setup script",
+  "steps": ["In the same **Terminal** tab… run `node .github/scripts/setup-training-scenarios.js --dry-run`.", "…"],
+  "why": "Later chapters use the labels, issues, practice branches and pull requests it makes in your fork.",
+  "source": { "chapter": "00-setup", "anchor": "add-the-course-practice-items", "hash": "15d697dd1d02" },
+  "check": { "kind": "branchExists", "branch": "{practiceBranch}" },
+  "seen": { "prompt": "How does the dry run end?", "options": [{ "id": "dry", "text": "…" }], "answer": "dry", "explain": "…" }
+}
+```
+
+```json
+{ "id": "O0.4", "chapter": "00-setup",
+  "text": "Run the setup script that creates the course's labels, practice issues, branches, and pull requests",
+  "source": { "chapter": "00-setup", "anchor": "learning-objectives", "hash": "4350d5f5c0ab" },
+  "covers": { "puzzles": ["crane"], "quizzes": ["T0.3", "T0.4"], "appTasks": ["A0.6", "A0.7"] } }
+```
+
+**Saves.** Progress gains `appTasks` (id → `done`/`later`, when, `verified`, the "seen" answer;
+a later Later never undoes a done), `recap` (each met quiz's box, last answer and counts; the last
+recap and how many ran, the scheduler's seed), `reflections` (chapter → the pick, or null for
+skipped), `lastLearned` and `updated`. A recap answer moves the schedule only: the quiz's own record
+(first try, doubloons) stays. Older saves load with empty ones; quizzes they met join the schedule in
+box 1 (box 0 if missed). The GitHub checks' switch is a global setting (`githubChecks`, off).
+
+**Accessibility.** Every card works with a mouse, a tap, the keyboard (E or Enter, Esc, digits for
+options, arrows or Tab) and a gamepad (`usePadFocus`: the d-pad moves, A presses, B goes back), the
+quiz card and the Seal banner included; targets are at least 44 px; reduced motion drops the cards'
+animation; marks are symbols and words, never colour alone.
+
+**Checks and tests.** The content check (§3); `src/learn/recap.test.ts`, `mastery.test.ts`,
+`github-check.test.ts` (mocked fetch), `resume-badge.test.ts` and `learning-store.test.ts` (the
+store's flows on the real pack); `tools/questtest.mjs` puts the fork off with Later, checks the
+Logbook doesn't claim it, ticks it from the checklist, and answers the recap at Port Meridian's
+landfall; every scripted run answers the cards through the UI (`tools/lib/learning-cards.mjs`).
