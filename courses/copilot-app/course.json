@@ -340,5 +340,10 @@
       "pg1.more": ["pg1.sessions-chats"]
     },
     "taught": { "Q1.5": ["tool-permissions"], "Q1.6": ["context-window"], "Q1.7": ["settings"] }
+  },
+  "recap": {
+    "questions": 2,
+    "minGapMinutes": 20,
+    "reward": { "doubloons": 3, "starfish": 1 }
   }
 }

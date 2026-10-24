@@ -588,6 +588,9 @@
         "say": "mer.lyra.06"
       },
       {
+        "appTask": "A1.1"
+      },
+      {
         "say": "mer.lyra.next"
       },
       {
@@ -628,6 +631,9 @@
       },
       {
         "say": "mer.anders.05"
+      },
+      {
+        "appTask": "A1.2"
       },
       {
         "say": "mer.anders.crates"
@@ -773,6 +779,9 @@
       },
       {
         "say": "mer.oren.07"
+      },
+      {
+        "appTask": "A1.3"
       },
       {
         "say": "mer.oren.08"

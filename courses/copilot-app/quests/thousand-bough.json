@@ -524,6 +524,9 @@
         "say": "tb.oak.07"
       },
       {
+        "appTask": "A2.1"
+      },
+      {
         "hide": true
       },
       {
@@ -729,6 +732,9 @@
         "say": "tb.rook.06"
       },
       {
+        "appTask": "A2.2"
+      },
+      {
         "hide": true
       },
       {
@@ -788,6 +794,9 @@
       },
       {
         "say": "tb.pip.06"
+      },
+      {
+        "appTask": "A2.3"
       },
       {
         "term": "chronicle-standup"
@@ -888,6 +897,9 @@
       {
         "quest": "Q2.A",
         "step": "try"
+      },
+      {
+        "appTask": "A2.4"
       }
     ]
   },

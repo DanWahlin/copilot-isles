@@ -354,6 +354,9 @@
         "quiz": "S0.4"
       },
       {
+        "appTask": "A0.1"
+      },
+      {
         "say": "cli.bo.03"
       },
       {
@@ -403,6 +406,9 @@
       },
       {
         "quiz": "S0.5"
+      },
+      {
+        "appTask": "A0.2"
       },
       {
         "page": "pg.signin",

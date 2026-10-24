@@ -59,6 +59,9 @@
         "doubloons": 10
       },
       {
+        "appTask": "A0.3"
+      },
+      {
         "say": "cli.juno.reply.03"
       },
       {

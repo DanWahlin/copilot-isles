@@ -584,6 +584,9 @@
         "doubloons": 10
       },
       {
+        "appTask": "A0.6"
+      },
+      {
         "say": "pim.brief.02"
       },
       {
@@ -606,6 +609,9 @@
       },
       {
         "say": "pim.solved.01"
+      },
+      {
+        "appTask": "A0.7"
       },
       {
         "say": "pim.solved.fork"
@@ -662,6 +668,9 @@
         "say": "nell.papers.05"
       },
       {
+        "appTask": "A0.1"
+      },
+      {
         "file": "pg.install"
       },
       {
@@ -697,6 +706,9 @@
         "say": "ezra.fork.link"
       },
       {
+        "appTask": "A0.2"
+      },
+      {
         "askFork": "ezra",
         "line": "ezra.fork.register"
       },
@@ -725,6 +737,9 @@
       },
       {
         "quiz": "S0.3"
+      },
+      {
+        "appTask": "A0.3"
       },
       {
         "page": "C0.4",
@@ -769,6 +784,9 @@
         "say": "bo.deck.03"
       },
       {
+        "appTask": "A0.4"
+      },
+      {
         "show": "shared/app-review-panel",
         "caption": "**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
       },
@@ -795,6 +813,9 @@
       },
       {
         "quiz": "S0.1"
+      },
+      {
+        "appTask": "A0.5"
       },
       {
         "page": "pg.terminal",

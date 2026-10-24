@@ -105,5 +105,10 @@
     },
     "setPieces": {},
     "battles": {}
+  },
+  "recap": {
+    "questions": 2,
+    "minGapMinutes": 20,
+    "reward": { "doubloons": 3, "starfish": 1 }
   }
 }
