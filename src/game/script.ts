@@ -31,7 +31,12 @@ export type ScriptStep =
    * Asks for one of the player's setup values (src/learn/setup.ts), with Skip for now, only if they
    * haven't given it yet. `line` is a voiced line played first, only when the form opens.
    */
-  | { askSetup: SetupKind; line?: string };
+  | { askSetup: SetupKind; line?: string }
+  /**
+   * "Do this in the app": hands a real-app task (the course's `learning.json`) to the player on a card
+   * with I did it and Later. Skipped once they've confirmed it; Later never holds the story up.
+   */
+  | { appTask: string };
 
 export interface ScriptContext {
   dialogue: Dialogue;
@@ -95,6 +100,8 @@ export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext
         if (s.line) await dialogue.play([s.line]);
         if (ctx.cancelled?.()) return false;
         await learn.askSetup(s.askSetup, 'script');
+      } else if ('appTask' in s) {
+        if (learn) await learn.askAppTask(s.appTask, 'script');
       }
     }
     return true;

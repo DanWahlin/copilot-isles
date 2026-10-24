@@ -117,6 +117,27 @@ export interface CourseMeta {
   migrations?: CourseMigrations;
   /** Whether players can choose it (default true); an unlisted course is still being written. */
   listed?: boolean;
+  /**
+   * Wingman's spaced recap (src/learn/recap.ts): short questions from quizzes the player has already
+   * met, when they land on an island or come back to the voyage. Left out, there's no recap.
+   */
+  recap?: RecapSettings;
+}
+
+/** The quiz kinds a recap can ask: the short ones. */
+export type RecapQuizType = 'mc' | 'scenario' | 'multi';
+
+export interface RecapSettings {
+  /** How many questions a recap asks (1-3). */
+  questions: number;
+  /** Which quiz kinds it may ask (default: all three). */
+  types?: readonly RecapQuizType[];
+  /** Quizzes it never asks (one that only makes sense where it's set). */
+  exclude?: readonly string[];
+  /** The least time between two recaps, in minutes (default 20). */
+  minGapMinutes?: number;
+  /** Doubloons for each question answered right first time; starfish for a recap with every answer right. */
+  reward?: { doubloons?: number; starfish?: number };
 }
 
 /** One "Your setup" form: its kicker (and the Logbook's note), titles, intro, and what it's used for. */

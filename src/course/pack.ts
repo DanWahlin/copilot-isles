@@ -7,6 +7,7 @@ import type { ModelsFile } from '../game/market/catalog';
 import type { ChartLabelText } from '../learn/content/labels';
 import type { CourseLock } from '../learn/course/lock';
 import type { ChapterContent } from '../learn/types';
+import type { LearningFile } from '../learn/learning';
 import type { CourseMeta } from './catalog';
 
 /**
@@ -129,7 +130,18 @@ export interface CoursePack {
   market: MarketData;
   models: ModelsFile;
   lock: CourseLock;
+  /** The learning systems' data (`learning.json`, optional): app tasks, objectives, reflections. */
+  learning: LearningFile;
 }
+
+/** A course without learning data: no app tasks, objectives or reflections. */
+const NO_LEARNING: LearningFile = {
+  labels: { kicker: '', checklist: '', tool: '' },
+  appTasks: [],
+  objectives: [],
+  reflections: [],
+  learned: {},
+};
 
 /** A course without the Model Market: nothing on its boards, no jobs. */
 const NO_MARKET: MarketData = {
@@ -216,5 +228,6 @@ export function assemblePack(meta: CourseMeta, files: PackFiles): CoursePack {
     market: files['market.json'] ? withoutMeta(files['market.json'] as MarketData) : NO_MARKET,
     models: (files['models.json'] as ModelsFile | undefined) ?? NO_MODELS,
     lock: need<CourseLock>(files, 'lock.json', id),
+    learning: files['learning.json'] ? withoutMeta(files['learning.json'] as LearningFile) : NO_LEARNING,
   };
 }
