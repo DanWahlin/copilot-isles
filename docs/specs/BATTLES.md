@@ -100,12 +100,17 @@ Same loop and rewards as §2.0b, one Chapter 02 habit per wave, every sentence v
   guess".
 - **The loop is the lesson.** Your gunner fires only when the **evidence agrees**: the side bears (the arc
   on the water turns gold) and the battery is loaded (the HUD row is full). Firing early isn't possible,
-  so you learn to steer for the evidence, as the chapter asks you to wait for the diff, tests, build, and
-  preview to agree (03 §Key Takeaways 6).
+  so you learn to steer for the evidence, as the chapter says a change is ready only when the diff, local
+  validation, GitHub checks, and human review agree (03 §Key Takeaways 6).
 - **Between waves: the second opinion.** The bosun asks one question from the chapter (a `ChoiceQuiz` from
-  `src/learn`, with its `SourceRef`). Questions come from 03 §Core Concept (the evidence table: **Changes**,
-  **Terminal**, **Browser** tabs, and the **Pull requests** view), 03 §Inner Loop / §Outer Loop, and 03 §3
-  *Ask for a Second Opinion* (`/rubber-duck`, "a constructive critic").
+  `src/learn`, with its `SourceRef`). Questions come from 03 §Core Concept (`core-concept-trust-the-evidence`:
+  the evidence table: **Changes**, **Terminal**, **Browser** tabs, and the **Pull requests** view),
+  03 §Inner Loop / §Outer Loop (`inner-loop-develop-and-validate-on-your-machine`,
+  `outer-loop-move-the-work-through-github`), and 03 §3 *Ask for a Second Opinion*
+  (`3-ask-for-a-second-opinion`: `/rubber-duck`, "a constructive critic").
+- **Placement** (docs/specs/ISLAND-03-keelhaven.md §9; Dan's decision O2, 2026-10-24): battle 3 on
+  the Thousand-Bough → Keelhaven passage uses this frame with Chapter 02's waves (§2.0c); the Chapter 03
+  questions and these raiders recap Chapter 03 on the Keelhaven → Guildcrest passage (battle 4).
 - **The reward never punishes.** A right answer lets you **pick**: a **double-shotted volley** (the next
   broadside does 1.5× damage) or **quick repairs** (+30 hull). A wrong answer shows the "why" with the
   course link, and you still get the normal repairs from the stores you collected.
