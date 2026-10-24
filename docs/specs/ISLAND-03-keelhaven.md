@@ -1,7 +1,7 @@
 # Spec: Island 03, Keelhaven (Chapter 03 · Development and GitHub Workflows)
 
-> Status: **design spec, ready for Dan's review** (2026-10-24). The decisions table (§0) marks each item
-> that Dan must decide. Course source: `github/copilot-app-for-beginners` `main` at `64bc3d0`
+> Status: **design spec, decisions made** (2026-10-24). Dan accepted every open item (§0.3) on
+> 2026-10-24. Course source: `github/copilot-app-for-beginners` `main` at `64bc3d0`
 > (2026-10-24), `03-development-workflows/README.md` (blob `b7ca027`). The pack's snapshot (`lock.json`,
 > `a5cdf7d`) has no Chapter 03 yet. Chapter 03 did not change between `a5cdf7d` and `64bc3d0`.
 > Written in ASD-STE100 Simplified Technical English. Player-facing lines use friendly contractions.
@@ -23,7 +23,7 @@
 | # | Decision | What this spec does with it |
 |---|---|---|
 | D1 | **Look:** Na Pali–style (Kauai) fluted green cliffs, knife ridges and valleys round a sheltered cove. A weathered old pirate town and a shipyard (drydocks, canal locks) on the cove's beach. Wrecks on the reef. Match the overall look of `github.com/Leonxlnx/napali` (MIT). Do not copy its code | §2 (art direction), §3.2 (terrain), §10.5 (the `paliWall` look). We use its techniques only, written by us in TS and TSL |
-| D2 | **Sky:** bright late morning, high sun, white cumulus banks over the peaks, clear coast | §2.4: `hours` 10.0 (sun 59° high), the noon and afternoon cloud keys (no new key), cloud-cap mist cards on the peaks |
+| D2 | **Sky:** bright late morning, high sun, white cumulus banks over the peaks, clear coast | §2.4 and O4: 10:00 by default (sun 59° high), chosen between 9:30 and 10:00 by the terrain prototype; the noon and afternoon cloud keys (no new key), cloud-cap mist cards on the peaks |
 | D3 | **Registry first:** a generic island registry lands first (its own PR). Then the course pack is split so that each chapter's data loads with its island (its own PR) | §12 phases 1 and 2, before any Keelhaven code |
 | D4 | **Music:** "Salty Sway" (`music_salty_sway`, maritime folk) is Keelhaven's track | §8.1 |
 | D5 | **Keep as built:** the opt-in GitHub checks, the recap rewards and the reflection timing | §6.2: no new check kind; §6.5: the recap and the reflection use today's shapes |
@@ -47,23 +47,24 @@
 | K13 | **Bram** keeps Keelhaven's Model Market stall on the Old Town quay | MODEL-MARKET §2: a stall on every island |
 | K14 | **Lyra Wren** (the Wandering Bard) plays in the tavern, *The Second Take*, and unlocks the music | PLAN §3: the Bard retells each chapter's studio analogy |
 
-### 0.3 Open decisions for Dan
+### 0.3 Dan's decisions on the former open items (2026-10-24)
 
-Each row is one question with a recommended answer. The spec uses the recommendation until Dan decides.
+The first draft asked Dan eleven questions. On 2026-10-24 Dan accepted each recommendation (O4 with a
+change). The ids stay, so the references in this spec stay valid.
 
-| # | Question | Recommendation |
+| # | Item | Dan's decision (2026-10-24) |
 |---|---|---|
-| O1 | Is the site `(3800, −1650)` with the mouth to the north-west correct? | **Yes.** It keeps Thousand-Bough unloaded while you play, and both harbour legs are beam reaches |
-| O2 | Battle 3 (Thousand-Bough → Keelhaven) recaps Chapter 02, as each passage recaps the chapter you just finished. Where does the Chapter 03 recap go? | **Battle 3:** the "Trust the Evidence" frame and gunnery (BATTLES §2.1) with Chapter 02's waves N2.1–N2.3 (BATTLES §2.0c). **Battle 4** (Keelhaven → Guildcrest) asks the Chapter 03 questions with the raiders *Confident Guess*, *First Take*, *Unchecked* (§9) |
-| O3 | The passage goes from Thousand-Bough's dusk (17.77 h) to Keelhaven's late morning (10.0 h). How does the sky change? | **"Next morning" cut:** keep the dusk until battle 3 ends, then a 3 s fade to a 10.0 h sky as you round the North Head. No sky key is added. Reduced motion uses a plain cross-fade |
-| O4 | `hours` 10.0 gives a 59° sun. Is that "late morning, high sun" enough? | **Yes.** At 11.0 h (72°) the flutes lose their side light and read flat from the sea (§2.4) |
-| O5 | Add one shared region key, `paliWall`, to the shared terrain material (all islands, mask 0 outside Keelhaven)? | **Yes.** Today any face steeper than 47° turns to cliff rock, so a green pali wall is not possible without it. Screenshot-diff the other islands |
-| O6 | The ocean's depth colour covers only Anchorage and Port Meridian. Change it to one 512² floor tile per island (a registry)? | **Yes.** It gives Keelhaven's reef and cove their turquoise and also fixes Thousand-Bough's shallows. One format for every tile, so no new shader |
-| O7 | Keelhaven's terrain pack is about 308k samples (≈ 2.9 MiB, ≈ 1.0 MiB gz), twice Thousand-Bough's. The opening downloads every chart island's pack. Accept? | **No.** Give the opening a coarse chart pack (8 m cell, ≈ 40 KB) for each island, and load the full pack only when the island streams |
-| O8 | The Lite JS heap is at 97 of 103 MB after Thousand-Bough. If Keelhaven goes over after D3's code split, may the ceiling go up with a written reason? | **Yes, after the measurement:** the measured peak + 15 %, with the reason in `budgets.json` |
-| O9 | May we comment on github/copilot-app-for-beginners#50 to add the six stale Chapter 03 screenshots? | **Yes.** The text does not conflict with the pictures, but a retake will move our hotspot targets |
-| O10 | Add "Human judgment in both loops" to Keelhaven's topics in `course.json`? | **Yes.** It is objective 6, and the four topics do not name it |
-| O11 | Ten app cards is the most of any island. Keep all ten, or make A3.4 (rubber duck) and A3.7 (review comment) optional? | **Keep all ten.** Every card has **Later**, the outer-loop cards come as one errand, and only A3.9 and A3.10 belong to optional quests |
+| O1 | The site and the harbour mouth | Centre `(3800, −1650)`, mouth to the north-west. Thousand-Bough stays unloaded while you play, and both harbour legs are beam reaches |
+| O2 | Where each chapter is recapped | **Battle 3** (Thousand-Bough → Keelhaven): the "Trust the Evidence" frame and gunnery (BATTLES §2.1) with Chapter 02's waves N2.1–N2.3 (BATTLES §2.0c). **Battle 4** (Keelhaven → Guildcrest): the Chapter 03 questions with the raiders *Confident Guess*, *First Take*, *Unchecked* (§9) |
+| O3 | The passage sky (Thousand-Bough's dusk, 17.77 h → Keelhaven's morning) | **"Next morning" cut:** the dusk holds until battle 3 ends, then a 3 s fade to Keelhaven's sky as you round the North Head. No sky key is added. Reduced motion uses a plain cross-fade |
+| O4 | The time of day | **10:00 by default** (`hours` 10.0, sun 59° high). The terrain prototype (phase 4) measures flute contrast between 9:30 and 10:00 and picks the time. The flutes vanish at about 10:24 (measured), so never later than 10:00 (§2.4) |
+| O5 | A shared `paliWall` region key in the shared terrain material | **Yes**, with mask 0 outside Keelhaven; screenshot-diff the other islands |
+| O6 | One 512² ocean floor tile per island (a registry) | **Yes.** It gives Keelhaven's reef and cove their turquoise and fixes Thousand-Bough's shallows; one format for every tile, so no new shader |
+| O7 | Keelhaven's full terrain pack in the opening | **No.** The opening gets a coarse chart pack (8 m cell, ≈ 40 KB) for each island; the full pack (≈ 1.0 MiB gz) loads only when the island streams |
+| O8 | The Lite heap ceiling (103 MB) | It may go up **after the measurement**, to the measured peak + 15 %, with the reason in `budgets.json` |
+| O9 | The six stale Chapter 03 screenshots upstream | **Done:** commented on github/copilot-app-for-beginners#50 with the six screenshots ([comment](https://github.com/github/copilot-app-for-beginners/issues/50#issuecomment-6387108574)) |
+| O10 | "Human judgment in both loops" in Keelhaven's `course.json` topics | **Yes** (objective 6) |
+| O11 | Ten app cards | **Keep all ten.** Every card has **Later**; the outer-loop cards come as one errand; only A3.9 and A3.10 belong to optional quests |
 
 ---
 
@@ -167,8 +168,8 @@ spec, PLAN §3 and PLAN §4 now use the course's words.
 
 **The stale-screenshot rule.** Six Chapter 03 screenshots (marked above) show the left sidebar before
 app 1.1.30: a **Projects** heading and a **More** row. App 1.1.30 calls the heading **Sessions** and has
-no **More** (upstream commit `036c19b`). Upstream issue github/copilot-app-for-beginners#50 lists only
-the Chapter 00–01 images (O9). Chapter 03's text does not name the sidebar heading, so the text and the
+no **More** (upstream commit `036c19b`). Upstream issue github/copilot-app-for-beginners#50 listed only
+the Chapter 00–01 images; a comment of 2026-10-24 adds the six Chapter 03 ones (O9). Chapter 03's text does not name the sidebar heading, so the text and the
 pictures agree. For Keelhaven:
 
 1. Put no hotspot target, mask or caption arrow in the sidebar of these six images.
@@ -233,9 +234,14 @@ and the rock cut. No pure white except foam, the falls and the Gate Light.
 
 ### 2.4 Time, sky, haze, light (`ISLANDS.keelhaven.sky`, `mood`)
 
-- **Sun (D2, O4):** `hours` **10.0**: the sun is **59°** high (the game's sun path, latitude 18°). The
-  sky dome blends the baked **noon** (12.0 h) and **afternoon** (16.2 h) cloud keys by the sun's height.
-  No new key, no `sky:bake`. Add 10.0 to `cove.sky.prefetch([...])` in `flow.ts`.
+- **Sun (D2, O4):** **10:00 by default; the terrain prototype measures flute contrast between 9:30 and
+  10:00 and picks the time.** At 10:00 the sun is 59° high, at 9:30 52° (the game's sun path, latitude
+  18°). The prototype measured that the flutes vanish at about 10:24, so the time is never later than
+  10:00. Phase 4 renders `sea-700` and `sea-400` at 9:30, 9:45 and 10:00 on Lite and High, measures the
+  flute stripes' luminance contrast along one row at mid-wall height, and writes the time with the best
+  contrast into `islands.ts` (with the readings in the PR). The sky dome blends the baked **noon** (12.0 h)
+  and **afternoon** (16.2 h) cloud keys by the sun's height at any of these times: no new key, no
+  `sky:bake`. Add the chosen hours to `cove.sky.prefetch([...])` in `flow.ts`.
 - **Sun bearing:** target **185°** (from the south). A tunes `azimuth` until the debug sun bearing reads
   185° ± 5°, and writes the value into `islands.ts`. Why this bearing:
   - On the arrival, the south-west outer wall is lit 48° off its face: its flutes read as stripes.
@@ -255,7 +261,7 @@ and the rock cut. No pure white except foam, the falls and the Gate Light.
 - **Light on the flutes:** bake `sunGolden` and `sunMorning` for this sun. The steep-light smoothing in
   the bake uses a radius of 4–6 m for Keelhaven (today 14 m), so the flutes keep their own shadows.
 - **The passage (O3):** Thousand-Bough is at dusk (17.77 h). The sky holds that dusk until battle 3
-  ends. Then it fades for 3 s to a 10.0 h sky as you round the North Head ("Next morning"). Reduced
+  ends. Then it fades for 3 s to Keelhaven's sky (§2.4) as you round the North Head ("Next morning"). Reduced
   motion uses a plain cross-fade. `passageSky` gets a rule for this pair: hours go forward only, by the
   cut, never back through the afternoon.
 - **Night:** with Sky & Time at night, the lock lamps, the tavern windows and the Gate Light follow the
@@ -1213,7 +1219,7 @@ place. Chapter 03 isn't taught yet on this passage, so battle 3's questions are 
 | Data | `course.json` → `hooks.battles["passage-thousand-bough-keelhaven"]` (`"chapter": "02"`, `won`, `waves[].quiz`, `waves[].raiders`); `labels.json` → `battle:passage-thousand-bough-keelhaven` |
 | Gates | `tools/battletest.mjs`: the census with Keelhaven resident (peak ≤ 140 programs); the warm waits for every raider's figurehead (issue 266) |
 
-### 9.2 Battle 4 (recommended, O2): Keelhaven → Guildcrest, recaps Chapter 03
+### 9.2 Battle 4 (O2): Keelhaven → Guildcrest, recaps Chapter 03
 
 Built with Guildcrest's passage. It uses BATTLES §2.1's raiders, whose sister ships are the wrecks on
 Keelhaven's reef:
@@ -1240,7 +1246,7 @@ eight tools). Keelhaven is built on a **generic island registry** instead:
 
 - `src/game/island-registry.ts`: one entry per streamed island: `id`, `berth` (today's `ISLANDS` row),
   `arrival`, `range`, `footprint`, `open()` (the open gate), `stream(ctx)` (a dynamic `import()` of the
-  island's `index.ts`), `content(host)` (its session content), `quests` (target, tracker, log, NPC
+  island's `index.ts`; it sets `courseData` for the island's chapter part once PR #19 lands, §10.2), `content(host)` (its session content), `quests` (target, tracker, log, NPC
   script), `chart` (the 3D chart entry and its label offset), `starfish`, `ways`, `regions`, `palette`,
   `budget` (budgettest's box and named spots), `music`.
 - `cove-scene.ts`, `session.ts` and `flow.ts` loop over the registry. Each island's code becomes its own
@@ -1251,20 +1257,28 @@ eight tools). Keelhaven is built on a **generic island registry** instead:
   Thousand-Bough `90dc42b3`), every gate's numbers within noise, `revoyagetest`, `questtest`,
   `meridiantest`, `thousandboughtest` with empty logs, and the hitch guard empty.
 
-### 10.2 Second: the course pack split (D3, phase 2)
+### 10.2 Second: the course pack loads per chapter (D3, phase 2: PR #19)
 
-The course chunk is at 78.8 of 80 KB gz; Chapter 03's data adds 15–25 KB. Split it:
+PR #19 ("Course packs: core chunk plus one part per chapter", branch `danwahlin-course-chapter-split`)
+does the split. Keelhaven builds on it:
 
-- `course-copilot-app` (the voyage chunk): `course.json`'s hooks, `labels.json`, `boards.json`,
-  `market.json`, `models.json`, `learning.json`'s shapes and the chapter list. Budget ≤ 60 KB gz.
-- `course-copilot-app-<chapter>` (one chunk per chapter): `chapters/<ch>.json`, `quests/<island>.json`,
-  that island's `puzzles/*.json`, its `learning.json` rows (split by chapter at build time), its
-  `lock.json` rows. Budget ≤ 30 KB gz each. It loads with its island's stream (the registry's
-  `stream`), and the voyage's current island loads it behind the cabin.
-- The recap and the Course map need other chapters' quiz text: they read a small per-chapter **index**
-  (ids, types, sources) in the voyage chunk, and load a chapter's chunk before they ask its question.
-- `tools/budgets.json` gets the rows; `check:budgets` fails if the entry imports a chapter chunk.
-- This also cuts the Lite JS heap (§10.7): a voyage keeps only the chapters of the islands it visits.
+- The **core** chunk (`course-<id>`, budget 48 KB gz) loads with the voyage: shared files, a per-chapter
+  index (quiz and page ids, types, sections), images, chests, glossary, Trials, and each island's tracker,
+  quests, story and signs. One **part per chapter** (`course-<id>-<chapter>`, budget 28 KB gz each)
+  loads with its island: quizzes, pages, voiced and cited lines, the island's compass targets, beats,
+  scripts and barks, and its puzzles' content.
+- PR #19 adds `IslandStreamContext.courseData(priority)`. **Keelhaven's stream must set it** and wait
+  for Chapter 03's part together with its terrain pack, at the same priority (low for a prefetch), as
+  Port Meridian's and Thousand-Bough's streams do. A failed part fails the stream, which retries through
+  `StreamLifecycle`.
+- **Keelhaven's puzzles go in `PUZZLE_ISLANDS`** (`src/course/puzzles.ts`) as `'keelhaven'`
+  (`two-circuits`, `retake`), with `two-circuits` → `circuit` in `GAME_PUZZLES`, so their content goes into
+  Chapter 03's part.
+- `onCourse` hooks that read a part run again when it arrives; a read outside a hook logs an error.
+  The recap, the Logbook and battles load a part on demand (battle 3 loads Chapter 02's part).
+- Chapter 03's part must stay ≤ 28 KB gz (it is the longest chapter); `check:budgets` gates it. If it
+  doesn't fit, split its pages before raising the budget.
+- This also helps the Lite JS heap (§10.7): a voyage keeps only the parts of the islands it visits.
 
 ### 10.3 Modules
 
@@ -1470,13 +1484,13 @@ Each phase is its own PR, merged before the next starts unless noted. "A" = worl
 
 | Phase | PR | Who | Done when |
 |---|---|---|---|
-| 0 | **This spec**; PLAN §3, §4, §6 and BATTLES §2.1 updated | — | Dan answers O1–O11 |
-| 1 | **Island registry** (D3, §10.1): every streamed island through one registry; island code chunks | A | every gate's numbers within noise; bake hashes unchanged; four scripted tests with empty logs |
-| 2 | **Course pack split** (D3, §10.2): voyage chunk + one chunk per chapter, loaded with the island | B | `check:budgets` with the new rows; the recap and the Course map work across chapters; Lite heap measured |
+| 0 | **This spec**; PLAN §3, §4, §6 and BATTLES §2.1 updated | — | done: Dan decided O1–O11 on 2026-10-24 |
+| 1 | **Island registry** (D3, §10.1): every streamed island through one registry; island code chunks. **It lands first**, before PR #19 and before any Keelhaven code | A | every gate's numbers within noise; bake hashes unchanged; four scripted tests with empty logs |
+| 2 | **Course pack per chapter: PR #19** (D3, §10.2), rebased on phase 1: a core chunk plus one part per chapter; `IslandStreamContext.courseData` | B | PR #19's gates; its `courseData` wiring is in the registry entry, so a new island gets it from its registry row; Lite heap measured |
 | 3 | **Shared prerequisites:** `paliWall` (O5), the ocean floor tile registry (O6), the shared mist material, the shared wreck builder, coast-foam exposure, the per-island bake light radius, the `passageMood` blend, the chart pack (O7) | A | other islands unchanged (screenshot diff); census unchanged; Thousand-Bough gets its shallows |
-| 4 | **Look prototype** (look study §5): `layout.ts`, `height.ts`, the bake, `devpages/terrain.html` views `sea-700`, `sea-400`, `cove`, `aerial` | A | the look study's measurable checks pass on Lite and High (flutes, skyline, green share, sea-cliff band, pops, Lite terrain budget) |
-| 5 | **The island:** water, vegetation, town, shipyard, locks, gatehouse, wrecks, silhouette, stream, arrival, registry entry, sea lanes; `contract.ts` and the stub first (step 0, half a day, merged first so B can start) | A | §11's A tests; the whole-frame gates and the island share; census; `kh-ring` under the perf target |
-| 6 | **Content:** Chapter 03 snapshot (`node tools/course/sync.mjs --chapters=00,01,02,03`, `npm run course:refs -- 03`), the chapter file, quests, puzzles, `learning.json` rows, labels, market keeper, the `circuit` mechanic and its UI, hotspot rectangles in the Hotspot Editor | B (starts after phase 5's step 0, on the stub) | `content:check`, `course:drift`, B's tests |
+| 4 | **Look prototype** (look study §5): `layout.ts`, `height.ts`, the bake, `devpages/terrain.html` views `sea-700`, `sea-400`, `cove`, `aerial`; the time of day (flute contrast at 9:30, 9:45, 10:00; §2.4) | A | the look study's measurable checks pass on Lite and High (flutes, skyline, green share, sea-cliff band, pops, Lite terrain budget); the time is chosen |
+| 5 | **The island:** water, vegetation, town, shipyard, locks, gatehouse, wrecks, silhouette, stream (it sets `courseData` for Chapter 03's part, §10.2), arrival, registry entry, sea lanes; `contract.ts` and the stub first (step 0, half a day, merged first so B can start) | A | §11's A tests; the whole-frame gates and the island share; census; `kh-ring` under the perf target |
+| 6 | **Content:** Chapter 03 snapshot (`node tools/course/sync.mjs --chapters=00,01,02,03`, `npm run course:refs -- 03`), the chapter file, quests, puzzles (in `PUZZLE_ISLANDS` as `'keelhaven'`, so they go into Chapter 03's part), `learning.json` rows, labels, market keeper, the `circuit` mechanic and its UI, hotspot rectangles in the Hotspot Editor | B (starts after phase 5's step 0, on the stub) | `content:check`, `course:drift`, B's tests |
 | 7 | **Cast and voice:** NPC specs, palettes, props; auditions, Dan's picks, generation, lipsync | B | every line voiced; no shared voice |
 | 8 | **Audio:** Salty Sway wired, new beds and SFX, emitters | B | `check:audio`; `ASSETS.md`, `ART_PROVENANCE.md` rows |
 | 9 | **Battle 3** (§9.1): N2.1–N2.3, the battle data and plan | B | `battletest` with Keelhaven resident ≤ 140 programs |
@@ -1544,16 +1558,16 @@ As Thousand-Bough §12.3. Any "no" sends the island back.
 | Risk | Effect | Mitigation |
 |---|---|---|
 | **The Lite JS heap** (97 of 103 MB) | a Keelhaven stop goes over | phases 1–2 first (island and chapter chunks); measure; O8 |
-| **The course chunk** (78.8 of 80 KB) | Chapter 03's data can't fit | phase 2 (D3) before any content |
+| **The course pack** | Chapter 03's part over 28 KB gz | PR #19's per-chapter parts (phase 2); split pages before raising the budget |
 | **Pali walls on Lite and Low** (no geomorph, point-sampled normals) | walls pop at 40 and 170 m; speckle far away | big flutes only in geometry (≥ 56 m); the look study's pop metric; prefiltered coarse levels as a later opt-in |
 | **The terrain fragment cost** (walls fill the cove view) | Low over its GPU gate (Thousand-Bough already 1.12 of 1.25 ms) | ≤ 15 % more ALU; no new texture; measure the cove view on Low in phase 4 |
 | **Shader programs** (Thousand-Bough 133 on Ultra) | no room for new looks | ≤ 2 new; every material shared; census per phase |
-| **A high sun flattens the flutes** (D2) | the walls read flat from the sea | 10.0 h (59°) and a bearing that grazes the arrival wall (§2.4); H1 and H10 judge it; O4 |
+| **A high sun flattens the flutes** (D2; they vanish at about 10:24) | the walls read flat from the sea | 10:00 at the latest; the prototype picks between 9:30 and 10:00 by measured contrast; a bearing that grazes the arrival wall (§2.4); H1 and H10 judge it |
 | **Two resident islands** at the passage | memory and programs peak | Keelhaven's playable area > 1370 m from Thousand-Bough's footprint; the census with both resident |
 | **Ten app cards** in a 75-minute chapter | fatigue; skipped cards | every card has Later; steps on cards, not in voice; the in-game decisions stand alone (O11) |
 | **GitHub state changes for good** (step 6) | a second play can't redo it | A3.7 and A3.8 accept "already done"; nothing waits for GitHub |
 | **Actions off on new forks** | no check runs | A3.8's option, Arlo's line, card A0.6 |
-| **Stale screenshots** (six) | wrong targets after a retake | §1.4's rule; drift flags; O9 |
+| **Stale screenshots** (six) | wrong targets after a retake | §1.4's rule; drift flags; reported upstream (O9) |
 | **Course drift** after `64bc3d0` | stale names or steps | anchors and hashes in the snapshot; the weekly refresh; `course:drift` |
 | **Voice casting** | caricature accents; credits | three auditions each; natural direction; Dan approves |
 | **The "Next morning" cut** (O3) | a sky jump that reads as a bug | a clear fade with Juno's line after the battle; reduced-motion cross-fade |

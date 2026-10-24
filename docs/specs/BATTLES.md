@@ -108,7 +108,7 @@ Same loop and rewards as §2.0b, one Chapter 02 habit per wave, every sentence v
   03 §Inner Loop / §Outer Loop (`inner-loop-develop-and-validate-on-your-machine`,
   `outer-loop-move-the-work-through-github`), and 03 §3 *Ask for a Second Opinion*
   (`3-ask-for-a-second-opinion`: `/rubber-duck`, "a constructive critic").
-- **Placement** (docs/specs/ISLAND-03-keelhaven.md §9; recommended, open item O2 for Dan): battle 3 on
+- **Placement** (docs/specs/ISLAND-03-keelhaven.md §9; Dan's decision O2, 2026-10-24): battle 3 on
   the Thousand-Bough → Keelhaven passage uses this frame with Chapter 02's waves (§2.0c); the Chapter 03
   questions and these raiders recap Chapter 03 on the Keelhaven → Guildcrest passage (battle 4).
 - **The reward never punishes.** A right answer lets you **pick**: a **double-shotted volley** (the next
