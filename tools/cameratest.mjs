@@ -15,9 +15,12 @@
 // Characters, birds, glow, water, and sky are skipped; terrain is tested through its height field.
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
-// Sail spots sweep the ship's rig over the water round each coast. Exits 1 on a page error or on
-// more bad frames than --max-bad (default 50: the count stands at 24-49 across seeds, so this
-// catches a real regression without failing on sample spread; lower it as colliders tighten).
+// Sail spots sweep the ship's rig over the water round each coast. Before each cluster, it waits
+// until the game draws the cluster's island, not its silhouette (issue 310). An island swaps by the
+// game camera's distance, and after a teleport that camera needs a few seconds to get there.
+// Exits 1 on a page error, on an island that doesn't draw in 20 s (notShown), or on more bad
+// frames than --max-bad (default 50: the count stands at 24-49 across seeds, so this catches a
+// real regression without failing on sample spread; lower it as colliders tighten).
 // Needs a dev server. A no-HMR one keeps edits elsewhere from reloading the page mid-run:
 //   npx vite --config tools/vite.nohmr.config.mjs --port 5322
 // node tools/cameratest.mjs [--base=http://127.0.0.1:5322] [--samples=160] [--sail=30] (sail spots)
@@ -740,7 +743,13 @@ const clusters = await page.evaluate(async (cfg) => {
       return rep;
     },
   };
-  return clusters.map((c) => ({ x: c.x, z: c.z, sail: c.sail, n: c.spots.length }));
+  return clusters.map((c) => ({
+    x: c.x,
+    z: c.z,
+    sail: c.sail,
+    n: c.spots.length,
+    island: c.spots[0].island,
+  }));
 }, cfg);
 
 const total = {
@@ -754,6 +763,13 @@ const total = {
   reach: 0,
   counts: {},
   hits: [],
+  notShown: 0,
+};
+// Each island's terrain and silhouette (the scene's object names).
+const SHOWN = {
+  anchorage: ['test-cove-terrain', 'anchorage-silhouette'],
+  meridian: ['port-meridian-terrain', 'meridian-silhouette'],
+  'thousand-bough': ['thousand-bough-terrain', 'thousand-bough-silhouette'],
 };
 for (const [i, c] of clusters.entries()) {
   if (near && Math.hypot(c.x - near[0], c.z - near[1]) > near[2]) continue;
@@ -761,6 +777,32 @@ for (const [i, c] of clusters.entries()) {
     // Stand at the cluster so the vegetation round it is drawn (plants are culled by distance).
     await page.evaluate((c) => window.__dev.bench.teleport(c.x, c.z, 0), c);
     await page.waitForTimeout(250);
+  }
+  // Test what the game draws when you stand there: the island, not its silhouette. Each island
+  // swaps by the game camera's distance. After a teleport, that camera moves across from the last
+  // island in a few seconds (from Thousand-Bough to Anchorage, 14 clusters had the silhouette).
+  const parts = SHOWN[c.island];
+  const shown = await page
+    .waitForFunction(
+      ([terrain, silhouette]) => {
+        const scene = window.__dev.scene;
+        const drawn = (o) => {
+          for (let x = o; x; x = x.parent) if (!x.visible) return false;
+          return !!o;
+        };
+        const s = scene.getObjectByName(silhouette);
+        return drawn(scene.getObjectByName(terrain)) && !(s && drawn(s));
+      },
+      parts,
+      { timeout: 20000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!shown) {
+    total.notShown++;
+    process.stderr.write(`  cluster ${i} (${c.island}): its island didn't show in 20 s\n`);
   }
   const r = await page.evaluate((i) => window.__camtest.run(i), i);
   for (const k of ['spots', 'skipped', 'tight', 'frames', 'badFrames', 'foliage', 'occluded', 'reach'])
@@ -852,6 +894,7 @@ console.log(
     spots: total.spots,
     skipped: total.skipped,
     tight: total.tight,
+    notShown: total.notShown,
     frames: total.frames,
     badFrames: total.badFrames,
     hits: total.counts,
@@ -865,4 +908,4 @@ console.log(
   }),
 );
 await browser.close();
-process.exit(total.badFrames > Number(opt['max-bad'] ?? 50) || errors.length ? 1 : 0);
+process.exit(total.badFrames > Number(opt['max-bad'] ?? 50) || total.notShown || errors.length ? 1 : 0);
