@@ -335,6 +335,14 @@ const ARRIVAL_SKIP_AFTER = 0.6;
 /** Seconds of flight between the views warmed up while loading. */
 const ARRIVAL_WARM_STEP = 0.5;
 
+/** Wingman's tacking tip, the first time in a voyage you're in irons near a harbour (any course). */
+const TACK_TIP_ID = 'tip:tacking';
+const TACK_TIP =
+  'We can’t sail straight into the wind, Captain. Tack instead: steer about 45° off it with A or D till ' +
+  'the sails fill, then turn through the wind and zig-zag up to where you’re going.';
+/** How close (m) to a berth counts as near its harbour, for the tacking tip. */
+const HARBOUR_REACH = 450;
+
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
 const DOCK_RANGE = 38;
@@ -1061,6 +1069,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     },
     say: (ids) => dialogue.play(ids),
     frame: (shot) => cam.frame(shot),
+    seaPath: (fx, fz, tx, tz) => wayfinder.sea.path(fx, fz, tx, tz),
     dockHome: () =>
       new Promise<void>((resolve) => {
         afterDisembark = resolve;
@@ -1072,15 +1081,24 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   };
   let rheaAboard: Character | null = null;
   /** Rhea stands by the wheel for the Three Helms (and steps back onto the arm when you land). */
+  /**
+   * Rhea's figure by the wheel, made once: with Meridian's cast when its town streams in (so its warm
+   * builds her, not the moment you board for the Helms), or at the latest when she comes aboard.
+   */
+  const makeRheaAboard = (): Character => {
+    if (rheaAboard) return rheaAboard;
+    rheaAboard = o.characters.create({ body: 'rhea', tier });
+    const a = ship.anchors.helm;
+    // Forward of the wheel on the starboard side, turned to face the captain.
+    rheaAboard.group.position.set(a.x + 1.35, a.y - 0.18, a.z + 1.2);
+    rheaAboard.group.rotation.y = Math.atan2(-1.35, -1.2);
+    rheaAboard.play('idle');
+    return rheaAboard;
+  };
+  let rheaIsAboard = false;
   const setRheaAboard = (on: boolean) => {
-    if (on && !rheaAboard) {
-      rheaAboard = o.characters.create({ body: 'rhea', tier });
-      const a = ship.anchors.helm;
-      // Forward of the wheel on the starboard side, turned to face the captain.
-      rheaAboard.group.position.set(a.x + 1.35, a.y - 0.18, a.z + 1.2);
-      rheaAboard.group.rotation.y = Math.atan2(-1.35, -1.2);
-      rheaAboard.play('idle');
-    }
+    rheaIsAboard = on;
+    if (on) makeRheaAboard();
     if (rheaAboard) {
       if (on) ship.group.add(rheaAboard.group);
       else rheaAboard.group.removeFromParent();
@@ -1606,12 +1624,20 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ...chests.slice(chestsBefore).map((c) => c.chest.group),
       ...meridianSites.slice(sitesBefore).map((s) => s.group),
     ];
+    // Rhea's figure for the Helms joins the warm aboard the ship, hidden, then steps off until needed.
+    const aboardFigure = puzzleOn('three-helms') && !rheaAboard ? makeRheaAboard().group : null;
+    if (aboardFigure) {
+      aboardFigure.visible = false;
+      ship.group.add(aboardFigure);
+      roots.push(aboardFigure);
+    }
     for (const n of meridianNpcs.list) cove.detail.meridian.add(n.character.group);
     for (const s of meridianSites) cove.detail.meridian.add(s.group);
     return {
       roots,
       reveal() {
         for (const r of roots) r.visible = true;
+        if (aboardFigure && !rheaIsAboard) aboardFigure.removeFromParent();
         // Rhea on the quay stays hidden while she's aboard (setRheaAboard).
         const onArm = meridianNpcs?.list.find((n) => n.spec.id === 'rhea');
         if (onArm && rheaAboard?.group.parent) onArm.character.group.visible = false;
@@ -2230,6 +2256,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     return island === 'meridian' && meridianReachable() ? ISLANDS.meridian : ISLANDS.anchorage;
   }
   const meridianReachable = () => openIslands().some((b) => b.id === 'meridian');
+  const nearHarbour = () =>
+    openIslands().some((b) => Math.hypot(dyn.pose.x - b.mooring.x, dyn.pose.z - b.mooring.z) < HARBOUR_REACH);
   const tbReachable = () => openIslands().some((b) => b.id === 'thousand-bough');
 
   function dock(): void {
@@ -3086,10 +3114,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           ironsFor = stalled ? ironsFor + dt : 0;
           if (ironsFor > 5 && !ironsNudged && !dialogue.active) {
             ironsNudged = true;
-            hud.toast(
-              'We’re head to wind, so the sails can’t fill. Steer with A or D until the arrow’s off the bow.',
-              6,
-            );
+            // Near a harbour, the first time in a voyage: Wingman says how to tack (E skips him).
+            if (nearHarbour() && firstShowing(learn?.progress ?? null, labelsShown, TACK_TIP_ID))
+              void dialogue.say('Wingman', TACK_TIP);
+            else
+              hud.toast(
+                'We’re head to wind, so the sails can’t fill. Steer with A or D until the arrow’s off the bow.',
+                6,
+              );
           }
           tmp.set(pose.x, ship.group.position.y, pose.z);
           cam.update(dt, camera, s, tmp, pose.heading, Math.abs(dyn.forwardSpeed) > 0.5, world, t);
