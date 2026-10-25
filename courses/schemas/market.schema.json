@@ -7,7 +7,7 @@
   "required": [
     "categories",
     "efforts",
-    "autoPrice",
+    "house",
     "maxPrice",
     "sizes",
     "board",
@@ -81,9 +81,42 @@
         }
       }
     },
-    "autoPrice": {
-      "description": "Starfish for Auto (the house special).",
-      "$ref": "#/$defs/starfish"
+    "house": {
+      "description": "The house special: the app's own pick, sold beside the models (Copilot Fusion in the Copilot app course), with its own effort levels. Its first level is its base: right-sized for a quick look and short of a hard job; a higher level overspends on a quick look and is right-sized for a hard job.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["price", "levels"],
+      "properties": {
+        "price": {
+          "description": "Starfish for the house special at its base level.",
+          "$ref": "#/$defs/starfish"
+        },
+        "levels": {
+          "description": "Its effort levels, lowest first (the first is its base). Saved in players' progress: don't rename a level's id.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "price"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "label": {
+                "$ref": "#/$defs/text"
+              },
+              "price": {
+                "description": "Starfish added to the house special's price.",
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
     },
     "maxPrice": {
       "description": "No hire costs more than this (at most 4).",
@@ -141,7 +174,7 @@
       }
     },
     "quotes": {
-      "description": "Course sentences, word for word. The keys the grading and the work order use (cost, effort, hard, noGuarantee, auto, autoAside, autoHidden, retry, noSpecific, vary) must stay.",
+      "description": "Course sentences, word for word. The keys the grading and the work order use (cost, effort, hard, noGuarantee, auto, autoAside, autoLevels, autoMore, retry, noSpecific, vary) must stay.",
       "type": "object",
       "required": [
         "cost",
@@ -150,7 +183,8 @@
         "noGuarantee",
         "auto",
         "autoAside",
-        "autoHidden",
+        "autoLevels",
+        "autoMore",
         "retry",
         "noSpecific",
         "vary"
@@ -200,7 +234,7 @@
       }
     },
     "gilda": {
-      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back), `keep` for a quick look right-sized with a bigger model on its default (or low) effort, `hardAuto` for a hard job done with Auto (a nudge to turn it off and choose a model and more effort), `early` for the counter before the course's model lesson, and `practiced` (hers alone) for the lesson's practice done.",
+      "description": "Gilda's voiced lines (Port Meridian's stall). The grading and the puzzle use every key: `right` is for a right-sized hire with starfish back, `fair` for one at the fair price (nothing back), `keep` for a quick look right-sized with a bigger model on its default (or low) effort, `auto` when you pick the house special, `overAuto` for a quick look with the house special above its first level, `hardAuto` for a hard job right-sized with the house special above its first level, `early` for the counter before the course's model lesson, and `practiced` (hers alone) for the lesson's practice done.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -211,6 +245,7 @@
         "fair",
         "keep",
         "overEffort",
+        "overAuto",
         "short",
         "hardAuto",
         "broke",
@@ -237,6 +272,9 @@
           "$ref": "#/$defs/line"
         },
         "overEffort": {
+          "$ref": "#/$defs/line"
+        },
+        "overAuto": {
           "$ref": "#/$defs/line"
         },
         "short": {
@@ -274,6 +312,7 @@
           "fair",
           "keep",
           "overEffort",
+          "overAuto",
           "short",
           "hardAuto",
           "broke",
@@ -301,6 +340,9 @@
             "$ref": "#/$defs/line"
           },
           "overEffort": {
+            "$ref": "#/$defs/line"
+          },
+          "overAuto": {
             "$ref": "#/$defs/line"
           },
           "short": {
@@ -345,7 +387,7 @@
           "$ref": "#/$defs/text"
         },
         "refund": {
-          "description": "Starfish back for a right-sized hire with a model (Auto's is always its whole price less one: none). Less than the cheapest right-sized model hire for the size (a right-sized job costs at least 1); the game also never refunds a hire's whole price.",
+          "description": "Starfish back for a right-sized hire with a model (the house special's is at most its price less one). Less than the cheapest right-sized model hire for the size (a right-sized job costs at least 1); the game also never refunds a hire's whole price.",
           "type": "integer",
           "minimum": 0
         },

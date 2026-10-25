@@ -1287,10 +1287,15 @@ function checkMarket(
   // than it cost, so a right-sized job costs at least a starfish and a hire never adds starfish (the
   // purse only grows by finding them, and spending can't take it below 0); and every job can be done
   // right-sized with the starfish you find before the market.
-  const hires: Hire[] = [{ auto: true }];
+  m.house.levels.forEach((l, i) => {
+    const prev = m.house.levels[i - 1];
+    if (prev && l.price < prev.price)
+      fail(`house.levels[${i}].price`, `a higher level can't cost less than ${prev.label}`);
+  });
+  const hires: Hire[] = m.house.levels.map((l) => ({ auto: true, level: l.id }));
   for (const c of cats)
     for (const e of EFFORTS) hires.push({ auto: false, category: c, model: c, effort: e });
-  const name = (h: Hire) => (h.auto ? 'Auto' : `${h.category} on ${h.effort}`);
+  const name = (h: Hire) => (h.auto ? `the house special at ${h.level}` : `${h.category} on ${h.effort}`);
   for (const h of hires) {
     const p = priceIn(m, h);
     if (p < 1 || p > m.maxPrice)
@@ -1301,10 +1306,10 @@ function checkMarket(
   const fairHires: { pay: number; back: number }[] = [];
   m.jobs.forEach((j, i) => {
     const job = { size: j.size } as MarketJob;
-    const right = hires.filter((h) => grade(job, h, tiers).outcome === 'right');
+    const right = hires.filter((h) => grade(job, h, tiers, m).outcome === 'right');
     if (!right.length) return fail(`jobs[${i}]`, 'no hire is right-sized for it');
     const least = Math.min(...right.map((h) => priceIn(m, h)));
-    // Auto's refund is its price less one (none): the size's refund is a right-sized model hire's.
+    // The house special's refund is capped at its price less one: the size's refund is a right-sized model hire's.
     const models = right.filter((h) => !h.auto).map((h) => priceIn(m, h));
     if (models.length) cheapest.set(j.size, Math.min(...models));
     const refunds = { quick: m.sizes.quick.refund, hard: m.sizes.hard.refund };

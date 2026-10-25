@@ -105,7 +105,7 @@ export function createModelMarketSigns(o: {
     root.add(s.object);
   });
   const plaque = signs.add(
-    [T('plaque', { price: MARKET.autoPrice }), T('plaqueSub')],
+    [T('plaque', { price: MARKET.house.price }), T('plaqueSub')],
     L.plaque.w,
     L.plaque.h,
     {
