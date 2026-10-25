@@ -20,8 +20,22 @@ import type { QuestState } from './story';
  */
 const ISLAND = 'thousand-bough';
 
-/** The island this quest line belongs to, for the tracker's header (its name is the game's). */
-export let THOUSAND_BOUGH_ISLAND = { name: 'Thousand-Bough Isle', chapter: '', goal: '', next: '' };
+/**
+ * The island this quest line belongs to, for the tracker's header (its name is the game's). `nextSail`
+ * replaces `next` once the island after it is open (src/game/thousand-bough-island.ts).
+ */
+export let THOUSAND_BOUGH_ISLAND: {
+  name: string;
+  chapter: string;
+  goal: string;
+  next: string;
+  nextSail?: string;
+} = {
+  name: 'Thousand-Bough Isle',
+  chapter: '',
+  goal: '',
+  next: '',
+};
 
 /** The island's quests, in story order (the course pack's). */
 export let THOUSAND_BOUGH_QUESTS: readonly QuestDef[] = [];

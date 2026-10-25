@@ -6,7 +6,10 @@ import { createThousandBoughStream } from '../world/islands/thousand-bough/strea
 import { THOUSAND_BOUGH_WAYS } from '../world/islands/thousand-bough/waypoints';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
 import { storyHolds } from './story';
+import { islandOpen } from '../islands/open';
+import { ISLAND_LIST } from '../islands/registry';
 import {
+  THOUSAND_BOUGH_ISLAND,
   thousandBoughCurrent,
   thousandBoughLog,
   thousandBoughOptionalTargets,
@@ -14,6 +17,9 @@ import {
   thousandBoughTracker,
 } from './thousand-bough-quests';
 import { createThousandBoughContent, type ThousandBoughContent } from './thousand-bough-session';
+
+/** The island that opens once Thousand-Bough's Seal is won (none until it's in the registry). */
+const NEXT_ISLAND = ISLAND_LIST.find((e) => e.open?.after?.island === 'thousand-bough') ?? null;
 
 /** Each session's content, for its walk surfaces (made before the content, read once it's there). */
 const own = new WeakMap<IslandContent, ThousandBoughContent>();
@@ -30,7 +36,12 @@ export const THOUSAND_BOUGH_CODE: IslandCode = {
   ways: THOUSAND_BOUGH_WAYS,
   quests: {
     log: thousandBoughLog,
-    tracker: thousandBoughTracker,
+    // The task list points on to the next island once it's open.
+    tracker: (q) => {
+      const t = thousandBoughTracker(q);
+      const sail = THOUSAND_BOUGH_ISLAND.nextSail;
+      return sail && NEXT_ISLAND && islandOpen(NEXT_ISLAND.id) ? { ...t, next: sail } : t;
+    },
     target: thousandBoughTarget,
     current: thousandBoughCurrent,
     optionalTargets: thousandBoughOptionalTargets,

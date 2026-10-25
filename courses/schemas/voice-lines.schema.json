@@ -62,6 +62,10 @@
           "fx": {
             "enum": ["wingman-bright", "wingman-bird"]
           },
+          "pending": {
+            "description": "Written, not voiced yet: the line of an island the game hasn't got yet. tools/voice/generate.ts leaves it out, and only that island's content may play it. Drop it when the line gets its voice and audio.",
+            "const": true
+          },
           "sub": {
             "description": "Whole words to say differently (an SSML <sub>; subtitles keep the word).",
             "type": "object",

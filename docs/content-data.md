@@ -6,7 +6,8 @@ TypeScript, and the weekly refresh workflows can update it and check it. Each pa
 build: a change reaches players with the next deploy.
 
 There are two packs: `courses/copilot-app/` (GitHub Copilot app for Beginners: Anchorage, Port Meridian
-and Thousand-Bough, voiced) and `courses/copilot-cli/` (GitHub Copilot CLI for Beginners: Anchorage only,
+and Thousand-Bough, voiced, and Keelhaven's Chapter 03 content, written before its island: see
+[Content ahead of its island](#content-ahead-of-its-island)) and `courses/copilot-cli/` (GitHub Copilot CLI for Beginners: Anchorage only,
 Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md).
 
 ## The files
@@ -23,7 +24,7 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 | `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' own version of each (and a goodbye) | You, by hand | `src/content/market.ts` |
 | `models.json` (optional) | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
-| `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
+| `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`); `"pending": true` on a line written before its voice is chosen | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
 | `voice/cast.json` (voiced packs) | Who voices each speaker: the speech service, voice, fallback, prosody and effect (a line's own fields override its speaker's) | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
 | `public/course/**` | The course snapshot: READMEs, `GLOSSARY.md`, `LICENSE`, and the images the chapters show | `npm run course:sync` | `src/learn/course/source.ts` |
 | `public/voice/**` | Each line's audio (`.webm`, `.m4a`), word timings (`.json`), `manifest.json` and `lipsync.json`; in a text-only pack, each line's caption and reading time (`.json`) | `tools/voice/generate.ts`, `npm run voice:lipsync` | `src/audio`, `src/game/dialogue.ts` |
@@ -146,7 +147,12 @@ so VS Code and other editors check your edit as you type and show each field's d
   first welcome), `trialStarted` (Nell waits at the pier head), `sealed`, `gangwayDown`, and the events
   `landed` (a session starts) and `setSail` (you take the helm); Port Meridian `firstVisit` and `sealed`;
   Thousand-Bough `firstVisit`, `gondolaOpen`, `secondBridge`, `practiceStarted`, `basketOpen`,
-  `skipCrownView` and `sealed`. Your quest ids are yours: the game never names one.
+  `skipCrownView` and `sealed`. Keelhaven (in build) will ask for `firstVisit`, `dockKitted`,
+  `searchHullDown`, `prHullsDown` and `sealed` (docs/specs/ISLAND-03-keelhaven.md, § Wiring contract).
+  Your quest ids are yours: the game never names one.
+- **What's next** (`tracker.next`): the tracker's line once every task's done. `tracker.nextSail`
+  (Anchorage and Thousand-Bough) replaces it once the next island is open: the island whose registry
+  entry opens after this island's Seal.
 
 ### `puzzles/<name>.json`
 
@@ -156,6 +162,17 @@ so VS Code and other editors check your edit as you type and show each field's d
   (`workspaces`), **procedure** (`crane`), **checklist** (`gear-rack`, `practice-session`), **budget**
   (the Copilot-only `market`; its economy is `market.json`) and **ceremony** (`palette`, `bard`,
   `christening`). A pack has a file for each; the schema is `courses/schemas/puzzle-<mechanic>.schema.json`.
+  Keelhaven's puzzles come with its island: **circuit** (`drydock-ring`, `lock-flight`) and
+  **ceremony** (`retake`).
+- **A circuit** (`drydock-ring.json`, `lock-flight.json`) is a loop the player walks station by
+  station. `places` binds your place ids to the game's (`acts`: the ring's `post`, `stack`, `slate`,
+  `caisson`, `lookout`; the flight's `ledger`, `bell`, `slate`, `gate1`, `petition`, `lamps`, `note`,
+  `redLamp`, `barge`, `gate2`, `seaGate`; src/game/puzzles/circuit/places.ts), each once. `laps` (one
+  or two) each run while their `quest` is at `step`; the lap's end sets `solved` and plays the
+  island's `close` script. A station has a `kind` (`choose`, `watch`, `sound`, `seal`, `tiles`,
+  `gate`), the place it's `at`, and the section it teaches (`cite`, a key of `cites`). Every station
+  with options has a right one, and every wrong option has its `reason`, the place it goes back to
+  (`backTo`) and its `cite`; a claim that doesn't stick (`tiles`) has its `reason` and `cite` too.
 - **`text`**: the puzzle's words by key (labels, readouts, signs, the overlay, Wingman's hints).
   `{name}` is a value the game fills in (`Mark {from} → mark {to}`); keep each key's `{names}`. A key the
   game asks for and the file hasn't got stops the puzzle with an error, so don't remove keys.
@@ -277,6 +294,27 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Text**: in `header` and `pins`, `{num}` is the chapter's number ("01") and `{title}` its title in the
   course. There are exactly two pins: the chapter's README (`"link": "chapter"`) and the course's home
   (`"link": "home"`).
+
+## Content ahead of its island
+
+A course can write an island's content before the game has the island (it isn't in the registry
+yet: its world is in build, docs/adding-an-island.md). Keelhaven's Chapter 03 content is written so.
+
+- **The game leaves it out** until the island is in the registry (`withoutIslandsAhead`,
+  src/course/split.ts, when a voyage loads the pack): the island's chapter (its core and its part),
+  its quests, the puzzles that play in them, and their app tasks, objectives and reflection. Nothing a
+  player sees or counts changes: the Logbook, the Course map, the certificate and the recap stay as
+  they were. The build still makes the chapter's part, so `check:budgets` measures it, and a puzzle
+  that plays in one of its quests goes in that part.
+- **The content check holds it to everything but the game's side of the contract**: its NPCs (beats
+  and barks), the names its story answers and the signs it gives, its puzzles' names and steps, a market
+  stall for its keeper, and audio. Those come with the island's wiring step. What the content means is
+  still checked: quests and steps, scripts, pages, quizzes, images, citations, app tasks, objectives,
+  and every circuit's bindings.
+- **Its voice lines are `"pending": true`**: written, with a speaker, but not voiced yet. They need no
+  voice in `voice/cast.json` and no audio, `tools/voice/generate.ts` leaves them out (the weekly refresh
+  too), and only content ahead of its island may play one. When the voices are chosen, give each
+  speaker their cast entry, drop `pending`, and generate the audio.
 
 ## Voiced lines: change the audio too
 

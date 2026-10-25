@@ -2,7 +2,8 @@ import packs from 'virtual:course-packs';
 import { COURSE, courseMeta, type CourseMeta } from './catalog';
 import { addCoursePart, hasActiveCourse, coursePack, setActiveCourse } from './active';
 import { assemblePack, type CoursePack, type PackFiles } from './pack';
-import { islandChapter, mergePackPart } from './split';
+import { isIslandId } from '../islands/registry';
+import { islandChapter, mergePackPart, withoutIslandsAhead } from './split';
 
 /**
  * Loads a course pack in the browser (docs/specs/COURSE-PACKS.md §2): every JSON file of
@@ -52,7 +53,9 @@ function loadCore(id: string): Promise<CourseState> {
     const load = packs[id];
     p =
       meta && load
-        ? load().then(({ core, parts }) => {
+        ? load().then((split) => {
+            // Content the course wrote ahead of an island the game hasn't got yet stays out.
+            const { core, parts } = withoutIslandsAhead(meta, split, isIslandId);
             const s: CourseState = {
               meta,
               files: core,

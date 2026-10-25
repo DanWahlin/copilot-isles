@@ -59,6 +59,13 @@ While the island's world is still being built (before its package can run in the
 its terrain regions in `ISLANDS_IN_BUILD` (an `IslandInBuild` in `src/islands/<id>.ts`), so the dev
 terrain page draws its bake with its looks. Keelhaven is there now.
 
+The course pack can hold the island's content before its package is done: its chapter, its quests,
+its puzzles, its app tasks and its voice lines (`"pending": true`). The game leaves that content out
+until the island is in the registry, and the content check holds it to everything but the game's side
+of the contract ([content-data.md](content-data.md), "Content ahead of its island"). Keelhaven's
+Chapter 03 content is written so: its wiring contract is in
+[ISLAND-03-keelhaven.md](specs/ISLAND-03-keelhaven.md#wiring-contract).
+
 Then, when the package is done, add the **one registry line** in `src/islands/registry.ts` (and take
 the island out of `ISLANDS_IN_BUILD`):
 

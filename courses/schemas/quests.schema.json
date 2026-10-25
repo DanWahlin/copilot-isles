@@ -33,7 +33,7 @@
           "$ref": "#/$defs/text"
         },
         "nextSail": {
-          "description": "Anchorage: what's next once the next island is open (it replaces next).",
+          "description": "Anchorage and Thousand-Bough: what's next once the next island is open (it replaces next).",
           "$ref": "#/$defs/text"
         }
       }

@@ -226,8 +226,10 @@ Step 1 left puzzle content where it was; this table was the plan for step 2. Wha
 
 Mechanics that emerge: **classify** (crates, letters, flags), **choose the tool** (first words, helms),
 **route** (sluice, channels), **match** (workspaces), **procedure with dry run** (crane), **checklist**
-(gear, practice terminal), **budget trade-off** (market), **ceremony** (christening, palette). A puzzle's
-JSON names its mechanic, so a second course can reuse the site with other content.
+(gear, practice terminal), **budget trade-off** (market), **ceremony** (christening, palette), and
+Keelhaven's **circuit** (the Drydock Ring and the Lock Flight: stations with lamps, a wrong pick goes
+back with its reason). A puzzle's JSON names its mechanic, so a second course can reuse the site with
+other content.
 
 ## 5. Voice per course
 

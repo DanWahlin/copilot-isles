@@ -20,6 +20,8 @@ Who voices each speaker is the pack's `voice/cast.json`: the speech service (`tt
 `fx`. A line in `voice/lines.json` holds its id, speaker and text, and anything that's its own (a
 `prosody`, a `sub`); a field on the line overrides its speaker's. To recast a character, change its
 entry in `cast.json` and make its lines again (the cache key includes the voice, so they all change).
+A line with `"pending": true` is written but not voiced yet (an island in build, like Keelhaven): it
+needs no cast entry, and `generate.ts` and its `--check` leave it out until you drop the flag.
 
 `generate.ts --check` makes nothing: it checks that every line, resolved against the cast, still
 matches the audio in `manifest.json` (its text, speaker and cache hash), and `--check --list-stale`
