@@ -5,83 +5,83 @@
   "words": [
     {
       "word": "Listen",
-      "start": 0.052625,
-      "end": 0.421041
+      "start": 0,
+      "end": 0.187
     },
     {
       "word": "to",
-      "start": 0.421041,
-      "end": 0.565791
+      "start": 0.187,
+      "end": 0.293
     },
     {
       "word": "my",
-      "start": 0.565791,
-      "end": 0.815791
+      "start": 0.293,
+      "end": 0.48
     },
     {
       "word": "take",
-      "start": 0.815791,
-      "end": 2.276333
+      "start": 0.48,
+      "end": 1.45
     },
     {
       "word": "One",
-      "start": 2.276333,
-      "end": 2.578958
+      "start": 1.45,
+      "end": 1.888
     },
     {
       "word": "note",
-      "start": 2.578958,
-      "end": 2.934208
+      "start": 1.888,
+      "end": 2.12
     },
     {
       "word": "rings",
-      "start": 2.934208,
-      "end": 3.328958
+      "start": 2.12,
+      "end": 2.373
     },
     {
       "word": "wrong",
-      "start": 3.328958,
-      "end": 4.802625
+      "start": 2.373,
+      "end": 2.912
     },
     {
       "word": "Find",
-      "start": 4.802625,
-      "end": 5.184208
+      "start": 2.912,
+      "end": 3.4
     },
     {
       "word": "the",
-      "start": 5.184208,
-      "end": 5.289458
+      "start": 3.4,
+      "end": 3.58
     },
     {
       "word": "bar",
-      "start": 5.289458,
-      "end": 5.789458
+      "start": 3.58,
+      "end": 3.86
     },
     {
       "word": "and",
-      "start": 5.789458,
-      "end": 6.14475
+      "start": 3.86,
+      "end": 3.96
     },
     {
       "word": "I'll",
-      "start": 6.14475,
-      "end": 6.315791
+      "start": 3.96,
+      "end": 4.112
     },
     {
       "word": "play",
-      "start": 6.315791,
-      "end": 6.631583
+      "start": 4.112,
+      "end": 4.293
     },
     {
       "word": "it",
-      "start": 6.631583,
-      "end": 6.697375
+      "start": 4.293,
+      "end": 4.453
     },
     {
       "word": "again",
-      "start": 6.697375,
-      "end": 6.947375
+      "start": 4.453,
+      "end": 4.703
     }
   ]
 }

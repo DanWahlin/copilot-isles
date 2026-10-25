@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "I’m",
-      "start": 0.052625,
-      "end": 0.263166
+      "start": 0,
+      "end": 0.107
     },
     {
       "word": "still",
-      "start": 0.263166,
-      "end": 0.578958
+      "start": 0.107,
+      "end": 0.286
     },
     {
       "word": "tuning",
-      "start": 0.578958,
-      "end": 1.052625
+      "start": 0.286,
+      "end": 0.613
     },
     {
       "word": "up",
-      "start": 1.052625,
-      "end": 1.473666
+      "start": 0.613,
+      "end": 0.945
     },
     {
       "word": "Captain",
-      "start": 1.473666,
-      "end": 3.039458
+      "start": 0.945,
+      "end": 1.328
     },
     {
       "word": "Come",
-      "start": 3.039458,
-      "end": 3.289458
+      "start": 1.328,
+      "end": 1.888
     },
     {
       "word": "back",
-      "start": 3.289458,
-      "end": 3.64475
+      "start": 1.888,
+      "end": 2.128
     },
     {
       "word": "once",
-      "start": 3.64475,
-      "end": 4.013166
+      "start": 2.128,
+      "end": 2.36
     },
     {
       "word": "Mina’s",
-      "start": 4.013166,
-      "end": 4.5
+      "start": 2.36,
+      "end": 2.667
     },
     {
       "word": "shown",
-      "start": 4.5,
-      "end": 4.842125
+      "start": 2.667,
+      "end": 2.82
     },
     {
       "word": "you",
-      "start": 4.842125,
-      "end": 4.973666
+      "start": 2.82,
+      "end": 2.947
     },
     {
       "word": "round",
-      "start": 4.973666,
-      "end": 5.223666
+      "start": 2.947,
+      "end": 3.197
     }
   ]
 }

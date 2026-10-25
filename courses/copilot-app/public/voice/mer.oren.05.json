@@ -1,7 +1,7 @@
 {
   "id": "mer.oren.05",
   "speaker": "Oren",
-  "text": "For a tour or a quick explanation, keep Auto or your current model, on its default effort. For a hard bug across several files, consider a model suited to complex coding, and more effort.",
+  "text": "For a tour or a quick explanation, use Copilot Fusion at Standard, or your current model on its default effort. For a hard bug across several files, consider a higher Fusion level, or a model suited to complex coding.",
   "words": [
     {
       "word": "For",
@@ -36,142 +36,167 @@
     {
       "word": "explanation",
       "start": 1.180541,
-      "end": 2.125
+      "end": 2.152791
     },
     {
-      "word": "keep",
-      "start": 2.125,
+      "word": "use",
+      "start": 2.152791,
       "end": 2.402791
     },
     {
-      "word": "Auto",
+      "word": "Copilot",
       "start": 2.402791,
-      "end": 2.930541
+      "end": 3.013875
+    },
+    {
+      "word": "Fusion",
+      "start": 3.013875,
+      "end": 3.472208
+    },
+    {
+      "word": "at",
+      "start": 3.472208,
+      "end": 3.638875
+    },
+    {
+      "word": "Standard",
+      "start": 3.638875,
+      "end": 4.402791
     },
     {
       "word": "or",
-      "start": 2.930541,
-      "end": 3.111125
+      "start": 4.402791,
+      "end": 4.583333
     },
     {
       "word": "your",
-      "start": 3.111125,
-      "end": 3.375
+      "start": 4.583333,
+      "end": 4.819458
     },
     {
       "word": "current",
-      "start": 3.375,
-      "end": 3.763875
+      "start": 4.819458,
+      "end": 5.208333
     },
     {
       "word": "model",
-      "start": 3.763875,
-      "end": 4.236125
+      "start": 5.208333,
+      "end": 5.597208
     },
     {
       "word": "on",
-      "start": 4.236125,
-      "end": 4.347208
+      "start": 5.597208,
+      "end": 5.722208
     },
     {
       "word": "its",
-      "start": 4.347208,
-      "end": 4.513875
+      "start": 5.722208,
+      "end": 5.888875
     },
     {
       "word": "default",
-      "start": 4.513875,
-      "end": 4.986125
+      "start": 5.888875,
+      "end": 6.375
     },
     {
       "word": "effort",
-      "start": 4.986125,
-      "end": 6.388875
+      "start": 6.375,
+      "end": 7.75
     },
     {
       "word": "For",
-      "start": 6.388875,
-      "end": 6.569458
+      "start": 7.75,
+      "end": 7.930541
     },
     {
       "word": "a",
-      "start": 6.569458,
-      "end": 6.625
+      "start": 7.930541,
+      "end": 7.986125
     },
     {
       "word": "hard",
-      "start": 6.625,
-      "end": 7.027791
+      "start": 7.986125,
+      "end": 8.402791
     },
     {
       "word": "bug",
-      "start": 7.027791,
-      "end": 7.291666
+      "start": 8.402791,
+      "end": 8.666666
     },
     {
       "word": "across",
-      "start": 7.291666,
-      "end": 7.722208
+      "start": 8.666666,
+      "end": 9.083333
     },
     {
       "word": "several",
-      "start": 7.722208,
-      "end": 8.152791
+      "start": 9.083333,
+      "end": 9.513875
     },
     {
       "word": "files",
-      "start": 8.152791,
-      "end": 8.875
-    },
-    {
-      "word": "consider",
-      "start": 8.875,
-      "end": 9.375
-    },
-    {
-      "word": "a",
-      "start": 9.375,
-      "end": 9.444458
-    },
-    {
-      "word": "model",
-      "start": 9.444458,
-      "end": 9.805541
-    },
-    {
-      "word": "suited",
-      "start": 9.805541,
+      "start": 9.513875,
       "end": 10.222208
     },
     {
-      "word": "to",
+      "word": "consider",
       "start": 10.222208,
-      "end": 10.305541
+      "end": 10.75
+    },
+    {
+      "word": "a",
+      "start": 10.75,
+      "end": 10.819458
+    },
+    {
+      "word": "higher",
+      "start": 10.819458,
+      "end": 11.208333
+    },
+    {
+      "word": "Fusion",
+      "start": 11.208333,
+      "end": 11.666666
+    },
+    {
+      "word": "level",
+      "start": 11.666666,
+      "end": 12.277791
+    },
+    {
+      "word": "or",
+      "start": 12.277791,
+      "end": 12.416666
+    },
+    {
+      "word": "a",
+      "start": 12.416666,
+      "end": 12.486125
+    },
+    {
+      "word": "model",
+      "start": 12.486125,
+      "end": 12.847208
+    },
+    {
+      "word": "suited",
+      "start": 12.847208,
+      "end": 13.236125
+    },
+    {
+      "word": "to",
+      "start": 13.236125,
+      "end": 13.319458
     },
     {
       "word": "complex",
-      "start": 10.305541,
-      "end": 10.805541
+      "start": 13.319458,
+      "end": 13.833333
     },
     {
       "word": "coding",
-      "start": 10.805541,
-      "end": 11.472208
-    },
-    {
-      "word": "and",
-      "start": 11.472208,
-      "end": 11.597208
-    },
-    {
-      "word": "more",
-      "start": 11.597208,
-      "end": 11.875
-    },
-    {
-      "word": "effort",
-      "start": 11.875,
-      "end": 12.125
+      "start": 13.833333,
+      "end": 14.083333
     }
   ]
 }

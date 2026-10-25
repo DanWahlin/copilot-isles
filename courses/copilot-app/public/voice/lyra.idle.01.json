@@ -5,98 +5,98 @@
   "words": [
     {
       "word": "Every",
-      "start": 0.052625,
-      "end": 0.39475
+      "start": 0,
+      "end": 0.366
     },
     {
       "word": "island",
-      "start": 0.39475,
-      "end": 0.868416
+      "start": 0.366,
+      "end": 0.66
     },
     {
       "word": "has",
-      "start": 0.868416,
-      "end": 1.039458
+      "start": 0.66,
+      "end": 0.76
     },
     {
       "word": "a",
-      "start": 1.039458,
-      "end": 1.131583
+      "start": 0.76,
+      "end": 0.864
     },
     {
       "word": "song",
-      "start": 1.131583,
-      "end": 1.736833
+      "start": 0.864,
+      "end": 1.39
     },
     {
       "word": "Captain",
-      "start": 1.736833,
-      "end": 3.315791
+      "start": 1.39,
+      "end": 1.888
     },
     {
       "word": "Come",
-      "start": 3.315791,
-      "end": 3.565791
+      "start": 1.888,
+      "end": 2.784
     },
     {
       "word": "back",
-      "start": 3.565791,
-      "end": 3.907875
+      "start": 2.784,
+      "end": 3.072
     },
     {
       "word": "once",
-      "start": 3.907875,
-      "end": 4.210541
+      "start": 3.072,
+      "end": 3.232
     },
     {
       "word": "your",
-      "start": 4.210541,
-      "end": 4.381583
+      "start": 3.232,
+      "end": 3.408
     },
     {
       "word": "crew’s",
-      "start": 4.381583,
-      "end": 4.736833
+      "start": 3.408,
+      "end": 3.716
     },
     {
       "word": "answered",
-      "start": 4.736833,
-      "end": 5.223666
+      "start": 3.716,
+      "end": 4.04
     },
     {
       "word": "you",
-      "start": 5.223666,
-      "end": 5.697375
+      "start": 4.04,
+      "end": 4.46
     },
     {
       "word": "and",
-      "start": 5.697375,
-      "end": 5.973666
+      "start": 4.46,
+      "end": 4.92
     },
     {
       "word": "I’ll",
-      "start": 5.973666,
-      "end": 6.118416
+      "start": 4.92,
+      "end": 5.072
     },
     {
       "word": "play",
-      "start": 6.118416,
-      "end": 6.421041
+      "start": 5.072,
+      "end": 5.22
     },
     {
       "word": "you",
-      "start": 6.421041,
-      "end": 6.552625
+      "start": 5.22,
+      "end": 5.328
     },
     {
       "word": "this",
-      "start": 6.552625,
-      "end": 6.736833
+      "start": 5.328,
+      "end": 5.56
     },
     {
       "word": "one",
-      "start": 6.736833,
-      "end": 6.986833
+      "start": 5.56,
+      "end": 5.81
     }
   ]
 }

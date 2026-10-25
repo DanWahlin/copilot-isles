@@ -6,47 +6,47 @@
     {
       "word": "Cass",
       "start": 0,
-      "end": 0.48
+      "end": 0.384
     },
     {
       "word": "runs",
-      "start": 0.48,
-      "end": 0.88
+      "start": 0.384,
+      "end": 0.7
     },
     {
       "word": "Drydock",
-      "start": 0.88,
-      "end": 1.54
+      "start": 0.7,
+      "end": 1.2
     },
     {
       "word": "2",
-      "start": 1.54,
-      "end": 2
+      "start": 1.2,
+      "end": 1.616
     },
     {
       "word": "next",
-      "start": 2,
-      "end": 2.413
+      "start": 1.616,
+      "end": 2.067
     },
     {
       "word": "along",
-      "start": 2.413,
-      "end": 3.376
+      "start": 2.067,
+      "end": 2.64
     },
     {
       "word": "Mind",
-      "start": 3.376,
-      "end": 4.12
+      "start": 2.64,
+      "end": 3.32
     },
     {
       "word": "her",
-      "start": 4.12,
-      "end": 4.347
+      "start": 3.32,
+      "end": 3.52
     },
     {
       "word": "slate",
-      "start": 4.347,
-      "end": 4.597
+      "start": 3.52,
+      "end": 3.77
     }
   ]
 }

@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "Fair",
-      "start": 0.052625,
-      "end": 0.381583
+      "start": 0,
+      "end": 0.213
     },
     {
       "word": "winds",
-      "start": 0.381583,
-      "end": 1.065791
+      "start": 0.213,
+      "end": 0.705
     },
     {
       "word": "Captain",
-      "start": 1.065791,
-      "end": 2.64475
+      "start": 0.705,
+      "end": 1.22
     },
     {
       "word": "Meridian’s",
-      "start": 2.64475,
-      "end": 3.263166
+      "start": 1.22,
+      "end": 2.387
     },
     {
       "word": "plaza",
-      "start": 3.263166,
-      "end": 3.85525
+      "start": 2.387,
+      "end": 2.76
     },
     {
       "word": "has",
-      "start": 3.85525,
-      "end": 4.210541
+      "start": 2.76,
+      "end": 2.94
     },
     {
       "word": "the",
-      "start": 4.210541,
-      "end": 4.328958
+      "start": 2.94,
+      "end": 3.168
     },
     {
       "word": "best",
-      "start": 4.328958,
-      "end": 4.64475
+      "start": 3.168,
+      "end": 3.413
     },
     {
       "word": "acoustics",
-      "start": 4.64475,
-      "end": 5.328958
+      "start": 3.413,
+      "end": 3.947
     },
     {
       "word": "in",
-      "start": 5.328958,
-      "end": 5.513166
+      "start": 3.947,
+      "end": 4.02
     },
     {
       "word": "the",
-      "start": 5.513166,
-      "end": 5.684208
+      "start": 4.02,
+      "end": 4.16
     },
     {
       "word": "isles",
-      "start": 5.684208,
-      "end": 5.934208
+      "start": 4.16,
+      "end": 4.41
     }
   ]
 }

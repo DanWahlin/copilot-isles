@@ -1,0 +1,72 @@
+{
+  "id": "tb.lani.market.over.auto",
+  "speaker": "Lani",
+  "text": "A higher Fusion level for a quick look? Standard would have been plenty.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.126
+    },
+    {
+      "word": "higher",
+      "start": 0.126,
+      "end": 0.457
+    },
+    {
+      "word": "Fusion",
+      "start": 0.457,
+      "end": 0.867
+    },
+    {
+      "word": "level",
+      "start": 0.867,
+      "end": 1.24
+    },
+    {
+      "word": "for",
+      "start": 1.24,
+      "end": 1.44
+    },
+    {
+      "word": "a",
+      "start": 1.44,
+      "end": 1.573
+    },
+    {
+      "word": "quick",
+      "start": 1.573,
+      "end": 1.92
+    },
+    {
+      "word": "look",
+      "start": 1.92,
+      "end": 2.516
+    },
+    {
+      "word": "Standard",
+      "start": 2.516,
+      "end": 3.467
+    },
+    {
+      "word": "would",
+      "start": 3.467,
+      "end": 3.616
+    },
+    {
+      "word": "have",
+      "start": 3.616,
+      "end": 3.712
+    },
+    {
+      "word": "been",
+      "start": 3.712,
+      "end": 3.92
+    },
+    {
+      "word": "plenty",
+      "start": 3.92,
+      "end": 4.17
+    }
+  ]
+}

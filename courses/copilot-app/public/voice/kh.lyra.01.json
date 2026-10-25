@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "Captain",
-      "start": 0.052625,
-      "end": 1.631583
+      "start": 0,
+      "end": 0.8
     },
     {
       "word": "A",
-      "start": 1.631583,
-      "end": 1.710541
+      "start": 0.8,
+      "end": 1.004
     },
     {
       "word": "musician",
-      "start": 1.710541,
-      "end": 2.35525
+      "start": 1.004,
+      "end": 1.4
     },
     {
       "word": "doesn't",
-      "start": 2.35525,
-      "end": 2.75
+      "start": 1.4,
+      "end": 1.712
     },
     {
       "word": "keep",
-      "start": 2.75,
-      "end": 3.052625
+      "start": 1.712,
+      "end": 1.86
     },
     {
       "word": "the",
-      "start": 3.052625,
-      "end": 3.171041
+      "start": 1.86,
+      "end": 1.987
     },
     {
       "word": "first",
-      "start": 3.171041,
-      "end": 3.578958
+      "start": 1.987,
+      "end": 2.368
     },
     {
       "word": "take",
-      "start": 3.578958,
-      "end": 3.960541
+      "start": 2.368,
+      "end": 2.592
     },
     {
       "word": "just",
-      "start": 3.960541,
-      "end": 4.460541
+      "start": 2.592,
+      "end": 2.75
     },
     {
       "word": "because",
-      "start": 4.460541,
-      "end": 4.723666
+      "start": 2.75,
+      "end": 2.987
     },
     {
       "word": "it's",
-      "start": 4.723666,
-      "end": 4.89475
+      "start": 2.987,
+      "end": 3.262
     },
     {
       "word": "finished",
-      "start": 4.89475,
-      "end": 5.14475
+      "start": 3.262,
+      "end": 3.512
     }
   ]
 }

@@ -6,57 +6,57 @@
     {
       "word": "Sound",
       "start": 0,
-      "end": 0.528
+      "end": 0.384
     },
     {
       "word": "hull",
-      "start": 0.528,
-      "end": 1.74
+      "start": 0.384,
+      "end": 0.82
     },
     {
       "word": "own",
-      "start": 1.74,
-      "end": 2.256
+      "start": 0.82,
+      "end": 1.168
     },
     {
       "word": "tool",
-      "start": 2.256,
-      "end": 2.747
+      "start": 1.168,
+      "end": 1.427
     },
     {
       "word": "chest",
-      "start": 2.747,
-      "end": 3.648
+      "start": 1.427,
+      "end": 2.016
     },
     {
       "word": "That",
-      "start": 3.648,
-      "end": 4.592
+      "start": 2.016,
+      "end": 2.448
     },
     {
       "word": "dock",
-      "start": 4.592,
-      "end": 5.2
+      "start": 2.448,
+      "end": 2.693
     },
     {
       "word": "is",
-      "start": 5.2,
-      "end": 5.6
+      "start": 2.693,
+      "end": 2.84
     },
     {
       "word": "ready",
-      "start": 5.6,
-      "end": 6.1
+      "start": 2.84,
+      "end": 3.08
     },
     {
       "word": "for",
-      "start": 6.1,
-      "end": 6.512
+      "start": 3.08,
+      "end": 3.28
     },
     {
       "word": "work",
-      "start": 6.512,
-      "end": 6.762
+      "start": 3.28,
+      "end": 3.53
     }
   ]
 }

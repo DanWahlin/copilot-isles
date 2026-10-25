@@ -1,117 +1,117 @@
 {
   "id": "kh.bram.market.auto",
   "speaker": "Bram",
-  "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
+  "text": "Copilot Fusion's on the menu too. Not one model: it picks models and a workflow for each job. It's not Autopilot, mind.",
   "words": [
     {
-      "word": "Auto's",
+      "word": "Copilot",
       "start": 0,
-      "end": 0.587
+      "end": 0.549
     },
     {
-      "word": "on",
-      "start": 0.587,
-      "end": 0.66
-    },
-    {
-      "word": "the",
-      "start": 0.66,
-      "end": 0.8
-    },
-    {
-      "word": "menu",
-      "start": 0.8,
+      "word": "Fusion's",
+      "start": 0.549,
       "end": 1.2
     },
     {
-      "word": "too",
+      "word": "on",
       "start": 1.2,
-      "end": 1.64
+      "end": 1.38
     },
     {
-      "word": "The",
-      "start": 1.64,
-      "end": 2.1
+      "word": "the",
+      "start": 1.38,
+      "end": 1.52
     },
     {
-      "word": "app",
-      "start": 2.1,
-      "end": 2.48
+      "word": "menu",
+      "start": 1.52,
+      "end": 1.94
     },
     {
-      "word": "picks",
-      "start": 2.48,
-      "end": 2.92
+      "word": "too",
+      "start": 1.94,
+      "end": 2.46
     },
     {
-      "word": "a",
-      "start": 2.92,
-      "end": 3.027
+      "word": "Not",
+      "start": 2.46,
+      "end": 2.94
+    },
+    {
+      "word": "one",
+      "start": 2.94,
+      "end": 3.2
     },
     {
       "word": "model",
-      "start": 3.027,
-      "end": 3.44
+      "start": 3.2,
+      "end": 4
+    },
+    {
+      "word": "it",
+      "start": 4,
+      "end": 4.213
+    },
+    {
+      "word": "picks",
+      "start": 4.213,
+      "end": 4.56
+    },
+    {
+      "word": "models",
+      "start": 4.56,
+      "end": 5.1
+    },
+    {
+      "word": "and",
+      "start": 5.1,
+      "end": 5.36
+    },
+    {
+      "word": "a",
+      "start": 5.36,
+      "end": 5.52
+    },
+    {
+      "word": "workflow",
+      "start": 5.52,
+      "end": 6.26
     },
     {
       "word": "for",
-      "start": 3.44,
-      "end": 3.74
+      "start": 6.26,
+      "end": 6.608
     },
     {
-      "word": "you",
-      "start": 3.74,
-      "end": 4.2
+      "word": "each",
+      "start": 6.608,
+      "end": 6.92
     },
     {
-      "word": "and",
-      "start": 4.2,
-      "end": 4.387
-    },
-    {
-      "word": "tells",
-      "start": 4.387,
-      "end": 4.76
-    },
-    {
-      "word": "you",
-      "start": 4.76,
-      "end": 5.013
-    },
-    {
-      "word": "which",
-      "start": 5.013,
-      "end": 5.78
-    },
-    {
-      "word": "and",
-      "start": 5.78,
-      "end": 6.18
-    },
-    {
-      "word": "why",
-      "start": 6.18,
-      "end": 6.8
+      "word": "job",
+      "start": 6.92,
+      "end": 7.627
     },
     {
       "word": "It's",
-      "start": 6.8,
-      "end": 7.42
+      "start": 7.627,
+      "end": 8.28
     },
     {
       "word": "not",
-      "start": 7.42,
-      "end": 7.7
+      "start": 8.28,
+      "end": 8.46
     },
     {
       "word": "Autopilot",
-      "start": 7.7,
-      "end": 8.64
+      "start": 8.46,
+      "end": 9.36
     },
     {
       "word": "mind",
-      "start": 8.64,
-      "end": 8.89
+      "start": 9.36,
+      "end": 9.61
     }
   ]
 }

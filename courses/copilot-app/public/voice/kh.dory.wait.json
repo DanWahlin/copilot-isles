@@ -6,57 +6,57 @@
     {
       "word": "Hester",
       "start": 0,
-      "end": 0.453
+      "end": 0.36
     },
     {
       "word": "first",
-      "start": 0.453,
-      "end": 0.86
+      "start": 0.36,
+      "end": 0.69
     },
     {
       "word": "Captain",
-      "start": 0.86,
-      "end": 1.54
+      "start": 0.69,
+      "end": 1.28
     },
     {
       "word": "She'll",
-      "start": 1.54,
-      "end": 2.208
+      "start": 1.28,
+      "end": 1.888
     },
     {
       "word": "tell",
-      "start": 2.208,
-      "end": 2.42
+      "start": 1.888,
+      "end": 2.1
     },
     {
       "word": "you",
-      "start": 2.42,
-      "end": 2.512
+      "start": 2.1,
+      "end": 2.192
     },
     {
       "word": "what",
-      "start": 2.512,
-      "end": 2.667
+      "start": 2.192,
+      "end": 2.347
     },
     {
       "word": "we're",
-      "start": 2.667,
-      "end": 2.84
+      "start": 2.347,
+      "end": 2.52
     },
     {
       "word": "proving",
-      "start": 2.84,
-      "end": 3.2
+      "start": 2.52,
+      "end": 2.853
     },
     {
       "word": "up",
-      "start": 3.2,
-      "end": 3.424
+      "start": 2.853,
+      "end": 3.008
     },
     {
       "word": "here",
-      "start": 3.424,
-      "end": 3.674
+      "start": 3.008,
+      "end": 3.258
     }
   ]
 }

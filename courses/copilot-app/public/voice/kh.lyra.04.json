@@ -5,68 +5,68 @@
   "words": [
     {
       "word": "That's",
-      "start": 0.052625,
-      "end": 0.328958
+      "start": 0,
+      "end": 0.36
     },
     {
       "word": "the",
-      "start": 0.328958,
-      "end": 0.5
+      "start": 0.36,
+      "end": 0.533
     },
     {
       "word": "outer",
-      "start": 0.5,
-      "end": 0.828958
+      "start": 0.533,
+      "end": 0.864
     },
     {
       "word": "loop",
-      "start": 0.828958,
-      "end": 1.342125
+      "start": 0.864,
+      "end": 1.817
     },
     {
       "word": "issues",
-      "start": 1.342125,
-      "end": 2
+      "start": 1.817,
+      "end": 2.2
     },
     {
       "word": "and",
-      "start": 2,
-      "end": 2.171041
+      "start": 2.2,
+      "end": 2.368
     },
     {
       "word": "pull",
-      "start": 2.171041,
-      "end": 2.434208
+      "start": 2.368,
+      "end": 2.631
     },
     {
       "word": "requests",
-      "start": 2.434208,
-      "end": 3.10525
+      "start": 2.631,
+      "end": 3.264
     },
     {
       "word": "move",
-      "start": 3.10525,
-      "end": 3.368416
+      "start": 3.264,
+      "end": 3.592
     },
     {
       "word": "validated",
-      "start": 3.368416,
-      "end": 4.065791
+      "start": 3.592,
+      "end": 4.304
     },
     {
       "word": "work",
-      "start": 4.065791,
-      "end": 4.460541
+      "start": 4.304,
+      "end": 4.58
     },
     {
       "word": "through",
-      "start": 4.460541,
-      "end": 4.671041
+      "start": 4.58,
+      "end": 4.8
     },
     {
       "word": "GitHub",
-      "start": 4.671041,
-      "end": 4.921041
+      "start": 4.8,
+      "end": 5.05
     }
   ]
 }

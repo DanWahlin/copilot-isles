@@ -40,10 +40,8 @@
       "voice": "XEQBC9sleaE3f5ff82UR"
     },
     "Lyra": {
-      "voice": "en-GB-LibbyNeural",
-      "prosody": {
-        "rate": "-5%"
-      }
+      "tts": "elevenlabs",
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     "Tobias": {
       "voice": "en-GB-ThomasNeural",
@@ -139,7 +137,7 @@
     },
     "Dory": {
       "tts": "elevenlabs",
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     "Cass": {
       "tts": "elevenlabs",

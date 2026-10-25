@@ -1,142 +1,92 @@
 {
   "id": "tb.lani.market.hard.auto",
   "speaker": "Lani",
-  "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort.",
+  "text": "Right-sized! A higher Fusion level suits a hard one like this: more capable models and deeper reasoning.",
   "words": [
     {
-      "word": "Auto",
+      "word": "Right-sized",
       "start": 0,
-      "end": 0.387
+      "end": 1.34
     },
     {
-      "word": "chose",
-      "start": 0.387,
-      "end": 0.76
+      "word": "A",
+      "start": 1.34,
+      "end": 1.497
     },
     {
-      "word": "a",
-      "start": 0.76,
-      "end": 0.867
+      "word": "higher",
+      "start": 1.497,
+      "end": 1.92
     },
     {
-      "word": "model",
-      "start": 0.867,
-      "end": 1.28
+      "word": "Fusion",
+      "start": 1.92,
+      "end": 2.48
     },
     {
-      "word": "and",
-      "start": 1.28,
-      "end": 1.564
+      "word": "level",
+      "start": 2.48,
+      "end": 3
     },
     {
-      "word": "finished",
-      "start": 1.564,
-      "end": 1.94
-    },
-    {
-      "word": "the",
-      "start": 1.94,
-      "end": 2.1
-    },
-    {
-      "word": "job",
-      "start": 2.1,
-      "end": 2.933
-    },
-    {
-      "word": "On",
-      "start": 2.933,
+      "word": "suits",
+      "start": 3,
       "end": 3.72
     },
     {
       "word": "a",
       "start": 3.72,
-      "end": 3.824
+      "end": 3.936
     },
     {
       "word": "hard",
-      "start": 3.824,
-      "end": 4.12
+      "start": 3.936,
+      "end": 4.38
     },
     {
       "word": "one",
-      "start": 4.12,
-      "end": 4.288
+      "start": 4.38,
+      "end": 4.624
     },
     {
       "word": "like",
-      "start": 4.288,
-      "end": 4.56
+      "start": 4.624,
+      "end": 4.992
     },
     {
       "word": "this",
-      "start": 4.56,
-      "end": 4.98
-    },
-    {
-      "word": "you",
-      "start": 4.98,
-      "end": 5.08
-    },
-    {
-      "word": "could",
-      "start": 5.08,
-      "end": 5.36
-    },
-    {
-      "word": "also",
-      "start": 5.36,
-      "end": 5.76
-    },
-    {
-      "word": "turn",
-      "start": 5.76,
-      "end": 6.176
-    },
-    {
-      "word": "Auto",
-      "start": 6.176,
-      "end": 6.72
-    },
-    {
-      "word": "off",
-      "start": 6.72,
-      "end": 7.26
-    },
-    {
-      "word": "and",
-      "start": 7.26,
-      "end": 7.486
-    },
-    {
-      "word": "choose",
-      "start": 7.486,
-      "end": 7.8
-    },
-    {
-      "word": "a",
-      "start": 7.8,
-      "end": 7.907
-    },
-    {
-      "word": "model",
-      "start": 7.907,
-      "end": 8.34
-    },
-    {
-      "word": "and",
-      "start": 8.34,
-      "end": 8.688
+      "start": 4.992,
+      "end": 5.968
     },
     {
       "word": "more",
-      "start": 8.688,
-      "end": 8.96
+      "start": 5.968,
+      "end": 6.23
     },
     {
-      "word": "effort",
-      "start": 8.96,
-      "end": 9.21
+      "word": "capable",
+      "start": 6.23,
+      "end": 6.811
+    },
+    {
+      "word": "models",
+      "start": 6.811,
+      "end": 7.46
+    },
+    {
+      "word": "and",
+      "start": 7.46,
+      "end": 7.851
+    },
+    {
+      "word": "deeper",
+      "start": 7.851,
+      "end": 8.48
+    },
+    {
+      "word": "reasoning",
+      "start": 8.48,
+      "end": 8.73
     }
   ]
 }
