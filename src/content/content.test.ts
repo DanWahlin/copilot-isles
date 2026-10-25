@@ -12,10 +12,11 @@ import {
 } from '../../tools/content/check';
 import { validate } from '../../tools/content/json-schema';
 import { coursePack } from '../course/active';
-import { withoutMeta } from '../course/pack';
-import { trimLock } from '../course/split';
+import { assemblePack, withoutMeta } from '../course/pack';
+import { trimLock, withoutIslandsAhead } from '../course/split';
+import { isIslandId } from '../islands/registry';
+import { packFiles, packMeta } from '../../tools/course-pack/files';
 import { COURSE, COURSES } from '../course/catalog';
-import { readCoursePack } from '../../tools/course-pack/read';
 import type { CourseMeta } from '../course/catalog';
 import { GILDA, GILDA_TEXT, JOBS, QUOTES, STAMP } from '../game/market/jobs';
 import { courseBoard } from '../learn/course-board';
@@ -91,8 +92,13 @@ describe('course pack files (docs/content-data.md, COURSE-PACKS.md §3)', () => 
     expect(MARKET).toEqual(withoutMeta(market()));
     expect(COURSE_BOARDS_DATA).toEqual(withoutMeta(boards()));
     expect(COURSE).toEqual(withoutMeta(meta()));
-    // The browser's pack leaves out what the game never reads (src/course/split.ts, `trim`).
-    const whole = readCoursePack();
+    // The browser's pack leaves out what the game never reads (src/course/split.ts, `trim`), and the
+    // content of islands the game hasn't got yet (`withoutIslandsAhead`).
+    const dir = join(ROOT, PACK);
+    const whole = assemblePack(
+      packMeta(dir),
+      withoutIslandsAhead(packMeta(dir), { core: packFiles(dir), parts: {} }, isIslandId).core,
+    );
     expect(coursePack()).toEqual({
       ...whole,
       lock: trimLock(whole.lock),
@@ -398,6 +404,44 @@ describe('the content checks report broken edits by entry', () => {
     const b = boards();
     b.skip.titlePrefixes = [...b.skip.titlePrefixes, 'Learning', 'Key', 'Trouble', 'Tour', 'Why', 'Chats'];
     expect(new Set(paths(issuesWith('boards.json', b)))).toEqual(new Set(['skip']));
+  });
+
+  it('content ahead of its island: checked, but for the game’s side, which comes with its wiring', () => {
+    // Keelhaven isn't in the registry yet: its NPCs, story names, signs and pending lines pass…
+    const k = quests('keelhaven') as ReturnType<typeof quests> & {
+      story: { conditions: Record<string, unknown> };
+    };
+    expect(paths(issuesWith('quests/keelhaven.json', k))).toEqual([]);
+    // …but what they mean is still checked: a step that isn't there, a line that isn't written.
+    k.story.conditions.sealed = { 'Q3.10': 'nope' };
+    k.scripts.lyra = [{ say: 'kh.nope' }, ...k.scripts.lyra!];
+    expect(paths(issuesWith('quests/keelhaven.json', k))).toEqual([
+      'scripts.lyra[0]',
+      'story.conditions.sealed["Q3.10"]',
+    ]);
+    // A live island can't play a pending line.
+    const a = quests('anchorage');
+    a.scripts['nell.papers'] = [{ say: 'kh.lyra.01' }, ...a.scripts['nell.papers']!];
+    expect(issuesWith('quests/anchorage.json', a).map((i) => `${i.path}: ${i.message}`)).toEqual([
+      expect.stringMatching(/^scripts\["nell.papers"\]\[0\]: "kh.lyra.01" is pending/),
+    ]);
+    // A circuit's bindings and citations.
+    const ring = json<{
+      places: Record<string, { acts: string }>;
+      laps: { close: string; stations: { cite: string; options?: { backTo?: string }[] }[] }[];
+    }>(`${PACK}/puzzles/drydock-ring.json`);
+    ring.places.stack!.acts = 'post';
+    ring.laps[0]!.stations[0]!.cite = 'nope';
+    ring.laps[0]!.stations[0]!.options![1]!.backTo = 'nope';
+    ring.laps[1]!.close = 'nope';
+    expect(new Set(paths(issuesWith('puzzles/drydock-ring.json', ring)))).toEqual(
+      new Set([
+        'places',
+        'laps[0].stations[0].cite',
+        'laps[0].stations[0].options[1].backTo',
+        'laps[1].close',
+      ]),
+    );
   });
 
   it('a board off its island, or in the water', () => {

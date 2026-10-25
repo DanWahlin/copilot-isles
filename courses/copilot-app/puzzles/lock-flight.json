@@ -1,0 +1,426 @@
+{
+  "$schema": "../../schemas/puzzle-circuit.schema.json",
+  "id": "P3.2",
+  "mechanic": "circuit",
+  "chapter": "03-development-workflows",
+  "quest": "Q3.8",
+  "circuit": "flight",
+  "$comment": "Two Circuits, round 2: the Lock Flight through the North Head (docs/specs/ISLAND-03-keelhaven.md §5.3). Part 1 (Q3.8, Stroud) takes your hull from the issue to a pull request through Lock 1; part 2 (Q3.9, Arlo) answers the two seeded pull requests at Lock 2. You seal Gate 1 after the diff and Gate 2 after the checks; the Sea Gate (the merge) stays shut for practice hulls. The hulls' names are the course's pull request titles (quests' signs).",
+  "places": {
+    "ledger": {
+      "acts": "ledger",
+      "name": "The work-order ledger",
+      "means": "Start from a GitHub issue"
+    },
+    "bell": {
+      "acts": "bell",
+      "name": "The slipway bell",
+      "means": "Start the session"
+    },
+    "slate": {
+      "acts": "slate",
+      "name": "Lock 1's slate",
+      "means": "Review the diff"
+    },
+    "gate1": {
+      "acts": "gate1",
+      "name": "Gate 1",
+      "means": "The first approval gate"
+    },
+    "petition": {
+      "acts": "petition",
+      "name": "The petition mast",
+      "means": "Open the pull request"
+    },
+    "lamps": {
+      "acts": "lamps",
+      "name": "The lock lamps",
+      "means": "Checks run on the pull request"
+    },
+    "note": {
+      "acts": "note",
+      "name": "The chalk note",
+      "means": "A review comment"
+    },
+    "redLamp": {
+      "acts": "redLamp",
+      "name": "The red lamp",
+      "means": "A failing check"
+    },
+    "barge": {
+      "acts": "barge",
+      "name": "The repair barge",
+      "means": "A new session from the pull request"
+    },
+    "gate2": {
+      "acts": "gate2",
+      "name": "Gate 2",
+      "means": "The second approval gate"
+    },
+    "seaGate": {
+      "acts": "seaGate",
+      "name": "The Sea Gate",
+      "means": "The merge"
+    }
+  },
+  "laps": [
+    {
+      "id": "issue",
+      "quest": "Q3.8",
+      "step": "flight",
+      "solved": "solved",
+      "close": "stroud.flight.solved",
+      "title": "Lock 1: from an issue to a pull request",
+      "order": "Make search case-insensitive",
+      "stations": [
+        {
+          "id": "issue",
+          "at": "ledger",
+          "kind": "watch",
+          "title": "Issue",
+          "text": "You open the work order Make search case-insensitive in the Issues ledger.",
+          "seconds": 3,
+          "cite": "start"
+        },
+        {
+          "id": "session",
+          "at": "bell",
+          "kind": "choose",
+          "title": "Session",
+          "prompt": "The order rings the bell at the main slipway. Where does the hull start?",
+          "caption": "The issue, open in **Issues**.",
+          "line": "kh.stroud.05",
+          "image": "ch03/app-issue-new-session",
+          "options": [
+            {
+              "id": "dock3",
+              "text": "Drydock 3, on practice-search-case-bug, with Create from",
+              "right": true,
+              "result": "The hull starts in Drydock 3, where the bug is.",
+              "line": "kh.stroud.06"
+            },
+            {
+              "id": "main",
+              "text": "The main slipway (the issue’s New session button)",
+              "reason": "Search already works on main. There is nothing to fix there.",
+              "backTo": "bell",
+              "cite": "start"
+            }
+          ],
+          "hints": [
+            "Where does the bug live?",
+            "The issue’s New session starts from main.",
+            "Drydock 3, on practice-search-case-bug, with Create from."
+          ],
+          "cite": "start"
+        },
+        {
+          "id": "loop",
+          "at": "bell",
+          "kind": "watch",
+          "title": "The inner loop",
+          "text": "Drydock 3’s crew runs the ring: five lamps light in turn, and the lookout shows hobbit and HOBBIT giving the same result.",
+          "seconds": 6,
+          "cite": "start"
+        },
+        {
+          "id": "diff",
+          "at": "slate",
+          "kind": "choose",
+          "title": "Diff",
+          "prompt": "Read the marks on the slate.",
+          "options": [
+            {
+              "id": "focused",
+              "text": "Only the search fix and its test: focused",
+              "right": true,
+              "result": "The diff is focused."
+            }
+          ],
+          "cite": "start"
+        },
+        {
+          "id": "gate1",
+          "at": "gate1",
+          "kind": "seal",
+          "title": "Approval gate",
+          "prompt": "The diff is focused. Seal Gate 1?",
+          "options": [
+            {
+              "id": "seal",
+              "text": "Seal Gate 1",
+              "right": true,
+              "result": "Your seal goes on Gate 1, and the lock opens."
+            }
+          ],
+          "cite": "outer"
+        },
+        {
+          "id": "petition",
+          "at": "petition",
+          "kind": "tiles",
+          "title": "Pull request",
+          "prompt": "Build the summary from what you saw, then hoist it (Create PR).",
+          "line": "kh.stroud.07",
+          "tiles": [
+            {
+              "id": "case",
+              "text": "Search ignores letter case",
+              "sticks": true
+            },
+            {
+              "id": "test",
+              "text": "Added a focused regression test",
+              "sticks": true
+            },
+            {
+              "id": "terminal",
+              "text": "Tests and build passed in the terminal",
+              "sticks": true
+            },
+            {
+              "id": "preview",
+              "text": "hobbit and HOBBIT match in the preview",
+              "sticks": true
+            },
+            {
+              "id": "ci",
+              "text": "CI passed",
+              "sticks": false,
+              "reason": "No check has run yet. Claim only what the terminal or CI output shows.",
+              "cite": "start"
+            },
+            {
+              "id": "every",
+              "text": "Fixed every search bug",
+              "sticks": false,
+              "reason": "Claim what you checked.",
+              "cite": "start"
+            }
+          ],
+          "cite": "start"
+        },
+        {
+          "id": "checks",
+          "at": "lamps",
+          "kind": "watch",
+          "title": "Checks",
+          "text": "Lockfall’s leat fills Lock 1 by itself. The Book app web lamp runs amber, then green.",
+          "line": "kh.stroud.08",
+          "seconds": 5,
+          "cite": "check"
+        },
+        {
+          "id": "basin",
+          "at": "seaGate",
+          "kind": "watch",
+          "title": "No merge",
+          "text": "The hull moves down to wait in the basin, above the shut Sea Gate.",
+          "seconds": 3,
+          "cite": "start"
+        }
+      ]
+    },
+    {
+      "id": "feedback",
+      "quest": "Q3.9",
+      "step": "flight",
+      "solved": "solved",
+      "close": "arlo.solved",
+      "title": "Lock 2: a note and a red lamp",
+      "order": "Improve empty-state copy · Failing stats check practice",
+      "stations": [
+        {
+          "id": "note",
+          "at": "note",
+          "kind": "choose",
+          "title": "Feedback",
+          "prompt": "The note asks for more helpful guidance. The barge comes alongside. Choose the revision.",
+          "caption": "The comment on **Improve empty-state copy**.",
+          "line": "kh.arlo.02",
+          "image": "ch03/app-pr-review-comment",
+          "options": [
+            {
+              "id": "whole",
+              "text": "A message that names the search term, the genre and the reading status",
+              "right": true,
+              "result": "It answers the whole comment.",
+              "line": "kh.arlo.03"
+            },
+            {
+              "id": "half",
+              "text": "A message that names the search term only",
+              "reason": "That answers half the note.",
+              "backTo": "barge",
+              "cite": "comment"
+            },
+            {
+              "id": "page",
+              "text": "Rewrite the whole page",
+              "reason": "Make the smallest useful change.",
+              "backTo": "barge",
+              "cite": "comment"
+            }
+          ],
+          "hints": [
+            "What does the comment ask for?",
+            "Answer all of it, and change no more than that.",
+            "A message that names the search term, the genre and the reading status."
+          ],
+          "cite": "comment"
+        },
+        {
+          "id": "push1",
+          "at": "lamps",
+          "kind": "watch",
+          "title": "Push",
+          "text": "Commit and push: the note is wiped, and Lockfall runs the lamp again. Green.",
+          "line": "kh.arlo.04",
+          "seconds": 4,
+          "cite": "comment"
+        },
+        {
+          "id": "red",
+          "at": "redLamp",
+          "kind": "choose",
+          "title": "Checks",
+          "prompt": "Stats Check’s Book app web lamp is red: the favorites ballast is wrong. The barge comes alongside. What do you do?",
+          "caption": "The failed **Book app web** check.",
+          "line": "kh.arlo.05",
+          "image": "ch03/app-pr-failing-check",
+          "options": [
+            {
+              "id": "fix",
+              "text": "Re-ballast the hull: count favorites for read and unread books, and leave the gauge alone",
+              "right": true,
+              "result": "The smallest fix, and the test stays as it is."
+            },
+            {
+              "id": "file",
+              "text": "File down the gauge (change the test’s expected count)",
+              "reason": "The lamp turns green and the hull lists. Don’t weaken the failing test.",
+              "backTo": "barge",
+              "cite": "check",
+              "line": "kh.arlo.weaken"
+            },
+            {
+              "id": "rerun",
+              "text": "Run the lamp again until it’s green",
+              "reason": "It stays red. The code is still wrong.",
+              "backTo": "redLamp",
+              "cite": "check",
+              "line": "kh.arlo.rerun"
+            }
+          ],
+          "hints": [
+            "Which is wrong: the hull or the gauge?",
+            "Fix the code. Keep the test.",
+            "Re-ballast the hull, and leave the gauge alone."
+          ],
+          "cite": "check"
+        },
+        {
+          "id": "repair",
+          "at": "barge",
+          "kind": "watch",
+          "title": "The inner loop",
+          "text": "The barge’s own small ring: the tests, the build and the preview.",
+          "seconds": 4,
+          "cite": "check"
+        },
+        {
+          "id": "push2",
+          "at": "lamps",
+          "kind": "watch",
+          "title": "Push",
+          "text": "Push: the check runs again. Green.",
+          "line": "kh.arlo.06",
+          "seconds": 4,
+          "cite": "check"
+        },
+        {
+          "id": "gate2",
+          "at": "gate2",
+          "kind": "gate",
+          "title": "Approval gate",
+          "prompt": "Gate 2 opens when its four lamps agree. The last one is your seal.",
+          "line": "kh.arlo.07",
+          "lamps": [
+            {
+              "id": "diff",
+              "text": "Diff"
+            },
+            {
+              "id": "local",
+              "text": "Local validation"
+            },
+            {
+              "id": "checks",
+              "text": "GitHub checks"
+            },
+            {
+              "id": "review",
+              "text": "Your review"
+            }
+          ],
+          "cite": "takeaways"
+        },
+        {
+          "id": "sea",
+          "at": "seaGate",
+          "kind": "watch",
+          "title": "No merge",
+          "text": "The Sea Gate stays shut. The hulls wait in the basin with a white pennant: done, and not merged.",
+          "line": "kh.arlo.08",
+          "seconds": 4,
+          "cite": "start"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "lampDark": "○ waiting",
+    "lampRunning": "… running",
+    "lampReady": "✓ ready",
+    "lampNotReady": "✗ not ready",
+    "next": "Next station: {name}",
+    "back": "Back to {name}",
+    "skip": "Skip",
+    "leave": "Leave",
+    "hint": "Hint",
+    "sealIt": "Seal it",
+    "sendBack": "Send it back",
+    "title": "The Lock Flight",
+    "intro": "The outer loop: issue, session, diff, pull request, checks. Two approval gates are yours.",
+    "darkLamp": "{name} is still dark.",
+    "sticks": "It sticks.",
+    "noStick": "It won’t stick.",
+    "hoist": "Hoist the petition",
+    "actions": "No lamp after a push? New forks turn workflows off: turn them on in your fork’s Actions tab."
+  },
+  "lines": {
+    "actions": "kh.arlo.actions"
+  },
+  "cites": {
+    "start": {
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "outer": {
+      "anchor": "outer-loop-move-the-work-through-github",
+      "hash": "07e5691870a8"
+    },
+    "comment": {
+      "anchor": "respond-to-a-review-comment",
+      "hash": "b36cced0ba51"
+    },
+    "check": {
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "takeaways": {
+      "anchor": "key-takeaways",
+      "hash": "81bc07b99b37"
+    }
+  }
+}

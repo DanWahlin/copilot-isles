@@ -1,0 +1,372 @@
+{
+  "$schema": "../../schemas/puzzle-circuit.schema.json",
+  "id": "P3.1",
+  "mechanic": "circuit",
+  "chapter": "03-development-workflows",
+  "quest": "Q3.4",
+  "circuit": "ring",
+  "$comment": "Two Circuits, round 1: the Drydock Ring round Drydock 2 (docs/specs/ISLAND-03-keelhaven.md §5.2). The hull is the Book App on practice-unread-count-bug; its tally board counts the unread books. Lap 1 (Q3.4, Cass) fixes the bug; lap 2 (Q3.5) bolts on the regression test's gauge. Every wrong pick goes back to the place that fixes it, with the course's reason. The places, lamps and controls are the game's; every word is this file's.",
+  "places": {
+    "post": {
+      "acts": "post",
+      "name": "The work-order post",
+      "means": "Understand the task, and later, your seal: is it ready?"
+    },
+    "stack": {
+      "acts": "stack",
+      "name": "The plank stack",
+      "means": "Make a focused change"
+    },
+    "slate": {
+      "acts": "slate",
+      "name": "The slate",
+      "means": "Inspect the diff (Changes)"
+    },
+    "caisson": {
+      "acts": "caisson",
+      "name": "The caisson",
+      "means": "Run the tests and the build (Terminal)"
+    },
+    "lookout": {
+      "acts": "lookout",
+      "name": "The lookout",
+      "means": "Preview the behavior (Browser)"
+    }
+  },
+  "laps": [
+    {
+      "id": "fix",
+      "quest": "Q3.4",
+      "step": "ring",
+      "solved": "solved",
+      "close": "cass.solved",
+      "title": "Lap 1: fix the unread count",
+      "order": "#2 · Keep unread stats correct when filters are active",
+      "stations": [
+        {
+          "id": "plan",
+          "at": "post",
+          "kind": "choose",
+          "title": "Understand",
+          "prompt": "The work order says the unread count ignores the filters. Pick the plan.",
+          "options": [
+            {
+              "id": "filtered",
+              "text": "Count the unread books from the books the filters show",
+              "right": true,
+              "result": "The plan connects the stats to the books you see.",
+              "line": "kh.cass.plan.ok"
+            },
+            {
+              "id": "hide",
+              "text": "Count every book, then hide the count when a filter is on",
+              "reason": "That hides the number. The plan has to connect the stats to the books you see.",
+              "backTo": "post",
+              "cite": "fix",
+              "line": "kh.cass.plan.hide"
+            },
+            {
+              "id": "test",
+              "text": "Change the test so it expects 5",
+              "reason": "That weakens a test. The plan fixes the code.",
+              "backTo": "post",
+              "cite": "regression",
+              "line": "kh.cass.plan.test"
+            }
+          ],
+          "hints": [
+            "What should the count be made from?",
+            "The stats have to follow the filters.",
+            "Count the unread books from the books the filters show."
+          ],
+          "cite": "fix"
+        },
+        {
+          "id": "change",
+          "at": "stack",
+          "kind": "watch",
+          "title": "Change",
+          "text": "Moll’s crew fits two planks to the tally gear, and carries one more to Drydock 1’s hull.",
+          "seconds": 8,
+          "cite": "fix"
+        },
+        {
+          "id": "inspect",
+          "at": "slate",
+          "kind": "choose",
+          "title": "Inspect",
+          "prompt": "Two chalk marks are on the tally gear, and one is on Drydock 1’s hull. What do you do?",
+          "line": "kh.cass.03",
+          "options": [
+            {
+              "id": "pry",
+              "text": "Pry off the stray plank",
+              "right": true,
+              "result": "A confirmation shows first. The slate now shows only the tally gear.",
+              "line": "kh.cass.stray"
+            },
+            {
+              "id": "revise",
+              "text": "Ask the crew to revise it",
+              "right": true,
+              "result": "The crew takes the stray plank back. The slate now shows only the tally gear.",
+              "line": "kh.cass.stray"
+            },
+            {
+              "id": "approve",
+              "text": "Approve the slate as it is",
+              "reason": "The diff isn’t focused. One mark is on another hull.",
+              "backTo": "stack",
+              "cite": "fix"
+            }
+          ],
+          "hints": [
+            "Is every mark part of this job?",
+            "Look at the hull each mark is on.",
+            "Pry off the stray plank, or ask the crew to revise it."
+          ],
+          "cite": "fix"
+        },
+        {
+          "id": "test",
+          "at": "caisson",
+          "kind": "sound",
+          "title": "Test and build",
+          "text": "Tap each lit plank with the sounding hammer, then pull the sluice to float her.",
+          "again": "Already sounded. If the crew already ran the tests and build, don’t run them again.",
+          "line": "kh.cass.04",
+          "planks": 4,
+          "cite": "validate"
+        },
+        {
+          "id": "preview",
+          "at": "lookout",
+          "kind": "choose",
+          "title": "Preview",
+          "prompt": "Choose the sea for the trial run: which filters do you test?",
+          "line": "kh.cass.05",
+          "options": [
+            {
+              "id": "both",
+              "text": "Fantasy and Unread, with the search empty",
+              "right": true,
+              "result": "Only The Night Circus sails out, and the tally reads 1. With the bug, it read 5.",
+              "line": "kh.cass.06"
+            },
+            {
+              "id": "unread",
+              "text": "Unread alone",
+              "reason": "All five unread books sail out, and the tally reads 5. This check can’t tell the bug from the fix.",
+              "backTo": "lookout",
+              "cite": "validate",
+              "line": "kh.cass.unread"
+            },
+            {
+              "id": "hobbit",
+              "text": "Search for hobbit",
+              "reason": "That’s a different issue: search case.",
+              "backTo": "lookout",
+              "cite": "validate"
+            }
+          ],
+          "hints": [
+            "Which check shows a different tally with the bug?",
+            "Two filters, and only one book should sail.",
+            "Fantasy and Unread, with the search empty."
+          ],
+          "cite": "validate"
+        },
+        {
+          "id": "seal",
+          "at": "post",
+          "kind": "seal",
+          "title": "Your seal",
+          "prompt": "Is it ready?",
+          "options": [
+            {
+              "id": "evidence",
+              "text": "Seal it: the diff is focused, the tests and build pass, and the preview shows the fix",
+              "right": true,
+              "result": "Your seal goes on the post. Every lamp on the ring is green."
+            },
+            {
+              "id": "claim",
+              "text": "Seal it: Copilot says it’s done",
+              "reason": "That’s a claim, not evidence.",
+              "backTo": "post",
+              "cite": "trust",
+              "line": "kh.cass.claim"
+            }
+          ],
+          "hints": [
+            "What does your seal rest on?",
+            "A confident reply is not evidence.",
+            "Seal it on the evidence: the diff, the tests and build, and the preview."
+          ],
+          "cite": "trust"
+        }
+      ]
+    },
+    {
+      "id": "gauge",
+      "quest": "Q3.5",
+      "step": "ring",
+      "solved": "solved",
+      "close": "cass.lap2.solved",
+      "title": "Lap 2: guard the old leak",
+      "order": "Add a regression test: Fantasy and Unread, only The Night Circus, unread count 1",
+      "stations": [
+        {
+          "id": "prove",
+          "at": "post",
+          "kind": "choose",
+          "title": "Understand",
+          "prompt": "What must the new gauge prove?",
+          "options": [
+            {
+              "id": "floods",
+              "text": "It floods with the old leak, and stays dry after the patch",
+              "right": true,
+              "result": "A regression test fails with the bug and passes with the fix."
+            },
+            {
+              "id": "dry",
+              "text": "It stays dry",
+              "reason": "A gauge that stays dry with the old leak proves nothing.",
+              "backTo": "post",
+              "cite": "regression",
+              "line": "kh.cass.gauge.dry"
+            }
+          ],
+          "hints": [
+            "What would the gauge do with the old leak?",
+            "Before the fix and after it.",
+            "It floods with the old leak, and stays dry after the patch."
+          ],
+          "cite": "regression"
+        },
+        {
+          "id": "bolt",
+          "at": "stack",
+          "kind": "choose",
+          "title": "Change",
+          "prompt": "Choose the gauge to bolt on.",
+          "options": [
+            {
+              "id": "new",
+              "text": "A new gauge at the old leak: Fantasy and Unread, only The Night Circus, tally 1",
+              "right": true,
+              "result": "The crew bolts it on."
+            },
+            {
+              "id": "always",
+              "text": "A gauge that never floods",
+              "reason": "It passes with the bug too.",
+              "backTo": "stack",
+              "cite": "regression",
+              "line": "kh.cass.gauge.dry"
+            },
+            {
+              "id": "lower",
+              "text": "Lower the old high-water mark",
+              "reason": "That weakens an existing expectation.",
+              "backTo": "stack",
+              "cite": "regression",
+              "line": "kh.cass.gauge.lower"
+            }
+          ],
+          "hints": [
+            "Which gauge would flood with the old leak?",
+            "Don’t move an old mark.",
+            "A new gauge at the old leak."
+          ],
+          "cite": "regression"
+        },
+        {
+          "id": "check",
+          "at": "slate",
+          "kind": "choose",
+          "title": "Inspect",
+          "prompt": "Check the slate.",
+          "options": [
+            {
+              "id": "focused",
+              "text": "One new gauge that checks the books shown and the tally; no old mark moved",
+              "right": true,
+              "result": "The slate is clean."
+            }
+          ],
+          "cite": "regression"
+        },
+        {
+          "id": "sound",
+          "at": "caisson",
+          "kind": "sound",
+          "title": "Test and build",
+          "text": "Five planks now: four old ones and the new gauge. Sound them, then float her.",
+          "again": "Already sounded.",
+          "planks": 5,
+          "cite": "regression"
+        },
+        {
+          "id": "look",
+          "at": "lookout",
+          "kind": "watch",
+          "title": "Preview",
+          "text": "The trial run again: Fantasy and Unread, and the tally still reads 1.",
+          "seconds": 4,
+          "cite": "validate"
+        },
+        {
+          "id": "seal",
+          "at": "post",
+          "kind": "seal",
+          "title": "Your seal",
+          "prompt": "Is it ready?",
+          "options": [
+            {
+              "id": "evidence",
+              "text": "Seal it: the new test checks what the filters show, and the tests and build pass",
+              "right": true,
+              "result": "Your seal goes on the post."
+            }
+          ],
+          "cite": "trust"
+        }
+      ]
+    }
+  ],
+  "text": {
+    "lampDark": "○ waiting",
+    "lampRunning": "… running",
+    "lampReady": "✓ ready",
+    "lampNotReady": "✗ not ready",
+    "next": "Next station: {name}",
+    "back": "Back to {name}",
+    "skip": "Skip",
+    "leave": "Leave",
+    "hint": "Hint",
+    "sealIt": "Seal it",
+    "sendBack": "Send it back",
+    "title": "The Drydock Ring",
+    "intro": "The inner loop: understand, change, inspect, test and build, preview."
+  },
+  "cites": {
+    "fix": {
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "validate": {
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "regression": {
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "trust": {
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    }
+  }
+}

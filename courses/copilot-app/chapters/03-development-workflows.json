@@ -1,0 +1,1631 @@
+{
+  "$schema": "../../schemas/chapter.schema.json",
+  "$comment": "Chapter 03 (Development and GitHub Workflows) on Keelhaven (docs/specs/ISLAND-03-keelhaven.md §6). Six app screenshots are from before app 1.1.30 (upstream issue github/copilot-app-for-beginners#50): no caption over them names the sidebar, and no hotspot targets them. The island is in build: the game leaves this chapter out until Keelhaven is in the registry (src/course/split.ts withoutIslandsAhead).",
+  "chapter": "03-development-workflows",
+  "images": [
+    {
+      "id": "ch03/record-playback-retake-loop",
+      "src": "course/ch03/record-playback-retake-loop.webp",
+      "hash": "18959a58675c",
+      "width": 1536,
+      "height": 1024,
+      "alt": "A musician records a take, plays it back, and records it again: the record, play back, re-take loop"
+    },
+    {
+      "id": "ch03/producer-review-desk-github",
+      "src": "course/ch03/producer-review-desk-github.webp",
+      "hash": "a0727e0cbae6",
+      "width": 1536,
+      "height": 1024,
+      "alt": "A producer’s review desk with the brief, feedback, quality checks and final approval, like GitHub issues and pull requests"
+    },
+    {
+      "id": "ch03/development-loop",
+      "src": "course/ch03/development-loop.webp",
+      "hash": "74f9f446b0f6",
+      "width": 1536,
+      "height": 1024,
+      "alt": "Development loop. Inner loop on your machine: understand, change, inspect, test and build, and preview. Outer loop on GitHub: issue, pull request, feedback, checks, and merge. Human judgment applies to both loops."
+    },
+    {
+      "id": "ch03/context-layers",
+      "src": "course/ch03/context-layers.webp",
+      "hash": "c47a6bff672a",
+      "width": 1536,
+      "height": 1024,
+      "alt": "Four context layers: prompt, settings, instructions, and repo files. Keep each layer focused."
+    },
+    {
+      "id": "ch03/app-workspace-panel",
+      "src": "course/ch03/app-workspace-panel.webp",
+      "hash": "625efb26cd5e",
+      "width": 1920,
+      "height": 1080,
+      "alt": "Review panel with the Terminal tab open, showing four passing tests"
+    },
+    {
+      "id": "ch03/app-pick-and-polish",
+      "src": "course/ch03/app-pick-and-polish.webp",
+      "hash": "b2b745adebd2",
+      "width": 1920,
+      "height": 1080,
+      "alt": "Pick & Polish with an article.book-card attachment in the prompt box"
+    },
+    {
+      "id": "ch03/issue-to-merged-pr",
+      "src": "course/ch03/issue-to-merged-pr.webp",
+      "hash": "1fbe94a1a241",
+      "width": 1536,
+      "height": 725,
+      "alt": "Issue-to-merge workflow: issue, session, diff, approval gate, pull request, checks, approval gate, and merge. Feedback or a failed check goes back to the session."
+    },
+    {
+      "id": "ch03/app-issues-filtered",
+      "src": "course/ch03/app-issues-filtered.webp",
+      "hash": "a1f320a6041a",
+      "width": 1920,
+      "height": 1080,
+      "alt": "The Issues view, limited to the course repository: only the practice issues"
+    },
+    {
+      "id": "ch03/app-issue-new-session",
+      "src": "course/ch03/app-issue-new-session.webp",
+      "hash": "9a4f4f18c784",
+      "width": 1920,
+      "height": 1080,
+      "alt": "The Make search case-insensitive issue open in the Issues view"
+    },
+    {
+      "id": "ch03/app-pr-review-comment",
+      "src": "course/ch03/app-pr-review-comment.webp",
+      "hash": "9157076849d0",
+      "width": 1920,
+      "height": 1080,
+      "alt": "A pull request’s conversation with the comment about the empty-state copy"
+    },
+    {
+      "id": "ch03/app-pr-failing-check",
+      "src": "course/ch03/app-pr-failing-check.webp",
+      "hash": "ff63d4d1214f",
+      "width": 1920,
+      "height": 1080,
+      "alt": "The Failing stats check practice pull request, with its failed Book app web check"
+    },
+    {
+      "id": "ch03/human-judgment-loop",
+      "src": "course/ch03/human-judgment-loop.webp",
+      "hash": "558f00d2fc14",
+      "width": 1536,
+      "height": 1024,
+      "alt": "Human judgment stays in the loop"
+    }
+  ],
+  "quizzes": [
+    {
+      "id": "K3.1",
+      "type": "mc",
+      "prompt": "Why does Lyra’s musician record the take again?",
+      "options": [
+        {
+          "id": "again",
+          "text": "The play-back showed something to fix: listen, adjust, record again"
+        },
+        {
+          "id": "finished",
+          "text": "The first take was finished, so it’s done",
+          "feedback": "Finished isn’t the same as good. The play-back is the evidence."
+        },
+        {
+          "id": "longer",
+          "text": "To make the song longer",
+          "feedback": "It’s the same song. The play-back showed a wrong note, so they adjust it and record again."
+        },
+        {
+          "id": "producer",
+          "text": "The producer asked for a new song",
+          "feedback": "The producer comes later, in the outer loop. This is the musician’s own loop: listen, adjust, record again."
+        }
+      ],
+      "answer": "again",
+      "explain": {
+        "correct": "Right. Record, listen, adjust, record again: that’s the inner loop. Make a change, then inspect the evidence.",
+        "wrong": "What was the play-back for?"
+      },
+      "hints": [
+        "What did the play-back show?",
+        "A finished take isn’t the same as a good one.",
+        "The play-back showed something to fix: listen, adjust, record again."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "from-the-studio-from-take-to-final-mix",
+        "hash": "7e412fd7e657"
+      }
+    },
+    {
+      "id": "M3.1",
+      "type": "matching",
+      "prompt": "Match each question to the evidence that answers it.",
+      "pairs": [
+        {
+          "left": {
+            "id": "focused",
+            "text": "Is the change focused and understandable?"
+          },
+          "right": {
+            "id": "diff",
+            "text": "The diff, in the review panel’s **Changes** tab"
+          }
+        },
+        {
+          "left": {
+            "id": "runs",
+            "text": "Do the relevant tests and build complete?"
+          },
+          "right": {
+            "id": "terminal",
+            "text": "Tests and build, in the **Terminal** tab"
+          }
+        },
+        {
+          "left": {
+            "id": "behaves",
+            "text": "Does it behave as expected?"
+          },
+          "right": {
+            "id": "browser",
+            "text": "The running app, in the **Browser** tab"
+          }
+        },
+        {
+          "left": {
+            "id": "ci",
+            "text": "Does CI agree with your local results?"
+          },
+          "right": {
+            "id": "checks",
+            "text": "GitHub checks, on the pull request in **Pull requests**"
+          }
+        }
+      ],
+      "explain": {
+        "correct": "That’s the course’s evidence table. Each surface answers its own question, and a confident reply answers none of them.",
+        "wrong": "Ask what each surface can show: what changed, whether it runs, how it behaves, and what GitHub says."
+      },
+      "hints": [
+        "Which surface shows what changed?",
+        "The terminal runs things, the browser shows them, and GitHub checks the pull request.",
+        "Focused → the diff · tests and build → Terminal · behaves → Browser · CI → GitHub checks."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    {
+      "id": "K3.2",
+      "type": "mc",
+      "prompt": "Where does your own judgment come in?",
+      "options": [
+        {
+          "id": "both",
+          "text": "In both loops: you decide if the local evidence shows it’s ready, and when the pull request is ready to merge"
+        },
+        {
+          "id": "merge",
+          "text": "Only at the merge",
+          "feedback": "The outer loop has two approval gates, and the inner loop needs your call too."
+        },
+        {
+          "id": "failing",
+          "text": "Only when a check fails",
+          "feedback": "You judge green checks too: you review the pull request, its comments and its checks."
+        },
+        {
+          "id": "watch",
+          "text": "Copilot decides, and you watch",
+          "feedback": "A confident response isn’t validated software. You stay responsible for what ships."
+        }
+      ],
+      "answer": "both",
+      "explain": {
+        "correct": "Right. In the inner loop, you decide whether the diff, tests, build and preview show it’s ready. In the outer loop, you review the pull request and decide when it’s ready to merge.",
+        "wrong": "Each loop ends with a decision. Whose is it?"
+      },
+      "hints": [
+        "How many loops are there?",
+        "Each loop ends with a decision. Whose?",
+        "In both loops: you decide if the local evidence shows it’s ready, and when the pull request is ready to merge."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    {
+      "id": "K3.3",
+      "type": "mc",
+      "prompt": "Your new worktree session can’t run the tests: packages are missing. Why?",
+      "options": [
+        {
+          "id": "install",
+          "text": "Each new worktree needs its own `npm install`: dependencies aren’t shared"
+        },
+        {
+          "id": "broken",
+          "text": "The practice branch is broken",
+          "feedback": "The branch is fine. A new worktree starts without the installed packages."
+        },
+        {
+          "id": "deleted",
+          "text": "Copilot deleted them",
+          "feedback": "Nothing was deleted. Each worktree has its own folder, and its packages aren’t shared."
+        },
+        {
+          "id": "main",
+          "text": "Work in your main checkout instead",
+          "feedback": "That gives up the worktree’s isolation. Run `npm install` in the worktree."
+        }
+      ],
+      "answer": "install",
+      "explain": {
+        "correct": "Right. Run `npm install` the first time you use a new worktree, because dependencies aren’t shared automatically.",
+        "wrong": "Each practice branch opens in a worktree with its own folder. What isn’t in a new folder yet?"
+      },
+      "hints": [
+        "What’s new about this session’s folder?",
+        "Installed packages live in the folder.",
+        "Each new worktree needs its own `npm install`: dependencies aren’t shared."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "confirm-the-sample-app-is-ready",
+        "hash": "9f41604e0eea"
+      }
+    },
+    {
+      "id": "K3.6",
+      "type": "scenario",
+      "situation": "The rubber duck’s critique has three remarks: one about a check you didn’t run, one that your terminal output already answers, and one about a different feature.",
+      "prompt": "What do you do with the critique?",
+      "options": [
+        {
+          "id": "compare",
+          "text": "Compare each remark with your evidence, and close the gap that matters"
+        },
+        {
+          "id": "all",
+          "text": "Change the code for all three remarks",
+          "feedback": "You still decide. Compare each remark with the evidence you gathered: one is already answered, and one isn’t about this change."
+        },
+        {
+          "id": "ignore",
+          "text": "Ignore it: your tests pass",
+          "feedback": "The critic looks for missing evidence and assumptions. One remark names a check you never ran."
+        },
+        {
+          "id": "later",
+          "text": "Open the pull request and let the reviewers sort it out",
+          "feedback": "The second opinion comes before the pull request. Close the relevant gap first."
+        }
+      ],
+      "answer": "compare",
+      "explain": {
+        "correct": "Right. The rubber duck agent is a constructive critic. Compare its critique with your evidence, and address any relevant gap before you continue.",
+        "wrong": "Who decides which remarks matter?"
+      },
+      "hints": [
+        "Which remark names something you never checked?",
+        "A critique is input. Your evidence is the measure.",
+        "Compare each remark with your evidence, and close the gap that matters."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "3-ask-for-a-second-opinion",
+        "hash": "245981caca80"
+      }
+    },
+    {
+      "id": "K3.7",
+      "type": "mc",
+      "prompt": "You limited **Issues** to your fork. **Pull requests** still lists work from every repository. Why?",
+      "options": [
+        {
+          "id": "own",
+          "text": "Each view has its own filter: limit **Pull requests** to your fork too"
+        },
+        {
+          "id": "deleted",
+          "text": "Your pull requests were deleted",
+          "feedback": "They’re still there. This view just isn’t limited to your fork yet."
+        },
+        {
+          "id": "worktree",
+          "text": "You need a new worktree first",
+          "feedback": "Worktrees are for sessions. This is the view’s own filter."
+        },
+        {
+          "id": "broken",
+          "text": "The filter is broken",
+          "feedback": "It works, one view at a time. Set it in **Pull requests** too."
+        }
+      ],
+      "answer": "own",
+      "explain": {
+        "correct": "Right. Each view has its own filter, so set your fork in **Issues** and in **Pull requests**. The practice pull requests are on **Authored by me**.",
+        "wrong": "You set the filter in one view. What about the other?"
+      },
+      "hints": [
+        "Where did you set the filter?",
+        "Two views, two filters.",
+        "Each view has its own filter: limit **Pull requests** to your fork too."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "4-find-work-in-issues-and-pull-requests",
+        "hash": "baa3a4dec6ef"
+      }
+    },
+    {
+      "id": "K3.9",
+      "type": "multi",
+      "prompt": "What does a finished assignment have? Select all that apply.",
+      "options": [
+        {
+          "id": "focused",
+          "text": "One focused UI change"
+        },
+        {
+          "id": "honest",
+          "text": "A pull request summary that lists only the checks you ran"
+        },
+        {
+          "id": "passes",
+          "text": "A **Book app web** check that passes"
+        },
+        {
+          "id": "widths",
+          "text": "A preview checked at a wide and a narrow width"
+        },
+        {
+          "id": "merged",
+          "text": "It’s merged into `main`",
+          "feedback": "The assignment ends with an open pull request. Its success criteria don’t include a merge."
+        },
+        {
+          "id": "every",
+          "text": "A summary that says every check passed",
+          "feedback": "Report only the validation you performed."
+        }
+      ],
+      "answers": ["focused", "honest", "passes", "widths"],
+      "explain": {
+        "correct": "Right. One focused change, an honest summary, a passing **Book app web** check, and a preview at both widths. That’s both loops, on your own.",
+        "wrong": "Read the success criteria again: what does it say about the summary, and about a merge?"
+      },
+      "hints": [
+        "What does the success criteria line ask for?",
+        "Nothing in it merges, and the summary is honest.",
+        "Everything but the merge and the \"every check passed\" summary."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "assignment",
+        "hash": "8bece86eb9dd"
+      }
+    },
+    {
+      "id": "T3.1",
+      "type": "scenario",
+      "situation": "Copilot says the fix is done and every test passes.",
+      "prompt": "When is the change ready?",
+      "options": [
+        {
+          "id": "agree",
+          "text": "When the diff, local validation, GitHub checks and human review agree"
+        },
+        {
+          "id": "summary",
+          "text": "When Copilot’s summary says so",
+          "feedback": "A confident response from Copilot isn’t the same as validated software."
+        },
+        {
+          "id": "build",
+          "text": "When the build passes",
+          "feedback": "That is one kind of evidence. A change needs all of them, and your review."
+        },
+        {
+          "id": "ci",
+          "text": "When CI is green",
+          "feedback": "CI is one surface. The diff and your own review count too."
+        }
+      ],
+      "answer": "agree",
+      "explain": {
+        "correct": "Right. A change is ready only when the diff, local validation, GitHub checks and human review agree.",
+        "wrong": "Count the kinds of evidence. Which answer has all of them?"
+      },
+      "hints": ["Is one green light enough?", "Four kinds of evidence, plus your review.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "key-takeaways",
+        "hash": "81bc07b99b37"
+      }
+    },
+    {
+      "id": "T3.2",
+      "type": "scenario",
+      "situation": "The preview works, but **Changes** shows edits to a file you didn’t ask for.",
+      "prompt": "What do you do next?",
+      "options": [
+        {
+          "id": "revise",
+          "text": "Ask Copilot to revise it, or discard that file’s changes, before you go on"
+        },
+        {
+          "id": "pr",
+          "text": "Open the pull request: the preview works",
+          "feedback": "The diff isn’t focused. Inspect it before it leaves your machine."
+        },
+        {
+          "id": "weaken",
+          "text": "Weaken a test so it matches",
+          "feedback": "Never weaken a test to make a change pass."
+        },
+        {
+          "id": "later",
+          "text": "Merge it, and fix it later",
+          "feedback": "An unfocused diff is a problem now, not later."
+        }
+      ],
+      "answer": "revise",
+      "explain": {
+        "correct": "Right. If the diff isn’t focused, ask Copilot to revise it, or discard that file’s changes in **Changes** (a confirmation shows first).",
+        "wrong": "What does the diff need to be?"
+      },
+      "hints": ["Focused and understandable.", "The diff is evidence too.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "1-review-and-fix-a-bug",
+        "hash": "fe04b228a0d5"
+      }
+    },
+    {
+      "id": "T3.3",
+      "type": "mc",
+      "prompt": "Which preview check proves the unread-count fix?",
+      "options": [
+        {
+          "id": "both",
+          "text": "**Fantasy** and **Unread** with the search empty: only **The Night Circus**, and the unread count is 1"
+        },
+        {
+          "id": "unread",
+          "text": "**Unread** alone",
+          "feedback": "All five unread books still show, with or without the bug."
+        },
+        {
+          "id": "hobbit",
+          "text": "Search for `hobbit`",
+          "feedback": "That checks a different issue: search case."
+        },
+        {
+          "id": "build",
+          "text": "The build passes",
+          "feedback": "A build shows nothing about behavior."
+        }
+      ],
+      "answer": "both",
+      "explain": {
+        "correct": "Right. With the bug, the count stays at 5. **Unread** alone shows all five unread books either way, so it can’t tell the bug from the fix.",
+        "wrong": "Which check looks different with the bug?"
+      },
+      "hints": ["Two filters, one book.", "Pick the check that shows the bug, and shows the fix.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "validate-the-fix",
+        "hash": "d0f7b101aedb"
+      }
+    },
+    {
+      "id": "T3.4",
+      "type": "mc",
+      "prompt": "What must a regression test do?",
+      "options": [
+        {
+          "id": "fails",
+          "text": "Fail with the original bug, and pass with the fix"
+        },
+        {
+          "id": "passes",
+          "text": "Pass before and after the fix",
+          "feedback": "Then it can’t tell the bug from the fix."
+        },
+        {
+          "id": "expect",
+          "text": "Change an existing expectation so it passes",
+          "feedback": "That weakens a test. Check the visible results instead."
+        },
+        {
+          "id": "build",
+          "text": "Run only the build",
+          "feedback": "A build checks no behavior."
+        }
+      ],
+      "answer": "fails",
+      "explain": {
+        "correct": "Right. A regression test proves the bug would fail before the fix and pass after it.",
+        "wrong": "What would the test do with the bug still in?"
+      },
+      "hints": ["Before and after the fix.", "A gauge that never floods proves nothing.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "2-add-a-regression-test",
+        "hash": "cc75e9d58ac3"
+      }
+    },
+    {
+      "id": "T3.5",
+      "type": "mc",
+      "prompt": "When does `/rubber-duck` help most in this chapter?",
+      "options": [
+        {
+          "id": "before",
+          "text": "When you have the diff, tests and browser evidence, before you open a pull request"
+        },
+        {
+          "id": "merge",
+          "text": "To merge the pull request",
+          "feedback": "It critiques. It doesn’t merge."
+        },
+        {
+          "id": "instead",
+          "text": "Instead of your own review",
+          "feedback": "It finds gaps. You still decide what to fix."
+        },
+        {
+          "id": "tests",
+          "text": "To run the tests for you",
+          "feedback": "It critiques your evidence. You run the tests."
+        }
+      ],
+      "answer": "before",
+      "explain": {
+        "correct": "Right. The rubber duck agent critiques your diff, tests and browser validation, so you can close gaps before the pull request.",
+        "wrong": "What does a critic need to read first?"
+      },
+      "hints": [
+        "Your evidence, before it leaves your machine.",
+        "Barty read your evidence before the locks.",
+        ""
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "3-ask-for-a-second-opinion",
+        "hash": "245981caca80"
+      }
+    },
+    {
+      "id": "T3.6",
+      "type": "scenario",
+      "situation": "Issue 1’s bug is only on the `practice-search-case-bug` branch.",
+      "prompt": "How do you start the session?",
+      "options": [
+        {
+          "id": "createfrom",
+          "text": "**Create from**, then **Branches**, then `practice-search-case-bug`, and attach `#1`"
+        },
+        {
+          "id": "newsession",
+          "text": "The issue’s **New session** button",
+          "feedback": "It starts from `main`, where search already works. There’s nothing to fix there."
+        },
+        {
+          "id": "any",
+          "text": "Any session: the branch doesn’t matter",
+          "feedback": "The bug is only on the practice branch."
+        },
+        {
+          "id": "main",
+          "text": "A session from `main`, then copy the bug in",
+          "feedback": "Start where the bug is: the practice branch."
+        }
+      ],
+      "answer": "createfrom",
+      "explain": {
+        "correct": "Right. The issue’s **New session** starts from `main`, so use **Create from** with the practice branch, then attach the issue.",
+        "wrong": "Where does the bug live?"
+      },
+      "hints": ["Start the session from that branch.", "The main slipway has no leak to fix.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+        "hash": "1a0d8ba7f6ad"
+      }
+    },
+    {
+      "id": "T3.7",
+      "type": "scenario",
+      "situation": "Your pull request summary says \"CI passed\", but no check has run yet.",
+      "prompt": "What do you do?",
+      "options": [
+        {
+          "id": "remove",
+          "text": "Remove the claim: report only what the terminal or CI output shows"
+        },
+        {
+          "id": "keep",
+          "text": "Keep it: CI will pass anyway",
+          "feedback": "Don’t claim a check passed unless it appears in the terminal or CI output."
+        },
+        {
+          "id": "wait",
+          "text": "Wait to open the pull request until CI passes",
+          "feedback": "The checks run on the pull request. Open it, and claim only what you saw."
+        },
+        {
+          "id": "drop",
+          "text": "Delete the whole validation section",
+          "feedback": "Report the validation you did. Leave out what you didn’t see."
+        }
+      ],
+      "answer": "remove",
+      "explain": {
+        "correct": "Right. Don’t claim a check passed unless it appears in the terminal or CI output.",
+        "wrong": "What did you actually see?"
+      },
+      "hints": ["A summary is evidence too.", "The petition claims only what you saw.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+        "hash": "1a0d8ba7f6ad"
+      }
+    },
+    {
+      "id": "T3.8",
+      "type": "scenario",
+      "situation": "**Book app web** fails. Copilot suggests changing the test’s expected count.",
+      "prompt": "What do you do?",
+      "options": [
+        {
+          "id": "refuse",
+          "text": "Refuse: ask for the smallest code fix, and keep the test"
+        },
+        {
+          "id": "accept",
+          "text": "Accept: the check turns green",
+          "feedback": "Green, and still wrong. Don’t weaken the failing test."
+        },
+        {
+          "id": "rerun",
+          "text": "Run the check again until it passes",
+          "feedback": "The code is still wrong. A rerun changes nothing."
+        },
+        {
+          "id": "merge",
+          "text": "Merge: the local tests pass",
+          "feedback": "Local and GitHub evidence must agree first."
+        }
+      ],
+      "answer": "refuse",
+      "explain": {
+        "correct": "Right. Fix the code, not the test. After you push, the check runs again.",
+        "wrong": "What is the check telling you?"
+      },
+      "hints": [
+        "Which one is wrong: the code or the test?",
+        "Filing down the gauge leaves the hull wrong.",
+        ""
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "fix-a-failing-check",
+        "hash": "f2156f9ed67c"
+      }
+    },
+    {
+      "id": "T3.9",
+      "type": "scenario",
+      "situation": "Tests pass in your session, but CI fails.",
+      "prompt": "What do you compare first?",
+      "options": [
+        {
+          "id": "compare",
+          "text": "The Node.js version, installed dependencies, branch contents, environment variables and generated files"
+        },
+        {
+          "id": "off",
+          "text": "Turn off the check",
+          "feedback": "The check is evidence. Find out why it disagrees."
+        },
+        {
+          "id": "local",
+          "text": "Merge: local is enough",
+          "feedback": "Local and CI must agree."
+        },
+        {
+          "id": "reinstall",
+          "text": "Reinstall the Copilot app",
+          "feedback": "The app isn’t the difference. The environments are."
+        }
+      ],
+      "answer": "compare",
+      "explain": {
+        "correct": "Right. Compare the Node.js version, dependency installation, branch contents, environment variables and generated files.",
+        "wrong": "Two places ran the same tests. What differs between them?"
+      },
+      "hints": ["What runs the tests on GitHub?", "Versions, packages, branch, environment.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "local-results-and-ci-dont-agree",
+        "hash": "a5721d565af0"
+      }
+    },
+    {
+      "id": "T3.10",
+      "type": "mc",
+      "prompt": "Where does human judgment fit?",
+      "options": [
+        {
+          "id": "both",
+          "text": "In both loops: on your machine you decide if the evidence shows it’s ready, and on GitHub you decide when the pull request is ready to merge"
+        },
+        {
+          "id": "merge",
+          "text": "Only at the merge",
+          "feedback": "The outer loop has two approval gates, and the inner loop has your call too."
+        },
+        {
+          "id": "agent",
+          "text": "Agent Merge does it for you",
+          "feedback": "Agent Merge is a finishing aid, not a replacement for human review."
+        },
+        {
+          "id": "github",
+          "text": "Only on GitHub",
+          "feedback": "You judge your own diff, tests, build and preview first."
+        }
+      ],
+      "answer": "both",
+      "explain": {
+        "correct": "Right. Human judgment applies to both loops. Two seals in the flight, and one at the caisson.",
+        "wrong": "How many places did you seal?"
+      },
+      "hints": ["One loop on your machine, one on GitHub.", "Both loops.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    {
+      "id": "T3.11",
+      "type": "scenario",
+      "situation": "You set **Issues** to your fork, then open **Pull requests**.",
+      "prompt": "What do you expect?",
+      "options": [
+        {
+          "id": "own",
+          "text": "Pull requests has its own filter: set your fork there too"
+        },
+        {
+          "id": "same",
+          "text": "The same fork, already set",
+          "feedback": "Each view has its own filter. Check it in each view."
+        },
+        {
+          "id": "none",
+          "text": "No pull requests at all",
+          "feedback": "They’re there. The view just isn’t limited to your fork yet."
+        }
+      ],
+      "answer": "own",
+      "explain": {
+        "correct": "Right. Each view has its own filter, so check it whenever you change views.",
+        "wrong": "Is the filter shared?"
+      },
+      "hints": ["One view, one filter.", "Set it in each view.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "4-find-work-in-issues-and-pull-requests",
+        "hash": "baa3a4dec6ef"
+      }
+    },
+    {
+      "id": "T3.12",
+      "type": "scenario",
+      "situation": "The tests pass in one session and fail in a new one on another branch.",
+      "prompt": "What do you check first?",
+      "options": [
+        {
+          "id": "install",
+          "text": "That dependencies are installed in that worktree, and the session is on the branch you expect"
+        },
+        {
+          "id": "ci",
+          "text": "Wait for CI to decide",
+          "feedback": "Check the session first: its worktree and its branch."
+        },
+        {
+          "id": "delete",
+          "text": "Delete the new session",
+          "feedback": "Find out why first: the packages, or the branch."
+        }
+      ],
+      "answer": "install",
+      "explain": {
+        "correct": "Right. Confirm the dependencies are installed in that worktree, and that the session uses the expected practice branch.",
+        "wrong": "What does each worktree need?"
+      },
+      "hints": ["Is this session’s folder new?", "Its own `npm install`, and the right branch.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "tests-fail-only-in-one-session",
+        "hash": "f47217f9c6c2"
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "pg3.studio",
+      "title": "From take to final mix",
+      "image": "ch03/record-playback-retake-loop",
+      "caption": "A musician doesn’t keep the first take just because it’s finished: record, listen, adjust, record again. That’s the inner loop. The producer’s brief, feedback, quality checks and final approval are the outer loop.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "from-the-studio-from-take-to-final-mix",
+        "hash": "7e412fd7e657"
+      }
+    },
+    {
+      "id": "pg3.evidence",
+      "title": "Trust the evidence",
+      "image": "ch03/development-loop",
+      "caption": "A confident response from Copilot isn’t validated software. Check the diff in **Changes**, the tests and build in **Terminal**, the running app in **Browser**, and the GitHub checks on the pull request in **Pull requests**.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    {
+      "id": "pg3.judgment",
+      "title": "Your judgment, twice",
+      "caption": "Human judgment applies to both loops. On your machine, you decide whether the diff, tests, build and preview show the change is ready. On GitHub, you review the pull request, its comments and its checks, and decide when it’s ready to merge.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    {
+      "id": "pg3.baseline",
+      "title": "A known-good baseline",
+      "image": "ch03/app-workspace-panel",
+      "caption": "In a **New worktree** session, open the review panel from the **View** menu and select **Terminal**. In `samples/book-app-web`, four passing tests and a build that works are your known-good baseline. Run `npm install` the first time you use each new worktree.",
+      "code": "cd samples/book-app-web\nnpm install\nnpm test -- --run\nnpm run build",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "confirm-the-sample-app-is-ready",
+        "hash": "9f41604e0eea"
+      }
+    },
+    {
+      "id": "pg3.context-layers",
+      "title": "How Copilot gets context",
+      "image": "ch03/context-layers",
+      "caption": "Copilot works from more than your prompt: settings, instructions such as `.github/copilot-instructions.md`, and the repository’s files. More context isn’t always better, so keep each layer focused.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "confirm-the-sample-app-is-ready",
+        "hash": "9f41604e0eea"
+      }
+    },
+    {
+      "id": "pg3.snippets",
+      "title": "Run a snippet",
+      "caption": "Copy a snippet from Copilot’s reply into the **Terminal** tab, or select **Run** next to it when the reply shows one. The terminal reuses its shell when it can, so your folder and environment carry over between runs.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "running-code-snippets-in-the-terminal",
+        "hash": "59d78fd08c7f"
+      }
+    },
+    {
+      "id": "pg3.inner",
+      "title": "The inner loop",
+      "caption": "Understand the task, make a focused change, inspect the diff, run the tests and the build, and preview the behavior. If the evidence shows a problem, go round again.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "inner-loop-develop-and-validate-on-your-machine",
+        "hash": "77f6c9aa2f53"
+      }
+    },
+    {
+      "id": "pg3.fix",
+      "title": "Fix a bug from an issue",
+      "caption": "Select **Create from**, then **Branches**, then `practice-unread-count-bug`, and type `#2` to attach **Keep unread stats correct when filters are active**. Ask for a plan in **Plan** mode, select **Exit plan mode and I will prompt myself**, and ask Copilot to implement it. In **Changes**, check that the diff is focused: you can discard a file you didn’t intend, after a confirmation.",
+      "code": "Use the attached issue as the source of truth. Review @samples/book-app-web/src, identify the root cause, and create a short fix and validation plan.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "1-review-and-fix-a-bug",
+        "hash": "fe04b228a0d5"
+      }
+    },
+    {
+      "id": "pg3.validate",
+      "title": "Validate the fix",
+      "caption": "If Copilot already ran the tests and build, don’t run them twice. Run `npm run dev`, open **Browser** with the **Local** URL, and set **Fantasy** and **Unread** with the search empty: only **The Night Circus** shows, and the unread count is **1** (with the bug, **5**). Stop the server with `Ctrl+C`.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "validate-the-fix",
+        "hash": "d0f7b101aedb"
+      }
+    },
+    {
+      "id": "pg3.regression",
+      "title": "A regression test",
+      "caption": "A regression test fails with the original bug and passes with the fix. Ask for one that checks the books **Fantasy** and **Unread** show, and the count, then check in **Changes** that it doesn’t weaken an existing expectation.",
+      "code": "Add or update a focused test that renders the Book App, selects Fantasy and Unread with an empty search field, and confirms that only The Night Circus appears and the displayed unread count is 1. The test should fail with the original bug and pass with the fix.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "2-add-a-regression-test",
+        "hash": "cc75e9d58ac3"
+      }
+    },
+    {
+      "id": "pg3.refactor",
+      "title": "Refactor behind the tests",
+      "caption": "With the tests passing, you can split `filterBooks` into small, clearly named helpers that keep its behavior. If a test fails, fix the code, not the expected behavior.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "2-add-a-regression-test",
+        "hash": "cc75e9d58ac3"
+      }
+    },
+    {
+      "id": "pg3.rubber-duck",
+      "title": "A second opinion",
+      "caption": "Type `/` for the slash-command palette and send `/rubber-duck` to critique your diff, tests and browser validation. It uses a different model when a suitable one is available. Without it, choose a different model for the session, or send the same request without the slash command.",
+      "code": "/rubber-duck Critique this session's diff, tests, and browser validation. What should I double-check before creating a pull request?",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "3-ask-for-a-second-opinion",
+        "hash": "245981caca80"
+      }
+    },
+    {
+      "id": "pg3.pick-polish",
+      "title": "Pick & Polish",
+      "image": "ch03/app-pick-and-polish",
+      "caption": "In the browser preview, select **Pick & Polish**, then the empty background of a book card: an `article.book-card` attachment appears in the prompt box. Ask for a small change, then finish with the same diff, test, build and browser evidence.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "3-ask-for-a-second-opinion",
+        "hash": "245981caca80"
+      }
+    },
+    {
+      "id": "pg3.outer",
+      "title": "The outer loop",
+      "image": "ch03/issue-to-merged-pr",
+      "caption": "Start from an issue, work in a session, review the diff, open a pull request, answer feedback and failing checks, and merge only when the evidence agrees. Two approval gates are yours, and feedback or a failed check sends the work back to the session.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "outer-loop-move-the-work-through-github",
+        "hash": "07e5691870a8"
+      }
+    },
+    {
+      "id": "pg3.find-work",
+      "title": "Issues and Pull requests",
+      "image": "ch03/app-issues-filtered",
+      "caption": "The **Issues** and **Pull requests** views list the GitHub work that involves you, with tabs such as **Assigned to me** and **Authored by me**. Each view has its own filter, so limit each one to your fork. Open an item to see its title, repository, number and status.",
+      "fork": ["issues", "pulls"],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "4-find-work-in-issues-and-pull-requests",
+        "hash": "baa3a4dec6ef"
+      }
+    },
+    {
+      "id": "pg3.issue-to-pr",
+      "title": "From an issue to a pull request",
+      "image": "ch03/app-issue-new-session",
+      "caption": "The issue’s **New session** button starts from `main`, where search already works, so use **Create from** with `practice-search-case-bug` and attach `#1`. Ask for a summary that claims only the checks you saw, select **Create PR**, and don’t merge this practice pull request.",
+      "code": "Draft a pull request summary for this session. Include what changed, why it changed, and the validation performed. Don't claim a check passed unless it appears in the terminal or CI output.",
+      "fork": ["issues"],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+        "hash": "1a0d8ba7f6ad"
+      }
+    },
+    {
+      "id": "pg3.review-comment",
+      "title": "Answer a review comment",
+      "image": "ch03/app-pr-review-comment",
+      "caption": "Open **Improve empty-state copy** on **Authored by me**, and select **New session** at the top of the pull request. Ask for the smallest useful change, check that it answers the whole comment, then commit, push and confirm the update.",
+      "fork": ["pulls"],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "respond-to-a-review-comment",
+        "hash": "b36cced0ba51"
+      }
+    },
+    {
+      "id": "pg3.failing-check",
+      "title": "Fix a failing check",
+      "image": "ch03/app-pr-failing-check",
+      "caption": "A **CI check** is an automated validation run on a pull request. Open **Failing stats check practice**, read the failed **Book app web** check, and select **New session**: ask for the smallest fix with your own prompt, and keep the failing test as it is. After you push, the check runs again.",
+      "fork": ["pulls", "actions"],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "fix-a-failing-check",
+        "hash": "f2156f9ed67c"
+      }
+    },
+    {
+      "id": "pg3.agent-merge",
+      "title": "Agent Merge",
+      "image": "ch03/human-judgment-loop",
+      "caption": "Agent Merge can carry a small, well-scoped pull request through comments, checks and merge rules, and it merges only when GitHub allows. This course doesn’t use it. It’s a finishing aid, not a replacement for human review.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "fix-a-failing-check",
+        "hash": "f2156f9ed67c"
+      }
+    },
+    {
+      "id": "pg3.takeaways",
+      "title": "Key takeaways",
+      "caption": "The inner loop happens on your machine, and the outer loop on GitHub. The review panel keeps the diff, terminal and preview in view, tests protect behavior, and the **Issues** and **Pull requests** views connect GitHub work to sessions. A change is ready only when the diff, local validation, GitHub checks and human review agree.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "key-takeaways",
+        "hash": "81bc07b99b37"
+      }
+    },
+    {
+      "id": "pg3.assignment",
+      "title": "Your turn: both loops",
+      "image": "shared/assignment",
+      "caption": "Run both loops on a small UI task: Issue 4 on `practice-card-polish`, or, if you did Pick & Polish, the filter row’s labels from `main`. Plan it, build it, inspect the diff, run the tests and build, and preview it wide and narrow. Open a pull request whose summary lists only the checks you ran, and confirm **Book app web** passes.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "assignment",
+        "hash": "8bece86eb9dd"
+      }
+    },
+    {
+      "id": "pg3.next",
+      "title": "What’s next",
+      "caption": "Chapter 04 reuses this workflow with a review skill, and builds a custom agent that explains the Book App without editing it.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "whats-next",
+        "hash": "acf23bdfd833"
+      }
+    },
+    {
+      "id": "B3.1",
+      "title": "Preview doesn’t update?",
+      "caption": "Check that the development server runs in this session’s worktree, and that **Browser** uses the **Local** URL shown in **Terminal**.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "browser-preview-doesnt-update",
+        "hash": "a0808db5469f"
+      }
+    },
+    {
+      "id": "B3.2",
+      "title": "Tests fail in one session?",
+      "caption": "Check that dependencies are installed in that worktree, and that the session is on the practice branch you expect.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "tests-fail-only-in-one-session",
+        "hash": "f47217f9c6c2"
+      }
+    },
+    {
+      "id": "B3.3",
+      "title": "Can’t see an issue or pull request?",
+      "caption": "Check the selected tab and repository in the **Issues** or **Pull requests** view, then your repository access, permissions and organization policy.",
+      "fork": ["issues", "pulls"],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "i-cant-see-an-issue-or-pull-request",
+        "hash": "3aaa58523db0"
+      }
+    },
+    {
+      "id": "B3.4",
+      "title": "Local and CI disagree?",
+      "caption": "Compare the Node.js version, the installed dependencies, the branch contents, environment variables and generated files.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "local-results-and-ci-dont-agree",
+        "hash": "a5721d565af0"
+      }
+    },
+    {
+      "id": "B3.5",
+      "title": "Pull request still blocked?",
+      "caption": "Check that required checks ran again, review comments are resolved, and branch protection or merge rules aren’t waiting for another approval.",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "a-pull-request-is-still-blocked",
+        "hash": "8f7a981622af"
+      }
+    }
+  ],
+  "chests": [
+    {
+      "id": "C3.1",
+      "page": "pg3.context-layers",
+      "doubloons": 10
+    },
+    {
+      "id": "C3.2",
+      "page": "pg3.refactor",
+      "doubloons": 15
+    },
+    {
+      "id": "C3.3",
+      "page": "pg3.agent-merge",
+      "doubloons": 10
+    },
+    {
+      "id": "B3.1",
+      "page": "B3.1",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B3.2",
+      "page": "B3.2",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B3.3",
+      "page": "B3.3",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B3.4",
+      "page": "B3.4",
+      "doubloons": 5,
+      "kind": "bottle"
+    },
+    {
+      "id": "B3.5",
+      "page": "B3.5",
+      "doubloons": 5,
+      "kind": "bottle"
+    }
+  ],
+  "glossary": [
+    {
+      "id": "inner-loop",
+      "term": "Inner loop",
+      "definition": "The work on your machine: understand, change, inspect, test, build and preview, and repeat when the evidence shows a problem."
+    },
+    {
+      "id": "outer-loop",
+      "term": "Outer loop",
+      "definition": "The work on GitHub: an issue, a pull request, feedback, checks and a merge."
+    },
+    {
+      "id": "diff",
+      "term": "Diff",
+      "definition": "A view of what changed between two versions of files. In the app, it’s in the review panel’s **Changes** tab."
+    },
+    {
+      "id": "ci-check",
+      "term": "CI check",
+      "definition": "An automated validation run on a pull request, often through GitHub Actions. CI stands for continuous integration."
+    },
+    {
+      "id": "pr",
+      "term": "PR",
+      "definition": "Pull request: a GitHub request to review and merge changes from one branch into another."
+    },
+    {
+      "id": "regression-test",
+      "term": "Regression test",
+      "definition": "A test that fails with the original bug and passes with the fix."
+    },
+    {
+      "id": "rubber-duck",
+      "term": "Rubber duck",
+      "definition": "`/rubber-duck`: a constructive critic that uses a different model to find missing evidence or assumptions before you open a pull request."
+    },
+    {
+      "id": "pick-and-polish",
+      "term": "Pick & Polish",
+      "definition": "A browser preview tool: pick an element in the running app, and the app attaches it to your next prompt."
+    },
+    {
+      "id": "agent-merge",
+      "term": "Agent Merge",
+      "definition": "A finishing aid that can carry a pull request through comments, checks and merge rules, and merges only when GitHub allows. It doesn’t replace your review."
+    }
+  ],
+  "trials": [
+    {
+      "id": "T3",
+      "title": "The Gate Light Trial",
+      "items": ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7", "T3.8", "T3.9", "T3.10"],
+      "reward": {
+        "seal": "Seal of Keelhaven",
+        "doubloons": 70
+      }
+    }
+  ],
+  "voiced": {
+    "kh.juno.arrive.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "wingman.kh.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "learning-objectives",
+      "hash": "4d4d9b0be393"
+    },
+    "kh.lyra.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "from-the-studio-from-take-to-final-mix",
+      "hash": "7e412fd7e657"
+    },
+    "kh.lyra.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "from-the-studio-from-take-to-final-mix",
+      "hash": "7e412fd7e657"
+    },
+    "kh.lyra.retake": {
+      "chapter": "03-development-workflows",
+      "anchor": "from-the-studio-from-take-to-final-mix",
+      "hash": "7e412fd7e657"
+    },
+    "kh.lyra.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "from-the-studio-from-take-to-final-mix",
+      "hash": "7e412fd7e657"
+    },
+    "kh.lyra.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "from-the-studio-from-take-to-final-mix",
+      "hash": "7e412fd7e657"
+    },
+    "kh.hester.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.hester.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.hester.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.hester.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.hester.done": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.dory.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "confirm-the-sample-app-is-ready",
+      "hash": "9f41604e0eea"
+    },
+    "kh.dory.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "confirm-the-sample-app-is-ready",
+      "hash": "9f41604e0eea"
+    },
+    "kh.dory.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "confirm-the-sample-app-is-ready",
+      "hash": "9f41604e0eea"
+    },
+    "kh.dory.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "confirm-the-sample-app-is-ready",
+      "hash": "9f41604e0eea"
+    },
+    "kh.dory.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "running-code-snippets-in-the-terminal",
+      "hash": "59d78fd08c7f"
+    },
+    "kh.dory.06": {
+      "chapter": "03-development-workflows",
+      "anchor": "running-code-snippets-in-the-terminal",
+      "hash": "59d78fd08c7f"
+    },
+    "kh.dory.done": {
+      "chapter": "03-development-workflows",
+      "anchor": "confirm-the-sample-app-is-ready",
+      "hash": "9f41604e0eea"
+    },
+    "kh.cass.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "inner-loop-develop-and-validate-on-your-machine",
+      "hash": "77f6c9aa2f53"
+    },
+    "kh.cass.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "kh.cass.plan.ok": {
+      "chapter": "03-development-workflows",
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "kh.cass.plan.hide": {
+      "chapter": "03-development-workflows",
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "kh.cass.plan.test": {
+      "chapter": "03-development-workflows",
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "kh.cass.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "kh.cass.stray": {
+      "chapter": "03-development-workflows",
+      "anchor": "1-review-and-fix-a-bug",
+      "hash": "fe04b228a0d5"
+    },
+    "kh.cass.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "kh.cass.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "kh.cass.unread": {
+      "chapter": "03-development-workflows",
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "kh.cass.06": {
+      "chapter": "03-development-workflows",
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "kh.cass.claim": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "kh.cass.07": {
+      "chapter": "03-development-workflows",
+      "anchor": "validate-the-fix",
+      "hash": "d0f7b101aedb"
+    },
+    "kh.cass.08": {
+      "chapter": "03-development-workflows",
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "kh.cass.gauge.dry": {
+      "chapter": "03-development-workflows",
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "kh.cass.gauge.lower": {
+      "chapter": "03-development-workflows",
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "kh.cass.09": {
+      "chapter": "03-development-workflows",
+      "anchor": "2-add-a-regression-test",
+      "hash": "cc75e9d58ac3"
+    },
+    "kh.cass.10": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.06": {
+      "chapter": "03-development-workflows",
+      "anchor": "outer-loop-move-the-work-through-github",
+      "hash": "07e5691870a8"
+    },
+    "kh.barty.done": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.polish": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.barty.polish.back": {
+      "chapter": "03-development-workflows",
+      "anchor": "3-ask-for-a-second-opinion",
+      "hash": "245981caca80"
+    },
+    "kh.stroud.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "outer-loop-move-the-work-through-github",
+      "hash": "07e5691870a8"
+    },
+    "kh.stroud.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "outer-loop-move-the-work-through-github",
+      "hash": "07e5691870a8"
+    },
+    "kh.stroud.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "4-find-work-in-issues-and-pull-requests",
+      "hash": "baa3a4dec6ef"
+    },
+    "kh.stroud.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "4-find-work-in-issues-and-pull-requests",
+      "hash": "baa3a4dec6ef"
+    },
+    "kh.stroud.order": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.stroud.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.stroud.06": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.stroud.07": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.stroud.08": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.stroud.09": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.arlo.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "6-address-review-comments-and-failing-checks",
+      "hash": "1d243befe42b"
+    },
+    "kh.arlo.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "respond-to-a-review-comment",
+      "hash": "b36cced0ba51"
+    },
+    "kh.arlo.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "respond-to-a-review-comment",
+      "hash": "b36cced0ba51"
+    },
+    "kh.arlo.04": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.arlo.05": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.arlo.weaken": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.arlo.rerun": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.arlo.06": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.arlo.actions": {
+      "chapter": "00-setup",
+      "anchor": "add-the-course-practice-items",
+      "hash": "15d697dd1d02"
+    },
+    "kh.arlo.07": {
+      "chapter": "03-development-workflows",
+      "anchor": "key-takeaways",
+      "hash": "81bc07b99b37"
+    },
+    "kh.arlo.08": {
+      "chapter": "03-development-workflows",
+      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
+      "hash": "1a0d8ba7f6ad"
+    },
+    "kh.arlo.tug": {
+      "chapter": "03-development-workflows",
+      "anchor": "fix-a-failing-check",
+      "hash": "f2156f9ed67c"
+    },
+    "kh.otto.02": {
+      "chapter": "03-development-workflows",
+      "anchor": "key-takeaways",
+      "hash": "81bc07b99b37"
+    },
+    "kh.otto.03": {
+      "chapter": "03-development-workflows",
+      "anchor": "whats-next",
+      "hash": "acf23bdfd833"
+    },
+    "kh.otto.assign.01": {
+      "chapter": "03-development-workflows",
+      "anchor": "assignment",
+      "hash": "8bece86eb9dd"
+    },
+    "kh.otto.assign.back": {
+      "chapter": "03-development-workflows",
+      "anchor": "assignment",
+      "hash": "8bece86eb9dd"
+    }
+  }
+}

@@ -1,0 +1,1207 @@
+{
+  "$schema": "../../schemas/quests.schema.json",
+  "$comment": "Keelhaven (Chapter 03: Development and GitHub Workflows), docs/specs/ISLAND-03-keelhaven.md §4. The island is in build: its cast ids, story names, signs, cues and compass ids are the wiring step’s contract (the spec’s § Wiring contract), and the game leaves this file out until Keelhaven is in the registry.",
+  "island": "keelhaven",
+  "tracker": {
+    "chapter": "Chapter 03 · Dev & GitHub Workflows",
+    "goal": "Trust the evidence in both loops, and earn the Seal of Keelhaven",
+    "next": "Guildcrest is next, and she’s still being charted. Until then these waters are yours."
+  },
+  "quests": [
+    {
+      "id": "Q3.1",
+      "title": "The Second Take",
+      "task": "Hear the Bard’s tale",
+      "steps": {
+        "start": "Lyra’s playing on the tavern porch, at the quay’s east end.",
+        "done": "Record, listen, adjust, record again: that’s the inner loop. The producer’s checks are the outer loop."
+      }
+    },
+    {
+      "id": "Q3.2",
+      "title": "Trust the Evidence",
+      "task": "Learn what counts as evidence",
+      "steps": {
+        "start": "Hester’s Evidence Board stands by the river bridge.",
+        "done": "The diff, the tests and build, the running app and GitHub checks each answer their own question. You judge in both loops."
+      }
+    },
+    {
+      "id": "Q3.3",
+      "title": "A Known-Good Hull",
+      "task": "Prove a known-good baseline",
+      "link": {
+        "label": "Check the baseline in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#confirm-the-sample-app-is-ready"
+      },
+      "steps": {
+        "start": "Dory’s at Drydock 1, up the ramp.",
+        "done": "Four tests pass and the build works before you change anything. Each new worktree needs its own npm install."
+      }
+    },
+    {
+      "id": "Q3.4",
+      "title": "The Drydock Ring",
+      "task": "Walk the inner loop",
+      "link": {
+        "label": "Fix the bug in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#1-review-and-fix-a-bug"
+      },
+      "steps": {
+        "start": "Cass runs Drydock 2.",
+        "ring": "Walk the Drydock Ring: plan, change, inspect, test and build, preview.",
+        "solved": "Every lamp on the ring is green. Talk to Cass.",
+        "done": "Plan, change, inspect, test, build and preview. Repeat when the evidence shows a problem."
+      }
+    },
+    {
+      "id": "Q3.5",
+      "title": "The Tide Gauge",
+      "task": "Add a regression test",
+      "link": {
+        "label": "Add the regression test in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#2-add-a-regression-test"
+      },
+      "steps": {
+        "start": "Talk to Cass again at Drydock 2.",
+        "ring": "One more lap: bolt on the gauge.",
+        "solved": "The gauge holds. Talk to Cass.",
+        "done": "A regression test fails with the bug and passes with the fix. Don’t weaken an expectation."
+      }
+    },
+    {
+      "id": "Q3.6",
+      "title": "A Second Opinion",
+      "task": "Ask for a second opinion",
+      "link": {
+        "label": "Ask for a second opinion in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#3-ask-for-a-second-opinion"
+      },
+      "steps": {
+        "start": "Barty lodges in the Old Hulk, across the basin.",
+        "done": "The rubber duck agent critiques your evidence before a pull request. You decide what to fix."
+      }
+    },
+    {
+      "id": "Q3.7",
+      "title": "Two Ledgers",
+      "task": "Find work in Issues and Pull requests",
+      "link": {
+        "label": "Find your work in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#4-find-work-in-issues-and-pull-requests"
+      },
+      "steps": {
+        "start": "Stroud keeps the harbour office at Lock 1.",
+        "done": "Each view has its own filter. The practice pull requests are on Authored by me."
+      }
+    },
+    {
+      "id": "Q3.8",
+      "title": "The Lock Flight",
+      "task": "Go from an issue to a pull request",
+      "link": {
+        "label": "Open the pull request in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#5-start-from-an-issue-and-open-a-pull-request"
+      },
+      "steps": {
+        "start": "Talk to Stroud again at Lock 1.",
+        "flight": "Take the hull through Lock 1.",
+        "solved": "Your hull waits in the basin. Talk to Stroud.",
+        "done": "Start from the bug’s branch, check the diff, claim only what you saw, open the pull request, and don’t merge it."
+      }
+    },
+    {
+      "id": "Q3.9",
+      "title": "Notes and Lamps",
+      "task": "Answer a review comment and a failing check",
+      "link": {
+        "label": "Answer the comment and the check in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#6-address-review-comments-and-failing-checks"
+      },
+      "steps": {
+        "start": "Arlo keeps Lock 2.",
+        "flight": "Bring both hulls through Lock 2.",
+        "solved": "Both hulls are through. Talk to Arlo.",
+        "done": "Answer the whole comment. Fix the code, not the test. Merge only when the evidence agrees."
+      }
+    },
+    {
+      "id": "Q3.10",
+      "title": "The Gate Light",
+      "task": "Pass the Trial to earn the Seal",
+      "steps": {
+        "start": "Ottoline keeps the Gate Light, through the rock cut.",
+        "exam": "Ottoline’s Trial is ready when you are.",
+        "done": "The Seal of Keelhaven is yours."
+      }
+    },
+    {
+      "id": "Q3.A",
+      "title": "Your Turn: Both Loops",
+      "task": "Run both loops on a UI task",
+      "optional": true,
+      "link": {
+        "label": "Do the assignment in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#assignment"
+      },
+      "steps": {
+        "start": "Ottoline has one more job for you.",
+        "try": "Do the assignment in the app, then show Ottoline.",
+        "done": "One focused UI change, an honest summary, and Book app web passes."
+      }
+    },
+    {
+      "id": "Q3.B",
+      "title": "Pick & Polish",
+      "task": "Try Pick & Polish",
+      "optional": true,
+      "link": {
+        "label": "Try Pick & Polish in the app ↗",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#3-ask-for-a-second-opinion"
+      },
+      "steps": {
+        "start": "Barty has a spyglass for you.",
+        "try": "Try Pick & Polish in the app, then tell Barty.",
+        "done": "Pick & Polish attaches the element you pick to your next prompt."
+      }
+    }
+  ],
+  "targets": {
+    "Q3.1:start": {
+      "ids": ["npc:lyra_keel"],
+      "label": "Lyra"
+    },
+    "Q3.2:start": {
+      "ids": ["npc:hester"],
+      "label": "Hester"
+    },
+    "Q3.3:start": {
+      "ids": ["npc:dory"],
+      "label": "Dory"
+    },
+    "Q3.4:start": {
+      "ids": ["npc:cass"],
+      "label": "Cass"
+    },
+    "Q3.4:ring": {
+      "ids": ["ring:*"],
+      "label": "The Drydock Ring"
+    },
+    "Q3.4:solved": {
+      "ids": ["npc:cass"],
+      "label": "Cass"
+    },
+    "Q3.5:start": {
+      "ids": ["npc:cass"],
+      "label": "Cass"
+    },
+    "Q3.5:ring": {
+      "ids": ["ring:*"],
+      "label": "The Drydock Ring"
+    },
+    "Q3.5:solved": {
+      "ids": ["npc:cass"],
+      "label": "Cass"
+    },
+    "Q3.6:start": {
+      "ids": ["npc:barty"],
+      "label": "Barty"
+    },
+    "Q3.7:start": {
+      "ids": ["npc:stroud"],
+      "label": "Stroud"
+    },
+    "Q3.8:start": {
+      "ids": ["npc:stroud"],
+      "label": "Stroud"
+    },
+    "Q3.8:flight": {
+      "ids": ["flight:*"],
+      "label": "The Lock Flight"
+    },
+    "Q3.8:solved": {
+      "ids": ["npc:stroud"],
+      "label": "Stroud"
+    },
+    "Q3.9:start": {
+      "ids": ["npc:arlo"],
+      "label": "Arlo"
+    },
+    "Q3.9:flight": {
+      "ids": ["flight:*"],
+      "label": "The Lock Flight"
+    },
+    "Q3.9:solved": {
+      "ids": ["npc:arlo"],
+      "label": "Arlo"
+    },
+    "Q3.10:start": {
+      "ids": ["npc:ottoline"],
+      "label": "Ottoline"
+    },
+    "Q3.10:exam": {
+      "ids": ["npc:ottoline"],
+      "label": "Ottoline"
+    },
+    "Q3.A:start": {
+      "ids": ["npc:ottoline"],
+      "label": "Ottoline"
+    },
+    "Q3.A:try": {
+      "ids": ["npc:ottoline"],
+      "label": "Ottoline"
+    },
+    "Q3.B:start": {
+      "ids": ["npc:barty"],
+      "label": "Barty"
+    },
+    "Q3.B:try": {
+      "ids": ["npc:barty"],
+      "label": "Barty"
+    }
+  },
+  "beats": [
+    {
+      "npc": "lyra_keel",
+      "when": {
+        "Q3.1": "done"
+      },
+      "say": "kh.lyra.done"
+    },
+    {
+      "npc": "lyra_keel",
+      "script": "lyra"
+    },
+    {
+      "npc": "hester",
+      "when": {
+        "Q3.1": {
+          "not": "done"
+        }
+      },
+      "say": "kh.hester.wait"
+    },
+    {
+      "npc": "hester",
+      "when": {
+        "Q3.2": "done"
+      },
+      "say": "kh.hester.done"
+    },
+    {
+      "npc": "hester",
+      "script": "hester"
+    },
+    {
+      "npc": "dory",
+      "when": {
+        "Q3.2": {
+          "not": "done"
+        }
+      },
+      "say": "kh.dory.wait"
+    },
+    {
+      "npc": "dory",
+      "when": {
+        "Q3.3": "done"
+      },
+      "say": "kh.dory.done"
+    },
+    {
+      "npc": "dory",
+      "script": "dory"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.3": {
+          "not": "done"
+        }
+      },
+      "say": "kh.cass.wait"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.4": "ring"
+      },
+      "say": "kh.cass.ring"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.4": "solved"
+      },
+      "script": "cass.solved"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.4": {
+          "not": "done"
+        }
+      },
+      "script": "cass"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.5": "ring"
+      },
+      "say": "kh.cass.ring"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.5": "solved"
+      },
+      "script": "cass.lap2.solved"
+    },
+    {
+      "npc": "cass",
+      "when": {
+        "Q3.5": {
+          "not": "done"
+        }
+      },
+      "script": "cass.lap2"
+    },
+    {
+      "npc": "cass",
+      "say": "kh.cass.done"
+    },
+    {
+      "npc": "barty",
+      "when": {
+        "Q3.5": {
+          "not": "done"
+        }
+      },
+      "say": "kh.barty.wait"
+    },
+    {
+      "npc": "barty",
+      "when": {
+        "Q3.6": {
+          "not": "done"
+        }
+      },
+      "script": "barty"
+    },
+    {
+      "npc": "barty",
+      "when": {
+        "Q3.B": "start"
+      },
+      "script": "barty.polish"
+    },
+    {
+      "npc": "barty",
+      "when": {
+        "Q3.B": "try"
+      },
+      "script": "barty.polish.back"
+    },
+    {
+      "npc": "barty",
+      "say": "kh.barty.done"
+    },
+    {
+      "npc": "stroud",
+      "when": {
+        "Q3.6": {
+          "not": "done"
+        }
+      },
+      "say": "kh.stroud.wait"
+    },
+    {
+      "npc": "stroud",
+      "when": {
+        "Q3.7": {
+          "not": "done"
+        }
+      },
+      "script": "stroud"
+    },
+    {
+      "npc": "stroud",
+      "when": {
+        "Q3.8": "flight"
+      },
+      "say": "kh.stroud.flight"
+    },
+    {
+      "npc": "stroud",
+      "when": {
+        "Q3.8": "solved"
+      },
+      "script": "stroud.flight.solved"
+    },
+    {
+      "npc": "stroud",
+      "when": {
+        "Q3.8": {
+          "not": "done"
+        }
+      },
+      "script": "stroud.flight"
+    },
+    {
+      "npc": "stroud",
+      "say": "kh.stroud.done"
+    },
+    {
+      "npc": "arlo",
+      "when": {
+        "Q3.8": {
+          "not": "done"
+        }
+      },
+      "say": "kh.arlo.wait"
+    },
+    {
+      "npc": "arlo",
+      "when": {
+        "Q3.9": "flight"
+      },
+      "say": "kh.arlo.flight"
+    },
+    {
+      "npc": "arlo",
+      "when": {
+        "Q3.9": "solved"
+      },
+      "script": "arlo.solved"
+    },
+    {
+      "npc": "arlo",
+      "when": {
+        "Q3.9": {
+          "not": "done"
+        }
+      },
+      "script": "arlo"
+    },
+    {
+      "npc": "arlo",
+      "say": "kh.arlo.done"
+    },
+    {
+      "npc": "ottoline",
+      "when": {
+        "Q3.9": {
+          "not": "done"
+        }
+      },
+      "say": "kh.otto.wait"
+    },
+    {
+      "npc": "ottoline",
+      "when": {
+        "Q3.10": "exam"
+      },
+      "script": "ottoline.retry"
+    },
+    {
+      "npc": "ottoline",
+      "when": {
+        "Q3.A": "start"
+      },
+      "script": "ottoline.assignment"
+    },
+    {
+      "npc": "ottoline",
+      "when": {
+        "Q3.A": "try"
+      },
+      "script": "ottoline.assignment.back"
+    },
+    {
+      "npc": "ottoline",
+      "when": {
+        "Q3.10": "done"
+      },
+      "say": "kh.otto.done"
+    },
+    {
+      "npc": "ottoline",
+      "script": "ottoline"
+    }
+  ],
+  "story": {
+    "conditions": {
+      "firstVisit": {
+        "Q3.1": {
+          "not": "done"
+        }
+      },
+      "dockKitted": {
+        "Q3.3": "done"
+      },
+      "searchHullDown": {
+        "Q3.8": ["solved", "done"]
+      },
+      "prHullsDown": {
+        "Q3.9": ["solved", "done"]
+      },
+      "sealed": {
+        "Q3.10": "done"
+      }
+    },
+    "events": {}
+  },
+  "signs": {
+    "dock1": "practice-card-polish",
+    "dock2": "practice-unread-count-bug",
+    "dock3": "practice-search-case-bug",
+    "slipway": "main",
+    "lampPlate": "Book app web",
+    "ledgerIssues": "Issues",
+    "ledgerPulls": "Pull requests",
+    "ledgerAll": "Every repository",
+    "ledgerFork": "Your fork",
+    "hullSearch": "Make search case-insensitive",
+    "hullNote": "Improve empty-state copy",
+    "hullLamp": "Failing stats check practice",
+    "strataPrompt": "Prompt",
+    "strataSettings": "Settings",
+    "strataInstructions": "Instructions",
+    "strataRepo": "Repo files",
+    "bellCord": "Run",
+    "winch": "Copy and paste"
+  },
+  "scripts": {
+    "lyra": [
+      {
+        "say": "kh.lyra.01"
+      },
+      {
+        "show": "ch03/record-playback-retake-loop",
+        "caption": "Record, play back, and record again."
+      },
+      {
+        "say": "kh.lyra.02"
+      },
+      {
+        "hide": true
+      },
+      {
+        "say": "kh.lyra.retake"
+      },
+      {
+        "cue": "kh-retake"
+      },
+      {
+        "say": "kh.lyra.03"
+      },
+      {
+        "show": "ch03/producer-review-desk-github",
+        "caption": "The producer’s desk: the brief, the feedback, the quality checks and the final approval."
+      },
+      {
+        "say": "kh.lyra.04"
+      },
+      {
+        "hide": true
+      },
+      {
+        "quiz": "K3.1"
+      },
+      {
+        "page": "pg3.studio",
+        "doubloons": 15
+      },
+      {
+        "say": "kh.lyra.05"
+      },
+      {
+        "quest": "Q3.1",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.2",
+        "step": "start"
+      }
+    ],
+    "hester": [
+      {
+        "say": "kh.hester.01"
+      },
+      {
+        "say": "kh.hester.02"
+      },
+      {
+        "show": "ch03/development-loop",
+        "caption": "Two loops: on your machine, and on GitHub. Human judgment applies to both."
+      },
+      {
+        "say": "kh.hester.03"
+      },
+      {
+        "hide": true
+      },
+      {
+        "cue": "kh-board"
+      },
+      {
+        "quiz": "M3.1"
+      },
+      {
+        "say": "kh.hester.04"
+      },
+      {
+        "say": "kh.hester.05"
+      },
+      {
+        "quiz": "K3.2"
+      },
+      {
+        "term": "inner-loop"
+      },
+      {
+        "term": "outer-loop"
+      },
+      {
+        "page": "pg3.evidence",
+        "doubloons": 15
+      },
+      {
+        "file": "pg3.judgment"
+      },
+      {
+        "say": "kh.hester.06"
+      },
+      {
+        "quest": "Q3.2",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.3",
+        "step": "start"
+      }
+    ],
+    "dory": [
+      {
+        "say": "kh.dory.01"
+      },
+      {
+        "say": "kh.dory.02"
+      },
+      {
+        "cue": "kh-sounding"
+      },
+      {
+        "say": "kh.dory.03"
+      },
+      {
+        "cue": "kh-tool-chest"
+      },
+      {
+        "say": "kh.dory.04"
+      },
+      {
+        "quiz": "K3.3"
+      },
+      {
+        "cue": "kh-bell-cord"
+      },
+      {
+        "say": "kh.dory.05"
+      },
+      {
+        "say": "kh.dory.06"
+      },
+      {
+        "show": "ch03/app-workspace-panel",
+        "caption": "The review panel’s **Terminal** tab: four passing tests."
+      },
+      {
+        "hide": true
+      },
+      {
+        "term": "review-panel"
+      },
+      {
+        "page": "pg3.baseline"
+      },
+      {
+        "page": "pg3.snippets",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.1"
+      },
+      {
+        "say": "kh.dory.07"
+      },
+      {
+        "quest": "Q3.3",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.4",
+        "step": "start"
+      }
+    ],
+    "cass": [
+      {
+        "say": "kh.cass.01"
+      },
+      {
+        "say": "kh.cass.02"
+      },
+      {
+        "quest": "Q3.4",
+        "step": "ring"
+      },
+      {
+        "cue": "kh-ring"
+      }
+    ],
+    "cass.solved": [
+      {
+        "say": "kh.cass.07"
+      },
+      {
+        "term": "diff"
+      },
+      {
+        "file": "pg3.inner"
+      },
+      {
+        "page": "pg3.fix"
+      },
+      {
+        "page": "pg3.validate",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.2"
+      },
+      {
+        "quest": "Q3.4",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.5",
+        "step": "start"
+      }
+    ],
+    "cass.lap2": [
+      {
+        "say": "kh.cass.08"
+      },
+      {
+        "quest": "Q3.5",
+        "step": "ring"
+      },
+      {
+        "cue": "kh-ring"
+      }
+    ],
+    "cass.lap2.solved": [
+      {
+        "say": "kh.cass.09"
+      },
+      {
+        "term": "regression-test"
+      },
+      {
+        "page": "pg3.regression",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.3"
+      },
+      {
+        "cue": "kh-chest:C3.2"
+      },
+      {
+        "say": "kh.cass.10"
+      },
+      {
+        "quest": "Q3.5",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.6",
+        "step": "start"
+      }
+    ],
+    "barty": [
+      {
+        "say": "kh.barty.01"
+      },
+      {
+        "say": "kh.barty.02"
+      },
+      {
+        "say": "kh.barty.03"
+      },
+      {
+        "quiz": "K3.6"
+      },
+      {
+        "say": "kh.barty.04"
+      },
+      {
+        "say": "kh.barty.05"
+      },
+      {
+        "term": "rubber-duck"
+      },
+      {
+        "page": "pg3.rubber-duck",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.4"
+      },
+      {
+        "say": "kh.barty.06"
+      },
+      {
+        "quest": "Q3.6",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.7",
+        "step": "start"
+      },
+      {
+        "quest": "Q3.B",
+        "step": "start"
+      }
+    ],
+    "barty.polish": [
+      {
+        "say": "kh.barty.polish"
+      },
+      {
+        "cue": "kh-chalk-spyglass"
+      },
+      {
+        "show": "ch03/app-pick-and-polish",
+        "caption": "Pick an element in the preview: an `article.book-card` attachment shows in the prompt box."
+      },
+      {
+        "hide": true
+      },
+      {
+        "term": "pick-and-polish"
+      },
+      {
+        "page": "pg3.pick-polish",
+        "doubloons": 15
+      },
+      {
+        "say": "kh.barty.polish.go"
+      },
+      {
+        "appTask": "A3.10",
+        "quiet": true
+      },
+      {
+        "quest": "Q3.B",
+        "step": "try"
+      }
+    ],
+    "barty.polish.back": [
+      {
+        "say": "kh.barty.polish.ask"
+      },
+      {
+        "appTask": "A3.10",
+        "orStop": true
+      },
+      {
+        "say": "kh.barty.polish.back"
+      },
+      {
+        "quest": "Q3.B",
+        "step": "done"
+      }
+    ],
+    "stroud": [
+      {
+        "say": "kh.stroud.01"
+      },
+      {
+        "show": "ch03/issue-to-merged-pr",
+        "caption": "From an issue to a merge, with two approval gates on the way."
+      },
+      {
+        "say": "kh.stroud.02"
+      },
+      {
+        "hide": true
+      },
+      {
+        "say": "kh.stroud.03"
+      },
+      {
+        "cue": "kh-ledgers"
+      },
+      {
+        "quiz": "K3.7"
+      },
+      {
+        "say": "kh.stroud.04"
+      },
+      {
+        "show": "ch03/app-issues-filtered",
+        "caption": "The **Issues** view, limited to your fork: only the practice issues."
+      },
+      {
+        "hide": true
+      },
+      {
+        "page": "pg3.find-work",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.5"
+      },
+      {
+        "file": "pg3.outer"
+      },
+      {
+        "quest": "Q3.7",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.8",
+        "step": "start"
+      }
+    ],
+    "stroud.flight": [
+      {
+        "say": "kh.stroud.order"
+      },
+      {
+        "quest": "Q3.8",
+        "step": "flight"
+      },
+      {
+        "cue": "kh-flight"
+      }
+    ],
+    "stroud.flight.solved": [
+      {
+        "say": "kh.stroud.09"
+      },
+      {
+        "term": "pr"
+      },
+      {
+        "page": "pg3.issue-to-pr",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.6"
+      },
+      {
+        "say": "kh.stroud.10"
+      },
+      {
+        "quest": "Q3.8",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.9",
+        "step": "start"
+      }
+    ],
+    "arlo": [
+      {
+        "say": "kh.arlo.01"
+      },
+      {
+        "quest": "Q3.9",
+        "step": "flight"
+      },
+      {
+        "cue": "kh-flight"
+      }
+    ],
+    "arlo.solved": [
+      {
+        "say": "wingman.kh.seals"
+      },
+      {
+        "say": "kh.arlo.tug"
+      },
+      {
+        "cue": "kh-chest:C3.3"
+      },
+      {
+        "term": "ci-check"
+      },
+      {
+        "page": "pg3.review-comment"
+      },
+      {
+        "page": "pg3.failing-check",
+        "doubloons": 15
+      },
+      {
+        "appTask": "A3.7"
+      },
+      {
+        "appTask": "A3.8"
+      },
+      {
+        "say": "kh.arlo.09"
+      },
+      {
+        "quest": "Q3.9",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.10",
+        "step": "start"
+      }
+    ],
+    "ottoline": [
+      {
+        "say": "kh.otto.01"
+      },
+      {
+        "quest": "Q3.10",
+        "step": "exam"
+      },
+      {
+        "trial": "T3"
+      },
+      {
+        "script": "trial.passed"
+      }
+    ],
+    "ottoline.retry": [
+      {
+        "say": "kh.otto.retry"
+      },
+      {
+        "trial": "T3"
+      },
+      {
+        "script": "trial.passed"
+      }
+    ],
+    "trial.passed": [
+      {
+        "cue": "celebrate"
+      },
+      {
+        "say": "kh.otto.02"
+      },
+      {
+        "cue": "kh-seal"
+      },
+      {
+        "page": "pg3.takeaways"
+      },
+      {
+        "say": "kh.otto.03"
+      },
+      {
+        "file": "pg3.next"
+      },
+      {
+        "quest": "Q3.10",
+        "step": "done"
+      },
+      {
+        "quest": "Q3.A",
+        "step": "start"
+      }
+    ],
+    "ottoline.assignment": [
+      {
+        "say": "kh.otto.assign.01"
+      },
+      {
+        "page": "pg3.assignment",
+        "doubloons": 15
+      },
+      {
+        "say": "kh.otto.assign.go"
+      },
+      {
+        "appTask": "A3.9",
+        "quiet": true
+      },
+      {
+        "quest": "Q3.A",
+        "step": "try"
+      }
+    ],
+    "ottoline.assignment.back": [
+      {
+        "say": "kh.otto.assign.ask"
+      },
+      {
+        "appTask": "A3.9",
+        "orStop": true
+      },
+      {
+        "quiz": "K3.9"
+      },
+      {
+        "say": "kh.otto.assign.back"
+      },
+      {
+        "quest": "Q3.A",
+        "step": "done"
+      }
+    ]
+  },
+  "notes": {
+    "lyra": "The Bard's re-take (puzzles/retake.json, the kh-retake cue): she plays a take, the player finds the bar that rang wrong, and she records again; Salty Sway joins the Songbook.",
+    "hester": "The Evidence Board (the kh-board cue) shows M3.1 on its four name boards, then her judgment lines and K3.2.",
+    "dory": "Three small acts, each before its line: sounding four planks and floating the hull (kh-sounding), carrying a tool chest to Drydock 2 (kh-tool-chest), and the bell cord and the winch (kh-bell-cord). Then the baseline card.",
+    "cass": "The Drydock Ring, lap 1 (puzzles/drydock-ring.json): the brief sets the ring step, and the ring opens (kh-ring). The lap’s end sets solved and plays cass.solved at once.",
+    "cass.solved": "Lap 1’s close: the inner loop’s pages and the fix card (A3.2).",
+    "cass.lap2": "Lap 2, the regression test: the same ring with a gauge to bolt on.",
+    "cass.lap2.solved": "Lap 2’s close: the regression page and card, then chest C3.2 at the dock head opens.",
+    "barty": "The second opinion: K3.6 is what you do with a critique; then the card (A3.4). Pick & Polish (Q3.B) starts, optional.",
+    "barty.polish": "Optional: the chalk spyglass (kh-chalk-spyglass) marks one sail; the card goes quietly, and Barty asks when you’re back.",
+    "barty.polish.back": "Later ends the talk: the quest waits at try, and Barty asks again next time.",
+    "stroud": "The outer loop, then the two ledgers (kh-ledgers): each view has its own filter (4. Find Work), K3.7, and the card (A3.5). Written to hold for both the repository picker and the query filter of the course’s two latest texts.",
+    "stroud.flight": "The Lock Flight, part 1 (puzzles/lock-flight.json): the order, then the flight opens (kh-flight). The part’s end plays stroud.flight.solved.",
+    "stroud.flight.solved": "Part 1’s close: the issue-to-pull-request page and card (A3.6).",
+    "arlo": "The Lock Flight, part 2: the note and the red lamp, Gate 2 and the Sea Gate. The part’s end plays arlo.solved.",
+    "arlo.solved": "Part 2’s close: Wingman on the two seals, the tug (Agent Merge, chest C3.3), the pages and both cards (A3.7, A3.8).",
+    "ottoline": "Leaving the Trial ends the script; next time Ottoline skips her introduction (ottoline.retry). The reflection comes before the Seal (as built).",
+    "trial.passed": "The Seal: kh-seal kindles the Gate Light and the lamps answer down the flight (§4.5).",
+    "ottoline.assignment": "Optional, after the Seal: the assignment card goes quietly, and Ottoline asks when you’re back.",
+    "ottoline.assignment.back": "Later ends the talk; I did it shows K3.9, the success criteria.",
+    "barks.kh_nip": "The second bark paraphrases 03 · confirm-the-sample-app-is-ready.",
+    "barks.kh_moll": "The second bark paraphrases 03 · 1-review-and-fix-a-bug.",
+    "barks.kh_salter": "The first bark paraphrases 03 · validate-the-fix.",
+    "barks.kh_kit": "Both barks paraphrase 03 · fix-a-failing-check.",
+    "barks.kh_skipper": "Both barks paraphrase 03 · fix-a-failing-check (Agent Merge, optional)."
+  },
+  "barks": {
+    "kh_nip": [
+      "Race you to the slipway, Tuck!",
+      "Every dock has its own tool chest. You can’t borrow a hammer through a wall."
+    ],
+    "kh_tuck": ["Wait for me, Nip!", "When the Gate Light kindles, every lock lamp turns green."],
+    "kh_moll": [
+      "Mind the planks, Captain.",
+      "A plank on the wrong hull? Pry it off, or have the crew revise it."
+    ],
+    "kh_salter": ["Unread alone? That won’t show you a thing.", "Fish bite better when the lamps are green."],
+    "kh_kit": [
+      "The lamps light themselves. Lockfall does the work.",
+      "A red lamp means read the check, Captain. Don’t file the gauge."
+    ],
+    "kh_skipper": [
+      "I’ll tow a hull out when the harbour allows. Not before.",
+      "A finishing aid, that’s me. The captain still reviews."
+    ]
+  }
+}
