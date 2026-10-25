@@ -17,6 +17,7 @@ import { SMALL_ROCKS } from '../stream-stones';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
+import { createIslandDepthTile } from '../depth-tile';
 import { footprintDistance } from '../footprint';
 import type { IslandStream, IslandStreamCreateContext } from '../island-stream';
 import { SilhouetteSwap } from '../silhouette-swap';
@@ -58,6 +59,8 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
   let birds: BirdsSystem | null = null;
   let obstacles: CircleObstacle[] = [];
   let priority: RequestPriority = 'auto';
+  // Its own floor for the ocean's depth colour (turquoise shallows), lent while it's in memory.
+  const depth = ctx.island.stream?.depthTile ? createIslandDepthTile(ctx.island.id) : null;
   const detail = new FarCull(center.x, center.z, ranges.detail, tier.detailCullRatio);
 
   const buildParts = async (): Promise<ThousandBoughWorld | null> => {
@@ -95,6 +98,11 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
     if (ctx.skipShadows) skipSunShadows(terrain.group);
     const foam = createCoastFoam(data, terrain.heightField, { maxDistance: 1100 });
     self.foam = foam;
+    await depth?.build(data, ctx.breathe);
+    if (disposed) {
+      depth?.drop();
+      return null;
+    }
     addIslandGround(ctx, data, terrain, foam);
     self.ready = true;
     const kit = await loadVillageKit();
@@ -142,6 +150,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
     birds = null;
     removeIslandGround(ctx, terrain, obstacles);
     obstacles = [];
+    depth?.drop();
     // Its air goes back to the open sea's.
     resetMood();
     const vegetation = ctx.vegetation();
@@ -222,6 +231,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
     },
     hold(on) {
       held = on;
+      if (on) depth?.lend(self.ready);
     },
     get held() {
       return held;
@@ -242,6 +252,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
       const near = !swap.update(reach);
       const show = near || held;
       if (self.ready && self.terrain && self.foam && !held) {
+        if (show) depth?.lend(true);
         self.terrain.group.visible = show;
         self.foam.visible = show;
         if (self.system) self.system.group.visible = show;
@@ -265,6 +276,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
     dispose() {
       disposed = true;
       life.end();
+      depth?.drop();
       scene.remove(silhouette);
       disposeTree(silhouette);
       if (self.terrain) {

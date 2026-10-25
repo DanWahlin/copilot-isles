@@ -126,6 +126,22 @@ export interface IslandStreamSpec {
    * `'none'` loads nothing more (the core and the home island's part load with the voyage).
    */
   courseData: 'chapter-part' | 'none';
+  /**
+   * Whether it has its own floor tile for the ocean's depth colour (its shallows are outside the home
+   * tile, `WATER_DEPTH_BOUNDS`): its stream builds it from its baked terrain and lends it while the
+   * island is in memory (src/world/islands/depth-tile.ts).
+   */
+  depthTile: boolean;
+}
+
+/**
+ * An island whose world is still being built (src/islands/registry.ts `ISLANDS_IN_BUILD`): only the
+ * parts the shared world already draws (its terrain regions, for the dev terrain page). It isn't in
+ * the game: no berth, no stream, no content. When it's done, its full entry replaces this line.
+ */
+export interface IslandInBuild {
+  id: string;
+  terrainRegions: TerrainRegions;
 }
 
 /**

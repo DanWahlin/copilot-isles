@@ -1,7 +1,8 @@
 import { ANCHORAGE } from './anchorage';
+import { KEELHAVEN_IN_BUILD } from './keelhaven';
 import { MERIDIAN_ISLAND } from './meridian';
 import { THOUSAND_BOUGH_ISLAND } from './thousand-bough';
-import type { IslandEntry } from './types';
+import type { IslandEntry, IslandInBuild } from './types';
 
 /**
  * Every island the game has built, in voyage order (docs/adding-an-island.md). A new island is its
@@ -17,6 +18,13 @@ export const ISLAND_REGISTRY = {
 } as const satisfies Readonly<Record<string, IslandEntry>>;
 
 export type IslandId = keyof typeof ISLAND_REGISTRY;
+
+/**
+ * Islands whose world is still being built, after the registry's in voyage order: only their
+ * terrain regions are in the shared world (src/world/islands/terrain-regions.ts). An island moves
+ * from here to `ISLAND_REGISTRY` when its package is done.
+ */
+export const ISLANDS_IN_BUILD: readonly IslandInBuild[] = [KEELHAVEN_IN_BUILD];
 
 /** The islands in voyage order. */
 export const ISLAND_LIST: readonly IslandEntry[] = Object.values(ISLAND_REGISTRY);

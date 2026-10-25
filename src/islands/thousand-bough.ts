@@ -109,6 +109,8 @@ export const THOUSAND_BOUGH_ISLAND: IslandEntry = {
   stream: {
     nearLoads: 'always',
     courseData: 'chapter-part',
+    // Its own ocean floor tile: its turquoise shallows are outside the home tile.
+    depthTile: true,
     // The harbour mirror only draws round Anchorage's harbour, a long way from Thousand-Bough.
     reflected: false,
   },

@@ -1,4 +1,5 @@
 import { ClampToEdgeWrapping, DataTexture, FloatType, LinearFilter, RedFormat } from 'three/webgpu';
+import type { TerrainBakeData } from '../terrain/bake';
 import { DEFAULT_TERRAIN_BOUNDS, coveHeight } from '../terrain/cove-height';
 import { MERIDIAN, meridianHeight } from '../islands/meridian';
 
@@ -36,9 +37,10 @@ export function waterDepthTexture(): DataTexture {
   }
 }
 
-/** Frees the cached texture's GPU copy (its data stays baked for the next voyage). */
+/** Frees the cached textures' GPU copies (their data stays baked for the next voyage). */
 export function releaseWaterDepthTexture(): void {
   cached?.dispose();
+  placeholder?.dispose();
 }
 
 /**
@@ -73,12 +75,121 @@ function* bakeSteps(): Generator<void, DataTexture, void> {
     yield;
   }
   if (cached) return cached;
-  cached = new DataTexture(data, SIZE, SIZE, RedFormat, FloatType);
-  cached.magFilter = LinearFilter;
-  cached.minFilter = LinearFilter;
-  cached.wrapS = ClampToEdgeWrapping;
-  cached.wrapT = ClampToEdgeWrapping;
-  cached.needsUpdate = true;
-  cached.name = 'ocean-floor-height';
+  cached = floorTexture(data, SIZE, 'ocean-floor-height');
   return cached;
+}
+
+/** A floor-height texture: one format, size class and filter for every tile (so a swap builds no shader). */
+function floorTexture(data: Float32Array, size: number, name: string): DataTexture {
+  const tex = new DataTexture(data, size, size, RedFormat, FloatType);
+  tex.magFilter = LinearFilter;
+  tex.minFilter = LinearFilter;
+  tex.wrapS = ClampToEdgeWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
+  tex.needsUpdate = true;
+  tex.name = name;
+  return tex;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Island tiles: each streamed island's own floor (its baked terrain), one at a time in the ocean's
+// second slot (the nearest to the camera). The home tile above (Anchorage and Port Meridian) stays.
+
+/** One island's floor heights over its baked bounds, for the ocean's depth colour and shore foam. */
+export interface WaterDepthTile {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+  readonly texture: DataTexture;
+}
+
+const TILE_SIZE = 512;
+const tiles: WaterDepthTile[] = [];
+let placeholder: DataTexture | null = null;
+
+/** What the island slot holds while no island has a tile: a 1 × 1 deep floor, with the tiles' format and filters. */
+export function waterDepthPlaceholder(): DataTexture {
+  return (placeholder ??= floorTexture(new Float32Array([-58]), 1, 'ocean-floor-none'));
+}
+
+/**
+ * Builds an island's tile from its baked terrain (bilinear over the bake's own grid), a few rows a
+ * step; run it with the island's `breathe`. Outside the bake the floor is the deep floor.
+ */
+export function* waterDepthTileFromTerrain(
+  data: TerrainBakeData,
+  name: string,
+): Generator<void, WaterDepthTile, void> {
+  const out = new Float32Array(TILE_SIZE * TILE_SIZE);
+  const { nx, nz, heights, cell } = data;
+  const spanX = data.maxX - data.minX;
+  const spanZ = data.maxZ - data.minZ;
+  for (let row = 0; row < TILE_SIZE; row++) {
+    const gz = Math.min(nz - 1.0001, ((row / (TILE_SIZE - 1)) * spanZ) / cell);
+    const iz = Math.floor(gz);
+    const tz = gz - iz;
+    for (let col = 0; col < TILE_SIZE; col++) {
+      const gx = Math.min(nx - 1.0001, ((col / (TILE_SIZE - 1)) * spanX) / cell);
+      const ix = Math.floor(gx);
+      const tx = gx - ix;
+      const i = iz * nx + ix;
+      const a = heights[i]! + (heights[i + 1]! - heights[i]!) * tx;
+      const b = heights[i + nx]! + (heights[i + nx + 1]! - heights[i + nx]!) * tx;
+      out[row * TILE_SIZE + col] = a + (b - a) * tz;
+    }
+    if ((row & 31) === 31) yield;
+  }
+  return {
+    minX: data.minX,
+    maxX: data.maxX,
+    minZ: data.minZ,
+    maxZ: data.maxZ,
+    texture: floorTexture(out, TILE_SIZE, `ocean-floor-${name}`),
+  };
+}
+
+/**
+ * Lends the ocean an island's tile while the island is in memory (the stream that adds it removes it
+ * and frees its texture). Add it before the island's warm-up: the ocean binds the nearest tile at once,
+ * so the warm's draws upload it.
+ */
+export function addWaterDepthTile(tile: WaterDepthTile): void {
+  if (!tiles.includes(tile)) tiles.push(tile);
+}
+
+/** Takes an island's tile back and frees its GPU copy. */
+export function removeWaterDepthTile(tile: WaterDepthTile): void {
+  const i = tiles.indexOf(tile);
+  if (i >= 0) tiles.splice(i, 1);
+  tile.texture.dispose();
+}
+
+/** The tile nearest to (x, z) (0 inside its bounds), or null when no island has one. No allocation. */
+export function nearestWaterDepthTile(x: number, z: number): WaterDepthTile | null {
+  let best: WaterDepthTile | null = null;
+  let bestDistance = Infinity;
+  for (const tile of tiles) {
+    const dx = x < tile.minX ? tile.minX - x : x > tile.maxX ? x - tile.maxX : 0;
+    const dz = z < tile.minZ ? tile.minZ - z : z > tile.maxZ ? z - tile.maxZ : 0;
+    const distance = dx * dx + dz * dz;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = tile;
+    }
+  }
+  return best;
+}
+
+/**
+ * The island slot's bounds for the ocean's shader: (min x, min z, 1 / span x, 1 / span z), so a point's
+ * uv is (p − min) × inverse span, inside the tile for 0-1. Empty (no tile): every point far outside
+ * (a span of 0 would put every point at uv 0, inside).
+ */
+export function tileUvBounds(
+  tile: WaterDepthTile | null,
+  out: { set(x: number, y: number, z: number, w: number): unknown },
+): void {
+  if (tile) out.set(tile.minX, tile.minZ, 1 / (tile.maxX - tile.minX), 1 / (tile.maxZ - tile.minZ));
+  else out.set(1e9, 1e9, 1, 1);
 }

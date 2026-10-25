@@ -7,8 +7,7 @@
     <link rel="icon" href="data:," />
     <style>
       html,
-      body,
-      #terrain-root {
+      body {
         width: 100%;
         height: 100%;
         margin: 0;
@@ -18,12 +17,13 @@
           ui-sans-serif,
           system-ui,
           -apple-system,
-          BlinkMacSystemFont,
           'Segoe UI',
           sans-serif;
       }
       canvas {
         display: block;
+        width: 100%;
+        height: 100%;
       }
       #hud {
         position: fixed;
@@ -34,14 +34,13 @@
         border-radius: 12px;
         color: #f4fbff;
         background: rgb(8 21 30 / 72%);
-        box-shadow: 0 12px 32px rgb(0 0 0 / 28%);
         backdrop-filter: blur(14px);
+        font-size: 12px;
       }
       #hud strong {
         display: block;
         margin-bottom: 8px;
-        font-size: 14px;
-        letter-spacing: 0.02em;
+        font-size: 13px;
       }
       #hud button {
         margin: 2px;
@@ -56,38 +55,23 @@
         margin-top: 8px;
         color: #b9d8e5;
         font:
-          12px/1.4 ui-monospace,
-          SFMono-Regular,
+          11px/1.4 ui-monospace,
           Menlo,
           monospace;
+        white-space: pre;
       }
-      #loading {
-        position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        color: #e8f7ff;
-        background: #09141d;
-        transition: opacity 0.35s ease;
-        z-index: 10;
-      }
-      body.ready #loading {
-        pointer-events: none;
-        opacity: 0;
+      body.shot #hud {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div id="terrain-root"></div>
+    <canvas id="gl"></canvas>
     <div id="hud">
-      <strong>Terrain views</strong>
-      <button data-view="harbor">Harbor</button>
-      <button data-view="headland">Headland cliffs</button>
-      <button data-view="lagoon">Lagoon beach</button>
-      <button data-view="stack">Sea stack</button>
+      <strong>Terrain packs</strong>
+      <div id="views"></div>
       <div id="stats">Loading…</div>
     </div>
-    <div id="loading">Baking light into limestone…</div>
     <script type="module" src="/src/dev/terrain.ts"></script>
   </body>
 </html>

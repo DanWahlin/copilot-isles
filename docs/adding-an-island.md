@@ -52,10 +52,15 @@ regions (TSL masks), and its flora palette. Put layout data in a file of its own
 | `terrainRegions`, `floraPalette` | Where its ground looks different (TSL masks for the shared terrain material) and its grass and flower palette (for the shared flora graphs). |
 | `puzzles` | The puzzles on it, by the course pack's file name, and the mechanic each runs. `GAME_PUZZLES` and `PUZZLE_ISLANDS` come from it, so the course split puts their content in the island's chapter part. |
 | `market` | Its Model Market stall's keeper (`{ keeper: { npc, name }, lines }`), if it has one. |
-| `stream` | `{ nearLoads, reflected, courseData }`. `nearLoads: 'in-course'` streams the island in by distance only when the course uses it. `reflected: false` when the harbour mirror cannot see it. `courseData: 'chapter-part'` makes the stream wait for the island's chapter part of the course pack (`loadIslandPart`, src/course/load.ts) with its terrain, so its quests, scripts and puzzles are in before its content is made. |
+| `stream` | `{ nearLoads, reflected, courseData }`. `nearLoads: 'in-course'` streams the island in by distance only when the course uses it. `reflected: false` when the harbour mirror cannot see it. `courseData: 'chapter-part'` makes the stream wait for the island's chapter part of the course pack (`loadIslandPart`, src/course/load.ts) with its terrain, so its quests, scripts and puzzles are in before its content is made. `depthTile: true` when its shallows are outside the home ocean tile (`WATER_DEPTH_BOUNDS`): the stream builds its own floor tile with `createIslandDepthTile` (src/world/islands/depth-tile.ts) and lends it while the island is in memory, first when its warm-up holds it. |
 | `code` | `() => import('../game/<id>-island').then((m) => m.<ID>_CODE)`. Use a dynamic import only. A static import of the same module makes the import ineffective (Vite shows `INEFFECTIVE_DYNAMIC_IMPORT`). |
 
-Then add the **one registry line** in `src/islands/registry.ts`:
+While the island's world is still being built (before its package can run in the game), put only
+its terrain regions in `ISLANDS_IN_BUILD` (an `IslandInBuild` in `src/islands/<id>.ts`), so the dev
+terrain page draws its bake with its looks. Keelhaven is there now.
+
+Then, when the package is done, add the **one registry line** in `src/islands/registry.ts` (and take
+the island out of `ISLANDS_IN_BUILD`):
 
 ```ts
 export const ISLAND_REGISTRY = {

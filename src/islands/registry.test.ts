@@ -11,7 +11,7 @@ import { islandAt } from '../game/islands';
 import { CHART_ISLANDS } from '../opening/chart-map';
 import { ARCHIPELAGO } from '../ui/chart/archipelago';
 import { STARFISH } from '../world/starfish/spots';
-import { HOME_ISLAND, ISLAND_IDS, ISLAND_LIST, STREAMED_ISLANDS } from './registry';
+import { HOME_ISLAND, ISLAND_IDS, ISLAND_LIST, ISLANDS_IN_BUILD, STREAMED_ISLANDS } from './registry';
 
 describe('the island registry', () => {
   it('has one home island (built with the world) and streams every other one', () => {
@@ -77,7 +77,9 @@ describe('the island registry', () => {
   });
 
   it('derives the shared tables from the entries, in voyage order', () => {
-    expect(ISLAND_TERRAIN_REGIONS).toEqual(ISLAND_LIST.map((e) => e.terrainRegions));
+    expect(ISLAND_TERRAIN_REGIONS).toEqual(
+      [...ISLAND_LIST, ...ISLANDS_IN_BUILD].map((e) => e.terrainRegions),
+    );
     expect(ISLAND_FLORA_PALETTES).toEqual(ISLAND_LIST.map((e) => e.floraPalette));
     for (const e of ISLAND_LIST) expect(MUSIC_TRACKS[e.music], e.id).toBe(e.theme);
     expect(MARKET_STALLS.map((m) => m.island)).toEqual(ISLAND_LIST.filter((e) => e.market).map((e) => e.id));

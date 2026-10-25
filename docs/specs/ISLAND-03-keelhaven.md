@@ -1250,7 +1250,8 @@ eight tools). Keelhaven is built on a **generic island registry** instead:
   `ranges`, `footprint`, `starfish`, `courseBoard`, `chart` (the miniature; `terrain()` is a dynamic
   import of `keelhaven/chart.ts`), `theme` (Salty Sway), `terrainRegions`, `floraPalette`, `puzzles`
   (`'two-circuits': 'circuit'`, `retake: 'ceremony'`), `market` (Bram's booth), and
-  `stream: { nearLoads, reflected: false, courseData: 'chapter-part' }`. Its code
+  `stream: { nearLoads, reflected: false, courseData: 'chapter-part', depthTile: true }` (its reef's
+  shallows, O6). Its terrain regions are in `ISLANDS_IN_BUILD` until then. Its code
   `src/game/keelhaven-island.ts` (`KEELHAVEN_CODE: IslandCode`, a dynamic import, its own chunk) has
   `stream`, `quests`, `walk`, `content`, `ways`, `chests` and `cast`. Outside the package only
   `STORY_CONDITIONS`/`STORY_EVENTS` (TypeScript asks), the cast specs (`NPC_IDS`), battle 3 and

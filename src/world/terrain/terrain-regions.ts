@@ -49,6 +49,11 @@ export interface TerrainRegionMasks {
   basalt?: AnyNode;
   /** A forest floor under trees: a moss carpet (with the island's forest flowers) instead of meadow. */
   forestFloor?: AnyNode;
+  /**
+   * Fluted green walls (Keelhaven): steep faces keep their plant cover; rock shows only in streaks,
+   * gullies, overhangs and the sea-cliff band.
+   */
+  paliWall?: AnyNode;
 }
 
 export type TerrainRegionKey = keyof TerrainRegionMasks;
@@ -69,6 +74,7 @@ const REGION_KEYS: readonly TerrainRegionKey[] = [
   'limestoneRidge',
   'basalt',
   'forestFloor',
+  'paliWall',
 ];
 
 /**

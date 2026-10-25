@@ -22,6 +22,11 @@ export interface TerrainBakeSource {
   bounds: TerrainBounds;
   heightAt(x: number, z: number): number;
   masksAt(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
+  /**
+   * The two suns whose visibility is baked (the `sunMorning` and `sunGolden` channels; the terrain
+   * material reads the second). Default `SUNS`. An island with its own time of day bakes its sun here.
+   */
+  suns?: readonly (readonly [number, number, number])[];
 }
 
 export interface TerrainPackOptions {
@@ -337,6 +342,7 @@ export function bakeTerrainFrom(source: TerrainBakeSource): TerrainBakeData {
   const sunGolden = new Uint8Array(count);
   const rim = new Uint8Array(count);
   const masks = new Uint8Array(count * 4);
+  const suns = source.suns ?? SUNS;
 
   for (let iz = 0; iz < nz; iz++) {
     const z = bounds.minZ + iz * bounds.cell;
@@ -357,10 +363,10 @@ export function bakeTerrainFrom(source: TerrainBakeSource): TerrainBakeData {
         ambientOpenSky(heights, nx, nz, bounds.minX, bounds.minZ, bounds.cell, x, z, h) * 255,
       );
       sunMorning[i] = Math.round(
-        sunVisibility(heights, nx, nz, bounds.minX, bounds.minZ, bounds.cell, x, z, h, SUNS[0]) * 255,
+        sunVisibility(heights, nx, nz, bounds.minX, bounds.minZ, bounds.cell, x, z, h, suns[0]!) * 255,
       );
       sunGolden[i] = Math.round(
-        sunVisibility(heights, nx, nz, bounds.minX, bounds.minZ, bounds.cell, x, z, h, SUNS[1]) * 255,
+        sunVisibility(heights, nx, nz, bounds.minX, bounds.minZ, bounds.cell, x, z, h, suns[1]!) * 255,
       );
       rim[i] = Math.round(
         rimFlag(heights, normals, nx, nz, bounds.minX, bounds.minZ, bounds.cell, ix, iz) * 255,

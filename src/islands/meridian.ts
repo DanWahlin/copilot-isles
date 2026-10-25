@@ -123,6 +123,8 @@ export const MERIDIAN_ISLAND: IslandEntry = {
     nearLoads: 'in-course',
     reflected: true,
     courseData: 'chapter-part',
+    // Its shallows are on the home ocean tile.
+    depthTile: false,
   },
   code: () => import('../game/meridian-island').then((m) => m.MERIDIAN_CODE),
 };
