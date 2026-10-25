@@ -206,7 +206,9 @@ export function cullPolarSectors(mesh: Mesh, near: Mesh, margin: () => number, l
     geometry.drawRange.count = S * per;
     if (shown === groups) return;
     if (shown === 0) {
-      geometry.drawRange.count = 0;
+      // One triangle out of view, not none: WebGPU warns on every draw of an empty range (the draw
+      // can't be skipped from here).
+      geometry.drawRange.count = 3;
       return;
     }
     // The longest run of hidden groups (round the circle); draw the rest, starting after it.

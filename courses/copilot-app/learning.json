@@ -616,7 +616,7 @@
       "steps": [
         "Open **Make search case-insensitive** in **Issues**. Its **New session** starts from `main`, so select **Create from**, then **Branches**, then `practice-search-case-bug`, and type `#1`.",
         "In **Plan** mode, ask for a plan that names the files and the checks. Select **Exit plan mode and I will prompt myself**, and ask for the fix with a focused regression test.",
-        "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with `Ctrl+C`.",
+        "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with {key:ctrl+C}.",
         "Ask for a pull request summary that claims only checks you saw, select **Create PR**, and don’t merge it."
       ],
       "why": "Main already has the fix, so this pull request is practice: it stays open.",

@@ -64,7 +64,7 @@ describe('islands', () => {
       // Time only runs forward (through midnight once).
       if (sky.hours < lastHours - 1e-9) {
         expect(wrapped).toBe(false);
-        expect(veil).toBeGreaterThan(0.7);
+        expect(veil).toBeGreaterThan(0.55);
         wrapped = true;
       }
       lastHours = sky.hours;

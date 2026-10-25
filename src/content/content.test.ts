@@ -406,8 +406,8 @@ describe('the content checks report broken edits by entry', () => {
     expect(new Set(paths(issuesWith('boards.json', b)))).toEqual(new Set(['skip']));
   });
 
-  it('content ahead of its island: checked, but for the game’s side, which comes with its wiring', () => {
-    // Keelhaven isn't in the registry yet: its NPCs, story names, signs and pending lines pass…
+  it('checks a new island’s content in full once it’s in the game (Keelhaven)', () => {
+    // Keelhaven is in the registry: its NPCs, story names, signs and lines pass the game's side too…
     const k = quests('keelhaven') as ReturnType<typeof quests> & {
       story: { conditions: Record<string, unknown> };
     };
@@ -419,7 +419,7 @@ describe('the content checks report broken edits by entry', () => {
       'scripts.lyra[0]',
       'story.conditions.sealed["Q3.10"]',
     ]);
-    // A live island can't play a pending line.
+    // A live island can't play a pending line (Anchorage's script, and Keelhaven's own uses of it).
     const a = quests('anchorage');
     a.scripts['nell.papers'] = [{ say: 'kh.lyra.01' }, ...a.scripts['nell.papers']!];
     const lines = json<{ lines: { id: string; pending?: true }[] }>(`${PACK}/voice/lines.json`);
@@ -429,7 +429,11 @@ describe('the content checks report broken edits by entry', () => {
         [`${PACK}/quests/anchorage.json`]: a,
         [`${PACK}/voice/lines.json`]: lines,
       }).map((i) => `${i.path}: ${i.message}`),
-    ).toEqual([expect.stringMatching(/^scripts\["nell.papers"\]\[0\]: "kh.lyra.01" is pending/)]);
+    ).toEqual([
+      expect.stringMatching(/^voiced\["kh.lyra.01"\]: "kh.lyra.01" is pending/),
+      expect.stringMatching(/^scripts\["nell.papers"\]\[0\]: "kh.lyra.01" is pending/),
+      expect.stringMatching(/^scripts.lyra\[0\]: "kh.lyra.01" is pending/),
+    ]);
     // A circuit's bindings and citations.
     const ring = json<{
       places: Record<string, { acts: string }>;

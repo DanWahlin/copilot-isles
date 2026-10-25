@@ -10,7 +10,10 @@ import {
   keelhavenTarget,
   keelhavenTracker,
 } from './keelhaven-quests';
-import { createKeelhavenContent, type KeelhavenContent } from './keelhaven-session';
+import { createKeelhavenContent, KEELHAVEN_CHEST_IDS, type KeelhavenContent } from './keelhaven-session';
+import { KEELHAVEN_NPCS, keelhavenExtras } from './keelhaven-npcs';
+import { BOOTH_LAYOUT } from '../world/market-stall/booth';
+import { KEELHAVEN_BOOTH } from '../world/islands/keelhaven/anchors';
 
 /** Each session's content, for its walk surfaces (made before the content, read once it's there). */
 const own = new WeakMap<IslandContent, KeelhavenContent>();
@@ -21,8 +24,9 @@ const own = new WeakMap<IslandContent, KeelhavenContent>();
  */
 export const KEELHAVEN_CODE: IslandCode = {
   stream: createKeelhavenStream,
-  chests: [],
-  cast: () => [],
+  chests: KEELHAVEN_CHEST_IDS,
+  // The cast and every islander (they all can appear).
+  cast: (anchors) => [...KEELHAVEN_NPCS, ...keelhavenExtras(anchors)],
   ways: KEELHAVEN_WAYS,
   quests: {
     log: keelhavenLog,
@@ -63,6 +67,9 @@ export const KEELHAVEN_CODE: IslandCode = {
       owns: (id) => kh.ids.has(id),
       script: (id) => kh.script(id),
       setup: (world) => kh.setup(world as KeelhavenWorld),
+      // Bram's stall on the Old Town quay.
+      market: () => ({ at: KEELHAVEN_BOOTH, layout: BOOTH_LAYOUT }),
+      bottles: () => kh.bottles(),
       teardown: () => kh.teardown(),
       updateNpcs: (dt, at, eye) => kh.updateNpcs(dt, at, eye),
       update: (dt, t) => kh.update(dt, t),

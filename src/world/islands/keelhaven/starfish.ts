@@ -8,7 +8,7 @@ import { toWorld } from './layout';
  */
 const SPOTS = [
   { id: 'sf.k.quay', name: 'Under the quay steps', u: 12, v: 66.5 },
-  { id: 'sf.k.beach', name: "In the beach's tide line", u: -6, v: 24 },
+  { id: 'sf.k.beach', name: "In the beach's tide line", u: 3, v: 26 },
   { id: 'sf.k.dock', name: "By Drydock 3's head", u: 169, v: -45 },
   { id: 'sf.k.lock', name: 'On the lock terrace by the lower gate', u: 14, v: -47 },
   { id: 'sf.k.light', name: "At the Gate Light's door", u: -223, v: -151, y: 44 },

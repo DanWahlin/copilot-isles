@@ -95,11 +95,11 @@ export const KEELHAVEN_ISLAND: IslandEntry = {
   starfish: KEELHAVEN_STARFISH,
   courseBoard: {
     where:
-      'On the Old Town quay between the berth and the tavern, by its south edge and facing the cove: you pass it as you walk ashore.',
-    ...toWorld(-28, 63.4),
-    y: H.deck,
-    // It faces north across the quay, toward the ship (the cove frame's −v).
-    rot: headingOf(0, -1),
+      "On the sand at the Old Town quay's root, facing back along the quay: you walk toward it as you come ashore.",
+    ...toWorld(9, 52),
+    // The sand there (keelhavenHeight), not a deck: the quay's mole stands over the water.
+    y: 1.56,
+    rot: headingOf(-1, 0),
   },
   chartLabelDy: 96,
   chart: {

@@ -79,10 +79,10 @@ export interface PassageHold {
  */
 export const NIGHT_AT_SEA = { sink: 1.4, night: 0.8, rise: 1.8 } as const;
 /** The hours the sun sets to and rises from (well under the horizon) as the night passes. */
-const NIGHT_FALL = 18.9;
-const DAY_BREAK = 5.6;
+const NIGHT_FALL = 18.5;
+const DAY_BREAK = 5.75;
 /** How far the veil comes up (0-1): dim, never a black frame. */
-const VEIL = 0.72;
+const VEIL = 0.62;
 
 const ease = (x: number) => {
   const t = Math.min(1, Math.max(0, x));

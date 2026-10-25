@@ -2782,7 +2782,11 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               // From daybreak on, the morning's light holds until you're there.
               if (n.t > NIGHT_AT_SEA.sink && passageHold?.hold === n.from)
                 passageHold = { hold: n.to, skip: n.from };
-              if (n.t >= nightAtSeaSeconds) endNightPassing();
+              if (n.t >= nightAtSeaSeconds) {
+                endNightPassing();
+                // The morning exactly (the sky skips a change under a hundredth of an hour).
+                engine.clock.set(sailSky.hours, sailSky.azimuth);
+              }
             }
             if (
               Math.abs(engine.clock.hours - sailSky.hours) > 0.01 ||

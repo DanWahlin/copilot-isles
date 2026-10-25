@@ -1113,8 +1113,8 @@ Seal).
 | `kh.juno.arrive.02` | Juno | They say nothing leaves this yard on a confident guess. Every hull proves itself first. | `[§core-concept-trust-the-evidence]` |
 | `wingman.kh.01` | Wingman | Wrecks on the reef! I'm staying well clear of the reef. | flavour |
 | `wingman.kh.02` | Wingman | Two circuits here, Captain: the drydocks in the cove, then the locks out to sea. | `[§learning-objectives]` |
-| `wingman.kh.03` | Wingman | Lost? Follow the compass, or head for the Gate Light on the North Head. | nav |
-| `wingman.starfish.keelhaven` | Wingman | Five starfish on Keelhaven. One's up by the falls, if you fancy a walk. | nav |
+| `wingman.kh.03` | Wingman | Your tasks are in the top left, and the compass up top shows the way, all the way to the Gate Light. | nav |
+| `wingman.starfish.keelhaven` | Wingman | And five starfish are hidden around Keelhaven. Your count's in the top right. | nav |
 | `kh.lyra.01` | Lyra | Captain! A musician doesn't keep the first take just because it's finished. | `[§from-the-studio-from-take-to-final-mix]` |
 | `kh.lyra.02` | Lyra | They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence. | `[§from-the-studio-…]` |
 | `kh.lyra.03` | Lyra | Then the producer tracks the brief, the feedback, the quality checks and the final approval. | `[§from-the-studio-…]` |

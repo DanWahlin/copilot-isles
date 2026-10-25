@@ -19,6 +19,9 @@ import { buildTown } from './town-build';
 import { createKeelhavenMist } from './mist';
 import { keelhavenPlantsSliced } from './vegetation';
 import { createKeelhavenWaterMesh } from './water-mesh';
+import { KEELHAVEN_ANCHORS } from './anchors';
+import { addKeelhavenMarket } from './market';
+import { buildKeelhavenProps, createToolChest, type ToolChest } from './props';
 
 /**
  * Keelhaven's world (no gameplay yet), the world its stream will build (`IslandStream.world`, like
@@ -30,6 +33,10 @@ export interface KeelhavenWorld {
   group: Group;
   /** The works' fences, camera boxes, ship obstacles, the dock hull's pose and the berth (for the wiring). */
   works: ShipyardOut;
+  /** Where the cast, the islanders and the market's keeper stand (spec §3.11, as built). */
+  anchors: typeof KEELHAVEN_ANCHORS;
+  /** Dory's tool chest: at her side, or on Drydock 2's rack once you've carried it. */
+  toolChest: ToolChest;
   /** The quay's and the works' circles, for the ship. */
   shipObstacles(): CircleObstacle[];
   /** Picks the levels of detail for the camera (no allocation). */
@@ -86,6 +93,9 @@ export async function createKeelhavenWorldAsync(
   // chunks, its lettering in the island's sign set (one draw). None without a course (the dev page).
   const signs = typeof document === 'undefined' ? null : new SignSet('keelhaven-signs');
   const courseBoard = signs ? islandCourseBoard('keelhaven') : null;
+  // The stops' set pieces with the course's words, and Bram's booth on the quay.
+  buildKeelhavenProps(buckets, signs, works);
+  addKeelhavenMarket(buckets, works, o.tier.tier === 'lite' || o.tier.tier === 'low');
   if (signs && courseBoard) {
     const pose = COURSE_BOARDS.keelhaven;
     const parts = addCourseBoardTimber(buckets, pose, courseBoard);
@@ -105,7 +115,9 @@ export async function createKeelhavenWorldAsync(
     permissive: true,
   });
   group.add(yard);
-  if (signs && courseBoard) group.add(await signs.finalizeAsync(breathe));
+  if (signs?.count) group.add(await signs.finalizeAsync(breathe));
+  const toolChest = await createToolChest(o.kit, o.tier, breathe);
+  group.add(toolChest.group);
   const hull = createDockHull(o.tier.tier, works.dockHull);
   group.add(hull.mesh);
   await breathe();
@@ -127,6 +139,8 @@ export async function createKeelhavenWorldAsync(
   return {
     group,
     works,
+    anchors: KEELHAVEN_ANCHORS,
+    toolChest,
     shipObstacles: () => works.shipObstacles,
     birds: [
       { center: new Vector3(harbour.x, 0, harbour.z), radius: 180, seed: 0x6b1d5, perches: [] },
@@ -146,6 +160,7 @@ export async function createKeelhavenWorldAsync(
     },
     dispose() {
       signs?.dispose();
+      toolChest.dispose();
       water.dispose();
       mist?.dispose();
       for (const m of meshes) m.geometry.dispose();

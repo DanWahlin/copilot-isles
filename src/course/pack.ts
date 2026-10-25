@@ -124,7 +124,31 @@ export function chapterIndex(c: Pick<ChapterContent, 'chapter' | 'quizzes' | 'pa
  * The signs each island's dressing asks the course for (`quests/<island>.json` → `signs`): Thousand-
  * Bough's `loft`, the board over the top deck's house. Blank without a course.
  */
-export const ISLAND_SIGNS: Readonly<Record<string, readonly string[]>> = { 'thousand-bough': ['loft'] };
+export const ISLAND_SIGNS: Readonly<Record<string, readonly string[]>> = {
+  'thousand-bough': ['loft'],
+  // Keelhaven's boards, plates, ledgers, hull names, strata bands and Dory's two ways to run a snippet
+  // (src/world/islands/keelhaven/props.ts).
+  keelhaven: [
+    'dock1',
+    'dock2',
+    'dock3',
+    'slipway',
+    'lampPlate',
+    'ledgerIssues',
+    'ledgerPulls',
+    'ledgerAll',
+    'ledgerFork',
+    'hullSearch',
+    'hullNote',
+    'hullLamp',
+    'strataPrompt',
+    'strataSettings',
+    'strataInstructions',
+    'strataRepo',
+    'bellCord',
+    'winch',
+  ],
+};
 
 /** The kinds of puzzle the game can run (COURSE-PACKS.md §4): a puzzle file names its mechanic. */
 export const PUZZLE_MECHANICS = [

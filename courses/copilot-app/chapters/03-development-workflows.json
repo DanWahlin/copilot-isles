@@ -957,7 +957,7 @@
     {
       "id": "pg3.validate",
       "title": "Validate the fix",
-      "caption": "If Copilot already ran the tests and build, don’t run them twice. Run `npm run dev`, open **Browser** with the **Local** URL, and set **Fantasy** and **Unread** with the search empty: only **The Night Circus** shows, and the unread count is **1** (with the bug, **5**). Stop the server with `Ctrl+C`.",
+      "caption": "If Copilot already ran the tests and build, don’t run them twice. Run `npm run dev`, open **Browser** with the **Local** URL, and set **Fantasy** and **Unread** with the search empty: only **The Night Circus** shows, and the unread count is **1** (with the bug, **5**). Stop the server with {key:ctrl+C}.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "validate-the-fix",

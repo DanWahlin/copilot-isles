@@ -1243,61 +1243,73 @@
     "course/ch03/app-issue-new-session.webp": {
       "upstream": "03-development-workflows/assets/app-issue-new-session.webp",
       "sha256": "9a4f4f18c78431941b4ced9c118ce8226be7553af1024d3e96d1d607069f4069",
+      "pinned": true,
       "bytes": 192168
     },
     "course/ch03/app-issues-filtered.webp": {
       "upstream": "03-development-workflows/assets/app-issues-filtered.webp",
       "sha256": "a1f320a6041a030542e1f0b277c06eb653c136b581e76f21ec44df25bf2531af",
+      "pinned": true,
       "bytes": 129772
     },
     "course/ch03/app-pick-and-polish.webp": {
       "upstream": "03-development-workflows/assets/app-pick-and-polish.webp",
       "sha256": "b2b745adebd24b6a860ad89c067ed77f2d56f4fecea644a6b0e1423d23367e01",
+      "pinned": true,
       "bytes": 203654
     },
     "course/ch03/app-pr-failing-check.webp": {
       "upstream": "03-development-workflows/assets/app-pr-failing-check.webp",
       "sha256": "ff63d4d1214f37672e8cd691bcfd74e7a69b8913dd7ec5bea037da5a80f6282e",
+      "pinned": true,
       "bytes": 187166
     },
     "course/ch03/app-pr-review-comment.webp": {
       "upstream": "03-development-workflows/assets/app-pr-review-comment.webp",
       "sha256": "9157076849d05e9ccd8b8ebb8ae59d7831643f5374220b8db81b6428e169449a",
+      "pinned": true,
       "bytes": 186346
     },
     "course/ch03/app-workspace-panel.webp": {
       "upstream": "03-development-workflows/assets/app-workspace-panel.webp",
       "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
+      "pinned": true,
       "bytes": 200520
     },
     "course/ch03/context-layers.webp": {
       "upstream": "03-development-workflows/assets/context-layers.webp",
       "sha256": "c47a6bff672ad8545e576464135a6ee91dcc96a47dbd03495a72951a02d0ad77",
+      "pinned": true,
       "bytes": 33422
     },
     "course/ch03/development-loop.webp": {
       "upstream": "03-development-workflows/assets/development-loop.webp",
       "sha256": "74f9f446b0f66c018581fea936e4cbd94047a24fd99d59d53b9c827fa5f30a9f",
+      "pinned": true,
       "bytes": 78364
     },
     "course/ch03/human-judgment-loop.webp": {
       "upstream": "03-development-workflows/assets/human-judgment-loop.webp",
       "sha256": "558f00d2fc1430a246305a3f7b3c27891a82f4146b07862fa8f90391f3013309",
+      "pinned": true,
       "bytes": 49126
     },
     "course/ch03/issue-to-merged-pr.webp": {
       "upstream": "03-development-workflows/assets/issue-to-merged-pr.webp",
       "sha256": "1fbe94a1a241a601ca03bf18faa7169ebea35af3422ec993195f6647c6fba88e",
+      "pinned": true,
       "bytes": 53928
     },
     "course/ch03/producer-review-desk-github.webp": {
       "upstream": "03-development-workflows/assets/producer-review-desk-github.webp",
       "sha256": "a0727e0cbae67cbc427a43407ecf5c9c7984d05e4093b5764733b277badbd854",
+      "pinned": true,
       "bytes": 155946
     },
     "course/ch03/record-playback-retake-loop.webp": {
       "upstream": "03-development-workflows/assets/record-playback-retake-loop.webp",
       "sha256": "18959a58675c08410bb65b3d8f259afe850745174890c1672f1b43c3f9e3d538",
+      "pinned": true,
       "bytes": 93390
     },
     "course/shared/app-github-copilot-app.webp": {

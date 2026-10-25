@@ -262,6 +262,70 @@ export function dressNpcCharacter(root: Group, body: CharacterBody): void {
       addWatchCap(root, 0x1ea7a7);
       addSpyglass(root, -1);
       break;
+    // Keelhaven (spec §4.3).
+    case 'hester':
+      addApron(root, 0x6b4a2c, 0x3e2c1a);
+      addRolledSleeves(root, 0xb85a3c);
+      addMalletInHand(root, 1);
+      break;
+    case 'dory':
+      addRolledSleeves(root, 0xd8c49a);
+      addSatchel(root, 0x6b5a45, -1);
+      addMalletInHand(root, 1);
+      break;
+    case 'cass':
+      addFlatCap(root, 0x4a4038);
+      addApron(root, 0xc8b48a, 0x5e4c3e);
+      addLedgerInHand(root, 0x3a3f45, 1);
+      break;
+    case 'barty':
+      addSpectacles(root, SPECTACLES.pell, 0xd9d0aa);
+      addBeard(root, 0xe5dfcf);
+      addArchivistCoat(root, 0x3a4a3a, 0xe9dec8);
+      break;
+    case 'stroud':
+      addNavalCoat(root, 0x1d2a44, 0xd6b35f, true);
+      addLedgerInHand(root, 0x6b2a1d, 1);
+      break;
+    case 'arlo':
+      addWatchCap(root, 0xd9b24a);
+      addRolledSleeves(root, 0xd9b24a);
+      addTool(root, 0x9aa3a8, -1);
+      break;
+    case 'ottoline':
+      addAstronomerRobe(root, 0x5a5f66, 0xc9a86a);
+      addSash(root, 0xc9a86a, 1);
+      break;
+    case 'kh_market':
+      addFlatCap(root, 0xb85a3c);
+      addApron(root, 0xeadcb4, 0xb85a3c);
+      addMoneyPouch(root, 0x8b5428, 1);
+      break;
+    case 'kh_nip':
+      addChildSailorCap(root, 0x2f6fa1, 0xd28a22);
+      break;
+    case 'kh_tuck':
+      addHeadscarf(root, 0x1ea7a7, 0xf0dfbd);
+      break;
+    case 'kh_moll':
+      addBandana(root, 0xb85a3c, 0x5e4c3e);
+      addRolledSleeves(root, 0xb7a281);
+      addTool(root, 0x9aa3a8, 1);
+      break;
+    case 'kh_salter':
+      addSunBleachedCap(root);
+      addBeard(root, 0xf0ead8);
+      addFishingNet(root, -1);
+      break;
+    case 'kh_kit':
+      addWatchCap(root, 0x3a3f45);
+      addTool(root, 0xb8923e, 1);
+      break;
+    case 'kh_skipper':
+      addWatchCap(root, 0x24394a);
+      addPipe(root);
+      addRolledSleeves(root, 0xd4c1a0);
+      break;
   }
 }
 
