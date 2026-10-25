@@ -55,7 +55,7 @@ const tap = (code) => S((c) => window.__dev.tap(c), code);
 const tb = (fn, ...args) =>
   S(
     ([fn, args]) => {
-      const d = window.__dev.session().debug.thousandBough();
+      const d = window.__dev.session().debug.island('thousand-bough');
       const v = fn.split('.').reduce((o, k) => (typeof o === 'function' ? o() : o)?.[k], d);
       return typeof v === 'function' ? v(...args) : v;
     },

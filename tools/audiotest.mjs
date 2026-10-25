@@ -33,6 +33,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import { GPU_ARGS, collectLogs, parseFlags } from './lib/browser.mjs';
+import { OPEN_FLAGS } from './lib/islands.mjs';
 import { startPagesServer } from './lib/pages-server.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -604,7 +605,7 @@ async function visit(context, page, kind, lookup) {
 
   const t0 = Date.now();
   mark('load');
-  await page.goto(`${base}/?debug&meridian&thousandbough&tier=${tier}${opt.webgl ? '&webgl' : ''}`, {
+  await page.goto(`${base}/?debug${OPEN_FLAGS}&tier=${tier}${opt.webgl ? '&webgl' : ''}`, {
     waitUntil: 'load',
     timeout: 300_000,
   });

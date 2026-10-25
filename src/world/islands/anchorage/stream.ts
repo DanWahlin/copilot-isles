@@ -2,25 +2,9 @@ import type { Group, Object3D, PerspectiveCamera, Scene } from 'three/webgpu';
 import type { CreatedTerrain } from '../../terrain/terrain-mesh';
 import { releaseGpuCopies } from '../../gpu-release';
 import { StreamLifecycle, type StreamState } from '../../stream-lifecycle';
-import { footprintDistance, type IslandFootprint } from '../footprint';
+import type { IslandEntry } from '../../../islands/types';
+import { footprintDistance } from '../footprint';
 import { SilhouetteSwap } from '../silhouette-swap';
-
-/**
- * Anchorage's distances (m): it wakes within `load` and may go dormant past `unload`, from its centre
- * (game/residency.ts), and draws as its silhouette past `show` (`footprintDistance`, from the camera),
- * dormant or not. From Port Meridian's quay it's 1 030 m off its centre: a silhouette there.
- */
-export const ANCHORAGE_RANGE = { load: 850, show: 760, unload: 1000 } as const;
-
-/** Anchorage's outline (`measureFootprint(coveHeight, …)`, 32 bearings; a test keeps it in step). */
-export const ANCHORAGE_FOOTPRINT: IslandFootprint = {
-  x: 0,
-  z: 0,
-  radii: [
-    212, 204, 180, 128, 148, 104, 92, 88, 84, 88, 92, 108, 132, 108, 112, 128, 144, 164, 164, 128, 100, 100,
-    100, 100, 100, 100, 104, 112, 120, 144, 200, 216,
-  ],
-};
 
 /** What wakes: the island's own roots, back in the scene (hidden until the warm-up shows them). */
 export interface AnchorageWorld {
@@ -63,6 +47,11 @@ export interface AnchorageStream {
 
 export function createAnchorageStream(ctx: {
   scene: Scene;
+  /**
+   * Its registry entry (src/islands/anchorage.ts): it draws as its silhouette past `ranges.show`
+   * (`footprintDistance` to its outline, from the camera), dormant or not.
+   */
+  island: Pick<IslandEntry, 'ranges' | 'footprint'>;
   terrain: CreatedTerrain;
   silhouette: Group;
   /** The island's parts, wherever they hang (the scene, or the vegetation's group). */
@@ -87,7 +76,7 @@ export function createAnchorageStream(ctx: {
   /** The silhouette's warm owns its visibility until it's done (it hides it between draws). */
   let warming = false;
   let parked: { object: Object3D; parent: Object3D; visible: boolean }[] = [];
-  const swap = new SilhouetteSwap(ANCHORAGE_RANGE.show);
+  const swap = new SilhouetteSwap(ctx.island.ranges.show);
   const silhouetteRoots = [silhouette];
   /** The silhouette's one warm (it's never freed while the world stands), once started. */
   let silhouetteWarm: Promise<void> | null = ctx.warm ? null : Promise.resolve();
@@ -194,7 +183,7 @@ export function createAnchorageStream(ctx: {
       // Past its swap distance a resident Anchorage draws as its silhouette too (you've left it, and
       // it stays in memory a while): the silhouette's warmed first, and the parts are only hidden.
       const p = camera.position;
-      const out = swap.update(footprintDistance(ANCHORAGE_FOOTPRINT, p.x, p.z));
+      const out = swap.update(footprintDistance(ctx.island.footprint, p.x, p.z));
       if (awake && !showPending && !held) {
         if (out && !far) {
           if (silhouetteWarmed) hideByDistance();

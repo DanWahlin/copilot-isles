@@ -1,5 +1,6 @@
 import { hasIslandQuests, islandQuestList } from '../../course/active';
 import { puzzleOn, puzzleQuest } from '../../course/puzzles';
+import { ISLAND_LIST } from '../../islands/registry';
 import type { IslandId } from '../islands';
 
 /**
@@ -24,21 +25,19 @@ export interface MarketStallSpec {
 
 export const MARKET_PUZZLE = 'market';
 
-export const MARKET_STALLS: readonly MarketStallSpec[] = [
-  {
-    island: 'anchorage',
-    puzzle: 'market@anchorage',
-    keeper: { npc: 'desmond', name: 'Desmond' },
-    lines: 'keepers',
-  },
-  { island: 'meridian', puzzle: MARKET_PUZZLE, keeper: { npc: 'gilda', name: 'Gilda' }, lines: 'gilda' },
-  {
-    island: 'thousand-bough',
-    puzzle: 'market@thousand-bough',
-    keeper: { npc: 'lani', name: 'Lani' },
-    lines: 'keepers',
-  },
-];
+/** Each island's stall (its registry entry's `market`), in voyage order. */
+export const MARKET_STALLS: readonly MarketStallSpec[] = ISLAND_LIST.flatMap((e) =>
+  e.market
+    ? [
+        {
+          island: e.id,
+          puzzle: e.market.puzzle ?? `market@${e.id}`,
+          keeper: e.market.keeper,
+          lines: e.market.lines,
+        },
+      ]
+    : [],
+);
 
 /** An island's stall. */
 export const marketStall = (island: IslandId): MarketStallSpec =>

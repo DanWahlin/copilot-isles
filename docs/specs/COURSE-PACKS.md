@@ -432,7 +432,7 @@ and bottles' ids are the game's spots). Puzzles: `first-words` (choose-tool: the
 shell) and the christening's hints are on; the gear rack, palette, bard, sluice and crane are
 `"disabled": true` (the course doesn't teach what they act out), so they stay scenery with blank boards.
 The other islands aren't in the pack: the chart shows them uncharted, Port Meridian and Thousand-Bough
-never open or stream (`meridian-open.ts`, `thousand-bough-open.ts`, the session's `inCourse`, the
+never open or stream (`islandOpen` in `src/islands/open.ts`, the session's `inCourse`, the
 stream's `nearLoads`), and no battle starts.
 
 **The live course.** `src/course/catalog.ts` holds every pack's `course.json` (eager, the title's only

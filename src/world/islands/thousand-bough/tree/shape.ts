@@ -13,7 +13,7 @@ import {
   type Rect,
 } from '../village/surfaces';
 import { WalkClearance } from '../village/clearance';
-import { THOUSAND_BOUGH_ARRIVAL } from '../../../../game/arrivals';
+import { THOUSAND_BOUGH_ARRIVAL } from '../../../../islands/thousand-bough';
 
 /**
  * The great banyan's shape as numbers (spec §3.5): the fluted core, its 7 fused pillars, the limbs and

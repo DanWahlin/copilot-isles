@@ -1,8 +1,6 @@
+import { ISLAND_LIST, type IslandId } from '../islands/registry';
+import type { IslandChart, IslandChartTerrain } from '../islands/types';
 import { ARCHIPELAGO, ARCH_H, ARCH_W } from '../ui/chart/archipelago';
-import { coveHeight, coveMasks } from '../world/terrain/cove-height';
-import { meridianHeight, meridianMasks } from '../world/islands/meridian';
-import { thousandBoughHeight, thousandBoughMasks } from '../world/islands/thousand-bough/height';
-import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 
 /**
  * The living chart's map (docs/specs/OPENING-living-chart.md): the parchment's size on the desk, and
@@ -19,83 +17,39 @@ export const CHART_D = (CHART_W * ARCH_H) / ARCH_W;
  */
 export const CHART_LIFT = 1.6;
 
-export type ChartIslandId = 'anchorage' | 'meridian' | 'thousand-bough';
+/** Every island in the registry has a miniature here (its terrain's height and masks). */
+export type ChartIslandId = IslandId;
 
-export interface ChartIslandSource {
+/** Where an island's miniature sits on the chart and what it samples (its registry entry's `chart`). */
+export interface ChartIslandPlace extends Omit<IslandChart, 'terrain'> {
   id: ChartIslandId;
-  /** World point drawn at the island's archipelago position (the middle of its land). */
-  cx: number;
-  cz: number;
-  /** Chart metres per world metre. */
-  scale: number;
-  /** The world box sampled for the miniature (land plus its shallows), and the sample spacing. */
-  minX: number;
-  maxX: number;
-  minZ: number;
-  maxZ: number;
-  cell: number;
-  /** The island's baked terrain pack (under the packs base), resampled for the miniature. */
-  pack: string;
-  height(x: number, z: number): number;
-  masks(x: number, z: number): { sand: number; grass: number; rock: number; cliff: number };
-  /** Height added over the baked terrain for a landmark it doesn't hold (a raised canopy dome). */
-  relief?(x: number, z: number): number;
 }
 
-export const CHART_ISLANDS: readonly ChartIslandSource[] = [
-  {
-    id: 'anchorage',
-    cx: 58,
-    cz: 54,
-    scale: 1 / 2200,
-    minX: -190,
-    maxX: 300,
-    minZ: -135,
-    maxZ: 240,
-    cell: 5,
-    pack: 'testcove/terrain',
-    height: coveHeight,
-    masks: coveMasks,
-  },
-  {
-    id: 'meridian',
-    cx: 915,
-    cz: -893,
-    scale: 1 / 3400,
-    minX: 480,
-    maxX: 1350,
-    minZ: -1200,
-    maxZ: -585,
-    cell: 8,
-    pack: 'meridian/terrain',
-    height: meridianHeight,
-    masks: meridianMasks,
-  },
-  {
-    id: 'thousand-bough',
-    cx: 2050,
-    cz: -1510,
-    // A little smaller than true to its neighbours, so its outline stays clear of Port Meridian's.
-    scale: 1 / 6000,
-    minX: 1690,
-    maxX: 2410,
-    minZ: -1840,
-    maxZ: -1180,
-    cell: 8,
-    pack: 'thousand-bough/terrain',
-    height: thousandBoughHeight,
-    masks: thousandBoughMasks,
-    // The great banyan's crown, one raised dome over the valley (spec §2.6).
-    relief: (x, z) => {
-      const t = THOUSAND_BOUGH.tree;
-      const d = Math.hypot(x - t.x, z - t.z) / 58;
-      return d < 1 ? 46 * Math.sqrt(1 - d * d) : 0;
-    },
-  },
-];
+/** An island's miniature with its terrain functions, once they're loaded (`loadChartIslands`). */
+export interface ChartIslandSource extends ChartIslandPlace, IslandChartTerrain {}
 
-export function chartIsland(id: ChartIslandId): ChartIslandSource {
+/** The 3D chart's islands, in voyage order: every island in the registry (its entry's `chart`). */
+export const CHART_ISLANDS: readonly ChartIslandPlace[] = ISLAND_LIST.map((e) => {
+  const { cx, cz, scale, minX, maxX, minZ, maxZ, cell, pack } = e.chart;
+  return { id: e.id, cx, cz, scale, minX, maxX, minZ, maxZ, cell, pack };
+});
+
+export function chartIsland(id: ChartIslandId): ChartIslandPlace {
   return CHART_ISLANDS.find((i) => i.id === id)!;
+}
+
+/**
+ * Every island's miniature with its terrain functions: each island's are a dynamic import of its
+ * own (they're the world's height and masks), so the chart waits for them with the terrain packs.
+ * Asked once (the opening asks as it's made, so the modules load where its chunk used to hold them).
+ */
+let chartIslands: Promise<ChartIslandSource[]> | null = null;
+export function loadChartIslands(): Promise<ChartIslandSource[]> {
+  chartIslands ??= Promise.all(
+    ISLAND_LIST.map(async (e, i) => ({ ...CHART_ISLANDS[i]!, ...(await e.chart.terrain()) })),
+  );
+  chartIslands.catch(() => (chartIslands = null));
+  return chartIslands;
 }
 
 /**
@@ -123,7 +77,7 @@ export function artPoint(id: string): { u: number; v: number } {
 
 /** A world point on `island` → paper-local metres (y is height above the paper). */
 export function worldToPaper(
-  island: ChartIslandSource,
+  island: ChartIslandPlace,
   x: number,
   y: number,
   z: number,

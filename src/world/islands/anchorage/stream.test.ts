@@ -2,6 +2,7 @@ import { BoxGeometry, Group, Mesh, MeshBasicNodeMaterial, PerspectiveCamera, Sce
 import { describe, expect, it } from 'vitest';
 import { releaseRemovedObjects } from '../../../util/dispose-three';
 import type { CreatedTerrain } from '../../terrain/terrain-mesh';
+import { ANCHORAGE } from '../../../islands/anchorage';
 import { createAnchorageStream } from './stream';
 
 function world(warm?: (roots: unknown[]) => Promise<void>, breathe: () => Promise<void> = async () => {}) {
@@ -16,6 +17,7 @@ function world(warm?: (roots: unknown[]) => Promise<void>, breathe: () => Promis
   plants.add(shrub);
   const stream = createAnchorageStream({
     scene,
+    island: ANCHORAGE,
     terrain: { group: terrain } as unknown as CreatedTerrain,
     silhouette: new Group(),
     parts: () => [terrain, gulls, shrub],

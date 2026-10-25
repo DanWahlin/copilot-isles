@@ -4,16 +4,12 @@ import { compileProgressively, revealPrewarm, warmProgressively, warmTerrainLods
 import type { CoveScene } from '../world/cove-scene';
 import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
 import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
+import { ISLAND_REGISTRY } from '../islands/registry';
 import type { StreamedIsland } from './session';
 
 /** Compiles one object for the post's scene pass (`post.compileObject`). */
 export interface ScenePassCompiler {
   compileObject(object: Object3D): Promise<void>;
-}
-
-/** The scene's stream for an island (`cove.anchorage`, `cove.meridian`, `cove.thousandBough`). */
-export function islandStream(id: StreamedIsland): 'anchorage' | 'meridian' | 'thousandBough' {
-  return id === 'thousand-bough' ? 'thousandBough' : id;
 }
 
 /**
@@ -112,7 +108,7 @@ export function warmIsland(o: {
   const { cove, id, setup, live } = o;
   // This runs straight after the setup (a microtask, before the next frame), so warmLate hides what
   // it added before it's drawn.
-  const stream = cove[islandStream(id)];
+  const stream = cove.residents[id];
   const own = stream.roots();
   if (!live()) return Promise.resolve();
   if (!own.length) {
@@ -128,8 +124,8 @@ export function warmIsland(o: {
     live,
     keepHidden: own,
     terrain: stream.terrain,
-    // The harbour mirror only draws round Anchorage's harbour, a long way from Thousand-Bough.
-    reflected: id !== 'thousand-bough',
+    // The harbour mirror only draws round Anchorage's harbour: an island far from it isn't reflected.
+    reflected: ISLAND_REGISTRY[id].stream?.reflected ?? true,
   }).finally(() => {
     if (live()) {
       stream.hold(false);

@@ -1,3 +1,4 @@
+import { isIslandId, islandEntry } from '../islands/registry';
 import { ARCHIPELAGO, chapterParts } from '../ui/chart/archipelago';
 import { CARTOUCHE, CHART_D, CHART_W, sheetUV, worldToPaper } from './chart-map';
 import { islandShoreline, type IslandGrid } from './island-grid';
@@ -229,8 +230,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
     c.lineWidth = 5 * unit;
     c.strokeStyle = 'rgba(236, 220, 176, 0.9)';
     c.fillStyle = isReal ? '#2a1d0e' : 'rgba(42, 29, 14, 0.75)';
-    const y =
-      py(at.v) + (isl.id === 'meridian' ? 98 : isl.id === 'thousand-bough' ? -82 : isReal ? 92 : 62) * unit;
+    const y = py(at.v) + (isIslandId(isl.id) ? islandEntry(isl.id).chartLabelDy : isReal ? 92 : 62) * unit;
     c.strokeText(isl.name, px(at.u), y);
     c.fillText(isl.name, px(at.u), y);
   }

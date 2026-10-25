@@ -17,6 +17,7 @@ import '../ui/ui.css';
 import { compileAndStart, createDevHarness } from './harness';
 import { activateCourse } from '../course/load';
 import { COURSE } from '../course/catalog';
+import { HOME_ISLAND } from '../islands/registry';
 import { isSeaStateId, seaState, type SeaStateId } from '../world/ocean/sea-state';
 const COURSE_ID = () => COURSE.id;
 
@@ -26,7 +27,7 @@ const COURSE_ID = () => COURSE.id;
 // loads every part first.
 const PAGE_Q = new URLSearchParams(location.search);
 const PACK = PAGE_Q.get('pack') ?? undefined;
-await activateCourse(PACK, PAGE_Q.has('allparts') ? {} : { islands: ['anchorage'] });
+await activateCourse(PACK, PAGE_Q.has('allparts') ? {} : { islands: [HOME_ISLAND] });
 
 /**
  * Test Cove play page (Phase 0 T11): walk the harbor, talk to Nell, board the brigantine, sail,
@@ -271,11 +272,7 @@ const key = (code: string, down: boolean) => {
   settled: () => {
     const shadow = (cove.sky.sun.shadow as typeof cove.sky.sun.shadow & { shadowNode?: CachedSunShadowNode })
       .shadowNode;
-    const streams = {
-      anchorage: cove.anchorage,
-      meridian: cove.meridian,
-      'thousand-bough': cove.thousandBough,
-    };
+    const streams = cove.residents;
     const out = {
       warms,
       warming: shadow?.warming ?? 0,
@@ -299,7 +296,6 @@ const key = (code: string, down: boolean) => {
     if (snap) seaState.snap();
     return { chosen: seaState.chosen, fixed: seaState.fixed, settled: seaState.settled, live: seaState.live };
   },
-  lighthouseLit: (on: boolean) => cove.meridian.town?.setLighthouseLit(on),
-  liftCar: (t: number) => cove.meridian.town?.setLiftCar(t),
-  mooringLines: (on: boolean) => cove.meridian.town?.setMooringLines(on),
+  /** An island's content hooks (Port Meridian's lighthouse, lift car and mooring lines), by island id. */
+  island: (id: string) => session?.debug.island(id) ?? null,
 };

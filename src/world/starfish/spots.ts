@@ -1,9 +1,7 @@
-import { ANCHORAGE_STARFISH } from '../islands/anchorage/starfish';
-import { MERIDIAN_STARFISH } from '../islands/meridian-starfish';
-import { THOUSAND_BOUGH_STARFISH } from '../islands/thousand-bough/starfish';
+import { ISLAND_LIST, type IslandId } from '../../islands/registry';
 
-/** The islands that hide starfish (the same ids as src/game/islands.ts). */
-export type StarfishIsland = 'anchorage' | 'meridian' | 'thousand-bough';
+/** The islands that hide starfish: every island in the registry (src/islands/registry.ts). */
+export type StarfishIsland = IslandId;
 
 /**
  * A starfish to find (Dan: "like Mario's stars"): where it lies and a short, friendly name the
@@ -19,12 +17,8 @@ export interface StarfishSpot {
   y?: number;
 }
 
-/** Every starfish: each island keeps its own list; a new island adds its list here. */
-export const STARFISH: readonly StarfishSpot[] = [
-  ...ANCHORAGE_STARFISH,
-  ...MERIDIAN_STARFISH,
-  ...THOUSAND_BOUGH_STARFISH,
-];
+/** Every starfish: each island keeps its own list (its registry entry's `starfish`), in voyage order. */
+export const STARFISH: readonly StarfishSpot[] = ISLAND_LIST.flatMap((e) => e.starfish);
 
 /** The starfish on an island. */
 export function starfishOn(island: StarfishIsland): StarfishSpot[] {

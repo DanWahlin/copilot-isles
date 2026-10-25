@@ -86,7 +86,7 @@ const watch = (page) =>
     window.__split = { heard: [], resident: 0 };
     active.onCoursePart((c) => window.__split.heard.push([c, performance.now()]));
     const tick = () => {
-      if (!window.__split.resident && window.__flow.cove?.thousandBough?.state === 'resident')
+      if (!window.__split.resident && window.__flow.cove?.islands['thousand-bough']?.state === 'resident')
         window.__split.resident = performance.now();
       requestAnimationFrame(tick);
     };

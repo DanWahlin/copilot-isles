@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ARRIVALS, THOUSAND_BOUGH_ARRIVAL } from '../../game/arrivals';
+import { ARRIVALS } from '../../game/arrivals';
+import { THOUSAND_BOUGH_ARRIVAL } from '../../islands/thousand-bough';
 import { PASSAGE_BATTLES } from '../../game/battles';
 import { BATTLE_PLANS } from '../../world/battle/battle';
 import type { CourseLock } from '../course/lock';

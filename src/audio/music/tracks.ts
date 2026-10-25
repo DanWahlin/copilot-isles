@@ -1,5 +1,7 @@
-/** Where you are, musically: the title screen and open sea, or ashore on an island. */
-export type IslandMusic = 'harbour' | 'anchorage' | 'meridian' | 'thousand-bough' | 'opening';
+import { ISLAND_LIST, type IslandId } from '../../islands/registry';
+
+/** Where you are, musically: the title screen and open sea, ashore on an island, or the opening. */
+export type IslandMusic = 'harbour' | IslandId | 'opening';
 
 export interface MusicTrack {
   /** Base name in public/audio (the player picks `.ogg` or `.m4a`). */
@@ -12,16 +14,14 @@ export interface MusicTrack {
   readonly handoff?: number;
 }
 
-/** The tracks Dan picked (logged in ASSETS.md and ART_PROVENANCE.md, credited on the Credits screen). */
+/**
+ * The tracks Dan picked (logged in ASSETS.md and ART_PROVENANCE.md, credited on the Credits screen):
+ * the open sea's, each island's theme (its registry entry's `theme`), and the opening's.
+ */
 export const MUSIC_TRACKS: Readonly<Record<IslandMusic, MusicTrack>> = {
   // "Bamboo Tide", made for the game by Dan with Suno.
   harbour: { file: 'music_bamboo_tide', lufs: -15.5 },
-  // "Medieval: The Bard's Tale" by RandomMind (OpenGameArt, CC0).
-  anchorage: { file: 'music_bards_tale', lufs: -17.6 },
-  // "Sunset Plains" by Yoiyami (OpenGameArt, CC0).
-  meridian: { file: 'music_sunset_plains', lufs: -16.1 },
-  // "Misty Jungle Dusk", made for Thousand-Bough Isle by Dan with Suno.
-  'thousand-bough': { file: 'music_thousand_boughs', lufs: -15.5 },
+  ...(Object.fromEntries(ISLAND_LIST.map((e) => [e.id, e.theme])) as Record<IslandId, MusicTrack>),
   // "Island Reveal", made for the opening by Dan with Suno. It starts with the chest's latch; its
   // entrance (6.7 s) lands as the islands pop up, and the island's theme takes over at its phrase end.
   opening: { file: 'music_island_reveal', lufs: -16.0, once: true, handoff: 27.6 },

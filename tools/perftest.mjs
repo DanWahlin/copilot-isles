@@ -48,6 +48,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { cpus, loadavg } from 'node:os';
 import { join } from 'node:path';
 import { collectLogs, launchChrome, parseFlags, parseSize } from './lib/browser.mjs';
+import { HOME, ISLANDS } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = String(opt.base || 'http://127.0.0.1:5353').replace(/\/$/, '');
@@ -70,16 +71,13 @@ const viewport = parseSize(String(opt.size || '1920x1080'));
 const profileDir = opt.profile ? String(opt.profile) : null;
 if (profileDir) mkdirSync(profileDir, { recursive: true });
 
-/** Settled views: a spot to stand (x, z, facing) or an island's quay, or sailing out of Anchorage. */
-const VIEWS = {
-  anchorage: { island: 'anchorage', at: [-112, -66, Math.PI] },
-  'a-town': { island: 'anchorage', at: [-130, -40, -0.6] },
-  sailing: { island: 'anchorage', sail: true },
-  meridian: { island: 'meridian', quay: true },
-  'm-plaza': { island: 'meridian', at: [660, -800, 0.8] },
-  'thousand-bough': { island: 'thousand-bough', quay: true },
-  'tb-booths': { island: 'thousand-bough', at: [1934, -1488, 2.4] },
-};
+/**
+ * Settled views: a spot to stand (x, z, facing) or an island's quay, or sailing out of Anchorage
+ * (each island's `perf` in tools/lib/islands.json, island by island).
+ */
+const VIEWS = Object.fromEntries(
+  ISLANDS.flatMap((i) => Object.entries(i.perf).map(([id, v]) => [id, { island: i.id, ...v }])),
+);
 const viewIds = list(opt.views, Object.keys(VIEWS).join(','));
 
 const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toFixed(d) : '-');
@@ -247,7 +245,7 @@ async function openPlay(tier, backend, uncapped = false) {
 
 /** Travels to an island's quay and waits for its setup and for the islands you left to be freed. */
 async function goToIsland(page, island) {
-  if (island !== 'anchorage') {
+  if (island !== HOME) {
     await page.evaluate((id) => window.__dev.learn?.progress.add('arrivals', id), island);
     const at = await page.evaluate((id) => window.__dev.session().islandQuay(id), island);
     await page.evaluate((at) => window.__dev.session().travel(at.x, at.z, at.heading), at);
@@ -451,7 +449,7 @@ console.log(
 /** One page through every view in `mode`, island by island. */
 async function runViews(tier, backend, mode) {
   const ctx = await openPlay(tier, backend, mode === 'gpu');
-  let island = 'anchorage';
+  let island = HOME;
   try {
     for (const view of viewIds) {
       const v = VIEWS[view];

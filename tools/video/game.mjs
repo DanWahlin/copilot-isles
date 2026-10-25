@@ -53,7 +53,7 @@ export const questsDone = (api, ids) =>
 export const tb = (api, fn, ...args) =>
   api.S(
     ([fn, args]) => {
-      const d = window.__dev.session().debug.thousandBough();
+      const d = window.__dev.session().debug.island('thousand-bough');
       const v = fn.split('.').reduce((o, k) => (typeof o === 'function' ? o() : o)?.[k], d);
       return typeof v === 'function' ? v(...args) : v;
     },

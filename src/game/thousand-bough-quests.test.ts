@@ -8,7 +8,7 @@ import { THOUSAND_BOUGH } from '../world/islands/thousand-bough/layout';
 import type { QuestState } from './cove-quests';
 import { MERIDIAN_ISLAND } from './meridian-quests';
 import { parseProgress } from '../learn/progress';
-import { noteMeridianSeal, thousandBoughOpen } from './thousand-bough-open';
+import { islandOpen, noteIslandStory } from '../islands/open';
 import type { ScriptStep } from './script';
 import { THOUSAND_BOUGH_NPCS, thousandBoughExtras } from './thousand-bough-npcs';
 import {
@@ -317,8 +317,8 @@ describe('Thousand-Bough quests (Chapter 02)', () => {
   });
 
   it('opens once the Seal of Meridian is won (and always in dev)', () => {
-    noteMeridianSeal(true);
-    expect(thousandBoughOpen()).toBe(true);
-    noteMeridianSeal(false);
+    noteIslandStory((island, c) => island === 'meridian' && c === 'sealed');
+    expect(islandOpen('thousand-bough')).toBe(true);
+    noteIslandStory(() => false);
   });
 });

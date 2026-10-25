@@ -13,6 +13,7 @@
 //                            [--webgl] [--verbose]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
+import { ISLAND_IDS, OPEN_FLAGS, STREAMED } from './lib/islands.mjs';
 
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5301';
@@ -37,10 +38,9 @@ const shot = async (name) => {
   shots.push(path);
 };
 
-await page.goto(
-  `${base}/devpages/play.html?auto&quiet&meridian&thousandbough&shot${opt.webgl ? '&webgl' : ''}`,
-  { waitUntil: 'load' },
-);
+await page.goto(`${base}/devpages/play.html?auto&quiet${OPEN_FLAGS}&shot${opt.webgl ? '&webgl' : ''}`, {
+  waitUntil: 'load',
+});
 await page.waitForFunction(() => window.__dev?.ready === true && window.__dev.session(), null, {
   timeout: 180000,
 });
@@ -76,10 +76,10 @@ let hitchesChecked = null;
 
 // ---- 1. Walking legs --------------------------------------------------------------------------
 if (only.includes('legs')) {
-  for (const id of ['anchorage', 'meridian', 'thousand-bough']) {
+  for (const id of ISLAND_IDS) {
     await ashore(id);
     const r = await S(async (id) => {
-      const { ISLAND_WAYS } = await import('/src/world/islands/waypoints.ts');
+      const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
       const s = window.__dev.session();
       const w = s.world;
       const spec = ISLAND_WAYS[id].walk;
@@ -124,13 +124,12 @@ if (only.includes('legs')) {
 
 // ---- 2. Sea lanes ----------------------------------------------------------------------------
 if (only.includes('sea')) {
-  const r = await S(async () => {
-    const { ISLAND_WAYS } = await import('/src/world/islands/waypoints.ts');
+  const r = await S(async (streamed) => {
+    const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
     const { SeaChart } = await import('/src/game/wayfinding/sea-chart.ts');
     const s = window.__dev.session();
     s.debug.keepResident(true);
-    await s.debug.loadIsland('meridian');
-    await s.debug.loadIsland('thousand-bough');
+    for (const id of streamed) await s.debug.loadIsland(id);
     const chart = new SeaChart(Object.values(ISLAND_WAYS).map((w) => w.sea));
     const g = s.world.ground;
     const DRAFT = 2.7;
@@ -170,7 +169,7 @@ if (only.includes('sea')) {
       }
     s.debug.keepResident(false);
     return { waypoints: pts.length, links, bad };
-  });
+  }, STREAMED);
   note(`sea: ${r.waypoints} waypoints, ${r.links} lanes, ${r.bad.length} problems`);
   for (const b of r.bad) fail(`sea: ${b}`);
 }
@@ -334,7 +333,7 @@ if (only.includes('sitting')) {
   // quest state about with the dev hooks, which can spawn story props out of order: hitches after
   // this point aren't the game's.)
   hitchesChecked = await S(() => window.__isles?.hitches?.() ?? []);
-  for (const id of ['anchorage', 'meridian', 'thousand-bough']) {
+  for (const id of ISLAND_IDS) {
     await ashore(id);
     const list = await pack(id);
     for (const d of list.filter((x) => !x.optional)) {

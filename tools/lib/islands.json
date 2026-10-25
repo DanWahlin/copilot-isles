@@ -1,0 +1,145 @@
+{
+  "$comment": "The islands for the tools, in voyage order: the same ids, URL flags and names as src/islands/registry.ts (src/islands/registry.test.ts keeps them in step); the scene names the tools look for; `budget` (budgettest: the box to seed spots in and named heavy spots, `quay` for the quay, a third number for a deck height); `decks` (cameratest: walk surfaces above the ground, x, z, y); `perf` (perftest: views by id, `at` x, z, heading, or `quay`, or `sail`); `flicker` (flickertest: [name, camera, orbit target, what it covers]). A new island adds one entry here with its registry line.",
+  "islands": [
+    {
+      "id": "anchorage",
+      "flag": "anchorage",
+      "name": "Anchorage Cay",
+      "home": true,
+      "terrain": "test-cove-terrain",
+      "silhouette": "anchorage-silhouette",
+      "budget": {
+        "box": [-230, -230, 260, 230],
+        "named": [
+          ["quay", -112, -82],
+          ["village", -130, -40],
+          ["mill", -58, -62],
+          ["beach", 20, 96]
+        ]
+      },
+      "perf": {
+        "anchorage": {
+          "at": [-112, -66, 3.141592653589793]
+        },
+        "a-town": {
+          "at": [-130, -40, -0.6]
+        },
+        "sailing": {
+          "sail": true
+        }
+      },
+      "flicker": [
+        ["harbor", [-40, 14, -150], [-112, 3, -80], "harbour, quay, village roofs"],
+        ["pier", [-110, 3.6, -92], [-108, 2.6, -124], "pier planks to the pier head"],
+        ["quay", [-104, 4.5, -82], [-117, 3, -62], "quay paving, doors, chart table"],
+        ["fishing-dock", [-67, 2.6, -158], [-76, 0.8, -167], "fishing jetty close up"],
+        ["fishing-pier", [-108, 4, -122], [-76, 1, -167], "jetty and shore foam"],
+        ["mill", [-54, 5.5, -59], [-62, 1.6, -64], "mill race terrace and tiles"],
+        ["village", [-150, 9, -10], [-112, 5, -50], "houses, roofs, paths"],
+        ["roofs", [-95, 18, -40], [-118, 6, -62], "roofs and chimneys from above"],
+        ["ridge", [-116, 21, -47], [-125.4, 17.2, -55.8], "roof ridges and tiles close up"],
+        ["lighthouse", [-158, 23, -82], [-168, 20.4, -93], "lighthouse gallery and lantern"],
+        ["beach", [-10, 2.4, 92], [40, 1.2, 100], "south beach, shoreline foam"],
+        ["headland", [300, 30, -30], [160, 25, -5], "terrain and rock seams"],
+        ["stack", [330, 12, 290], [270, 18, 210], "sea stack rocks"],
+        ["approach", [-330, 10, -330], [-100, 8, -80], "island from the sea, far ranges"]
+      ]
+    },
+    {
+      "id": "meridian",
+      "flag": "meridian",
+      "name": "Port Meridian",
+      "home": false,
+      "terrain": "port-meridian-terrain",
+      "silhouette": "meridian-silhouette",
+      "budget": {
+        "box": [430, -1000, 940, -560],
+        "named": [
+          ["quay", "quay"],
+          ["plaza", 660, -800],
+          ["town", 760, -850],
+          ["fort", 800, -772]
+        ]
+      },
+      "perf": {
+        "meridian": {
+          "quay": true
+        },
+        "m-plaza": {
+          "at": [660, -800, 0.8]
+        }
+      },
+      "flicker": [
+        ["m-harbor", [570, 24, -610], [700, 10, -735], "Meridian harbour and mole"],
+        ["m-quay", [692, 6, -762], [650, 2.4, -754], "Meridian quay paving close up"],
+        ["m-town", [610, 82, -610], [855, 32, -875], "terraced town, roofs, roads"],
+        ["m-plaza", [690, 22, -770], [660, 8, -800], "plaza paving and houses"],
+        ["m-market", [669.6, 9.9, -789.6], [679, 9.7, -787.3], "Model Market: boards, awning, counter"],
+        ["m-fort", [786, 50, -760], [806, 41, -780], "Meridian fort: walls, towers, roofs"],
+        ["m-citadel", [890, 105, -855], [1028, 64, -1002], "citadel walls"],
+        ["m-ridge", [910, 118, -780], [1110, 92, -1078], "ridge rocks, distant ranges"]
+      ]
+    },
+    {
+      "id": "thousand-bough",
+      "flag": "thousandbough",
+      "name": "Thousand-Bough Isle",
+      "home": false,
+      "terrain": "thousand-bough-terrain",
+      "silhouette": "thousand-bough-silhouette",
+      "budget": {
+        "box": [1720, -1760, 2320, -1260],
+        "named": [
+          ["wharf", "quay"],
+          ["booths", 1934, -1488],
+          ["roothall", 1997, -1550, 18.5],
+          ["landings", 2037, -1560, 26.83],
+          ["flume", 2024, -1618, 26],
+          ["crown", 2010, -1546, 50.5],
+          ["spire", 2066, -1595, 27]
+        ]
+      },
+      "decks": [
+        [1994.2, -1574.6, 18.6],
+        [1990.8, -1563.4, 20.2],
+        [1994.4, -1544, 22.5],
+        [2004.6, -1537.4, 24.3],
+        [2037.5, -1554.5, 26.9],
+        [2024.8, -1587.2, 28.9],
+        [1991.3, -1540.6, 31.4],
+        [2022, -1531, 32.6],
+        [2030.5, -1543.5, 40.2],
+        [1985.6, -1558.8, 43.4],
+        [2010, -1546, 50.6],
+        [2004, -1566, 50.6],
+        [2018.6, -1561.3, 50.6],
+        [2066.5, -1597, 27.1],
+        [2008, -1596, 22.5],
+        [2120, -1606, 16.1],
+        [2146, -1645, 19.1],
+        [1947, -1434, 2.7],
+        [1939.2, -1376, 2.3],
+        [1939, -1400, 2.3],
+        [1988.5, -1534.6, 17.6],
+        [1990.6, -1537.4, 17.9],
+        [1993.4, -1540.4, 18.3]
+      ],
+      "perf": {
+        "thousand-bough": {
+          "quay": true
+        },
+        "tb-booths": {
+          "at": [1934, -1488, 2.4]
+        }
+      },
+      "flicker": [
+        ["tb-wharf", [1925, 8, -1395], [1945, 2.4, -1430], "Root Wharf, Bough Landing, boathouse"],
+        ["tb-roothall", [1985, 24, -1600], [2010, 19, -1560], "Root Hall, stair foot, plinth"],
+        ["tb-stair", [1978, 31, -1578], [2008, 26, -1560], "Great Stair, rails, decks"],
+        ["tb-bridge", [1984, 38, -1522], [2016, 31, -1527], "rope bridge R1 and decks"],
+        ["tb-flume", [2010, 36, -1596], [2008, 21, -1626], "Flume Terrace tiles and gates"],
+        ["tb-crown", [2035, 58, -1530], [2010, 51, -1556], "Crown Deck, beacon, rail"]
+      ]
+    }
+  ]
+}

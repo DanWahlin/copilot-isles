@@ -6,6 +6,8 @@ A browser 3D island adventure that teaches GitHub Copilot courses: **GitHub Copi
 - **Plan:** `.plans/PLAN.md` (decisions §0, water/physics/environment §6, budgets §12, loading §13, platforms §14)
 - **Specs:** `docs/specs/PHASE-0-spike.md` (current phase), `docs/specs/POC-islands-00-01.md`,
   `docs/specs/COURSE-PACKS.md` (course content as data)
+- **Adding an island:** `docs/adding-an-island.md` (the island registry, `src/islands/registry.ts`: one
+  package and one registry line for each island; shared code never names an island)
 - **Research & reviews:** `docs/research/`, `docs/reviews/`
 
 ## Stack

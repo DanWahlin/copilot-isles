@@ -22,8 +22,6 @@ import { CompositeHeightField } from './terrain/composite-height-field';
 import { COVE } from './layout';
 import { createStarfish, type StarfishSystem } from './starfish';
 import { setSignResolution } from './sites/sign';
-import { MERIDIAN } from './islands/meridian';
-import { createMeridianStream, type MeridianStream } from './islands/meridian-stream';
 import { createAnchorageStream, type AnchorageStream } from './islands/anchorage/stream';
 import { createAnchorageSilhouette } from './islands/anchorage/silhouette';
 import { anchorageMirrorFacades } from './islands/anchorage/mirror-facades';
@@ -48,9 +46,10 @@ import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
 import type { CircleObstacle } from './contracts';
 import { FarCull } from './far-cull';
-import { createThousandBoughStream, type ThousandBoughStream } from './islands/thousand-bough/stream';
+import type { IslandStream, ResidentIsland } from './islands/island-stream';
 import { BLOB_RANGE, BlobShadows } from './blob-shadows';
 import { COURSE, courseIsland } from '../course/catalog';
+import { HOME_ISLAND, ISLAND_REGISTRY, STREAMED_ISLANDS, type IslandId } from '../islands/registry';
 import { loadIslandPart } from '../course/load';
 
 export interface CoveScene {
@@ -61,12 +60,15 @@ export interface CoveScene {
   heightField: CompositeHeightField;
   foam: Mesh;
   ranges: Group;
-  /** Port Meridian (Chapter 01), streamed in when something needs it and freed once you've left. */
-  meridian: MeridianStream;
-  /** Anchorage (Chapter 00): built with the world, dormant (a silhouette) while you're elsewhere. */
+  /** Anchorage (Chapter 00), the home island: built with the world, dormant (a silhouette) while you're elsewhere. */
   anchorage: AnchorageStream;
-  /** Thousand-Bough Isle (Chapter 02), streamed in like Meridian when something needs it. */
-  thousandBough: ThousandBoughStream;
+  /**
+   * The streamed islands (Port Meridian, Thousand-Bough Isle…), by id (src/islands/registry.ts):
+   * each streamed in when something needs it and freed once you've left.
+   */
+  islands: Partial<Record<IslandId, IslandStream>>;
+  /** Every island as residency sees it (the home island and the streamed ones), by id. */
+  residents: Record<IslandId, ResidentIsland>;
   vegetation: VegetationSystem | null;
   ship: Brigantine;
   village: VillageSystem;
@@ -98,7 +100,7 @@ export interface CoveScene {
    * Each island's small detail (people, puzzle sites, chests, props), culled while the camera is far
    * from that island; the game adds what it places (`FarCull.add`).
    */
-  detail: Record<'anchorage' | 'meridian' | 'thousand-bough', FarCull>;
+  detail: Record<IslandId, FarCull>;
   /**
    * Frozen shots on a dev page (tools/shots.mjs): puts what moves on its own state back to the same
    * start in every run, for a frame held at sim time `t`. The ship goes back to its mooring and
@@ -107,9 +109,6 @@ export interface CoveScene {
   holdStill(t: number): void;
   dispose(): void;
 }
-
-/** Beyond this distance (m) from an island's centre, its small detail is a pixel or two: it's culled. */
-const DETAIL_RANGE = { anchorage: 560, meridian: 620 };
 
 /**
  * Past this distance (m) from Anchorage's centre the island draws as a neighbour (PLAN §12.3): its
@@ -153,7 +152,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   const params =
     typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const mirrorDisabled = params.has('nomirror');
-  const meridianDisabled = params.has('nomeridian');
+  // Each streamed island's code is its own chunk, fetched while the home island builds.
+  const streamCode = Promise.all(STREAMED_ISLANDS.map((e) => e.code()));
   const mirror = tier.mirror ? new HarborMirror({ renderer, tier, disabled: mirrorDisabled }) : null;
   const ocean = createOcean({ tier, env: sky.env, mirror: mirror?.input, terrainDepth: true });
   await breathe();
@@ -180,35 +180,36 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   await breathe();
   scene.add(terrain.group, foam, ranges);
   const shipObstacles: CircleObstacle[] = [];
-  const meridian = createMeridianStream({
-    scene,
-    tier,
-    packBase: o.packBase ?? '/packs',
-    cloudShadowNode,
-    breathe,
-    heightField,
-    shipObstacles,
-    vegetation: () => vegetation,
-    birds: o.birds !== false,
-    skipShadows: skipIslandShadows,
-    disabled: meridianDisabled,
-    nearLoads: () => !!courseIsland('meridian', COURSE),
-    courseData: (priority) => loadIslandPart('meridian', priority),
-  });
-  const thousandBough = createThousandBoughStream({
-    scene,
-    tier,
-    packBase: o.packBase ?? '/packs',
-    cloudShadowNode,
-    breathe,
-    heightField,
-    shipObstacles,
-    vegetation: () => vegetation,
-    sky,
-    birds: o.birds !== false,
-    skipShadows: skipIslandShadows,
-    disabled: params.has('nothousandbough'),
-    courseData: (priority) => loadIslandPart('thousand-bough', priority),
+  // The streamed islands (src/islands/registry.ts): their silhouettes now, their worlds on demand.
+  // `?no<flag>` leaves one out (`?nomeridian`, `?nothousandbough`).
+  const factories = await streamCode;
+  const islands: Partial<Record<IslandId, IslandStream>> = {};
+  const streams: IslandStream[] = STREAMED_ISLANDS.map((island, i) => {
+    const create = factories[i]!.stream;
+    if (!create) throw new Error(`${island.id}: a streamed island's code has no stream`);
+    const stream = create({
+      scene,
+      tier,
+      packBase: o.packBase ?? '/packs',
+      cloudShadowNode,
+      breathe,
+      heightField,
+      shipObstacles,
+      vegetation: () => vegetation,
+      sky,
+      birds: o.birds !== false,
+      skipShadows: skipIslandShadows,
+      disabled: params.has(`no${island.flag}`),
+      island,
+      nearLoads: () => island.stream!.nearLoads === 'always' || !!courseIsland(island.id, COURSE),
+      // Its chapter's part of the course pack loads with its terrain (src/course/load.ts).
+      courseData:
+        island.stream!.courseData === 'chapter-part'
+          ? (priority) => loadIslandPart(island.id, priority)
+          : undefined,
+    });
+    islands[island.id] = stream;
+    return stream;
   });
   report(0.5, 'Building the harbor');
   const villageKit = typeof window === 'undefined' ? undefined : await loadVillageKit();
@@ -379,6 +380,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     : null;
   const anchorage = createAnchorageStream({
     scene,
+    island: ISLAND_REGISTRY[HOME_ISLAND],
     terrain,
     silhouette: anchorageFar.group,
     parts: () =>
@@ -427,16 +429,14 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       ? window.setTimeout(() => void engine.counters.excuse(loadLeaps()), 90000)
       : 0;
 
-  const detail = {
-    anchorage: new FarCull(
-      COVE.island.center.x,
-      COVE.island.center.z,
-      DETAIL_RANGE.anchorage,
-      tier.detailCullRatio,
-    ),
-    meridian: new FarCull(MERIDIAN.center.x, MERIDIAN.center.z, DETAIL_RANGE.meridian, tier.detailCullRatio),
-    'thousand-bough': thousandBough.detail,
-  };
+  const home = ISLAND_REGISTRY[HOME_ISLAND];
+  const homeDetail = new FarCull(home.center.x, home.center.z, home.ranges.detail, tier.detailCullRatio);
+  const detail = { [HOME_ISLAND]: homeDetail } as unknown as Record<IslandId, FarCull>;
+  const residents = { [HOME_ISLAND]: anchorage } as unknown as Record<IslandId, ResidentIsland>;
+  for (const e of STREAMED_ISLANDS) {
+    detail[e.id] = islands[e.id]!.detail;
+    residents[e.id] = islands[e.id]!;
+  }
   const neighbour = new FarCull(COVE.island.center.x, COVE.island.center.z, NEIGHBOUR_RANGE.anchorage);
   for (const mesh of village.neighbourDetail) neighbour.add(mesh);
   // The loose rocks only: the cliff and the sea stack are the island's shape.
@@ -448,10 +448,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     shipDetail.add(ship.group);
     for (const boat of fishingBoats) shipDetail.add(boat.group);
   }
-  detail.anchorage.add(sites.group);
-  detail.anchorage.add(debris.group);
-  detail.anchorage.add(wreck.mesh);
-  if (dockGull) detail.anchorage.add(dockGull.group);
+  homeDetail.add(sites.group);
+  homeDetail.add(debris.group);
+  homeDetail.add(wreck.mesh);
+  if (dockGull) homeDetail.add(dockGull.group);
 
   const focus = new Vector3();
   // What the harbour mirror leaves out, refilled each frame (some systems arrive late) without a new array.
@@ -475,8 +475,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       leaps?.group,
     );
     mirrorHidden.push(anchorage.silhouette);
-    meridian.mirrorHidden(mirrorHidden);
-    thousandBough.mirrorHidden(mirrorHidden);
+    for (const stream of streams) stream.mirrorHidden(mirrorHidden);
     return mirrorHidden;
   };
   mirror?.setHidden(fillMirrorHidden);
@@ -490,12 +489,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       anchorage.update(camera);
       const home = anchorage.shown;
       if (home) terrain.update(camera);
-      detail.anchorage.update(camera.position.x, camera.position.z);
-      detail.meridian.update(camera.position.x, camera.position.z);
+      homeDetail.update(camera.position.x, camera.position.z);
       shipDetail.update(camera.position.x, camera.position.z);
       neighbour.update(camera.position.x, camera.position.z);
-      meridian.update(camera, dt, t);
-      thousandBough.update(camera, dt, t);
+      for (const stream of streams) stream.update(camera, dt, t);
       vegetation?.update(camera);
       if (home) {
         village.update(dt, t, camera);
@@ -515,12 +512,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     },
   });
   // The far islands' silhouettes are built a few rows a breath: in the scene before the island compiles.
-  await Promise.all([
-    meridian.silhouetteReady,
-    thousandBough.silhouetteReady,
-    anchorageFar.ready,
-    mirrorStandIn?.ready,
-  ]);
+  await Promise.all([...streams.map((st) => st.silhouetteReady), anchorageFar.ready, mirrorStandIn?.ready]);
   if (mirror && mirrorStandIn) {
     mirror.reflectOnly(mirrorStandIn.group);
     scene.add(mirrorStandIn.group);
@@ -535,9 +527,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     heightField,
     foam,
     ranges,
-    meridian,
-    thousandBough,
     anchorage,
+    islands,
+    residents,
     vegetation,
     ship,
     village,
@@ -597,8 +589,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       }
       disposeTree(ranges);
       anchorage.dispose();
-      meridian.dispose();
-      thousandBough.dispose();
+      for (const stream of streams) stream.dispose();
       birds?.dispose();
       dockGull?.dispose();
       for (const boat of fishingBoats) {
