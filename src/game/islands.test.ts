@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MERIDIAN, meridianHeight } from '../world/islands/meridian';
 import { COVE } from '../world/layout';
-import { ISLANDS, islandAt, passageSky } from './islands';
+import { ISLANDS, islandAt, nextMorningFrom, passageSky } from './islands';
 import { MERIDIAN_QUESTS, meridianTracker } from './meridian-quests';
 
 describe('islands', () => {
@@ -31,6 +31,23 @@ describe('islands', () => {
     passageSky(450, -450, sky);
     expect(sky.hours).toBeGreaterThan(ISLANDS.anchorage.sky.hours);
     expect(sky.hours).toBeLessThan(ISLANDS.meridian.sky.hours);
+  });
+
+  it('holds Thousand-Bough’s dusk to the "next morning" cut, then Keelhaven’s morning', () => {
+    expect(nextMorningFrom('thousand-bough')).toBe('keelhaven');
+    expect(nextMorningFrom('keelhaven')).toBeNull();
+    const tb = ISLANDS['thousand-bough'];
+    const kh = ISLANDS.keelhaven;
+    const sky = { hours: 0, azimuth: 0 };
+    // Half way across, and close in to Keelhaven: no sky runs back through the afternoon.
+    for (const t of [0.5, 0.8]) {
+      const x = tb.center.x + (kh.center.x - tb.center.x) * t;
+      const z = tb.center.z + (kh.center.z - tb.center.z) * t;
+      passageSky(x, z, sky, { hold: 'thousand-bough', skip: 'keelhaven' });
+      expect(sky).toEqual(tb.sky);
+      passageSky(x, z, sky, { hold: 'keelhaven', skip: 'thousand-bough' });
+      expect(sky).toEqual(kh.sky);
+    }
   });
 });
 

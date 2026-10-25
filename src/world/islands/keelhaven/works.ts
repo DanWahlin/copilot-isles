@@ -105,13 +105,16 @@ export { CANAL };
  * the ship lies along its north face, bow to the cove's mouth.
  */
 export const QUAY = { u0: -98, u1: 8, v: 60, half: 4.5, top: 2.2 } as const;
-/** The ship's berth (cove frame) and the side it lies on (its port side to the quay). */
-export const BERTH = { u: -70, v: QUAY.v - QUAY.half - 4.65 - 3.3 } as const;
+/**
+ * The ship's berth (cove frame): her middle 4.65 m off the quay's face, as at Thousand-Bough (the
+ * gangway's foot then lands on the deck), port side to the quay.
+ */
+export const BERTH = { u: -66, v: QUAY.v - QUAY.half - 4.65 } as const;
 /** The berth's dredged pocket: the cove's floor taken down to `depth` alongside the quay. */
 export const BERTH_POCKET = {
   u0: -104,
   u1: -26,
-  v0: BERTH.v - 10,
+  v0: QUAY.v - QUAY.half - 17.95,
   v1: QUAY.v,
   depth: -5.6,
   blend: 12,

@@ -34,7 +34,17 @@ import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
 import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
-import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
+import {
+  ISLANDS,
+  islandAt,
+  islandLight,
+  nextMorningFrom,
+  openIslands,
+  otherLight,
+  passageSky,
+  type IslandBerth,
+  type PassageHold,
+} from './islands';
 import { PassageBattles } from './passage-battles';
 import type { BattleRun } from './battle-run';
 
@@ -609,6 +619,26 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A save away from Anchorage wakes to that island's sky (Anchorage keeps the page's own time).
   if (island !== 'anchorage') applySky(berth.sky);
   const sailSky = { hours: 0, azimuth: 0 };
+  /**
+   * A held passage sky (spec ISLAND-03 O3): out of an island's evening toward one whose light is the
+   * next morning, the evening holds until the "next morning" cut, then the morning holds until you're
+   * there. Null on every other passage.
+   */
+  let passageHold: PassageHold | null = null;
+  let morningCut = false;
+  /** The "next morning" cut: a 3 s fade through the dark to the next island's morning (a plain cross-fade with reduced motion). */
+  const nextMorning = async (): Promise<void> => {
+    const hold = passageHold;
+    if (!hold || morningCut || nextMorningFrom(hold.hold) !== hold.skip) return;
+    morningCut = true;
+    const reduced = worldUniforms.reducedMotion.value > 0.5;
+    await hud.fade(true, reduced ? 300 : 1200);
+    if (passageHold === hold) passageHold = { hold: hold.skip, skip: hold.hold };
+    hud.toast('The next morning…', 2.4);
+    if (!reduced) await new Promise((r) => setTimeout(r, 600));
+    await hud.fade(false, reduced ? 300 : 1200);
+    morningCut = false;
+  };
   /** Anchorage's gangway stays up until the christening; elsewhere you can always board. */
   const canBoard = () => (island === 'anchorage' ? storyHolds('anchorage', 'gangwayDown', quests()) : true);
   const plankTop = new Vector3();
@@ -1762,6 +1792,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsFor = 0;
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
+    const morning = nextMorningFrom(island);
+    passageHold = morning ? { hold: island, skip: morning } : null;
     storyEvent('anchorage', 'setSail', quests(), setQuest);
     contents.get(island)?.onBoard?.();
     audio?.music.setIsland('harbour');
@@ -1824,6 +1856,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   async function disembark(to: IslandBerth = dockTo): Promise<void> {
     mode = 'transition';
+    passageHold = null;
     input.enabled = false;
     await hud.fade(true);
     battles.leftShip(cam);
@@ -2711,7 +2744,18 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           cam.update(dt, camera, s, tmp, pose.heading, Math.abs(dyn.forwardSpeed) > 0.5, world, t);
           // The light shifts with the passage (the sky only refreshes once the sun has really moved).
           if (openIslands().length > 1) {
-            passageSky(pose.x, pose.z, sailSky);
+            if (passageHold && otherLight(passageHold, pose.x, pose.z)) passageHold = null;
+            if (passageHold && !morningCut) {
+              const ahead = islandLight(passageHold.skip, pose.x, pose.z);
+              const here = islandLight(passageHold.hold, pose.x, pose.z);
+              // The evening holds until the next island's light is the stronger (or a battle on the
+              // passage ends: `battles` calls the cut), then the morning holds until you're there, or
+              // until you turn back into the evening's light.
+              const evening = nextMorningFrom(passageHold.hold) === passageHold.skip;
+              if (evening && ahead > 0 && ahead >= here && !battles.current) void nextMorning();
+              else if (!evening && (here >= 1 || ahead > here)) passageHold = null;
+            }
+            passageSky(pose.x, pose.z, sailSky, passageHold);
             if (
               Math.abs(engine.clock.hours - sailSky.hours) > 0.01 ||
               Math.abs(engine.clock.azimuth - sailSky.azimuth) > 0.3
@@ -2784,6 +2828,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** Fast travel: to another island, your ship comes too (moored at its berth). */
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
+    passageHold = null;
     if (arrival && arrival.phase !== 'done') await endArrival('cut');
     dialogue.cancel();
     wingman?.landNow();

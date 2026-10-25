@@ -395,4 +395,9 @@ export const KEELHAVEN = {
    * new shape over `morphFrames` frames.
    */
   terrain: { maxMergedTriangles: 34_000, prefilter: true, morphFrames: 24 },
+  /**
+   * Its miniature on the opening's 3D chart: the land and its shallows, sampled every `cell` m from a
+   * coarse chart pack of its own (spec O7), smaller than true (`scale`) beside its neighbours.
+   */
+  chart: { minX: 3420, maxX: 4560, minZ: -2460, maxZ: -840, cell: 12, scale: 1 / 10000 },
 } as const;

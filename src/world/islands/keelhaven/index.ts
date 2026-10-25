@@ -6,6 +6,10 @@ import type { CircleObstacle, HeightField } from '../../contracts';
 import type { PlantInstance } from '../../vegetation/types';
 import type { VillageKit } from '../../village/kit';
 import { makeBuckets, meshesFromBuckets } from '../../village/pieces';
+import { islandCourseBoard } from '../../../learn/course-board';
+import { addCourseBoardNotices, addCourseBoardTimber } from '../../sites/course-board';
+import { SignSet } from '../../sites/sign';
+import { COURSE_BOARDS } from '../course-boards';
 import { createDockHull } from './dock-hull';
 import { createKeelhavenWrecksSteps, hulkDressing } from './wrecks';
 import { createKeelhavenRocks } from './rocks';
@@ -78,6 +82,17 @@ export async function createKeelhavenWorldAsync(
   );
   for (let t = town.next(); !t.done; t = town.next()) await breathe();
   hulkDressing(buckets, works, o.tier.tier === 'lite');
+  // The course notice board on the quay (docs/specs/COURSE-BOARDS.md): its timber in the town's
+  // chunks, its lettering in the island's sign set (one draw). None without a course (the dev page).
+  const signs = typeof document === 'undefined' ? null : new SignSet('keelhaven-signs');
+  const courseBoard = signs ? islandCourseBoard('keelhaven') : null;
+  if (signs && courseBoard) {
+    const pose = COURSE_BOARDS.keelhaven;
+    const parts = addCourseBoardTimber(buckets, pose, courseBoard);
+    addCourseBoardNotices(signs, pose, courseBoard);
+    works.colliders.push(parts.box);
+    works.cameraBoxes.push(parts.camera);
+  }
   const yard = new Group();
   yard.name = 'keelhaven-shipyard';
   // Each chunk with its index levels of detail (from the sea the yard's fine timber, rope and rails thin out).
@@ -90,6 +105,7 @@ export async function createKeelhavenWorldAsync(
     permissive: true,
   });
   group.add(yard);
+  if (signs && courseBoard) group.add(await signs.finalizeAsync(breathe));
   const hull = createDockHull(o.tier.tier, works.dockHull);
   group.add(hull.mesh);
   await breathe();
@@ -129,6 +145,7 @@ export async function createKeelhavenWorldAsync(
       }
     },
     dispose() {
+      signs?.dispose();
       water.dispose();
       mist?.dispose();
       for (const m of meshes) m.geometry.dispose();

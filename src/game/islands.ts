@@ -23,7 +23,12 @@ const SKY_REACH: readonly { id: IslandId; x: number; z: number; reach: number; f
  * as its waters come up (Meridian's golden hour, Thousand-Bough's dusk). Between two islands it blends
  * by how close each is (hours and azimuth written to `out`).
  */
-export function passageSky(x: number, z: number, out: { hours: number; azimuth: number }): void {
+export function passageSky(
+  x: number,
+  z: number,
+  out: { hours: number; azimuth: number },
+  hold: PassageHold | null = null,
+): void {
   const a = ISLANDS[HOME_ISLAND].sky;
   let sum = 0,
     most = 0,
@@ -33,11 +38,19 @@ export function passageSky(x: number, z: number, out: { hours: number; azimuth: 
     const t = Math.min(1, Math.max(0, (r.reach - Math.hypot(x - r.x, z - r.z)) / (r.reach - r.full)));
     const k = t * t * (3 - 2 * t);
     if (k <= 0) continue;
+    // A held passage: its two islands' light is the held one's (unless a third island's is here too).
+    if (hold && (r.id === hold.hold || r.id === hold.skip)) continue;
     const s = ISLANDS[r.id].sky;
     sum += k;
     most = Math.max(most, k);
     hours += s.hours * k;
     azimuth += s.azimuth * k;
+  }
+  if (hold && sum <= 0) {
+    const h = ISLANDS[hold.hold].sky;
+    out.hours = h.hours;
+    out.azimuth = h.azimuth;
+    return;
   }
   if (sum <= 0) {
     out.hours = a.hours;
@@ -46,6 +59,37 @@ export function passageSky(x: number, z: number, out: { hours: number; azimuth: 
   }
   out.hours = a.hours + (hours / sum - a.hours) * most;
   out.azimuth = a.azimuth + (azimuth / sum - a.azimuth) * most;
+}
+
+/**
+ * A passage whose light holds one island's sky (spec ISLAND-03 O3): out of `skip`'s evening toward an
+ * island whose light is the next morning (`IslandEntry.nextMorningAfter`), the evening (`hold` the
+ * island you left) holds until the "next morning" cut; after it, the morning (`hold` the island ahead)
+ * holds until you're there. Any third island's light on the way ends the hold.
+ */
+export interface PassageHold {
+  hold: IslandId;
+  skip: IslandId;
+}
+
+/** The island whose light is the next morning after `from`'s, if any (`nextMorningAfter`). */
+export function nextMorningFrom(from: IslandId): IslandId | null {
+  return ISLAND_LIST.find((e) => e.nextMorningAfter === from)?.id ?? null;
+}
+
+/** How far into an island's light (0 outside its reach, 1 within its full light) (x, z) is. */
+export function islandLight(id: IslandId, x: number, z: number): number {
+  const r = SKY_REACH.find((s) => s.id === id);
+  if (!r) return 0;
+  const t = Math.min(1, Math.max(0, (r.reach - Math.hypot(x - r.x, z - r.z)) / (r.reach - r.full)));
+  return t * t * (3 - 2 * t);
+}
+
+/** Whether a third island's light (neither of the held passage's two) reaches (x, z). */
+export function otherLight(hold: PassageHold, x: number, z: number): boolean {
+  for (const r of SKY_REACH)
+    if (r.id !== hold.hold && r.id !== hold.skip && islandLight(r.id, x, z) > 0) return true;
+  return false;
 }
 
 /**

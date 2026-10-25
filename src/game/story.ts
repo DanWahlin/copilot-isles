@@ -52,6 +52,9 @@ export interface IslandStory {
  *   move on.
  * - `practiceStarted`: Rook's practice terminal shows its readout.
  * - `skipCrownView`: the crown's view (a cue) no longer plays.
+ * - `dockKitted` (Keelhaven): Drydock 2's rack holds Dory's tool chest.
+ * - `searchHullDown`, `prHullsDown` (Keelhaven): the search hull, then both seeded pull-request hulls,
+ *   wait in the basin above the Sea Gate.
  */
 export const STORY_CONDITIONS = {
   anchorage: ['firstVisit', 'trialStarted', 'sealed', 'gangwayDown'],
@@ -65,6 +68,7 @@ export const STORY_CONDITIONS = {
     'skipCrownView',
     'sealed',
   ],
+  keelhaven: ['firstVisit', 'dockKitted', 'searchHullDown', 'prHullsDown', 'sealed'],
 } as const;
 
 /**
@@ -76,6 +80,7 @@ export const STORY_EVENTS = {
   anchorage: ['landed', 'setSail'],
   meridian: [],
   'thousand-bough': [],
+  keelhaven: [],
 } as const satisfies Readonly<Record<StoryIsland, readonly string[]>>;
 
 export type StoryIsland = keyof typeof STORY_CONDITIONS;

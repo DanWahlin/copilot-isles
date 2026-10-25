@@ -6,7 +6,8 @@ import { addVerandaHouse, tintFor } from '../../village/veranda-house';
 import { mulberry32 } from '../../../util/math';
 import { keelhavenHeight } from './height';
 import { GATE_PATH, GATE_PATH_HALF } from './works';
-import { FRAME, toWorld, type Uv } from './layout';
+import { FRAME, toFrame, toWorld, type Uv } from './layout';
+import { lineDeck, type WalkDeck } from './decks';
 import { YARD_PAINT, at, ground, ropeCoil, stores, ubox, YAW_U, type ShipyardOut } from './shipyard';
 import {
   BOARD,
@@ -40,6 +41,24 @@ const AWNINGS = [
 ] as const;
 
 const pick = <T>(list: readonly T[], r: number): T => list[Math.floor(r * list.length)]!;
+
+const DF = { u: 0, v: 0 };
+
+/** A veranda's deck (world, `VerandaHouseInfo.decks`) as a walk deck in the cove frame. */
+function verandaDeck(d: {
+  x: number;
+  z: number;
+  ax: number;
+  az: number;
+  half: number;
+  width: number;
+  y: number;
+}): WalkDeck {
+  toFrame(d.x, d.z, DF);
+  const au = d.ax * FRAME.axis.x + d.az * FRAME.axis.z;
+  const av = d.ax * FRAME.across.x + d.az * FRAME.across.z;
+  return { u: DF.u, v: DF.v, au, av, half: d.half, width: d.width, y0: d.y, y1: d.y, wood: true };
+}
 
 /** A heading (yaw) whose local −z (a house's front) faces cove-frame direction `face`. */
 function faceYaw(face: Uv): number {
@@ -132,6 +151,7 @@ function house(
   });
   for (const p of info.posts)
     out.circles.push({ x: p.x, z: p.z, r: 0.14, y0: low - 0.5, y1: base + 3, height: 3 });
+  for (const d of info.decks) out.decks.push(verandaDeck(d));
   const top = info.top;
   const eave = base + h.storeys * HOUSE_STOREY_HEIGHT;
   if (tavern) {
@@ -498,6 +518,11 @@ function footbridge(b: Buckets, out: ShipyardOut): void {
       k % 5 ? YARD_PAINT.silver : YARD_PAINT.oak,
     );
   }
+  for (let k = 0; k < 8; k++) {
+    const va = v0 + (k / 8) * (v1 - v0);
+    const vb = v0 + ((k + 1) / 8) * (v1 - v0);
+    out.decks.push(lineDeck([u, va, yAt(va) + 0.04], [u, vb, yAt(vb) + 0.04], half - 0.1, true));
+  }
   for (const s of [-1, 1]) {
     let prev: { x: number; y: number; z: number } | null = null;
     for (let k = 0; k <= 6; k++) {
@@ -728,7 +753,7 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
   out.cameraBoxes.push({ x: p.x, z: p.z, hx: r0, hz: r0, rot: 0, y0: foot, y1: top + 8 });
   // The keeper's house beside it.
   const k = at(L.keeper.u, L.y, L.keeper.v);
-  addVerandaHouse(b, kit, {
+  const keeper = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 4 },
     storeys: 1,
     origin: { x: k.x, y: L.y, z: k.z },
@@ -747,6 +772,7 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
     groundAt: (x, z) => keelhavenHeight(x, z),
   });
   out.colliders.push({ x: k.x, z: k.z, hx: 3.2, hz: 2.2, rot: faceYaw({ u: 1, v: 0 }), height: 5 });
+  for (const d of keeper.decks) out.decks.push(verandaDeck(d));
 }
 
 /** A washing line between two posts, shirts and sheets on it. */
@@ -1199,6 +1225,26 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
         yaw,
         k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
       );
+      // Walked tread by tread, with a fence along its drop edge (the rope rail).
+      out.decks.push(
+        lineDeck(
+          [u - (tu * step) / 2, v - (tv * step) / 2, y],
+          [u + (tu * step) / 2, v + (tv * step) / 2, y],
+          half,
+          true,
+        ),
+      );
+      const fence = at(u + nu * (half - 0.04), 0, v + nv * (half - 0.04));
+      out.colliders.push({
+        x: fence.x,
+        z: fence.z,
+        hx: step / 2 + 0.02,
+        hz: 0.06,
+        rot: yaw,
+        y0: y - 0.6,
+        y1: y + 1.1,
+        height: 1,
+      });
       // A bearer under it, and a post down to the ground at its drop edge.
       const du = u + nu * (half - 0.08);
       const dv = v + nv * (half - 0.08);

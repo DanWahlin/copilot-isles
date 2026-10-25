@@ -69,6 +69,11 @@ export interface VerandaHouseInfo {
   posts: { x: number; z: number }[];
   /** How far each side's veranda reaches out from its wall (0 without one). */
   out: Record<HouseSide, number>;
+  /**
+   * Each ground-floor veranda's deck (world): its middle, the unit direction along its wall, half its
+   * length along the wall and half its depth out from it, and its top (for the walker).
+   */
+  decks: { x: number; z: number; ax: number; az: number; half: number; width: number; y: number }[];
 }
 
 const H = HOUSE_STOREY_HEIGHT;
@@ -532,6 +537,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   };
   const out: Record<HouseSide, number> = { front: 0, back: 0, left: 0, right: 0 };
   const posts: { x: number; z: number }[] = [];
+  const decks: VerandaHouseInfo['decks'] = [];
   const verandaSides = new Set(spec.veranda?.sides ?? []);
   const vd = spec.veranda?.depth ?? 0;
   for (const s of verandaSides) out[s] = vd;
@@ -745,6 +751,19 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
       const mid = (ends[0] + ends[1]) / 2;
       const span = ends[1] - ends[0];
       const deckMid = onWall(wf, mid, deckTop - 0.05, (d0 + vd) / 2);
+      if (!upper) {
+        const c = toWorld(deckMid[0], deckMid[2]);
+        const e = toWorld(deckMid[0] + wf.ax, deckMid[2] + wf.az);
+        decks.push({
+          x: c.x,
+          z: c.z,
+          ax: e.x - c.x,
+          az: e.z - c.z,
+          half: span / 2,
+          width: (vd - d0) / 2 + 0.05,
+          y: spec.origin.y + deckTop,
+        });
+      }
       sheet('wood').box(
         deckMid,
         wf.ax !== 0 ? [span, 0.1, vd - d0] : [vd - d0, 0.1, span],
@@ -847,7 +866,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   }
 
   for (const key of Object.keys(sheets) as MaterialKey[]) pushSheet(b, key, sheets[key]!, root);
-  return { top: spec.origin.y + roofTop, posts, out };
+  return { top: spec.origin.y + roofTop, posts, out, decks };
 }
 
 function xzOf(p: V3): [number, number] {
