@@ -18,7 +18,8 @@ import { CANAL, CHAMBERS, DOCKS, GATES, PADS, SLIPWAY, WALL } from './works';
  * materials; every word is the course pack's (`quests/keelhaven.json` → `signs`).
  */
 
-const SIGN_COLOUR = ['#2b2118'];
+// Cream lettering on the sign set's own painted board (it covers the timber face it hangs on).
+const SIGN_COLOUR = ['#f6e7c8'];
 const yard = PADS.yard.y;
 const face = (du: number, dv: number) => headingUv(du, dv);
 
@@ -242,9 +243,13 @@ export function buildKeelhavenProps(b: Buckets, signs: SignSet | null, out: Ship
   // The practice hulls' name boards on the basin's south quay, facing the yard.
   for (const h of KEELHAVEN_SET.hulls) {
     const y = ground(h.u, h.v);
-    signBoard(b, h.u, h.v, y, 2.4);
-    lettering(signs, h.sign, h.u - 0.05, y + 1.9, h.v, -1, 0, 2.4, 0.5);
-    out.colliders.push({ ...toWorld(h.u, h.v), hx: 0.2, hz: 1.4, rot: YAW_U, height: 2.4 });
+    for (const du of [-1.2, 1.2]) {
+      const p = at(h.u + du, y, h.v);
+      rod(b, 'wood', p, { x: p.x, y: y + 2.4, z: p.z }, 0.08, 6, YARD_PAINT.tar);
+    }
+    ubox(b, 'wood', h.u, y + 1.9, h.v, 2.6, 0.7, 0.08, YARD_PAINT.limewash);
+    lettering(signs, h.sign, h.u, y + 1.9, h.v + 0.05, 0, 1, 2.4, 0.5);
+    out.colliders.push({ ...toWorld(h.u, h.v), hx: 1.4, hz: 0.2, rot: YAW_U, height: 2.4 });
   }
 }
 

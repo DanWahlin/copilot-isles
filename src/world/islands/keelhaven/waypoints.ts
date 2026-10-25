@@ -35,6 +35,9 @@ path('quay.head', 'quay.gangway', 'quay.board', 'quay.root');
 STREET.forEach((p, i) => at(`street.${i}`, p.u, p.v));
 path('quay.root', ...STREET.map((_, i) => `street.${i}`));
 // The square and the Evidence Board, then the footbridge over the river to the yard's gate.
+// The tavern's porch steps (Lyra), off the street's start.
+at('tavern', 13.5, 69.5);
+path('street.0', 'tavern');
 at('square', 111, 26);
 at('bridge.s', 112, 11);
 at('bridge.n', 112, -5.5);
@@ -43,7 +46,10 @@ path(`street.${STREET.length - 1}`, 'square', 'bridge.s', 'bridge.n', 'yard.gate
 // The yard: along the basin's south side to the dock heads, and west to the lock terrace.
 at('yard.south', 128, -29);
 at('docks.head', 171, -50);
-path('yard.gate', 'yard.south', 'docks.head');
+// Along the dock heads: Drydock 2 (Cass) and Drydock 1 (Dory).
+at('docks.d2', 171, -58.5);
+at('docks.d1', 171, -73);
+path('yard.gate', 'yard.south', 'docks.head', 'docks.d2', 'docks.d1');
 at('yard.west', 90, -28);
 at('locks.top', 50, -45);
 at('locks.near', 38, -47);
