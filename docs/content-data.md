@@ -308,13 +308,14 @@ yet: its world is in build, docs/adding-an-island.md). Keelhaven's Chapter 03 co
   that plays in one of its quests goes in that part.
 - **The content check holds it to everything but the game's side of the contract**: its NPCs (beats
   and barks), the names its story answers and the signs it gives, its puzzles' names and steps, a market
-  stall for its keeper, and audio. Those come with the island's wiring step. What the content means is
+  stall for its keeper. Those come with the island's wiring step. What the content means is
   still checked: quests and steps, scripts, pages, quizzes, images, citations, app tasks, objectives,
   and every circuit's bindings.
-- **Its voice lines are `"pending": true`**: written, with a speaker, but not voiced yet. They need no
-  voice in `voice/cast.json` and no audio, `tools/voice/generate.ts` leaves them out (the weekly refresh
-  too), and only content ahead of its island may play one. When the voices are chosen, give each
-  speaker their cast entry, drop `pending`, and generate the audio.
+- **Its voice lines can be `"pending": true`**: written, with a speaker, but not voiced yet. A pending
+  line needs no voice in `voice/cast.json` and no audio, `tools/voice/generate.ts` leaves it out (the
+  weekly refresh too), and only content ahead of its island may play one. When the voices are chosen,
+  give each speaker their cast entry, drop `pending`, and generate the audio: from then on the line's
+  audio is checked as any other's. Keelhaven's lines are voiced (2026-10-25).
 
 ## Voiced lines: change the audio too
 

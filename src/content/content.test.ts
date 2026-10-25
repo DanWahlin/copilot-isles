@@ -422,9 +422,14 @@ describe('the content checks report broken edits by entry', () => {
     // A live island can't play a pending line.
     const a = quests('anchorage');
     a.scripts['nell.papers'] = [{ say: 'kh.lyra.01' }, ...a.scripts['nell.papers']!];
-    expect(issuesWith('quests/anchorage.json', a).map((i) => `${i.path}: ${i.message}`)).toEqual([
-      expect.stringMatching(/^scripts\["nell.papers"\]\[0\]: "kh.lyra.01" is pending/),
-    ]);
+    const lines = json<{ lines: { id: string; pending?: true }[] }>(`${PACK}/voice/lines.json`);
+    lines.lines.find((l) => l.id === 'kh.lyra.01')!.pending = true;
+    expect(
+      checkContent(ROOT, {
+        [`${PACK}/quests/anchorage.json`]: a,
+        [`${PACK}/voice/lines.json`]: lines,
+      }).map((i) => `${i.path}: ${i.message}`),
+    ).toEqual([expect.stringMatching(/^scripts\["nell.papers"\]\[0\]: "kh.lyra.01" is pending/)]);
     // A circuit's bindings and citations.
     const ring = json<{
       places: Record<string, { acts: string }>;

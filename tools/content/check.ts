@@ -22,8 +22,8 @@
  * A course may write an island's content before the game has the island (it isn't in the registry yet:
  * its world is in build). That content is held to all of the above but the game's side of the
  * contract, which comes with the island's wiring step: its NPCs, the names its story answers, its
- * puzzles' names and steps, a market stall, and audio. Its voice lines are `"pending": true` (written,
- * not voiced yet), and only such content may play a pending line. The game leaves the island's content
+ * puzzles' names and steps, and a market stall. Its voice lines can be `"pending": true` (written, not
+ * voiced yet, so no audio), and only such content may play a pending line; a voiced line needs its audio. The game leaves the island's content
  * out until then (src/course/split.ts `withoutIslandsAhead`).
  *
  * `src/content/content.test.ts` fails on any issue; `npm run content:check` (tools/content/report.ts)
@@ -1373,8 +1373,8 @@ function checkMarket(
   }
   for (const [island, k] of Object.entries(keepers)) {
     const stall = MARKET_STALLS.find((s) => s.island === island && s.lines === 'keepers');
-    // An island the game hasn't got yet: its keeper's lines are written, and its stall (the keeper's
-    // name, the audio) comes with its wiring.
+    // An island the game hasn't got yet: its keeper's lines are written (voiced or pending), and its
+    // stall (the keeper's name) comes with its wiring.
     const ahead = !stall && ctx.ahead(island);
     if (!stall && !ahead) {
       fail(`keepers.${island}`, `"${island}" has no stall but Gilda's (src/game/market/stalls.ts)`);
@@ -1392,9 +1392,11 @@ function checkMarket(
             `${path}.text`,
             `differs from "${g.voice}" in ${ctx.linesFile}: change both to the same words`,
           );
-        if (!l.pending) fail(`${path}.voice`, `"${g.voice}" has no stall to play it yet: mark it "pending"`);
-        if (g.source) ctx.cite(rel, `${path}.source`, g.source);
-        continue;
+        // Its stall isn't in the game yet: a pending line needs no audio; a voiced one is checked below.
+        if (l.pending) {
+          if (g.source) ctx.cite(rel, `${path}.source`, g.source);
+          continue;
+        }
       } else {
         if (l.pending) fail(`${path}.voice`, `"${g.voice}" is pending: voice it and drop "pending" first`);
         if (l.speaker !== stall!.keeper.name)
