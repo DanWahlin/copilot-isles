@@ -176,6 +176,9 @@ export class GameFlow implements GameBridge {
   private chartPickTimer = 0;
 
   constructor(private readonly o: GameFlowOptions) {
+    // Each island's chart terrain (its height and masks, the world's own code) loads with the title,
+    // so the opening's chart has it, and no module of it loads while the title is on screen.
+    for (const e of ISLAND_LIST) void e.chart.terrain().catch(() => undefined);
     // Saves from before course packs become the course that claims them (`legacySaves`; their old
     // keys stay for now).
     const storage = safeStorage();
