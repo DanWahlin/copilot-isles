@@ -95,7 +95,7 @@
       "optional": true,
       "steps": {
         "start": "Gilda’s stall is under the arcade at the top of the stair street. Pick a job from her board and pay in starfish.",
-        "done": "Auto, or your model on its default effort, for a quick look. For hard work, consider a model suited to complex coding and more effort."
+        "done": "Copilot Fusion at Standard, or your model on its default effort, for a quick look. For hard work, consider a higher Fusion level or a model suited to complex coding."
       }
     }
   ],
@@ -405,7 +405,16 @@
     }
   ],
   "story": {
-    "conditions": { "firstVisit": { "Q1.1": { "not": "done" } }, "sealed": { "Q1.8": "done" } },
+    "conditions": {
+      "firstVisit": {
+        "Q1.1": {
+          "not": "done"
+        }
+      },
+      "sealed": {
+        "Q1.8": "done"
+      }
+    },
     "events": {}
   },
   "scripts": {
@@ -469,7 +478,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "**New**: the landing view. Start a chat or a project session, and choose a mode and model. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "**New**: the landing view. Start a chat or a project session, and choose a mode and model."
       },
       {
         "say": "mer.mina.new"
@@ -492,6 +501,13 @@
         "say": "mer.mina.board2"
       },
       {
+        "show": "ch01/app-dashboards-page",
+        "caption": "**Dashboards**: your GitHub work as a board of widgets. The practice items are in **Pulls created** and **Issues assigned**."
+      },
+      {
+        "say": "mer.mina.dashboards"
+      },
+      {
         "cue": "tour:clockTower"
       },
       {
@@ -506,7 +522,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "**Customize**: skills, MCP servers, plugins, extensions and canvases. You don’t need any yet. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "**Customize**: skills, MCP servers, plugins, extensions and canvases. You don’t need any yet."
       },
       {
         "say": "mer.mina.customize"
@@ -530,6 +546,9 @@
         "term": "issues"
       },
       {
+        "term": "dashboards"
+      },
+      {
         "term": "automations"
       },
       {
@@ -543,6 +562,9 @@
       },
       {
         "file": "pg1.issues"
+      },
+      {
+        "file": "pg1.dashboards"
       },
       {
         "file": "pg1.automations"
@@ -584,7 +606,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "① Select **+** next to **Sessions** · ② then select **Chat**. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "① Select **+** next to **Sessions** · ② then select **Chat**."
       },
       {
         "say": "mer.lyra.04"
@@ -597,7 +619,7 @@
       },
       {
         "show": "shared/app-github-copilot-app",
-        "caption": "Below the prompt box, the project picker shows **Chat**. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "Below the prompt box, the project picker shows **Chat**."
       },
       {
         "say": "mer.lyra.05"
@@ -680,7 +702,7 @@
       },
       {
         "show": "ch01/app-quick-chat",
-        "caption": "A question: **+** next to **Sessions**, then **Chat**. Work that needs your repository: the **+** next to your project. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "A question: **+** next to **Sessions**, then **Chat**. Work that needs your repository: the **+** next to your project."
       },
       {
         "say": "mer.anders.solved.02"
@@ -766,7 +788,7 @@
       },
       {
         "show": "ch01/app-new-page",
-        "caption": "The model control is below the prompt, next to the mode selector. (This picture’s from an older app version: **Projects** is now **Sessions**, and the More item is gone.)"
+        "caption": "The model control is below the prompt, next to the mode selector."
       },
       {
         "say": "mer.oren.02"
@@ -781,13 +803,20 @@
         "say": "mer.oren.03"
       },
       {
+        "show": "ch01/app-copilot-fusion-options",
+        "caption": "The model control with the **Copilot Fusion** switch on. Its **Effort level** is **Standard**, **High** or **Max**."
+      },
+      {
         "say": "mer.oren.auto"
       },
       {
         "say": "mer.oren.04"
       },
       {
-        "term": "auto-model"
+        "hide": true
+      },
+      {
+        "term": "copilot-fusion"
       },
       {
         "say": "mer.oren.05"
@@ -800,6 +829,9 @@
       },
       {
         "file": "pg1.model"
+      },
+      {
+        "file": "pg1.fusion"
       },
       {
         "page": "pg1.try-controls",
@@ -878,7 +910,7 @@
       },
       {
         "show": "ch01/app-settings",
-        "caption": "Select the gear at the bottom of the sidebar. The areas are listed down the left, with **Projects** at the foot."
+        "caption": "Select the gear at the bottom of the sidebar. The areas are listed down the left, with **Repositories** at the foot."
       },
       {
         "say": "mer.pell.letters.debrief"
@@ -1009,7 +1041,7 @@
     "pell.letters.debrief": "What the alcoves stand for, on the course's screenshot. A save that finished Pell before the letters existed can file them for practice and gets just this; its quest stays done.",
     "pell.solved": "Pell's debrief once the letters are filed (played at once by the puzzle, or when you talk to him).",
     "admiral": "Leaving the exam ends the script; next time the Admiral skips her introduction.",
-    "oren": "Oren teaches the model control, Auto and effort, hands you the Try the controls page, then sends you to Gilda's Model Market to practise (Q1.6 market). Prompt history is Pell's."
+    "oren": "Oren teaches the model control, Copilot Fusion and effort, hands you the Try the controls page, then sends you to Gilda's Model Market to practise (Q1.6 market). Prompt history is Pell's."
   },
   "barks": {
     "mer_fisher": [
@@ -1022,7 +1054,7 @@
     ],
     "mer_vendor": [
       "Fresh from the bay! Pick what suits the job, like a model.",
-      "Auto picks the model for you. It isn’t Autopilot, mind."
+      "Copilot Fusion picks the models for you. It isn’t Autopilot, mind."
     ],
     "mer_kid_a": ["Catch me if you can!", "Did you sail the three helms? I want to!"],
     "mer_kid_b": ["Nico, wait for me!", "The lighthouse lights up when someone earns the Seal!"],

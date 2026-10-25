@@ -61,10 +61,10 @@
     {
       "id": "ch02/app-context-information",
       "src": "course/ch02/app-context-information.webp",
-      "hash": "f4ba435ac73a",
-      "width": 1920,
-      "height": 1080,
-      "alt": "The usage popup below the prompt box: Plan, Session in AI credits, Tokens sent and received, and the expanded Context breakdown"
+      "hash": "71bc77c8d141",
+      "width": 471,
+      "height": 421,
+      "alt": "The usage popup: Plan shows Usage hidden, Session 0.6 AI credits, Tokens sent and received, and the expanded Context breakdown with the system prompt, system tools and messages, above View usage and plan..."
     },
     {
       "id": "shared/assignment",
@@ -448,7 +448,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       }
     },
     {
@@ -501,7 +501,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549",
+        "hash": "25403dfc8620",
         "image": {
           "src": "course/ch02/app-plan-from-issue.webp",
           "hash": "2edcea70d180"
@@ -546,7 +546,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       }
     },
     {
@@ -558,31 +558,31 @@
       "targets": [
         {
           "id": "session",
-          "rect": [0.709375, 0.40370370370370373, 0.2791666666666667, 0.04259259259259259],
+          "rect": [0.021231, 0.133017, 0.955414, 0.085511],
           "label": "Session",
           "correct": true
         },
         {
           "id": "plan",
-          "rect": [0.709375, 0.35185185185185186, 0.2791666666666667, 0.04259259259259259],
+          "rect": [0.021231, 0.019002, 0.955414, 0.08076],
           "label": "Plan",
-          "feedback": "**Plan** is the share of your plan you’ve used."
+          "feedback": "**Plan** is the share of your plan you’ve used (**Usage hidden** here, in **Streamer Mode**)."
         },
         {
           "id": "tokens",
-          "rect": [0.709375, 0.45740740740740743, 0.2791666666666667, 0.07037037037037037],
+          "rect": [0.021231, 0.247031, 0.955414, 0.144893],
           "label": "Tokens",
           "feedback": "**Tokens** counts what went to the model and what came back."
         },
         {
           "id": "context",
-          "rect": [0.8098958333333334, 0.5444444444444444, 0.18020833333333333, 0.07592592592592592],
+          "rect": [0.373673, 0.451306, 0.585987, 0.118765],
           "label": "Context",
-          "feedback": "That blue box is the course’s highlight. **Context** shows how the context window is divided."
+          "feedback": "**Context** shows how much of the context window the system prompt, tools and messages use."
         },
         {
           "id": "view-usage",
-          "rect": [0.709375, 0.8685185185185185, 0.13541666666666666, 0.040740740740740744],
+          "rect": [0.021231, 0.890736, 0.382166, 0.071259],
           "label": "View usage and plan...",
           "feedback": "That opens your account’s usage and billing details."
         }
@@ -599,10 +599,10 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60",
+        "hash": "b3a17e3a13fd",
         "image": {
           "src": "course/ch02/app-context-information.webp",
-          "hash": "f4ba435ac73a"
+          "hash": "71bc77c8d141"
         }
       }
     },
@@ -644,7 +644,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       }
     },
     {
@@ -692,7 +692,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "assignment",
-        "hash": "a6fd57783531"
+        "hash": "dc74319a0e2b"
       }
     },
     {
@@ -944,7 +944,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       }
     },
     {
@@ -1017,7 +1017,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       }
     },
     {
@@ -1180,19 +1180,19 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       }
     },
     {
       "id": "pg2.plan",
       "title": "Review the plan",
       "image": "ch02/app-plan-from-issue",
-      "caption": "Set **Mode** to **Plan**, type `{issue}` and pick **Improve the empty state copy**, then add the prompt below and send it. If Copilot asks about the scope first, pick the recommended answer. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box: pick **Exit plan mode and I will prompt myself** to return to **Interactive**.",
+      "caption": "Set **Mode** to **Plan**, type `{issue}` and pick **Improve the empty state copy**, then add the prompt below and send it. If Copilot asks about the scope first, pick the recommended answer. The plan opens in the **Plan** tab, and **Review plan** replaces the prompt box: pick **Exit plan mode and I will prompt myself**. If the **Review plan** box stays open, select **Continue**. Check that the session is back in **Interactive** before you send another prompt.",
       "setup": ["issue"],
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       },
       "code": "Investigate the issue and create a plan to address it."
     },
@@ -1204,7 +1204,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       },
       "code": "Run the Book App in samples/book-app-web and open the preview."
     },
@@ -1217,7 +1217,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       },
       "code": "/chronicle standup"
     },
@@ -1225,11 +1225,11 @@
       "id": "pg2.context",
       "title": "/context",
       "image": "ch02/app-context-information",
-      "caption": "Opens the usage popup below the prompt box (or select the AI credits icon by the microphone). **Plan** is your plan’s use (**Usage hidden** in **Streamer Mode**), **Session** the AI credits used, and **Tokens** what went to the model and back. Select the **Context** bar to see how the context window is divided: system prompt, system tools, MCP tools, messages, free space and buffer. Check it before you add more files, issues or instructions.",
+      "caption": "Opens the usage popup below the prompt box (or select the AI credits icon by the microphone). **Plan** is your plan’s use (**Usage hidden** in **Streamer Mode**), **Session** the AI credits used, and **Tokens** what went to the model and back. Select the **Context** bar to see how much of the context window the system prompt, tools and messages use. The categories can differ with the model and the tools in the session, and your totals will differ from the course’s picture. Check it before you add more files, issues or instructions.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       },
       "code": "/context"
     },
@@ -1241,7 +1241,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       }
     },
     {
@@ -1262,7 +1262,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "assignment",
-        "hash": "a6fd57783531"
+        "hash": "dc74319a0e2b"
       }
     },
     {
@@ -1655,12 +1655,12 @@
     "tb.rook.01": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.02": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.branch": {
       "chapter": "02-sessions-worktrees-context",
@@ -1670,57 +1670,57 @@
     "tb.rook.03": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.scope": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.04": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.05": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.rook.06": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-      "hash": "6db80a8de549"
+      "hash": "25403dfc8620"
     },
     "tb.pip.01": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.pip.02": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.pip.03": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.pip.04": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.pip.05": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.pip.06": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "exercise-check-the-session-with-slash-commands",
-      "hash": "0eb8259b8b60"
+      "hash": "b3a17e3a13fd"
     },
     "tb.elder.next": {
       "chapter": "02-sessions-worktrees-context",
@@ -1730,12 +1730,12 @@
     "tb.elder.assignment": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "assignment",
-      "hash": "a6fd57783531"
+      "hash": "dc74319a0e2b"
     },
     "tb.elder.assignment.done": {
       "chapter": "02-sessions-worktrees-context",
       "anchor": "assignment",
-      "hash": "a6fd57783531"
+      "hash": "dc74319a0e2b"
     }
   },
   "cited": {

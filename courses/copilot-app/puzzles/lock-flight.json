@@ -404,11 +404,11 @@
   "cites": {
     "start": {
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "outer": {
       "anchor": "outer-loop-move-the-work-through-github",
-      "hash": "07e5691870a8"
+      "hash": "fe635c153065"
     },
     "comment": {
       "anchor": "respond-to-a-review-comment",

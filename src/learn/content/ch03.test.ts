@@ -36,7 +36,8 @@ const LEARNING = json<{
 const TASKS = LEARNING.appTasks.filter((t) => t.chapter === CH03.chapter);
 
 /** The six screenshots from before app 1.1.30: the sidebar's heading and its More row are out of date. */
-const STALE = [
+/** The six screenshots the course retook for app 1.1.30 (f24b521): hotspots may target them now. */
+const RETAKEN = [
   'ch03/app-workspace-panel',
   'ch03/app-pick-and-polish',
   'ch03/app-issues-filtered',
@@ -62,26 +63,30 @@ describe('Chapter 03 content', () => {
     for (const r of refs) expect(anchors.has(r.anchor), r.anchor).toBe(true);
   });
 
-  it('keeps the six stale screenshots pinned, untargeted, and never names their sidebar', () => {
+  it('measures H3.1 and H3.2 on the retaken screenshots, never on the sidebar or Ready to merge', () => {
     const ids = new Set(CH03.images.map((i) => i.id));
-    for (const id of STALE) expect(ids.has(id), id).toBe(true);
-    for (const q of CH03.quizzes as Quiz[]) {
+    for (const id of RETAKEN) expect(ids.has(id), id).toBe(true);
+    const hotspots = (CH03.quizzes as Quiz[]).filter((q) => q.type === 'hotspot');
+    expect(hotspots.map((q) => q.id)).toEqual(['H3.1', 'H3.2']);
+    for (const q of hotspots) {
       if (q.type !== 'hotspot') continue;
-      expect(STALE, q.id).not.toContain(q.image);
-      for (const t of q.targets) expect(t.id, q.id).not.toBe('ready-to-merge');
+      expect(RETAKEN, q.id).toContain(q.image);
+      for (const t of q.targets) {
+        expect(t.id, q.id).not.toBe('ready-to-merge');
+        // The sidebar ends about a quarter of the way across these 1920 × 1080 pictures.
+        expect(t.rect[0], `${q.id} ${t.id}`).toBeGreaterThan(0.245);
+        expect(t.rect[0] + t.rect[2], `${q.id} ${t.id}`).toBeLessThanOrEqual(1);
+        expect(t.rect[1] + t.rect[3], `${q.id} ${t.id}`).toBeLessThanOrEqual(1);
+      }
     }
     const captions = [
-      ...CH03.pages.filter((p) => p.image && STALE.includes(p.image)).map((p) => p.caption),
+      ...CH03.pages.filter((p) => p.image && RETAKEN.includes(p.image)).map((p) => p.caption),
       ...Object.values(QUESTS.scripts)
         .flat()
-        .filter((s) => STALE.includes(s.show as string))
+        .filter((s) => RETAKEN.includes(s.show as string))
         .map((s) => s.caption as string),
-      ...PUZZLES.flatMap((p) => p.laps.flatMap((l) => l.stations))
-        .filter((s) => s.image && STALE.includes(s.image))
-        .map((s) => s.caption ?? ''),
     ];
-    expect(captions.length).toBeGreaterThan(6);
-    for (const c of captions) expect(c).not.toMatch(/\b(Projects|Sessions|More)\b|Ready to merge/);
+    for (const c of captions) expect(c).not.toMatch(/Ready to merge|older app version/);
   });
 
   it('names only UI the chapter names, on its cards and pages', () => {

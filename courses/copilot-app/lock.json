@@ -1154,7 +1154,6 @@
     "course/ch00/app-add-project.webp": {
       "upstream": "00-setup/assets/app-add-project.webp",
       "sha256": "ad8ec6afd4baad45c3f59ccf459512d2bce7041c22924604702195d695268517",
-      "bundled": "faf03f246231fdd884fddafb11ac6a66d85621af3bf54898bda4d1731ab5a09c",
       "pinned": true,
       "bytes": 91012
     },
@@ -1179,52 +1178,48 @@
     "course/ch01/app-automations-page.webp": {
       "upstream": "01-tour-the-app/assets/app-automations-page.webp",
       "sha256": "7246d29362ee171e0a091a68de2c0e4c3ede41a14bba49fac38a3f1cfc1b316b",
-      "bundled": "690be38e00a26bd80cd863799303b76397b72b644722979f8ca5c178c1824f91",
       "pinned": true,
       "bytes": 131994
     },
     "course/ch01/app-copilot-fusion-options.webp": {
       "upstream": "01-tour-the-app/assets/app-copilot-fusion-options.webp",
       "sha256": "8f63aac4d97d76e8ecefd170f31587afea37deb14cec3af43800aeeeb9893fa8",
+      "pinned": true,
       "bytes": 93020
     },
     "course/ch01/app-dashboards-page.webp": {
       "upstream": "01-tour-the-app/assets/app-dashboards-page.webp",
       "sha256": "3f1a869cfc31bbafa70691ad6c2cfa42c5caaf98c5ce4d223826ba563fa4659b",
+      "pinned": true,
       "bytes": 129602
     },
     "course/ch01/app-issues-page.webp": {
       "upstream": "01-tour-the-app/assets/app-issues-page.webp",
       "sha256": "0b7b84a9ad1892bbf41678a651960bb4e2794e8cdfa69e1df3d90d09c44121b8",
-      "bundled": "09e6cab47ef6f756dd322e396022a130cb80f3762d4b84531c1589d43641c773",
       "pinned": true,
       "bytes": 125554
     },
     "course/ch01/app-new-page.webp": {
       "upstream": "01-tour-the-app/assets/app-new-page.webp",
       "sha256": "daa76eb254276d94288b9b8e8bcc21ba45591169cd47191ad3ead082d0c3ad3d",
-      "bundled": "37be111c3c45d45c866fbbd5f739c5be906afa058d1a05f9a511b0754f3fd2b8",
       "pinned": true,
       "bytes": 81334
     },
     "course/ch01/app-pull-requests-page.webp": {
       "upstream": "01-tour-the-app/assets/app-pull-requests-page.webp",
       "sha256": "1a68cc38eb6a5b1a43edb2c7b56dace7783f2203b03ebd2726c4c068778b112f",
-      "bundled": "ac5c638405ce3356265c81b474b88069c55def48e0347482c81827594e4b1959",
       "pinned": true,
       "bytes": 75558
     },
     "course/ch01/app-quick-chat.webp": {
       "upstream": "01-tour-the-app/assets/app-quick-chat.webp",
       "sha256": "9e4bae27093366659f48170ec602d07ad67355dcca9e6c9200d8714ec0c7c155",
-      "bundled": "0e15d445340be969f29a92d402b9501baddae328154fc13e5defe9af473c2adb",
       "pinned": true,
       "bytes": 91156
     },
     "course/ch01/app-settings.webp": {
       "upstream": "01-tour-the-app/assets/app-settings.webp",
       "sha256": "6f0d9480979b47e1cc81de4a9b46965a6d683398022c6f6203985b935fdad164",
-      "bundled": "5bfe69fa74d53abca6e1d2a60871ef4fc6f68f5d34fad86a7cf1f1477428ba21",
       "pinned": true,
       "bytes": 100124
     },
@@ -1261,7 +1256,6 @@
     "course/ch02/app-context-information.webp": {
       "upstream": "02-sessions-worktrees-context/assets/app-context-information.webp",
       "sha256": "71bc77c8d141b51dba18c3db6ed251ec2d6f11813d33d256be6f1e2a4e107192",
-      "bundled": "f4ba435ac73aded1d15f4a0bb3a82842b2328065f72b6a97f12102fc4b1c15d5",
       "pinned": true,
       "bytes": 13636
     },
@@ -1298,47 +1292,42 @@
     "course/ch03/app-filter-repo.webp": {
       "upstream": "03-development-workflows/assets/app-filter-repo.webp",
       "sha256": "99cc8ee154881475a1a1e6b4e8d88e79c3a4d874e301266e55dc32d3e8060d21",
+      "pinned": true,
       "bytes": 108864
     },
     "course/ch03/app-issue-new-session.webp": {
       "upstream": "03-development-workflows/assets/app-issue-new-session.webp",
       "sha256": "f201e64d80a69872a4752ee1e5f59f5f35a9d1642ba21e79bb36707f9185577f",
-      "bundled": "9a4f4f18c78431941b4ced9c118ce8226be7553af1024d3e96d1d607069f4069",
       "pinned": true,
       "bytes": 185640
     },
     "course/ch03/app-issues-filtered.webp": {
       "upstream": "03-development-workflows/assets/app-issues-filtered.webp",
       "sha256": "57a36030ca9caf83ce45203d626576c305ea29b451ba0bc9469266be583420d6",
-      "bundled": "a1f320a6041a030542e1f0b277c06eb653c136b581e76f21ec44df25bf2531af",
       "pinned": true,
       "bytes": 143200
     },
     "course/ch03/app-pick-and-polish.webp": {
       "upstream": "03-development-workflows/assets/app-pick-and-polish.webp",
       "sha256": "7504bc7f614ae82033f1163a3c372894bbc83ca7722bb4157254acf8e8c1ac1f",
-      "bundled": "b2b745adebd24b6a860ad89c067ed77f2d56f4fecea644a6b0e1423d23367e01",
       "pinned": true,
       "bytes": 229798
     },
     "course/ch03/app-pr-failing-check.webp": {
       "upstream": "03-development-workflows/assets/app-pr-failing-check.webp",
       "sha256": "a21329df6b2f9464651dd8f56a4fac7cbdb01c4aec5ea17bfdeccdacad980807",
-      "bundled": "ff63d4d1214f37672e8cd691bcfd74e7a69b8913dd7ec5bea037da5a80f6282e",
       "pinned": true,
       "bytes": 151974
     },
     "course/ch03/app-pr-review-comment.webp": {
       "upstream": "03-development-workflows/assets/app-pr-review-comment.webp",
       "sha256": "1a503f53f60e1954ba936831f344c676075bd2f2ee0c0746ca79ab8b5976752a",
-      "bundled": "9157076849d05e9ccd8b8ebb8ae59d7831643f5374220b8db81b6428e169449a",
       "pinned": true,
       "bytes": 169310
     },
     "course/ch03/app-workspace-panel.webp": {
       "upstream": "03-development-workflows/assets/app-workspace-panel.webp",
       "sha256": "1cc406feef4b40b6f9fecb9fbdc3720188f56404ef1b3fc4ed37d03899912fcb",
-      "bundled": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
       "pinned": true,
       "bytes": 182490
     },
@@ -1381,7 +1370,6 @@
     "course/shared/app-github-copilot-app.webp": {
       "upstream": "assets/app-github-copilot-app.webp",
       "sha256": "daa76eb254276d94288b9b8e8bcc21ba45591169cd47191ad3ead082d0c3ad3d",
-      "bundled": "371d5ae374bc4afa89f2bf26258866c2e0f98cef09259cfac979520be7d0de58",
       "pinned": true,
       "bytes": 81334
     },
@@ -1395,9 +1383,9 @@
       "upstream": null,
       "derivedFrom": "03-development-workflows/assets/app-workspace-panel.webp",
       "sha256": "1cc406feef4b40b6f9fecb9fbdc3720188f56404ef1b3fc4ed37d03899912fcb",
-      "bundled": "999a405eeb53b3e382988321ba88cd0e2cc543792cc59c50ad4717e3dac797be",
+      "bundled": "8f01fda93c0671231b83c5dc38d8def0d0c6513f5c8c3b9a55261dc398693043",
       "pinned": true,
-      "bytes": 73976
+      "bytes": 82346
     }
   }
 }
