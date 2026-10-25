@@ -1,0 +1,82 @@
+{
+  "id": "kh.otto.assign.back",
+  "speaker": "Ottoline",
+  "text": "One focused change, an honest summary, and Book app web passing. That's the whole craft.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.22
+    },
+    {
+      "word": "focused",
+      "start": 0.22,
+      "end": 0.731
+    },
+    {
+      "word": "change",
+      "start": 0.731,
+      "end": 1.813
+    },
+    {
+      "word": "an",
+      "start": 1.813,
+      "end": 1.966
+    },
+    {
+      "word": "honest",
+      "start": 1.966,
+      "end": 2.31
+    },
+    {
+      "word": "summary",
+      "start": 2.31,
+      "end": 3.06
+    },
+    {
+      "word": "and",
+      "start": 3.06,
+      "end": 3.664
+    },
+    {
+      "word": "Book",
+      "start": 3.664,
+      "end": 3.98
+    },
+    {
+      "word": "app",
+      "start": 3.98,
+      "end": 4.22
+    },
+    {
+      "word": "web",
+      "start": 4.22,
+      "end": 4.46
+    },
+    {
+      "word": "passing",
+      "start": 4.46,
+      "end": 5.168
+    },
+    {
+      "word": "That's",
+      "start": 5.168,
+      "end": 6.12
+    },
+    {
+      "word": "the",
+      "start": 6.12,
+      "end": 6.28
+    },
+    {
+      "word": "whole",
+      "start": 6.28,
+      "end": 6.573
+    },
+    {
+      "word": "craft",
+      "start": 6.573,
+      "end": 6.823
+    }
+  ]
+}

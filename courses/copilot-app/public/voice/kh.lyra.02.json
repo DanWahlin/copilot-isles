@@ -1,0 +1,97 @@
+{
+  "id": "kh.lyra.02",
+  "speaker": "Lyra",
+  "text": "They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence.",
+  "words": [
+    {
+      "word": "They",
+      "start": 0.052625,
+      "end": 0.25
+    },
+    {
+      "word": "record",
+      "start": 0.25,
+      "end": 1.078958
+    },
+    {
+      "word": "listen",
+      "start": 1.078958,
+      "end": 1.64475
+    },
+    {
+      "word": "adjust",
+      "start": 1.64475,
+      "end": 2.223666
+    },
+    {
+      "word": "and",
+      "start": 2.223666,
+      "end": 2.328958
+    },
+    {
+      "word": "record",
+      "start": 2.328958,
+      "end": 2.723666
+    },
+    {
+      "word": "again",
+      "start": 2.723666,
+      "end": 4.118416
+    },
+    {
+      "word": "That's",
+      "start": 4.118416,
+      "end": 4.421041
+    },
+    {
+      "word": "the",
+      "start": 4.421041,
+      "end": 4.618416
+    },
+    {
+      "word": "inner",
+      "start": 4.618416,
+      "end": 4.828958
+    },
+    {
+      "word": "loop",
+      "start": 4.828958,
+      "end": 5.434208
+    },
+    {
+      "word": "make",
+      "start": 5.434208,
+      "end": 5.723666
+    },
+    {
+      "word": "a",
+      "start": 5.723666,
+      "end": 5.776333
+    },
+    {
+      "word": "change",
+      "start": 5.776333,
+      "end": 6.631583
+    },
+    {
+      "word": "then",
+      "start": 6.631583,
+      "end": 6.842125
+    },
+    {
+      "word": "inspect",
+      "start": 6.842125,
+      "end": 7.328958
+    },
+    {
+      "word": "the",
+      "start": 7.328958,
+      "end": 7.486833
+    },
+    {
+      "word": "evidence",
+      "start": 7.486833,
+      "end": 7.736833
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "kh.arlo.tug",
+  "speaker": "Arlo",
+  "text": "That tug's Agent Merge: it merges only when GitHub allows. It's a finishing aid, not a replacement for human review.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "tug's",
+      "start": 0.32,
+      "end": 0.773
+    },
+    {
+      "word": "Agent",
+      "start": 0.773,
+      "end": 1.107
+    },
+    {
+      "word": "Merge",
+      "start": 1.107,
+      "end": 1.76
+    },
+    {
+      "word": "it",
+      "start": 1.76,
+      "end": 2.297
+    },
+    {
+      "word": "merges",
+      "start": 2.297,
+      "end": 2.736
+    },
+    {
+      "word": "only",
+      "start": 2.736,
+      "end": 3.168
+    },
+    {
+      "word": "when",
+      "start": 3.168,
+      "end": 3.417
+    },
+    {
+      "word": "GitHub",
+      "start": 3.417,
+      "end": 3.829
+    },
+    {
+      "word": "allows",
+      "start": 3.829,
+      "end": 4.533
+    },
+    {
+      "word": "It's",
+      "start": 4.533,
+      "end": 4.92
+    },
+    {
+      "word": "a",
+      "start": 4.92,
+      "end": 5
+    },
+    {
+      "word": "finishing",
+      "start": 5,
+      "end": 5.42
+    },
+    {
+      "word": "aid",
+      "start": 5.42,
+      "end": 6.04
+    },
+    {
+      "word": "not",
+      "start": 6.04,
+      "end": 6.2
+    },
+    {
+      "word": "a",
+      "start": 6.2,
+      "end": 6.28
+    },
+    {
+      "word": "replacement",
+      "start": 6.28,
+      "end": 6.76
+    },
+    {
+      "word": "for",
+      "start": 6.76,
+      "end": 6.933
+    },
+    {
+      "word": "human",
+      "start": 6.933,
+      "end": 7.257
+    },
+    {
+      "word": "review",
+      "start": 7.257,
+      "end": 7.507
+    }
+  ]
+}

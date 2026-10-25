@@ -1,0 +1,62 @@
+{
+  "id": "wingman.kh.01",
+  "speaker": "Wingman",
+  "text": "Wrecks on the reef! I'm staying well clear of the reef.",
+  "words": [
+    {
+      "word": "Wrecks",
+      "start": 0,
+      "end": 0.453
+    },
+    {
+      "word": "on",
+      "start": 0.453,
+      "end": 0.58
+    },
+    {
+      "word": "the",
+      "start": 0.58,
+      "end": 0.72
+    },
+    {
+      "word": "reef",
+      "start": 0.72,
+      "end": 1.48
+    },
+    {
+      "word": "I'm",
+      "start": 1.48,
+      "end": 1.97
+    },
+    {
+      "word": "staying",
+      "start": 1.97,
+      "end": 2.368
+    },
+    {
+      "word": "well",
+      "start": 2.368,
+      "end": 2.627
+    },
+    {
+      "word": "clear",
+      "start": 2.627,
+      "end": 3.013
+    },
+    {
+      "word": "of",
+      "start": 3.013,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.28
+    },
+    {
+      "word": "reef",
+      "start": 3.28,
+      "end": 3.53
+    }
+  ]
+}

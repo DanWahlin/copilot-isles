@@ -1,0 +1,87 @@
+{
+  "id": "kh.lyra.retake",
+  "speaker": "Lyra",
+  "text": "Listen to my take. One note rings wrong. Find the bar, and I'll play it again.",
+  "words": [
+    {
+      "word": "Listen",
+      "start": 0.052625,
+      "end": 0.421041
+    },
+    {
+      "word": "to",
+      "start": 0.421041,
+      "end": 0.565791
+    },
+    {
+      "word": "my",
+      "start": 0.565791,
+      "end": 0.815791
+    },
+    {
+      "word": "take",
+      "start": 0.815791,
+      "end": 2.276333
+    },
+    {
+      "word": "One",
+      "start": 2.276333,
+      "end": 2.578958
+    },
+    {
+      "word": "note",
+      "start": 2.578958,
+      "end": 2.934208
+    },
+    {
+      "word": "rings",
+      "start": 2.934208,
+      "end": 3.328958
+    },
+    {
+      "word": "wrong",
+      "start": 3.328958,
+      "end": 4.802625
+    },
+    {
+      "word": "Find",
+      "start": 4.802625,
+      "end": 5.184208
+    },
+    {
+      "word": "the",
+      "start": 5.184208,
+      "end": 5.289458
+    },
+    {
+      "word": "bar",
+      "start": 5.289458,
+      "end": 5.789458
+    },
+    {
+      "word": "and",
+      "start": 5.789458,
+      "end": 6.14475
+    },
+    {
+      "word": "I'll",
+      "start": 6.14475,
+      "end": 6.315791
+    },
+    {
+      "word": "play",
+      "start": 6.315791,
+      "end": 6.631583
+    },
+    {
+      "word": "it",
+      "start": 6.631583,
+      "end": 6.697375
+    },
+    {
+      "word": "again",
+      "start": 6.697375,
+      "end": 6.947375
+    }
+  ]
+}

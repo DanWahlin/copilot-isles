@@ -1,0 +1,47 @@
+{
+  "id": "kh.otto.assign.ask",
+  "speaker": "Ottoline",
+  "text": "You're back, Captain. Show me your pull request.",
+  "words": [
+    {
+      "word": "You're",
+      "start": 0,
+      "end": 0.304
+    },
+    {
+      "word": "back",
+      "start": 0.304,
+      "end": 0.7
+    },
+    {
+      "word": "Captain",
+      "start": 0.7,
+      "end": 1.408
+    },
+    {
+      "word": "Show",
+      "start": 1.408,
+      "end": 1.653
+    },
+    {
+      "word": "me",
+      "start": 1.653,
+      "end": 1.792
+    },
+    {
+      "word": "your",
+      "start": 1.792,
+      "end": 1.968
+    },
+    {
+      "word": "pull",
+      "start": 1.968,
+      "end": 2.23
+    },
+    {
+      "word": "request",
+      "start": 2.23,
+      "end": 2.48
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "kh.arlo.08",
+  "speaker": "Arlo",
+  "text": "And the Sea Gate stays shut. The course doesn't ask you to merge these practice pull requests.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0,
+      "end": 0.1
+    },
+    {
+      "word": "the",
+      "start": 0.1,
+      "end": 0.22
+    },
+    {
+      "word": "Sea",
+      "start": 0.22,
+      "end": 0.448
+    },
+    {
+      "word": "Gate",
+      "start": 0.448,
+      "end": 0.707
+    },
+    {
+      "word": "stays",
+      "start": 0.707,
+      "end": 1.12
+    },
+    {
+      "word": "shut",
+      "start": 1.12,
+      "end": 1.89
+    },
+    {
+      "word": "The",
+      "start": 1.89,
+      "end": 2.217
+    },
+    {
+      "word": "course",
+      "start": 2.217,
+      "end": 2.587
+    },
+    {
+      "word": "doesn't",
+      "start": 2.587,
+      "end": 2.88
+    },
+    {
+      "word": "ask",
+      "start": 2.88,
+      "end": 3.14
+    },
+    {
+      "word": "you",
+      "start": 3.14,
+      "end": 3.253
+    },
+    {
+      "word": "to",
+      "start": 3.253,
+      "end": 3.413
+    },
+    {
+      "word": "merge",
+      "start": 3.413,
+      "end": 3.707
+    },
+    {
+      "word": "these",
+      "start": 3.707,
+      "end": 3.884
+    },
+    {
+      "word": "practice",
+      "start": 3.884,
+      "end": 4.272
+    },
+    {
+      "word": "pull",
+      "start": 4.272,
+      "end": 4.462
+    },
+    {
+      "word": "requests",
+      "start": 4.462,
+      "end": 4.712
+    }
+  ]
+}

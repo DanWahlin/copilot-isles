@@ -1,0 +1,72 @@
+{
+  "id": "kh.hester.wait",
+  "speaker": "Hester",
+  "text": "Busy at the board, Captain. Hear Lyra's tale on the tavern porch first.",
+  "words": [
+    {
+      "word": "Busy",
+      "start": 0,
+      "end": 0.187
+    },
+    {
+      "word": "at",
+      "start": 0.187,
+      "end": 0.26
+    },
+    {
+      "word": "the",
+      "start": 0.26,
+      "end": 0.36
+    },
+    {
+      "word": "board",
+      "start": 0.36,
+      "end": 0.68
+    },
+    {
+      "word": "Captain",
+      "start": 0.68,
+      "end": 1.28
+    },
+    {
+      "word": "Hear",
+      "start": 1.28,
+      "end": 2
+    },
+    {
+      "word": "Lyra's",
+      "start": 2,
+      "end": 2.368
+    },
+    {
+      "word": "tale",
+      "start": 2.368,
+      "end": 2.587
+    },
+    {
+      "word": "on",
+      "start": 2.587,
+      "end": 2.66
+    },
+    {
+      "word": "the",
+      "start": 2.66,
+      "end": 2.766
+    },
+    {
+      "word": "tavern",
+      "start": 2.766,
+      "end": 3.107
+    },
+    {
+      "word": "porch",
+      "start": 3.107,
+      "end": 3.52
+    },
+    {
+      "word": "first",
+      "start": 3.52,
+      "end": 3.77
+    }
+  ]
+}

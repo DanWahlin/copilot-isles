@@ -1,0 +1,67 @@
+{
+  "id": "kh.bram.market.over.effort",
+  "speaker": "Bram",
+  "text": "High effort for a quick look? Default effort would have done it.",
+  "words": [
+    {
+      "word": "High",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "effort",
+      "start": 0.32,
+      "end": 0.84
+    },
+    {
+      "word": "for",
+      "start": 0.84,
+      "end": 1.04
+    },
+    {
+      "word": "a",
+      "start": 1.04,
+      "end": 1.173
+    },
+    {
+      "word": "quick",
+      "start": 1.173,
+      "end": 1.52
+    },
+    {
+      "word": "look",
+      "start": 1.52,
+      "end": 2.47
+    },
+    {
+      "word": "Default",
+      "start": 2.47,
+      "end": 3.051
+    },
+    {
+      "word": "effort",
+      "start": 3.051,
+      "end": 3.653
+    },
+    {
+      "word": "would",
+      "start": 3.653,
+      "end": 3.968
+    },
+    {
+      "word": "have",
+      "start": 3.968,
+      "end": 4.192
+    },
+    {
+      "word": "done",
+      "start": 4.192,
+      "end": 4.427
+    },
+    {
+      "word": "it",
+      "start": 4.427,
+      "end": 4.677
+    }
+  ]
+}

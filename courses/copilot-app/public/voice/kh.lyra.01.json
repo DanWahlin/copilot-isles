@@ -1,0 +1,67 @@
+{
+  "id": "kh.lyra.01",
+  "speaker": "Lyra",
+  "text": "Captain! A musician doesn't keep the first take just because it's finished.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0.052625,
+      "end": 1.631583
+    },
+    {
+      "word": "A",
+      "start": 1.631583,
+      "end": 1.710541
+    },
+    {
+      "word": "musician",
+      "start": 1.710541,
+      "end": 2.35525
+    },
+    {
+      "word": "doesn't",
+      "start": 2.35525,
+      "end": 2.75
+    },
+    {
+      "word": "keep",
+      "start": 2.75,
+      "end": 3.052625
+    },
+    {
+      "word": "the",
+      "start": 3.052625,
+      "end": 3.171041
+    },
+    {
+      "word": "first",
+      "start": 3.171041,
+      "end": 3.578958
+    },
+    {
+      "word": "take",
+      "start": 3.578958,
+      "end": 3.960541
+    },
+    {
+      "word": "just",
+      "start": 3.960541,
+      "end": 4.460541
+    },
+    {
+      "word": "because",
+      "start": 4.460541,
+      "end": 4.723666
+    },
+    {
+      "word": "it's",
+      "start": 4.723666,
+      "end": 4.89475
+    },
+    {
+      "word": "finished",
+      "start": 4.89475,
+      "end": 5.14475
+    }
+  ]
+}

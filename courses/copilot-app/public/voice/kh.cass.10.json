@@ -1,0 +1,87 @@
+{
+  "id": "kh.cass.10",
+  "speaker": "Cass",
+  "text": "Barty lodges in the Old Hulk across the basin. Show him your evidence before the locks.",
+  "words": [
+    {
+      "word": "Barty",
+      "start": 0,
+      "end": 0.44
+    },
+    {
+      "word": "lodges",
+      "start": 0.44,
+      "end": 0.773
+    },
+    {
+      "word": "in",
+      "start": 0.773,
+      "end": 0.9
+    },
+    {
+      "word": "the",
+      "start": 0.9,
+      "end": 1.02
+    },
+    {
+      "word": "Old",
+      "start": 1.02,
+      "end": 1.264
+    },
+    {
+      "word": "Hulk",
+      "start": 1.264,
+      "end": 1.566
+    },
+    {
+      "word": "across",
+      "start": 1.566,
+      "end": 1.86
+    },
+    {
+      "word": "the",
+      "start": 1.86,
+      "end": 2
+    },
+    {
+      "word": "basin",
+      "start": 2,
+      "end": 2.64
+    },
+    {
+      "word": "Show",
+      "start": 2.64,
+      "end": 3.32
+    },
+    {
+      "word": "him",
+      "start": 3.32,
+      "end": 3.456
+    },
+    {
+      "word": "your",
+      "start": 3.456,
+      "end": 3.573
+    },
+    {
+      "word": "evidence",
+      "start": 3.573,
+      "end": 4.046
+    },
+    {
+      "word": "before",
+      "start": 4.046,
+      "end": 4.34
+    },
+    {
+      "word": "the",
+      "start": 4.34,
+      "end": 4.493
+    },
+    {
+      "word": "locks",
+      "start": 4.493,
+      "end": 4.743
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "id": "kh.hester.02",
+  "speaker": "Hester",
+  "text": "A confident response from Copilot isn't the same as validated software.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "confident",
+      "start": 0.128,
+      "end": 0.604
+    },
+    {
+      "word": "response",
+      "start": 0.604,
+      "end": 0.992
+    },
+    {
+      "word": "from",
+      "start": 0.992,
+      "end": 1.2
+    },
+    {
+      "word": "Copilot",
+      "start": 1.2,
+      "end": 1.88
+    },
+    {
+      "word": "isn't",
+      "start": 1.88,
+      "end": 2.1
+    },
+    {
+      "word": "the",
+      "start": 2.1,
+      "end": 2.224
+    },
+    {
+      "word": "same",
+      "start": 2.224,
+      "end": 2.56
+    },
+    {
+      "word": "as",
+      "start": 2.56,
+      "end": 2.776
+    },
+    {
+      "word": "validated",
+      "start": 2.776,
+      "end": 3.333
+    },
+    {
+      "word": "software",
+      "start": 3.333,
+      "end": 3.583
+    }
+  ]
+}

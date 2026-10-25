@@ -1,0 +1,82 @@
+{
+  "id": "kh.cass.07",
+  "speaker": "Cass",
+  "text": "One inner-loop cycle: plan, change, inspect, test, build and preview. Stop the server with Control+C.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.307
+    },
+    {
+      "word": "inner-loop",
+      "start": 0.307,
+      "end": 0.96
+    },
+    {
+      "word": "cycle",
+      "start": 0.96,
+      "end": 1.936
+    },
+    {
+      "word": "plan",
+      "start": 1.936,
+      "end": 2.64
+    },
+    {
+      "word": "change",
+      "start": 2.64,
+      "end": 3.37
+    },
+    {
+      "word": "inspect",
+      "start": 3.37,
+      "end": 4.352
+    },
+    {
+      "word": "test",
+      "start": 4.352,
+      "end": 5.12
+    },
+    {
+      "word": "build",
+      "start": 5.12,
+      "end": 5.64
+    },
+    {
+      "word": "and",
+      "start": 5.64,
+      "end": 6.08
+    },
+    {
+      "word": "preview",
+      "start": 6.08,
+      "end": 7.008
+    },
+    {
+      "word": "Stop",
+      "start": 7.008,
+      "end": 7.54
+    },
+    {
+      "word": "the",
+      "start": 7.54,
+      "end": 7.669
+    },
+    {
+      "word": "server",
+      "start": 7.669,
+      "end": 8.112
+    },
+    {
+      "word": "with",
+      "start": 8.112,
+      "end": 8.31
+    },
+    {
+      "word": "Control+C",
+      "start": 8.31,
+      "end": 8.56
+    }
+  ]
+}

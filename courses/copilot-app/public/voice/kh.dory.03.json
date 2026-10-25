@@ -1,0 +1,72 @@
+{
+  "id": "kh.dory.03",
+  "speaker": "Dory",
+  "text": "Four planks ring true: four passing tests. And she floats: the build works.",
+  "words": [
+    {
+      "word": "Four",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "planks",
+      "start": 0.24,
+      "end": 0.768
+    },
+    {
+      "word": "ring",
+      "start": 0.768,
+      "end": 1.072
+    },
+    {
+      "word": "true",
+      "start": 1.072,
+      "end": 1.792
+    },
+    {
+      "word": "four",
+      "start": 1.792,
+      "end": 2.63
+    },
+    {
+      "word": "passing",
+      "start": 2.63,
+      "end": 3.24
+    },
+    {
+      "word": "tests",
+      "start": 3.24,
+      "end": 4.14
+    },
+    {
+      "word": "And",
+      "start": 4.14,
+      "end": 4.86
+    },
+    {
+      "word": "she",
+      "start": 4.86,
+      "end": 5.143
+    },
+    {
+      "word": "floats",
+      "start": 5.143,
+      "end": 6.41
+    },
+    {
+      "word": "the",
+      "start": 6.41,
+      "end": 6.893
+    },
+    {
+      "word": "build",
+      "start": 6.893,
+      "end": 7.52
+    },
+    {
+      "word": "works",
+      "start": 7.52,
+      "end": 7.77
+    }
+  ]
+}

@@ -20,6 +20,8 @@ Who voices each speaker is the pack's `voice/cast.json`: the speech service (`tt
 `fx`. A line in `voice/lines.json` holds its id, speaker and text, and anything that's its own (a
 `prosody`, a `sub`); a field on the line overrides its speaker's. To recast a character, change its
 entry in `cast.json` and make its lines again (the cache key includes the voice, so they all change).
+A line with `"pending": true` is written but not voiced yet (an island in build): it needs no cast
+entry, and `generate.ts` and its `--check` leave it out until you drop the flag.
 
 `generate.ts --check` makes nothing: it checks that every line, resolved against the cast, still
 matches the audio in `manifest.json` (its text, speaker and cache hash), and `--check --list-stale`
@@ -63,6 +65,14 @@ another language) in its own `voice/cast.json`.
 | Gilda | ElevenLabs | [Harriet – British Actress](https://elevenlabs.io/voices/aAsWcN5jdLdiYG7Hq0YL) (`aAsWcN5jdLdiYG7Hq0YL`) | British English, female, older; refined and a little bossy. Voice Library, 730-day notice period. The Model Market (Port Meridian). |
 | Desmond | ElevenLabs | [Donovan Wilson](https://elevenlabs.io/voices/GLpuYaUYNnusyOVvP3PM) (`GLpuYaUYNnusyOVvP3PM`) | Jamaican English, male, middle-aged; warm and calm, natural rather than exaggerated. Voice Library, 730-day notice period. The Model Market's stall on Anchorage Cay: his own version of every market line, and a goodbye (`desmond.market.*`, 13 lines). |
 | Lani | ElevenLabs | [Kalala – Calm & Friendly Pacific](https://elevenlabs.io/voices/sxEoZ67pB0EMoWOZZ37G) (`sxEoZ67pB0EMoWOZZ37G`) | Pacific English, female, middle-aged; warm and calm. Voice Library, 730-day notice period. The Model Market's stall on Thousand-Bough Isle: her own version of every market line, and a goodbye (`tb.lani.market.*`, 13 lines). |
+| Hester | ElevenLabs | [Hollie – Warm & Clear, Friendly](https://elevenlabs.io/voices/0OwZP0QpHVtGE4KSbAqu) (`0OwZP0QpHVtGE4KSbAqu`) | Southwest England, female; warm and kind. Voice Library, 730-day notice period. Keelhaven’s master shipwright (`kh.hester.*`). |
+| Dory | ElevenLabs | [Louisamay – Warm and Engaging](https://elevenlabs.io/voices/t6WJWTYTryhcQnrBHdCr) (`t6WJWTYTryhcQnrBHdCr`) | Irish, female, young; bright and quick. Voice Library, 180-day notice period. Keelhaven’s yard apprentice (`kh.dory.*`). |
+| Cass | ElevenLabs | [Ruby B – Authentic Cockney London Female](https://elevenlabs.io/voices/jUPSOpRcPt8GMPsWx5fy) (`jUPSOpRcPt8GMPsWx5fy`) | London, female, young; quick and sure. Voice Library, 365-day notice period. Keelhaven’s drydock foreman (`kh.cass.*`). |
+| Barty | ElevenLabs | [Aldric Solheim](https://elevenlabs.io/voices/5GM4aByyJu1ecbL4rKms) (`5GM4aByyJu1ecbL4rKms`) | Nordic European English, male, older; deep and gentle. Voice Library, 30-day notice period. Keelhaven’s surveyor from another port (`kh.barty.*`). |
+| Stroud | ElevenLabs | [Gideon – Rugged, Gravelly & Northern](https://elevenlabs.io/voices/q1h5HGdnfVxp4TXTJRNN) (`q1h5HGdnfVxp4TXTJRNN`) | Northern English, male, middle-aged; gravelly and serious. Voice Library, 730-day notice period. Keelhaven’s harbourmaster (`kh.stroud.*`). |
+| Arlo | ElevenLabs | [Robert – Conversational and Helpful](https://elevenlabs.io/voices/A41HRDgOrF1mgUtjuSGM) (`A41HRDgOrF1mgUtjuSGM`) | Canadian, male, young; cheerful. Voice Library, 4015-day notice period. Keelhaven’s lock-keeper (`kh.arlo.*`). His "hull" can sound like "hole": three lines say it in a clearer way (ART_PROVENANCE.md). |
+| Ottoline | ElevenLabs | [Cassandra Woodhouse](https://elevenlabs.io/voices/A3TiUH9xcSptIzvOUBnB) (`A3TiUH9xcSptIzvOUBnB`) | New Zealand English, female, middle-aged; calm and warm. Voice Library, 180-day notice period. Keeper of Keelhaven’s Gate Light and its Seal (`kh.otto.*`). |
+| Bram | ElevenLabs | [Hendrik Vorster – Upbeat and Energetic](https://elevenlabs.io/voices/JbAJPrBwqw2dm8hxfklG) (`JbAJPrBwqw2dm8hxfklG`) | South African English, male, middle-aged; upbeat. Voice Library, no notice period (the owner can remove it at any time; the audio made stays). The Model Market’s stall on Keelhaven: his own version of every market line, and a goodbye (`kh.bram.market.*`, 13 lines). |
 
 ElevenLabs Voice Library voices can be removed by their owners. With a notice period, you can use the voice until
 the period ends. Audio that you already made continues to work.

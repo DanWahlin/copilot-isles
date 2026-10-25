@@ -425,6 +425,90 @@
         "voice": "tb.lani.market.bye",
         "text": "Off up the tree? Good luck, Captain. Your starfish and your jobs go with you."
       }
+    },
+    "keelhaven": {
+      "hello": {
+        "voice": "kh.bram.market.hello",
+        "text": "Welcome aboard, Captain! Bram's Model Market. Hire a model that fits the job. Bigger ones cost more starfish.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "open": {
+        "voice": "kh.bram.market.open",
+        "text": "Take a job off the board, then hire a model and set the effort dial."
+      },
+      "auto": {
+        "voice": "kh.bram.market.auto",
+        "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "right": {
+        "voice": "kh.bram.market.right",
+        "text": "Right-sized! Some starfish back for you."
+      },
+      "fair": {
+        "voice": "kh.bram.market.fair",
+        "text": "Right-sized, and a fair price."
+      },
+      "keep": {
+        "voice": "kh.bram.market.keep",
+        "text": "Right-sized. A quick look is fine on the model you've got, at its default effort. Bigger ones only cost more.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "overEffort": {
+        "voice": "kh.bram.market.over.effort",
+        "text": "High effort for a quick look? Default effort would have done it.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "short": {
+        "voice": "kh.bram.market.short",
+        "text": "Not enough for this one. Try again with a stronger model or more effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "try-again-with-a-different-model",
+          "hash": "b0031ded9c4d"
+        }
+      },
+      "hardAuto": {
+        "voice": "kh.bram.market.hard.auto",
+        "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "84d625491118"
+        }
+      },
+      "broke": {
+        "voice": "kh.bram.market.broke",
+        "text": "No starfish left? There are plenty hidden round the islands. Come back when you've found some."
+      },
+      "done": {
+        "voice": "kh.bram.market.done",
+        "text": "The whole board, right-sized! You know your models, Captain."
+      },
+      "early": {
+        "voice": "kh.bram.market.early",
+        "text": "Not yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson."
+      },
+      "bye": {
+        "voice": "kh.bram.market.bye",
+        "text": "Off to the yard? Your starfish and your jobs go with you."
+      }
     }
   }
 }

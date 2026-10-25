@@ -27,6 +27,8 @@ export interface VoiceLineDefinition {
   readonly fx?: 'wingman-bright' | 'wingman-bird';
   /** Whole words to say differently, e.g. `{ "gh": "G H" }` (an SSML `<sub>`; subtitles keep the word). */
   readonly sub?: Readonly<Record<string, string>>;
+  /** Written, not voiced yet (an island the game hasn't got yet): the generator leaves it out. */
+  readonly pending?: true;
 }
 
 /** A speaker's voice: any of a line's voice fields. */
@@ -51,7 +53,10 @@ export function resolveLine(
   return { ...cast[line.speaker], ...line };
 }
 
-/** The pack's lines file with every line resolved against the cast. */
+/**
+ * The pack's lines file with every line resolved against the cast, less the pending ones (they get
+ * their voice, and then their audio or caption, when their island is wired in).
+ */
 export function readLines(course: string): LinesFile {
   const paths = coursePaths(course);
   const data = JSON.parse(readFileSync(paths.lines, 'utf8')) as LinesFile;
@@ -59,7 +64,7 @@ export function readLines(course: string): LinesFile {
   const cast = existsSync(castFile)
     ? (JSON.parse(readFileSync(castFile, 'utf8')) as { speakers: Record<string, CastEntry> }).speakers
     : {};
-  return { set: data.set, lines: data.lines.map((l) => resolveLine(l, cast)) };
+  return { set: data.set, lines: data.lines.filter((l) => !l.pending).map((l) => resolveLine(l, cast)) };
 }
 
 export const resolvedLines = (course: string): readonly VoiceLineDefinition[] => readLines(course).lines;

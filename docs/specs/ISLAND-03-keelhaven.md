@@ -1126,7 +1126,7 @@ Seal).
 | `kh.hester.04` | Hester | Your judgment comes in twice. On your machine, you decide if the diff, tests, build and preview show it's ready. | `[§core-concept-…]` |
 | `kh.hester.05` | Hester | On GitHub, you review the pull request, its comments and checks, and decide when it's ready to merge. | `[§core-concept-…]` |
 | `kh.hester.06` | Hester | Dory's at Drydock 1, up the ramp. Start with a hull you know is sound. | nav |
-| `kh.dory.01` | Dory | Before you change a thing, prove the hull's sound. That's your known-good baseline. | `[§confirm-the-sample-app-is-ready]` |
+| `kh.dory.01` | Dory | Before you change a thing, prove the hull is sound. That's your known-good baseline. | `[§confirm-the-sample-app-is-ready]` |
 | `kh.dory.02` | Dory | In the app, that's a new worktree session, the review panel, and its Terminal tab. | `[§confirm-…]` |
 | `kh.dory.03` | Dory | Four planks ring true: four passing tests. And she floats: the build works. | `[§confirm-…]` |
 | `kh.dory.04` | Dory | Every dock has its own tool chest. Run npm install the first time you use a new worktree. | `[§confirm-…]` |
@@ -1173,7 +1173,7 @@ Seal).
 | `kh.arlo.03` | Arlo | Answer the whole comment, not half of it. Then commit, push, and check the pull request. | `[§respond-…]` |
 | `kh.arlo.04` | Arlo | A CI check is an automated validation run on a pull request, often through GitHub Actions. | `[§fix-a-failing-check]` |
 | `kh.arlo.05` | Arlo | The Book app web lamp is red. Read why, then ask for the smallest fix. | `[§fix-a-failing-check]` |
-| `kh.arlo.weaken` | Arlo | Filing down the gauge turns the lamp green and leaves the hull wrong. Don't weaken the failing test. | `[§fix-a-failing-check]` |
+| `kh.arlo.weaken` | Arlo | Filing down the gauge turns the lamp green, and leaves the ship's hull wrong. Don't weaken the failing test. | `[§fix-a-failing-check]` |
 | `kh.arlo.06` | Arlo | Push, and the lamp runs again. Green, this time. | `[§fix-a-failing-check]` |
 | `kh.arlo.actions` | Arlo | No lamp after a push? New forks start with workflows off, so turn them on in your fork's Actions tab. | `[00 §add-the-course-practice-items]` |
 | `kh.arlo.07` | Arlo | Gate 2 opens only when the diff, local validation, GitHub checks and your own review agree. | `[§key-takeaways]` |
@@ -1249,7 +1249,7 @@ eight tools). Keelhaven is built on a **generic island registry** instead:
   `arrival`, `sky`, `mood`, `skyReach`, `open: { after: { island: 'thousand-bough', condition: 'sealed' } }`,
   `ranges`, `footprint`, `starfish`, `courseBoard`, `chart` (the miniature; `terrain()` is a dynamic
   import of `keelhaven/chart.ts`), `theme` (Salty Sway), `terrainRegions`, `floraPalette`, `puzzles`
-  (`'two-circuits': 'circuit'`, `retake: 'ceremony'`), `market` (Bram's booth), and
+  (`'drydock-ring': 'circuit'`, `'lock-flight': 'circuit'`, `retake: 'ceremony'`), `market` (Bram's booth), and
   `stream: { nearLoads, reflected: false, courseData: 'chapter-part', depthTile: true }` (its reef's
   shallows, O6). Its terrain regions are in `ISLANDS_IN_BUILD` until then. Its code
   `src/game/keelhaven-island.ts` (`KEELHAVEN_CODE: IslandCode`, a dynamic import, its own chunk) has
@@ -1279,7 +1279,7 @@ does the split. Keelhaven builds on it:
   for Chapter 03's part together with its terrain pack, at the same priority (low for a prefetch), as
   Port Meridian's and Thousand-Bough's streams do. A failed part fails the stream, which retries through
   `StreamLifecycle`.
-- **Keelhaven's puzzles go in its registry entry's `puzzles`** (`two-circuits` → `circuit`, and
+- **Keelhaven's puzzles go in its registry entry's `puzzles`** (`drydock-ring` and `lock-flight` → `circuit`, and
   `retake` → `ceremony`): `GAME_PUZZLES` and `PUZZLE_ISLANDS` (src/course/puzzle-islands.ts) come from the registry,
   so their content goes into Chapter 03's part.
 - `onCourse` hooks that read a part run again when it arrives; a read outside a hook logs an error.
@@ -1316,7 +1316,7 @@ src/game/keelhaven-*.ts           (B) quests, NPCs, session content, open gate
 src/game/puzzles/circuit/         (B) types, logic, session glue, tests
 src/ui/puzzles/Circuit.tsx        (B) the station HUD (choices, lamps, the petition tiles)
 courses/copilot-app/chapters/03-development-workflows.json, quests/keelhaven.json,
-  puzzles/two-circuits.json (circuit), puzzles/retake.json (ceremony)                  (B)
+  puzzles/drydock-ring.json, puzzles/lock-flight.json (circuit), puzzles/retake.json (ceremony) (B)
 courses/schemas/puzzle-circuit.schema.json                                            (B)
 ```
 
@@ -1596,3 +1596,181 @@ from these.
 | The wrecks | on the north reef under the Gate Light: on her side (-300, -188), bow up on the crest (-345, -150), broken in two (-283, -156) | `wrecks.ts` |
 | The Old Hulk | on blocks between the yard's wall and the river (80, -11), bow to the sea, a cabin on her deck and the carved duck on her taffrail | `wrecks.ts` |
 | The far silhouette | its own ground in green to the crests (no `sheer`), the sea-cliff band, the town as blocks, the banded light, the wrecks, the falls as strips | `silhouette.ts` |
+
+---
+
+## Wiring contract
+
+> Written 2026-10-25 with the course content (issue 307, branch `danwahlin-keelhaven-content`). The
+> course pack holds all of Chapter 03 now. The game does not use it yet: Keelhaven is not in the
+> registry, so the game leaves its content out at load (`withoutIslandsAhead`, src/course/split.ts), and
+> the content check does not check the game's side of the contract
+> ([content-data.md](../content-data.md), "Content ahead of its island"). This section tells the wiring
+> step what the game must add. It replaces §10.1's `two-circuits` file with two files.
+
+### W.1 What the registry line does by itself
+
+When `keelhaven: KEELHAVEN_ISLAND` goes into `ISLAND_REGISTRY` (`src/islands/registry.ts`):
+
+| Effect | Where |
+|---|---|
+| The game loads Chapter 03's core and part, `quests/keelhaven.json`, the three puzzles and the ten app cards, the six objectives and the reflection | `withoutIslandsAhead` (src/course/load.ts) |
+| Thousand-Bough's tracker shows `tracker.nextSail` ("Keelhaven's next. Board your ship and follow the compass east.") once Keelhaven is open | `NEXT_ISLAND` in src/game/thousand-bough-island.ts: the entry whose `open.after.island` is `thousand-bough` |
+| The content check becomes strict for Keelhaven: the cast, the story names, the signs, the puzzle names and steps, the market stall, and audio for every line it plays | tools/content/check.ts (`aheadIsland` is false) |
+| The Course map, the certificate, the Logbook counts and the App checklist include Chapter 03 | the learning systems read the loaded pack |
+
+The entry must have `stream.courseData: 'chapter-part'` and
+`puzzles: { 'drydock-ring': 'circuit', 'lock-flight': 'circuit', retake: 'ceremony' }`.
+
+### W.2 Story (`src/game/story.ts`)
+
+```ts
+STORY_CONDITIONS.keelhaven = ['firstVisit', 'dockKitted', 'searchHullDown', 'prHullsDown', 'sealed'];
+STORY_EVENTS.keelhaven = [];
+```
+
+| Name | The pack's `when` | What the game does with it |
+|---|---|---|
+| `firstVisit` | Q3.1 not done | Juno's and Wingman's first welcome (`hooks.islands.keelhaven`) |
+| `dockKitted` | Q3.3 done | Drydock 2's rack holds Dory's tool chest after a reload |
+| `searchHullDown` | Q3.8 at `solved` or `done` | the search hull waits in the basin above the Sea Gate |
+| `prHullsDown` | Q3.9 at `solved` or `done` | both seeded-pull-request hulls wait in the basin |
+| `sealed` | Q3.10 done | the Gate Light is lit and every lock lamp is green; battle 4 can start; Guildcrest's gate |
+
+### W.3 Cast (`NPC_IDS`, `IslandCode.cast`, `voice/cast.json`)
+
+| NPC id | Speaker (lines.json) | Anchor (§3.11) | Beats and scripts |
+|---|---|---|---|
+| `lyra_keel` | Lyra | `lyra` | `lyra` |
+| `hester` | Hester | `hester` | `hester` |
+| `dory` | Dory | `dory` | `dory` |
+| `cass` | Cass | `cass` | `cass`, `cass.solved`, `cass.lap2`, `cass.lap2.solved` |
+| `barty` | Barty | `barty` | `barty`, `barty.polish`, `barty.polish.back` |
+| `stroud` | Stroud | `stroud` | `stroud`, `stroud.flight`, `stroud.flight.solved` |
+| `arlo` | Arlo | `arlo` | `arlo`, `arlo.solved` |
+| `ottoline` | Ottoline | `ottoline` | `ottoline`, `ottoline.retry`, `trial.passed`, `ottoline.assignment`, `ottoline.assignment.back` |
+| `bram` | Bram | `bram` | the market stall (W.8) |
+| `kh_nip`, `kh_tuck` | — (barks) | `extraKids` | barks only |
+| `kh_moll` | — | `extraCaulker` | barks only |
+| `kh_salter` | — | `extraFisher` | barks only |
+| `kh_kit` | — | `extraLamplighter` | barks only |
+| `kh_skipper` | — | `extraTug` | barks only |
+
+Juno and Wingman keep their voices. The new speakers need a `voice/cast.json` entry each (W.9).
+
+### W.4 Cues (`host.cues`)
+
+| Cue | Script | What the session does |
+|---|---|---|
+| `kh-retake` | `lyra` | runs the Bard re-take (`puzzles/retake.json`, ceremony) and unlocks Salty Sway in the Songbook |
+| `kh-board` | `hester` | turns the camera to the Evidence Board for quiz M3.1 |
+| `kh-sounding` | `dory` | four planks light; the player taps each; the sluice floods Drydock 1 and the hull floats |
+| `kh-tool-chest` | `dory` | the player carries a tool chest into Drydock 2 (sets nothing: `dockKitted` follows Q3.3) |
+| `kh-bell-cord` | `dory` | the bell cord runs the winch (**Run**); the slip carried to the winch (copy and paste) |
+| `kh-ring` | `cass`, `cass.lap2` | opens the Drydock Ring for the lap whose quest is at `ring` |
+| `kh-flight` | `stroud.flight`, `arlo` | opens the Lock Flight for the part whose quest is at `flight` |
+| `kh-ledgers` | `stroud` | the two ledgers and their port dials (signs `ledger*`), then quiz K3.7 |
+| `kh-chalk-spyglass` | `barty.polish` | the chalk spyglass marks one sail on a model hull |
+| `kh-chest:C3.2`, `kh-chest:C3.3` | `cass.lap2.solved`, `arlo.solved` | opens the chest at Drydock 2's head, and the one on the tug |
+| `kh-seal` | `trial.passed` | the Gate Light kindles and the lamps answer (§4.5) |
+| `celebrate` | `trial.passed` | as on the other islands |
+
+### W.5 Compass ids → world places
+
+Targets are interaction ids, not positions. The content builds an interaction for each id at the place
+below. Use the world package's positions (`src/world/islands/keelhaven/`): the world step moved the town
+to the south of the river, the shipyard and the locks to the north, and the Gate Light to a lower bench of
+the North Head. The names and the order of the stops stay as in §3 and §4.
+
+| Id | Place (anchor) |
+|---|---|
+| `npc:lyra_keel`, `npc:hester`, `npc:dory`, `npc:cass`, `npc:barty`, `npc:stroud`, `npc:arlo`, `npc:ottoline` | the NPC's anchor |
+| `ring:post`, `ring:stack`, `ring:slate`, `ring:caisson`, `ring:lookout` | `ringPost`, `ringStack`, `ringSlate`, `ringCaisson`, `ringLookout` |
+| `flight:ledger` | `ledgers` |
+| `flight:bell` | the main slipway's bell (a new anchor at the slipway head) |
+| `flight:slate`, `flight:gate1`, `flight:petition` | `lock1Slate`, `gate1`, `petitionMast` |
+| `flight:lamps` | the lamp post of the lock that runs (Lock 1 in part 1, Lock 2 in part 2) |
+| `flight:note`, `flight:redLamp`, `flight:barge` | the two hulls in Lock 2, and `barge` |
+| `flight:gate2`, `flight:seaGate` | `gate2`, the Sea Gate |
+
+`ring:*` and `flight:*` match by prefix. Only the station that waits for the player is usable, so the
+compass points to it.
+
+### W.6 Puzzles
+
+| File | Mechanic | `PUZZLE_STEPS` | Notes |
+|---|---|---|---|
+| `drydock-ring.json` (`P3.1`) | `circuit` (`circuit: 'ring'`) | `['ring', 'solved']` | two laps: Q3.4 (fix) and Q3.5 (gauge) |
+| `lock-flight.json` (`P3.2`) | `circuit` (`circuit: 'flight'`) | `['flight', 'solved']` | two parts: Q3.8 (Lock 1) and Q3.9 (Lock 2) |
+| `retake.json` | `ceremony` | `['start']` | Q3.1; `text` keys only |
+
+The `circuit` mechanic (src/game/puzzles/circuit/; `places.ts` is there now):
+
+- **Bindings.** Read `places` through `acts` (`byActs`). The game's places are `CIRCUIT_PLACES`. Never
+  name a course word in code (`neutral.test.ts`).
+- **Laps.** A lap runs while `lap.quest` is at `lap.step`. Its stations run in order. When the last
+  station is green, set `lap.quest` to `lap.solved` and play the island's script `lap.close` at once.
+  The NPC's beat plays the same script if the player leaves first.
+- **Kinds.** `choose`: show `prompt` and `options`; a right option shows `result` and lights the lamp
+  green; a wrong option lights it red, shows `reason`, and sends the hull to `backTo`. `watch`: play the
+  demo for `seconds` (E skips); show `text`. `sound`: `planks` taps, then the sluice; a second tap shows
+  `again`. `seal`: as `choose` (the player's approval). `tiles`: each tile sticks or shows its `reason`;
+  the station is green when every tile that sticks is on the mast. `gate`: the lamps in `lamps` light in
+  order; the last one is the player's seal, and it is not possible before the others are lit.
+- **Words.** Station `line`, option `line` and `lines.actions` are voice lines. Play `lines.actions`
+  ("No lamp after a push?") after the second push in part 2. `image` and `caption` open the spyglass.
+  `hints` are Wingman's three tiers, as text (not voice: this replaces §8.3's 24 hint lines). `text`
+  holds the HUD's words (`lampDark`, `lampRunning`, `lampReady`, `lampNotReady`, `next`, `back`,
+  `skip`, `leave`, `hint`, `sealIt`, `sendBack`, `title`, `intro`; the flight adds `darkLamp`, `sticks`,
+  `noStick`, `hoist`, `actions`).
+- **Labels.** `labels.json` has `puzzle:P3.1` and `puzzle:P3.2` (the file's `id`), and
+  `arrival:keelhaven` for the flyover.
+- **Saves.** Save the station, not the step inside it (§5.4): a reload starts the station again.
+
+### W.7 Signs (`ISLAND_SIGNS.keelhaven`)
+
+`dock1`, `dock2`, `dock3` (the drydocks' branch boards), `slipway` (`main`), `lampPlate` (**Book app
+web**), `ledgerIssues`, `ledgerPulls`, `ledgerAll`, `ledgerFork` (the ledgers and their dial),
+`hullSearch`, `hullNote`, `hullLamp` (the hulls' name boards: the course's titles),
+`strataPrompt`, `strataSettings`, `strataInstructions`, `strataRepo` (chest C3.1's four bands),
+`bellCord`, `winch` (Dory's two ways to run a snippet).
+
+### W.8 Chests, bottles, market and hooks
+
+- `IslandCode.chests`: `C3.1` (the strata cut), `C3.2` (Drydock 2's head, opened by its cue), `C3.3`
+  (the tug, opened by its cue), and the bottles `B3.1`–`B3.5` (§3.12).
+- `MARKET_STALLS` (src/game/market/stalls.ts): `{ island: 'keelhaven', keeper: { npc: 'bram', name:
+  'Bram' }, lines: 'keepers' }`. Bram's lines are `market.json` → `keepers.keelhaven`.
+- `course.json` → `hooks.islands.keelhaven` (Juno's landing, Wingman's welcome and tips) and
+  `islands[keelhaven].arrival` are in place.
+- App cards need no hook: the scripts hand off A3.1–A3.10 with `{ "appTask": … }` (A3.9 and A3.10 quiet
+  at the brief, `orStop` at the return). No card has a GitHub check (K8).
+
+### W.9 Voice
+
+Done on 2026-10-25. Dan chose a voice for each new speaker, and each one is in `voice/cast.json`
+(ElevenLabs `eleven_v3`): Hester (Hollie), Dory (Louisamay), Cass (Ruby B), Barty (Aldric Solheim),
+Stroud (Gideon), Arlo (Robert), Ottoline (Cassandra Woodhouse) and Bram (Hendrik Vorster). Lyra keeps
+Azure `en-GB-LibbyNeural`; Juno and Wingman keep theirs. The 117 lines (104 island lines and 13 market
+lines) have their audio, their word timings and their mouth cues, and none is pending. To change a
+line, edit its text, then run `npx tsx tools/voice/generate.ts --course copilot-app --only=<id>` and
+`npm run voice:lipsync -- --course copilot-app`. ART_PROVENANCE.md and docs/voices.md list the voices.
+
+### W.10 Not in this branch
+
+- Battle 3 (§9.1: the hooks, N2.1–N2.3 and its label) and battle 4's N3.1–N3.3 (§9.2): phase 9.
+- The optional hotspots H3.1 and H3.2 (§1.4): measure them after the weekly refresh takes the new
+  screenshots.
+- The game side: everything above, `tools/keelhaventest.mjs`, and the `neutral.test.ts` patterns for
+  Chapter 03's ids and words.
+
+### W.11 The course moved upstream
+
+The pack's snapshot is the lock's commit `a5cdf7d` (Chapter 03 there is the same as at `64bc3d0`).
+Upstream `main` is now `f24b521` (2026-10-25: PR #51 fixed issue #50). Chapter 03 changed: **View** >
+**Toggle Panel**, a **Review plan** box with **Continue**, and a query filter in place of the repository
+picker in "4. Find Work". The content does not use the changed names. It teaches "each view has its own
+filter", which both texts say. A trial sync to `f24b521` gives 45 Chapter 03 entries whose section hash
+changed, no quote or objective that is not word for word, and no UI name that the chapter does not
+mention. The weekly refresh must update those hashes and unpin the six screenshots (they are retaken
+upstream without the old sidebar).

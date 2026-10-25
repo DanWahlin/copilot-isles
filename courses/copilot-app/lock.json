@@ -3,7 +3,7 @@
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
   "sha": "a5cdf7dd96e1e3333cd92d9e11ee127c2bbe1669",
-  "syncedAt": "2026-10-19",
+  "syncedAt": "2026-10-25",
   "catalog": [
     {
       "id": "00-setup",
@@ -604,6 +604,334 @@
           "hash": "a0eba5af4428"
         }
       }
+    },
+    "03-development-workflows": {
+      "short": "ch03",
+      "title": "Development and GitHub Workflows",
+      "hash": "f8e6c5847712",
+      "sections": {
+        "learning-objectives": {
+          "title": "Learning Objectives",
+          "level": 2,
+          "hash": "4d4d9b0be393",
+          "terms": ["Issues", "Pull requests", "Estimated Time"]
+        },
+        "prerequisites": {
+          "title": "Prerequisites",
+          "level": 2,
+          "hash": "53ac8f85789b"
+        },
+        "from-the-studio-from-take-to-final-mix": {
+          "title": "From the Studio: From Take to Final Mix",
+          "level": 2,
+          "hash": "7e412fd7e657",
+          "images": [
+            "03-development-workflows/assets/record-playback-retake-loop.webp",
+            "03-development-workflows/assets/producer-review-desk-github.webp"
+          ],
+          "terms": ["inner loop", "outer loop"]
+        },
+        "core-concept-trust-the-evidence": {
+          "title": "Core Concept: Trust the Evidence",
+          "level": 2,
+          "hash": "46abd535804e",
+          "images": ["03-development-workflows/assets/development-loop.webp"],
+          "terms": ["Changes", "Terminal", "Browser", "Pull requests"]
+        },
+        "confirm-the-sample-app-is-ready": {
+          "title": "Confirm the Sample App Is Ready",
+          "level": 2,
+          "hash": "9f41604e0eea",
+          "images": [
+            "03-development-workflows/assets/context-layers.webp",
+            "03-development-workflows/assets/app-workspace-panel.webp"
+          ],
+          "terms": [
+            "+",
+            "New worktree",
+            "Interactive",
+            "View",
+            "Toggle Review Panel",
+            "Terminal",
+            "Copy and paste into the terminal",
+            "Run directly from the response",
+            "Run"
+          ]
+        },
+        "running-code-snippets-in-the-terminal": {
+          "title": "Running Code Snippets in the Terminal",
+          "level": 3,
+          "hash": "59d78fd08c7f",
+          "terms": ["Copy and paste into the terminal", "Run directly from the response", "Run"]
+        },
+        "inner-loop-develop-and-validate-on-your-machine": {
+          "title": "Inner Loop: Develop and Validate on Your Machine",
+          "level": 2,
+          "hash": "77f6c9aa2f53",
+          "images": ["03-development-workflows/assets/app-pick-and-polish.webp"],
+          "terms": [
+            "Create from",
+            "Branches",
+            "Plan",
+            "Exit plan mode and I will prompt myself",
+            "Interactive",
+            "Changes",
+            "Terminal",
+            "+",
+            "Browser",
+            "Local",
+            "Fantasy",
+            "Unread",
+            "The Night Circus",
+            "1",
+            "5",
+            "Pick & Polish"
+          ]
+        },
+        "1-review-and-fix-a-bug": {
+          "title": "1. Review and Fix a Bug",
+          "level": 3,
+          "hash": "fe04b228a0d5",
+          "terms": [
+            "Create from",
+            "Branches",
+            "Plan",
+            "Exit plan mode and I will prompt myself",
+            "Interactive",
+            "Changes",
+            "Terminal",
+            "+",
+            "Browser",
+            "Local",
+            "Fantasy",
+            "Unread",
+            "The Night Circus",
+            "1",
+            "5"
+          ]
+        },
+        "validate-the-fix": {
+          "title": "Validate the Fix",
+          "level": 4,
+          "hash": "d0f7b101aedb",
+          "terms": ["Terminal", "+", "Browser", "Local", "Fantasy", "Unread", "The Night Circus", "1", "5"]
+        },
+        "2-add-a-regression-test": {
+          "title": "2. Add a Regression Test",
+          "level": 3,
+          "hash": "cc75e9d58ac3",
+          "terms": ["Interactive", "Changes"]
+        },
+        "3-ask-for-a-second-opinion": {
+          "title": "3. Ask for a Second Opinion",
+          "level": 3,
+          "hash": "245981caca80",
+          "images": ["03-development-workflows/assets/app-pick-and-polish.webp"],
+          "terms": ["Pick & Polish", "Create from", "Branches", "Terminal", "+", "Browser", "Local"]
+        },
+        "outer-loop-move-the-work-through-github": {
+          "title": "Outer Loop: Move the Work Through GitHub",
+          "level": 2,
+          "hash": "07e5691870a8",
+          "images": [
+            "03-development-workflows/assets/issue-to-merged-pr.webp",
+            "03-development-workflows/assets/app-filter-repo.webp",
+            "03-development-workflows/assets/app-issues-filtered.webp",
+            "03-development-workflows/assets/app-issue-new-session.webp",
+            "03-development-workflows/assets/app-pr-review-comment.webp",
+            "03-development-workflows/assets/app-pr-failing-check.webp",
+            "03-development-workflows/assets/human-judgment-loop.webp"
+          ],
+          "terms": [
+            "Issues",
+            "Pull requests",
+            "Assigned to me",
+            "All repositories",
+            "Authored by me",
+            "Custom",
+            "Make search case-insensitive",
+            "New session",
+            "Create from",
+            "Branches",
+            "Plan",
+            "Exit plan mode and I will prompt myself",
+            "Interactive",
+            "Changes",
+            "Terminal",
+            "Browser",
+            "Create PR",
+            "Improve empty-state copy",
+            "CI check",
+            "Failing stats check practice",
+            "Book app web",
+            "PR",
+            "Fix failing checks",
+            "Ready to merge",
+            "Merge pull request",
+            "Agent merge"
+          ]
+        },
+        "4-find-work-in-issues-and-pull-requests": {
+          "title": "4. Find Work in Issues and Pull requests",
+          "level": 3,
+          "hash": "baa3a4dec6ef",
+          "images": [
+            "03-development-workflows/assets/app-filter-repo.webp",
+            "03-development-workflows/assets/app-issues-filtered.webp"
+          ],
+          "terms": [
+            "Issues",
+            "Pull requests",
+            "Assigned to me",
+            "All repositories",
+            "Authored by me",
+            "Custom"
+          ]
+        },
+        "5-start-from-an-issue-and-open-a-pull-request": {
+          "title": "5. Start from an Issue and Open a Pull Request",
+          "level": 3,
+          "hash": "1a0d8ba7f6ad",
+          "images": ["03-development-workflows/assets/app-issue-new-session.webp"],
+          "terms": [
+            "Issues",
+            "Make search case-insensitive",
+            "New session",
+            "Create from",
+            "Branches",
+            "Plan",
+            "Exit plan mode and I will prompt myself",
+            "Interactive",
+            "Changes",
+            "Terminal",
+            "Browser",
+            "Create PR",
+            "Pull requests"
+          ]
+        },
+        "6-address-review-comments-and-failing-checks": {
+          "title": "6. Address Review Comments and Failing Checks",
+          "level": 3,
+          "hash": "1d243befe42b",
+          "images": [
+            "03-development-workflows/assets/app-pr-review-comment.webp",
+            "03-development-workflows/assets/app-pr-failing-check.webp",
+            "03-development-workflows/assets/human-judgment-loop.webp"
+          ],
+          "terms": [
+            "Pull requests",
+            "Authored by me",
+            "Improve empty-state copy",
+            "New session",
+            "CI check",
+            "Failing stats check practice",
+            "Book app web",
+            "PR",
+            "Fix failing checks",
+            "Terminal",
+            "Browser",
+            "Ready to merge",
+            "Merge pull request",
+            "Agent merge"
+          ]
+        },
+        "respond-to-a-review-comment": {
+          "title": "Respond to a Review Comment",
+          "level": 4,
+          "hash": "b36cced0ba51",
+          "images": ["03-development-workflows/assets/app-pr-review-comment.webp"],
+          "terms": ["Improve empty-state copy", "New session"]
+        },
+        "fix-a-failing-check": {
+          "title": "Fix a Failing Check",
+          "level": 4,
+          "hash": "f2156f9ed67c",
+          "images": [
+            "03-development-workflows/assets/app-pr-failing-check.webp",
+            "03-development-workflows/assets/human-judgment-loop.webp"
+          ],
+          "terms": [
+            "CI check",
+            "Failing stats check practice",
+            "Book app web",
+            "New session",
+            "PR",
+            "Fix failing checks",
+            "Terminal",
+            "Browser",
+            "Ready to merge",
+            "Merge pull request",
+            "Agent merge"
+          ]
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "ff6b0abb5447",
+          "terms": ["Browser", "Local", "Terminal", "Issues", "Pull requests"]
+        },
+        "browser-preview-doesnt-update": {
+          "title": "Browser preview doesn't update",
+          "level": 3,
+          "hash": "a0808db5469f",
+          "terms": ["Browser", "Local", "Terminal"]
+        },
+        "tests-fail-only-in-one-session": {
+          "title": "Tests fail only in one session",
+          "level": 3,
+          "hash": "f47217f9c6c2"
+        },
+        "i-cant-see-an-issue-or-pull-request": {
+          "title": "I can't see an issue or pull request",
+          "level": 3,
+          "hash": "3aaa58523db0",
+          "terms": ["Issues", "Pull requests"]
+        },
+        "local-results-and-ci-dont-agree": {
+          "title": "Local results and CI don't agree",
+          "level": 3,
+          "hash": "a5721d565af0"
+        },
+        "a-pull-request-is-still-blocked": {
+          "title": "A pull request is still blocked",
+          "level": 3,
+          "hash": "8f7a981622af"
+        },
+        "key-takeaways": {
+          "title": "Key Takeaways",
+          "level": 2,
+          "hash": "81bc07b99b37",
+          "terms": ["Issues", "Pull requests"]
+        },
+        "assignment": {
+          "title": "Assignment",
+          "level": 2,
+          "hash": "8bece86eb9dd",
+          "images": ["assets/assignment.webp"],
+          "terms": [
+            "Pick & Polish",
+            "Polish book card spacing and responsive layout",
+            "Create from",
+            "Branches",
+            "Plan",
+            "Interactive",
+            "Browser",
+            "Pull requests",
+            "Success Criteria:",
+            "Book app web"
+          ]
+        },
+        "whats-next": {
+          "title": "What's Next",
+          "level": 2,
+          "hash": "acf23bdfd833"
+        },
+        "source-references": {
+          "title": "Source References",
+          "level": 2,
+          "hash": "f816fbfda86c"
+        }
+      }
     }
   },
   "glossary": {
@@ -906,6 +1234,71 @@
       "sha256": "f73d466f75aa9f7ea79747125e4cfe12ab5cf6400b12020e039a0c16348ae378",
       "pinned": true,
       "bytes": 139334
+    },
+    "course/ch03/app-filter-repo.webp": {
+      "upstream": "03-development-workflows/assets/app-filter-repo.webp",
+      "sha256": "662c9475e25de746f1a2da38d06cc817763e923df1bc6f4d1ddd97a581378ebf",
+      "bytes": 11572
+    },
+    "course/ch03/app-issue-new-session.webp": {
+      "upstream": "03-development-workflows/assets/app-issue-new-session.webp",
+      "sha256": "9a4f4f18c78431941b4ced9c118ce8226be7553af1024d3e96d1d607069f4069",
+      "bytes": 192168
+    },
+    "course/ch03/app-issues-filtered.webp": {
+      "upstream": "03-development-workflows/assets/app-issues-filtered.webp",
+      "sha256": "a1f320a6041a030542e1f0b277c06eb653c136b581e76f21ec44df25bf2531af",
+      "bytes": 129772
+    },
+    "course/ch03/app-pick-and-polish.webp": {
+      "upstream": "03-development-workflows/assets/app-pick-and-polish.webp",
+      "sha256": "b2b745adebd24b6a860ad89c067ed77f2d56f4fecea644a6b0e1423d23367e01",
+      "bytes": 203654
+    },
+    "course/ch03/app-pr-failing-check.webp": {
+      "upstream": "03-development-workflows/assets/app-pr-failing-check.webp",
+      "sha256": "ff63d4d1214f37672e8cd691bcfd74e7a69b8913dd7ec5bea037da5a80f6282e",
+      "bytes": 187166
+    },
+    "course/ch03/app-pr-review-comment.webp": {
+      "upstream": "03-development-workflows/assets/app-pr-review-comment.webp",
+      "sha256": "9157076849d05e9ccd8b8ebb8ae59d7831643f5374220b8db81b6428e169449a",
+      "bytes": 186346
+    },
+    "course/ch03/app-workspace-panel.webp": {
+      "upstream": "03-development-workflows/assets/app-workspace-panel.webp",
+      "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
+      "bytes": 200520
+    },
+    "course/ch03/context-layers.webp": {
+      "upstream": "03-development-workflows/assets/context-layers.webp",
+      "sha256": "c47a6bff672ad8545e576464135a6ee91dcc96a47dbd03495a72951a02d0ad77",
+      "bytes": 33422
+    },
+    "course/ch03/development-loop.webp": {
+      "upstream": "03-development-workflows/assets/development-loop.webp",
+      "sha256": "74f9f446b0f66c018581fea936e4cbd94047a24fd99d59d53b9c827fa5f30a9f",
+      "bytes": 78364
+    },
+    "course/ch03/human-judgment-loop.webp": {
+      "upstream": "03-development-workflows/assets/human-judgment-loop.webp",
+      "sha256": "558f00d2fc1430a246305a3f7b3c27891a82f4146b07862fa8f90391f3013309",
+      "bytes": 49126
+    },
+    "course/ch03/issue-to-merged-pr.webp": {
+      "upstream": "03-development-workflows/assets/issue-to-merged-pr.webp",
+      "sha256": "1fbe94a1a241a601ca03bf18faa7169ebea35af3422ec993195f6647c6fba88e",
+      "bytes": 53928
+    },
+    "course/ch03/producer-review-desk-github.webp": {
+      "upstream": "03-development-workflows/assets/producer-review-desk-github.webp",
+      "sha256": "a0727e0cbae67cbc427a43407ecf5c9c7984d05e4093b5764733b277badbd854",
+      "bytes": 155946
+    },
+    "course/ch03/record-playback-retake-loop.webp": {
+      "upstream": "03-development-workflows/assets/record-playback-retake-loop.webp",
+      "sha256": "18959a58675c08410bb65b3d8f259afe850745174890c1672f1b43c3f9e3d538",
+      "bytes": 93390
     },
     "course/shared/app-github-copilot-app.webp": {
       "upstream": "assets/app-github-copilot-app.webp",

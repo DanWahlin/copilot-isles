@@ -1,0 +1,82 @@
+{
+  "id": "kh.arlo.05",
+  "speaker": "Arlo",
+  "text": "The Book app web lamp is red. Read why, then ask for the smallest fix.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "Book",
+      "start": 0.128,
+      "end": 0.38
+    },
+    {
+      "word": "app",
+      "start": 0.38,
+      "end": 0.64
+    },
+    {
+      "word": "web",
+      "start": 0.64,
+      "end": 0.928
+    },
+    {
+      "word": "lamp",
+      "start": 0.928,
+      "end": 1.2
+    },
+    {
+      "word": "is",
+      "start": 1.2,
+      "end": 1.44
+    },
+    {
+      "word": "red",
+      "start": 1.44,
+      "end": 1.92
+    },
+    {
+      "word": "Read",
+      "start": 1.92,
+      "end": 2.66
+    },
+    {
+      "word": "why",
+      "start": 2.66,
+      "end": 3.488
+    },
+    {
+      "word": "then",
+      "start": 3.488,
+      "end": 3.76
+    },
+    {
+      "word": "ask",
+      "start": 3.76,
+      "end": 4.02
+    },
+    {
+      "word": "for",
+      "start": 4.02,
+      "end": 4.12
+    },
+    {
+      "word": "the",
+      "start": 4.12,
+      "end": 4.293
+    },
+    {
+      "word": "smallest",
+      "start": 4.293,
+      "end": 4.82
+    },
+    {
+      "word": "fix",
+      "start": 4.82,
+      "end": 5.07
+    }
+  ]
+}

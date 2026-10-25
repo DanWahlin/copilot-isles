@@ -1,0 +1,57 @@
+{
+  "id": "kh.cass.done",
+  "speaker": "Cass",
+  "text": "Two laps, every lamp green. That hull is ready, Captain.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "laps",
+      "start": 0.32,
+      "end": 0.773
+    },
+    {
+      "word": "every",
+      "start": 0.773,
+      "end": 1.088
+    },
+    {
+      "word": "lamp",
+      "start": 1.088,
+      "end": 1.347
+    },
+    {
+      "word": "green",
+      "start": 1.347,
+      "end": 1.84
+    },
+    {
+      "word": "That",
+      "start": 1.84,
+      "end": 2.208
+    },
+    {
+      "word": "hull",
+      "start": 2.208,
+      "end": 2.453
+    },
+    {
+      "word": "is",
+      "start": 2.453,
+      "end": 2.6
+    },
+    {
+      "word": "ready",
+      "start": 2.6,
+      "end": 2.93
+    },
+    {
+      "word": "Captain",
+      "start": 2.93,
+      "end": 3.18
+    }
+  ]
+}

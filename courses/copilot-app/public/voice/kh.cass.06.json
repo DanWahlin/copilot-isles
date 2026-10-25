@@ -1,0 +1,97 @@
+{
+  "id": "kh.cass.06",
+  "speaker": "Cass",
+  "text": "Fantasy and Unread: only The Night Circus, and the count says one. With the bug, it said five.",
+  "words": [
+    {
+      "word": "Fantasy",
+      "start": 0,
+      "end": 0.84
+    },
+    {
+      "word": "and",
+      "start": 0.84,
+      "end": 1.333
+    },
+    {
+      "word": "Unread",
+      "start": 1.333,
+      "end": 2.512
+    },
+    {
+      "word": "only",
+      "start": 2.512,
+      "end": 3
+    },
+    {
+      "word": "The",
+      "start": 3,
+      "end": 3.173
+    },
+    {
+      "word": "Night",
+      "start": 3.173,
+      "end": 3.52
+    },
+    {
+      "word": "Circus",
+      "start": 3.52,
+      "end": 4.36
+    },
+    {
+      "word": "and",
+      "start": 4.36,
+      "end": 4.5
+    },
+    {
+      "word": "the",
+      "start": 4.5,
+      "end": 4.613
+    },
+    {
+      "word": "count",
+      "start": 4.613,
+      "end": 4.944
+    },
+    {
+      "word": "says",
+      "start": 4.944,
+      "end": 5.3
+    },
+    {
+      "word": "one",
+      "start": 5.3,
+      "end": 5.808
+    },
+    {
+      "word": "With",
+      "start": 5.808,
+      "end": 6.34
+    },
+    {
+      "word": "the",
+      "start": 6.34,
+      "end": 6.48
+    },
+    {
+      "word": "bug",
+      "start": 6.48,
+      "end": 6.853
+    },
+    {
+      "word": "it",
+      "start": 6.853,
+      "end": 7.008
+    },
+    {
+      "word": "said",
+      "start": 7.008,
+      "end": 7.312
+    },
+    {
+      "word": "five",
+      "start": 7.312,
+      "end": 7.562
+    }
+  ]
+}

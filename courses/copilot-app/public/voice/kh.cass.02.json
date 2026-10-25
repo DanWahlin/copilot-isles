@@ -1,0 +1,97 @@
+{
+  "id": "kh.cass.02",
+  "speaker": "Cass",
+  "text": "Today's work order: the unread count ignores the filters. Read it at the post, then pick the plan.",
+  "words": [
+    {
+      "word": "Today's",
+      "start": 0,
+      "end": 0.464
+    },
+    {
+      "word": "work",
+      "start": 0.464,
+      "end": 0.773
+    },
+    {
+      "word": "order",
+      "start": 0.773,
+      "end": 1.56
+    },
+    {
+      "word": "the",
+      "start": 1.56,
+      "end": 1.749
+    },
+    {
+      "word": "unread",
+      "start": 1.749,
+      "end": 2.213
+    },
+    {
+      "word": "count",
+      "start": 2.213,
+      "end": 2.54
+    },
+    {
+      "word": "ignores",
+      "start": 2.54,
+      "end": 2.98
+    },
+    {
+      "word": "the",
+      "start": 2.98,
+      "end": 3.12
+    },
+    {
+      "word": "filters",
+      "start": 3.12,
+      "end": 3.936
+    },
+    {
+      "word": "Read",
+      "start": 3.936,
+      "end": 4.347
+    },
+    {
+      "word": "it",
+      "start": 4.347,
+      "end": 4.427
+    },
+    {
+      "word": "at",
+      "start": 4.427,
+      "end": 4.5
+    },
+    {
+      "word": "the",
+      "start": 4.5,
+      "end": 4.672
+    },
+    {
+      "word": "post",
+      "start": 4.672,
+      "end": 5.408
+    },
+    {
+      "word": "then",
+      "start": 5.408,
+      "end": 5.648
+    },
+    {
+      "word": "pick",
+      "start": 5.648,
+      "end": 5.86
+    },
+    {
+      "word": "the",
+      "start": 5.86,
+      "end": 6
+    },
+    {
+      "word": "plan",
+      "start": 6,
+      "end": 6.25
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import type { CourseLock } from '../learn/course/lock';
+import type { LearningFile } from '../learn/learning';
 import type { ChapterContent } from '../learn/types';
 import type { CourseMeta } from './catalog';
 import { chapterIndex, type IslandQuestsFile, type PackFiles, type PuzzleFile } from './pack';
@@ -32,6 +33,25 @@ export function islandChapter(meta: Pick<CourseMeta, 'islands'>, island: string)
 export function puzzleChapter(meta: Pick<CourseMeta, 'islands'>, name: string): string | null {
   const island = SHARED_PUZZLES.has(name) ? undefined : PUZZLE_ISLANDS[name];
   return island ? islandChapter(meta, island) : null;
+}
+
+/**
+ * The chapter part a puzzle file's content goes in: its island's (`puzzleChapter`), or for a puzzle the
+ * game doesn't play yet (its island isn't in the registry), the chapter of the island whose quest it
+ * plays in, as it will be once the island is wired in. Null: the core.
+ */
+export function puzzlePartChapter(
+  meta: Pick<CourseMeta, 'islands'>,
+  files: PackFiles,
+  name: string,
+): string | null {
+  if (Object.hasOwn(PUZZLE_ISLANDS, name) || SHARED_PUZZLES.has(name)) return puzzleChapter(meta, name);
+  const quest = (files[`puzzles/${name}.json`] as PuzzleFile | undefined)?.quest;
+  if (!quest) return null;
+  for (const [path, file] of Object.entries(files))
+    if (/^quests\/[^/]+\.json$/.test(path) && (file as IslandQuestsFile).quests.some((q) => q.id === quest))
+      return islandChapter(meta, (file as IslandQuestsFile).island);
+  return null;
 }
 
 /** A pack split into its core and its chapters' parts (each by path in the pack). */
@@ -103,7 +123,7 @@ export function splitPack(meta: CourseMeta, files: PackFiles, o: SplitOptions = 
       : questsFile
         ? islandChapter(meta, (file as IslandQuestsFile).island)
         : puzzle
-          ? puzzleChapter(meta, puzzle)
+          ? puzzlePartChapter(meta, files, puzzle)
           : null;
     if (!chapter) {
       core[path] = !o.trim ? file : path === 'lock.json' ? trimLock(file as CourseLock) : divide(file, [])[1];
@@ -124,6 +144,47 @@ export function splitPack(meta: CourseMeta, files: PackFiles, o: SplitOptions = 
       toPart(chapter, path, rest);
     }
   }
+  return { core, parts };
+}
+
+/**
+ * The pack as the game plays it: without the content of the course's islands the game hasn't got yet
+ * (`built` says no: the island isn't in the registry). A course can write an island's content before
+ * the island's wiring step (docs/content-data.md, "Content ahead of its island"); until then the game
+ * leaves out that island's chapter (its core and its part), its quests, the puzzles that play in
+ * them, and their app tasks, objectives and reflection, so nothing a player sees or counts changes.
+ */
+export function withoutIslandsAhead<P>(
+  meta: Pick<CourseMeta, 'islands'>,
+  split: { core: PackFiles; parts: Readonly<Record<string, P>> },
+  built: (island: string) => boolean,
+): { core: PackFiles; parts: Readonly<Record<string, P>> } {
+  const ahead = meta.islands.filter((i) => !built(i.island));
+  const chapters = new Set(ahead.map((i) => i.chapter));
+  const islands = new Set(ahead.map((i) => i.island));
+  const core: Record<string, unknown> = {};
+  const quests = new Set<string>();
+  for (const [path, file] of Object.entries(split.core)) {
+    if (/^chapters\//.test(path) && chapters.has((file as { chapter: string }).chapter)) continue;
+    if (/^quests\//.test(path) && islands.has((file as IslandQuestsFile).island)) {
+      for (const q of (file as IslandQuestsFile).quests) quests.add(q.id);
+      continue;
+    }
+    core[path] = file;
+  }
+  if (!chapters.size && !quests.size) return split;
+  for (const path of Object.keys(core))
+    if (/^puzzles\//.test(path) && quests.has((core[path] as PuzzleFile).quest ?? '')) delete core[path];
+  const learning = core['learning.json'] as LearningFile | undefined;
+  if (learning)
+    core['learning.json'] = {
+      ...learning,
+      appTasks: learning.appTasks.filter((t) => !chapters.has(t.chapter)),
+      objectives: learning.objectives.filter((o) => !chapters.has(o.chapter)),
+      reflections: learning.reflections.filter((r) => !chapters.has(r.chapter)),
+      learned: Object.fromEntries(Object.entries(learning.learned).filter(([q]) => !quests.has(q))),
+    };
+  const parts = Object.fromEntries(Object.entries(split.parts).filter(([c]) => !chapters.has(c)));
   return { core, parts };
 }
 

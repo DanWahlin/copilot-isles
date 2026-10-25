@@ -1,0 +1,57 @@
+{
+  "id": "kh.otto.done",
+  "speaker": "Ottoline",
+  "text": "Fair winds, Captain. The Gate Light will see you out.",
+  "words": [
+    {
+      "word": "Fair",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "winds",
+      "start": 0.2,
+      "end": 0.67
+    },
+    {
+      "word": "Captain",
+      "start": 0.67,
+      "end": 1.04
+    },
+    {
+      "word": "The",
+      "start": 1.04,
+      "end": 1.328
+    },
+    {
+      "word": "Gate",
+      "start": 1.328,
+      "end": 1.56
+    },
+    {
+      "word": "Light",
+      "start": 1.56,
+      "end": 1.792
+    },
+    {
+      "word": "will",
+      "start": 1.792,
+      "end": 1.98
+    },
+    {
+      "word": "see",
+      "start": 1.98,
+      "end": 2.2
+    },
+    {
+      "word": "you",
+      "start": 2.2,
+      "end": 2.4
+    },
+    {
+      "word": "out",
+      "start": 2.4,
+      "end": 2.65
+    }
+  ]
+}

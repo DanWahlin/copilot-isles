@@ -185,6 +185,45 @@
         "anchor": "key-takeaways",
         "hash": "863dccd1b579"
       }
+    },
+    "arrival:keelhaven": {
+      "game": "arrival",
+      "k": "Keelhaven · Landfall",
+      "t": "Trust the evidence",
+      "b": "A confident reply isn’t validated software. Check the diff, the tests and build, the preview and the checks.",
+      "ch": "03",
+      "c": "Development and GitHub Workflows",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "core-concept-trust-the-evidence",
+        "hash": "46abd535804e"
+      }
+    },
+    "puzzle:P3.1": {
+      "game": "puzzle",
+      "k": "Keelhaven · The Drydock Ring",
+      "t": "Walk the inner loop",
+      "b": "Understand, change, inspect, test and build, then preview. When the evidence shows a problem, go round again.",
+      "ch": "03",
+      "c": "Inner loop",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "inner-loop-develop-and-validate-on-your-machine",
+        "hash": "77f6c9aa2f53"
+      }
+    },
+    "puzzle:P3.2": {
+      "game": "puzzle",
+      "k": "Keelhaven · The Lock Flight",
+      "t": "Move the work through GitHub",
+      "b": "Issue, session, diff, pull request, checks. Two approval gates are yours, and practice work doesn’t merge.",
+      "ch": "03",
+      "c": "Outer loop",
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "outer-loop-move-the-work-through-github",
+        "hash": "07e5691870a8"
+      }
     }
   }
 }

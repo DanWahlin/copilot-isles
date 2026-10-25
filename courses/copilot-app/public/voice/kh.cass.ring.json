@@ -1,0 +1,62 @@
+{
+  "id": "kh.cass.ring",
+  "speaker": "Cass",
+  "text": "The lit lamp's your next station, Captain. Follow the ring round.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.22
+    },
+    {
+      "word": "lit",
+      "start": 0.22,
+      "end": 0.464
+    },
+    {
+      "word": "lamp's",
+      "start": 0.464,
+      "end": 0.832
+    },
+    {
+      "word": "your",
+      "start": 0.832,
+      "end": 1.008
+    },
+    {
+      "word": "next",
+      "start": 1.008,
+      "end": 1.25
+    },
+    {
+      "word": "station",
+      "start": 1.25,
+      "end": 1.73
+    },
+    {
+      "word": "Captain",
+      "start": 1.73,
+      "end": 2.274
+    },
+    {
+      "word": "Follow",
+      "start": 2.274,
+      "end": 2.98
+    },
+    {
+      "word": "the",
+      "start": 2.98,
+      "end": 3.104
+    },
+    {
+      "word": "ring",
+      "start": 3.104,
+      "end": 3.413
+    },
+    {
+      "word": "round",
+      "start": 3.413,
+      "end": 3.663
+    }
+  ]
+}

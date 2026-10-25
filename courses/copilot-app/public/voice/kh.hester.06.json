@@ -1,0 +1,82 @@
+{
+  "id": "kh.hester.06",
+  "speaker": "Hester",
+  "text": "Dory's at Drydock 1, up the ramp. Start with a hull you know is sound.",
+  "words": [
+    {
+      "word": "Dory's",
+      "start": 0,
+      "end": 0.373
+    },
+    {
+      "word": "at",
+      "start": 0.373,
+      "end": 0.54
+    },
+    {
+      "word": "Drydock",
+      "start": 0.54,
+      "end": 0.96
+    },
+    {
+      "word": "1",
+      "start": 0.96,
+      "end": 1.413
+    },
+    {
+      "word": "up",
+      "start": 1.413,
+      "end": 1.54
+    },
+    {
+      "word": "the",
+      "start": 1.54,
+      "end": 1.68
+    },
+    {
+      "word": "ramp",
+      "start": 1.68,
+      "end": 2.2
+    },
+    {
+      "word": "Start",
+      "start": 2.2,
+      "end": 2.816
+    },
+    {
+      "word": "with",
+      "start": 2.816,
+      "end": 2.92
+    },
+    {
+      "word": "a",
+      "start": 2.92,
+      "end": 3.024
+    },
+    {
+      "word": "hull",
+      "start": 3.024,
+      "end": 3.3
+    },
+    {
+      "word": "you",
+      "start": 3.3,
+      "end": 3.424
+    },
+    {
+      "word": "know",
+      "start": 3.424,
+      "end": 3.733
+    },
+    {
+      "word": "is",
+      "start": 3.733,
+      "end": 3.92
+    },
+    {
+      "word": "sound",
+      "start": 3.92,
+      "end": 4.17
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "id": "kh.cass.claim",
+  "speaker": "Cass",
+  "text": "That's a claim, not evidence. Seal it when the diff, tests, build and preview agree.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "a",
+      "start": 0.2,
+      "end": 0.333
+    },
+    {
+      "word": "claim",
+      "start": 0.333,
+      "end": 1
+    },
+    {
+      "word": "not",
+      "start": 1,
+      "end": 1.191
+    },
+    {
+      "word": "evidence",
+      "start": 1.191,
+      "end": 1.968
+    },
+    {
+      "word": "Seal",
+      "start": 1.968,
+      "end": 2.533
+    },
+    {
+      "word": "it",
+      "start": 2.533,
+      "end": 2.672
+    },
+    {
+      "word": "when",
+      "start": 2.672,
+      "end": 2.82
+    },
+    {
+      "word": "the",
+      "start": 2.82,
+      "end": 2.96
+    },
+    {
+      "word": "diff",
+      "start": 2.96,
+      "end": 3.48
+    },
+    {
+      "word": "tests",
+      "start": 3.48,
+      "end": 4.307
+    },
+    {
+      "word": "build",
+      "start": 4.307,
+      "end": 4.7
+    },
+    {
+      "word": "and",
+      "start": 4.7,
+      "end": 4.96
+    },
+    {
+      "word": "preview",
+      "start": 4.96,
+      "end": 5.613
+    },
+    {
+      "word": "agree",
+      "start": 5.613,
+      "end": 5.863
+    }
+  ]
+}

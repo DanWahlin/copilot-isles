@@ -1,0 +1,87 @@
+{
+  "id": "kh.arlo.done",
+  "speaker": "Arlo",
+  "text": "Every hull is through, every lamp is green, and the Sea Gate's still shut. Nice work.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "hull",
+      "start": 0.288,
+      "end": 0.533
+    },
+    {
+      "word": "is",
+      "start": 0.533,
+      "end": 0.68
+    },
+    {
+      "word": "through",
+      "start": 0.68,
+      "end": 1.4
+    },
+    {
+      "word": "every",
+      "start": 1.4,
+      "end": 1.664
+    },
+    {
+      "word": "lamp",
+      "start": 1.664,
+      "end": 1.973
+    },
+    {
+      "word": "is",
+      "start": 1.973,
+      "end": 2.147
+    },
+    {
+      "word": "green",
+      "start": 2.147,
+      "end": 2.98
+    },
+    {
+      "word": "and",
+      "start": 2.98,
+      "end": 3.06
+    },
+    {
+      "word": "the",
+      "start": 3.06,
+      "end": 3.18
+    },
+    {
+      "word": "Sea",
+      "start": 3.18,
+      "end": 3.408
+    },
+    {
+      "word": "Gate's",
+      "start": 3.408,
+      "end": 3.707
+    },
+    {
+      "word": "still",
+      "start": 3.707,
+      "end": 3.92
+    },
+    {
+      "word": "shut",
+      "start": 3.92,
+      "end": 4.672
+    },
+    {
+      "word": "Nice",
+      "start": 4.672,
+      "end": 5.024
+    },
+    {
+      "word": "work",
+      "start": 5.024,
+      "end": 5.274
+    }
+  ]
+}

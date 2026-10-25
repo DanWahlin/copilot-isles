@@ -1,0 +1,77 @@
+{
+  "id": "kh.bram.market.short",
+  "speaker": "Bram",
+  "text": "Not enough for this one. Try again with a stronger model or more effort.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.206
+    },
+    {
+      "word": "enough",
+      "start": 0.206,
+      "end": 0.52
+    },
+    {
+      "word": "for",
+      "start": 0.52,
+      "end": 0.688
+    },
+    {
+      "word": "this",
+      "start": 0.688,
+      "end": 0.94
+    },
+    {
+      "word": "one",
+      "start": 0.94,
+      "end": 1.32
+    },
+    {
+      "word": "Try",
+      "start": 1.32,
+      "end": 1.747
+    },
+    {
+      "word": "again",
+      "start": 1.747,
+      "end": 2.144
+    },
+    {
+      "word": "with",
+      "start": 2.144,
+      "end": 2.48
+    },
+    {
+      "word": "a",
+      "start": 2.48,
+      "end": 2.622
+    },
+    {
+      "word": "stronger",
+      "start": 2.622,
+      "end": 3.187
+    },
+    {
+      "word": "model",
+      "start": 3.187,
+      "end": 3.653
+    },
+    {
+      "word": "or",
+      "start": 3.653,
+      "end": 3.984
+    },
+    {
+      "word": "more",
+      "start": 3.984,
+      "end": 4.354
+    },
+    {
+      "word": "effort",
+      "start": 4.354,
+      "end": 4.604
+    }
+  ]
+}

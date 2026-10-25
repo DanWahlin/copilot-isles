@@ -110,12 +110,18 @@
       "chapter": "03-development-workflows",
       "label": "03 · Dev & GitHub Workflows",
       "minutes": 75,
+      "seal": "Seal of Keelhaven",
       "topics": [
         "Review panel, tests, and browser preview",
         "Regression tests and the rubber duck agent",
         "Issues and Pull requests: from issue to pull request",
-        "Fixing review comments and failing checks"
-      ]
+        "Fixing review comments and failing checks",
+        "Human judgment in both loops"
+      ],
+      "arrival": {
+        "eyebrow": "Chapter 03 · Dev & GitHub Workflows",
+        "line": "Trust the evidence, not the first take"
+      }
     },
     {
       "island": "guildcrest",
@@ -265,6 +271,14 @@
           "nav": "wingman.tb.03",
           "starfish": "wingman.starfish.thousand-bough"
         }
+      },
+      "keelhaven": {
+        "landing": ["kh.juno.arrive.01", "kh.juno.arrive.02"],
+        "welcome": ["wingman.kh.01", "wingman.kh.02", "@nav", "@starfish"],
+        "tips": {
+          "nav": "wingman.kh.03",
+          "starfish": "wingman.starfish.keelhaven"
+        }
       }
     },
     "sail": {
@@ -340,7 +354,7 @@
   },
   "recap": {
     "questions": 2,
-    "exclude": ["K2.5", "K2.6", "K2.7", "K2.8"],
+    "exclude": ["K2.5", "K2.6", "K2.7", "K2.8", "K3.9"],
     "minGapMinutes": 20,
     "reward": { "doubloons": 3, "starfish": 1 }
   }

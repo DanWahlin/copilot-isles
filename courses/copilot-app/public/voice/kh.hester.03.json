@@ -1,0 +1,72 @@
+{
+  "id": "kh.hester.03",
+  "speaker": "Hester",
+  "text": "So we check four kinds of evidence. Each one answers its own question.",
+  "words": [
+    {
+      "word": "So",
+      "start": 0,
+      "end": 0.133
+    },
+    {
+      "word": "we",
+      "start": 0.133,
+      "end": 0.293
+    },
+    {
+      "word": "check",
+      "start": 0.293,
+      "end": 0.608
+    },
+    {
+      "word": "four",
+      "start": 0.608,
+      "end": 0.853
+    },
+    {
+      "word": "kinds",
+      "start": 0.853,
+      "end": 1.147
+    },
+    {
+      "word": "of",
+      "start": 1.147,
+      "end": 1.262
+    },
+    {
+      "word": "evidence",
+      "start": 1.262,
+      "end": 1.984
+    },
+    {
+      "word": "Each",
+      "start": 1.984,
+      "end": 2.66
+    },
+    {
+      "word": "one",
+      "start": 2.66,
+      "end": 3.01
+    },
+    {
+      "word": "answers",
+      "start": 3.01,
+      "end": 3.42
+    },
+    {
+      "word": "its",
+      "start": 3.42,
+      "end": 3.68
+    },
+    {
+      "word": "own",
+      "start": 3.68,
+      "end": 3.973
+    },
+    {
+      "word": "question",
+      "start": 3.973,
+      "end": 4.223
+    }
+  ]
+}

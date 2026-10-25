@@ -1,0 +1,47 @@
+{
+  "id": "kh.barty.polish.ask",
+  "speaker": "Barty",
+  "text": "Back again, Captain. Did you try Pick & Polish?",
+  "words": [
+    {
+      "word": "Back",
+      "start": 0,
+      "end": 0.333
+    },
+    {
+      "word": "again",
+      "start": 0.333,
+      "end": 0.95
+    },
+    {
+      "word": "Captain",
+      "start": 0.95,
+      "end": 1.82
+    },
+    {
+      "word": "Did",
+      "start": 1.82,
+      "end": 2.74
+    },
+    {
+      "word": "you",
+      "start": 2.74,
+      "end": 2.92
+    },
+    {
+      "word": "try",
+      "start": 2.92,
+      "end": 3.392
+    },
+    {
+      "word": "Pick",
+      "start": 3.392,
+      "end": 4.171
+    },
+    {
+      "word": "Polish",
+      "start": 4.171,
+      "end": 4.421
+    }
+  ]
+}

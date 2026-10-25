@@ -1,0 +1,107 @@
+{
+  "id": "kh.stroud.02",
+  "speaker": "Stroud",
+  "text": "There are two approval gates on the way: one after the diff, one after the checks. Both seals are yours.",
+  "words": [
+    {
+      "word": "There",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "are",
+      "start": 0.18,
+      "end": 0.3
+    },
+    {
+      "word": "two",
+      "start": 0.3,
+      "end": 0.542
+    },
+    {
+      "word": "approval",
+      "start": 0.542,
+      "end": 1.107
+    },
+    {
+      "word": "gates",
+      "start": 1.107,
+      "end": 1.467
+    },
+    {
+      "word": "on",
+      "start": 1.467,
+      "end": 1.56
+    },
+    {
+      "word": "the",
+      "start": 1.56,
+      "end": 1.78
+    },
+    {
+      "word": "way",
+      "start": 1.78,
+      "end": 2.86
+    },
+    {
+      "word": "one",
+      "start": 2.86,
+      "end": 3.093
+    },
+    {
+      "word": "after",
+      "start": 3.093,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.52
+    },
+    {
+      "word": "diff",
+      "start": 3.52,
+      "end": 4.22
+    },
+    {
+      "word": "one",
+      "start": 4.22,
+      "end": 4.44
+    },
+    {
+      "word": "after",
+      "start": 4.44,
+      "end": 4.66
+    },
+    {
+      "word": "the",
+      "start": 4.66,
+      "end": 4.823
+    },
+    {
+      "word": "checks",
+      "start": 4.823,
+      "end": 5.664
+    },
+    {
+      "word": "Both",
+      "start": 5.664,
+      "end": 6.32
+    },
+    {
+      "word": "seals",
+      "start": 6.32,
+      "end": 6.8
+    },
+    {
+      "word": "are",
+      "start": 6.8,
+      "end": 7.133
+    },
+    {
+      "word": "yours",
+      "start": 7.133,
+      "end": 7.383
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "kh.lyra.04",
+  "speaker": "Lyra",
+  "text": "That's the outer loop: issues and pull requests move validated work through GitHub.",
+  "words": [
+    {
+      "word": "That's",
+      "start": 0.052625,
+      "end": 0.328958
+    },
+    {
+      "word": "the",
+      "start": 0.328958,
+      "end": 0.5
+    },
+    {
+      "word": "outer",
+      "start": 0.5,
+      "end": 0.828958
+    },
+    {
+      "word": "loop",
+      "start": 0.828958,
+      "end": 1.342125
+    },
+    {
+      "word": "issues",
+      "start": 1.342125,
+      "end": 2
+    },
+    {
+      "word": "and",
+      "start": 2,
+      "end": 2.171041
+    },
+    {
+      "word": "pull",
+      "start": 2.171041,
+      "end": 2.434208
+    },
+    {
+      "word": "requests",
+      "start": 2.434208,
+      "end": 3.10525
+    },
+    {
+      "word": "move",
+      "start": 3.10525,
+      "end": 3.368416
+    },
+    {
+      "word": "validated",
+      "start": 3.368416,
+      "end": 4.065791
+    },
+    {
+      "word": "work",
+      "start": 4.065791,
+      "end": 4.460541
+    },
+    {
+      "word": "through",
+      "start": 4.460541,
+      "end": 4.671041
+    },
+    {
+      "word": "GitHub",
+      "start": 4.671041,
+      "end": 4.921041
+    }
+  ]
+}

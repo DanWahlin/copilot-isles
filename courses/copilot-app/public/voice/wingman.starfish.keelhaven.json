@@ -1,0 +1,77 @@
+{
+  "id": "wingman.starfish.keelhaven",
+  "speaker": "Wingman",
+  "text": "Five starfish on Keelhaven. One's up by the falls, if you fancy a walk.",
+  "words": [
+    {
+      "word": "Five",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "starfish",
+      "start": 0.32,
+      "end": 0.933
+    },
+    {
+      "word": "on",
+      "start": 0.933,
+      "end": 1.12
+    },
+    {
+      "word": "Keelhaven",
+      "start": 1.12,
+      "end": 2.49
+    },
+    {
+      "word": "One's",
+      "start": 2.49,
+      "end": 3.013
+    },
+    {
+      "word": "up",
+      "start": 3.013,
+      "end": 3.147
+    },
+    {
+      "word": "by",
+      "start": 3.147,
+      "end": 3.24
+    },
+    {
+      "word": "the",
+      "start": 3.24,
+      "end": 3.44
+    },
+    {
+      "word": "falls",
+      "start": 3.44,
+      "end": 4.053
+    },
+    {
+      "word": "if",
+      "start": 4.053,
+      "end": 4.18
+    },
+    {
+      "word": "you",
+      "start": 4.18,
+      "end": 4.307
+    },
+    {
+      "word": "fancy",
+      "start": 4.307,
+      "end": 4.68
+    },
+    {
+      "word": "a",
+      "start": 4.68,
+      "end": 4.8
+    },
+    {
+      "word": "walk",
+      "start": 4.8,
+      "end": 5.05
+    }
+  ]
+}

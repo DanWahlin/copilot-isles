@@ -1,0 +1,62 @@
+{
+  "id": "kh.barty.01",
+  "speaker": "Barty",
+  "text": "I'm from another port, Captain. A different eye sees different gaps.",
+  "words": [
+    {
+      "word": "I'm",
+      "start": 0,
+      "end": 0.352
+    },
+    {
+      "word": "from",
+      "start": 0.352,
+      "end": 0.54
+    },
+    {
+      "word": "another",
+      "start": 0.54,
+      "end": 1.072
+    },
+    {
+      "word": "port",
+      "start": 1.072,
+      "end": 1.67
+    },
+    {
+      "word": "Captain",
+      "start": 1.67,
+      "end": 2.72
+    },
+    {
+      "word": "A",
+      "start": 2.72,
+      "end": 3.256
+    },
+    {
+      "word": "different",
+      "start": 3.256,
+      "end": 3.92
+    },
+    {
+      "word": "eye",
+      "start": 3.92,
+      "end": 4.496
+    },
+    {
+      "word": "sees",
+      "start": 4.496,
+      "end": 4.944
+    },
+    {
+      "word": "different",
+      "start": 4.944,
+      "end": 5.664
+    },
+    {
+      "word": "gaps",
+      "start": 5.664,
+      "end": 5.914
+    }
+  ]
+}

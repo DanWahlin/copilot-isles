@@ -1,0 +1,87 @@
+{
+  "id": "kh.otto.assign.01",
+  "speaker": "Ottoline",
+  "text": "One more job: run both loops on a small UI change, and open a pull request.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.208
+    },
+    {
+      "word": "more",
+      "start": 0.208,
+      "end": 0.5
+    },
+    {
+      "word": "job",
+      "start": 0.5,
+      "end": 1.44
+    },
+    {
+      "word": "run",
+      "start": 1.44,
+      "end": 1.744
+    },
+    {
+      "word": "both",
+      "start": 1.744,
+      "end": 2.067
+    },
+    {
+      "word": "loops",
+      "start": 2.067,
+      "end": 2.427
+    },
+    {
+      "word": "on",
+      "start": 2.427,
+      "end": 2.56
+    },
+    {
+      "word": "a",
+      "start": 2.56,
+      "end": 2.693
+    },
+    {
+      "word": "small",
+      "start": 2.693,
+      "end": 3.12
+    },
+    {
+      "word": "UI",
+      "start": 3.12,
+      "end": 3.52
+    },
+    {
+      "word": "change",
+      "start": 3.52,
+      "end": 4.44
+    },
+    {
+      "word": "and",
+      "start": 4.44,
+      "end": 4.64
+    },
+    {
+      "word": "open",
+      "start": 4.64,
+      "end": 5
+    },
+    {
+      "word": "a",
+      "start": 5,
+      "end": 5.088
+    },
+    {
+      "word": "pull",
+      "start": 5.088,
+      "end": 5.35
+    },
+    {
+      "word": "request",
+      "start": 5.35,
+      "end": 5.6
+    }
+  ]
+}

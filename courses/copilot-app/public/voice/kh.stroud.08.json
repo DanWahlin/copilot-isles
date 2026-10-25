@@ -1,0 +1,87 @@
+{
+  "id": "kh.stroud.08",
+  "speaker": "Stroud",
+  "text": "Lockfall fills the lock by itself. Checks run on the pull request, and you read them.",
+  "words": [
+    {
+      "word": "Lockfall",
+      "start": 0,
+      "end": 0.56
+    },
+    {
+      "word": "fills",
+      "start": 0.56,
+      "end": 0.98
+    },
+    {
+      "word": "the",
+      "start": 0.98,
+      "end": 1.104
+    },
+    {
+      "word": "lock",
+      "start": 1.104,
+      "end": 1.413
+    },
+    {
+      "word": "by",
+      "start": 1.413,
+      "end": 1.623
+    },
+    {
+      "word": "itself",
+      "start": 1.623,
+      "end": 2.606
+    },
+    {
+      "word": "Checks",
+      "start": 2.606,
+      "end": 2.98
+    },
+    {
+      "word": "run",
+      "start": 2.98,
+      "end": 3.333
+    },
+    {
+      "word": "on",
+      "start": 3.333,
+      "end": 3.46
+    },
+    {
+      "word": "the",
+      "start": 3.46,
+      "end": 3.584
+    },
+    {
+      "word": "pull",
+      "start": 3.584,
+      "end": 3.92
+    },
+    {
+      "word": "request",
+      "start": 3.92,
+      "end": 4.62
+    },
+    {
+      "word": "and",
+      "start": 4.62,
+      "end": 4.84
+    },
+    {
+      "word": "you",
+      "start": 4.84,
+      "end": 5.04
+    },
+    {
+      "word": "read",
+      "start": 5.04,
+      "end": 5.408
+    },
+    {
+      "word": "them",
+      "start": 5.408,
+      "end": 5.658
+    }
+  ]
+}

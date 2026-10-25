@@ -1,0 +1,97 @@
+{
+  "id": "kh.bram.market.hello",
+  "speaker": "Bram",
+  "text": "Welcome aboard, Captain! Bram's Model Market. Hire a model that fits the job. Bigger ones cost more starfish.",
+  "words": [
+    {
+      "word": "Welcome",
+      "start": 0,
+      "end": 0.48
+    },
+    {
+      "word": "aboard",
+      "start": 0.48,
+      "end": 1.275
+    },
+    {
+      "word": "Captain",
+      "start": 1.275,
+      "end": 1.904
+    },
+    {
+      "word": "Bram's",
+      "start": 1.904,
+      "end": 2.387
+    },
+    {
+      "word": "Model",
+      "start": 2.387,
+      "end": 2.789
+    },
+    {
+      "word": "Market",
+      "start": 2.789,
+      "end": 3.392
+    },
+    {
+      "word": "Hire",
+      "start": 3.392,
+      "end": 3.88
+    },
+    {
+      "word": "a",
+      "start": 3.88,
+      "end": 3.987
+    },
+    {
+      "word": "model",
+      "start": 3.987,
+      "end": 4.368
+    },
+    {
+      "word": "that",
+      "start": 4.368,
+      "end": 4.656
+    },
+    {
+      "word": "fits",
+      "start": 4.656,
+      "end": 5.06
+    },
+    {
+      "word": "the",
+      "start": 5.06,
+      "end": 5.24
+    },
+    {
+      "word": "job",
+      "start": 5.24,
+      "end": 6
+    },
+    {
+      "word": "Bigger",
+      "start": 6,
+      "end": 6.48
+    },
+    {
+      "word": "ones",
+      "start": 6.48,
+      "end": 6.88
+    },
+    {
+      "word": "cost",
+      "start": 6.88,
+      "end": 7.28
+    },
+    {
+      "word": "more",
+      "start": 7.28,
+      "end": 7.696
+    },
+    {
+      "word": "starfish",
+      "start": 7.696,
+      "end": 7.946
+    }
+  ]
+}

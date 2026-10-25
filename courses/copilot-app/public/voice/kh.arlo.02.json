@@ -1,0 +1,97 @@
+{
+  "id": "kh.arlo.02",
+  "speaker": "Arlo",
+  "text": "This note asks for more helpful guidance. The barge is a new session, started from the pull request.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0,
+      "end": 0.224
+    },
+    {
+      "word": "note",
+      "start": 0.224,
+      "end": 0.544
+    },
+    {
+      "word": "asks",
+      "start": 0.544,
+      "end": 0.84
+    },
+    {
+      "word": "for",
+      "start": 0.84,
+      "end": 0.992
+    },
+    {
+      "word": "more",
+      "start": 0.992,
+      "end": 1.17
+    },
+    {
+      "word": "helpful",
+      "start": 1.17,
+      "end": 1.582
+    },
+    {
+      "word": "guidance",
+      "start": 1.582,
+      "end": 2.32
+    },
+    {
+      "word": "The",
+      "start": 2.32,
+      "end": 2.88
+    },
+    {
+      "word": "barge",
+      "start": 2.88,
+      "end": 3.227
+    },
+    {
+      "word": "is",
+      "start": 3.227,
+      "end": 3.32
+    },
+    {
+      "word": "a",
+      "start": 3.32,
+      "end": 3.42
+    },
+    {
+      "word": "new",
+      "start": 3.42,
+      "end": 3.65
+    },
+    {
+      "word": "session",
+      "start": 3.65,
+      "end": 4.28
+    },
+    {
+      "word": "started",
+      "start": 4.28,
+      "end": 4.592
+    },
+    {
+      "word": "from",
+      "start": 4.592,
+      "end": 4.74
+    },
+    {
+      "word": "the",
+      "start": 4.74,
+      "end": 4.848
+    },
+    {
+      "word": "pull",
+      "start": 4.848,
+      "end": 5.1
+    },
+    {
+      "word": "request",
+      "start": 5.1,
+      "end": 5.35
+    }
+  ]
+}

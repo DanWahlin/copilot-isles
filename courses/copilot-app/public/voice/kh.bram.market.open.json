@@ -1,0 +1,82 @@
+{
+  "id": "kh.bram.market.open",
+  "speaker": "Bram",
+  "text": "Take a job off the board, then hire a model and set the effort dial.",
+  "words": [
+    {
+      "word": "Take",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "a",
+      "start": 0.2,
+      "end": 0.32
+    },
+    {
+      "word": "job",
+      "start": 0.32,
+      "end": 0.6
+    },
+    {
+      "word": "off",
+      "start": 0.6,
+      "end": 0.74
+    },
+    {
+      "word": "the",
+      "start": 0.74,
+      "end": 0.88
+    },
+    {
+      "word": "board",
+      "start": 0.88,
+      "end": 1.728
+    },
+    {
+      "word": "then",
+      "start": 1.728,
+      "end": 2.032
+    },
+    {
+      "word": "hire",
+      "start": 2.032,
+      "end": 2.52
+    },
+    {
+      "word": "a",
+      "start": 2.52,
+      "end": 2.64
+    },
+    {
+      "word": "model",
+      "start": 2.64,
+      "end": 3.18
+    },
+    {
+      "word": "and",
+      "start": 3.18,
+      "end": 3.72
+    },
+    {
+      "word": "set",
+      "start": 3.72,
+      "end": 4.14
+    },
+    {
+      "word": "the",
+      "start": 4.14,
+      "end": 4.389
+    },
+    {
+      "word": "effort",
+      "start": 4.389,
+      "end": 4.896
+    },
+    {
+      "word": "dial",
+      "start": 4.896,
+      "end": 5.146
+    }
+  ]
+}

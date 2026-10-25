@@ -1,0 +1,57 @@
+{
+  "id": "kh.cass.plan.test",
+  "speaker": "Cass",
+  "text": "Changing the test weakens it. The plan fixes the code.",
+  "words": [
+    {
+      "word": "Changing",
+      "start": 0,
+      "end": 0.34
+    },
+    {
+      "word": "the",
+      "start": 0.34,
+      "end": 0.464
+    },
+    {
+      "word": "test",
+      "start": 0.464,
+      "end": 0.784
+    },
+    {
+      "word": "weakens",
+      "start": 0.784,
+      "end": 1.28
+    },
+    {
+      "word": "it",
+      "start": 1.28,
+      "end": 1.64
+    },
+    {
+      "word": "The",
+      "start": 1.64,
+      "end": 2.096
+    },
+    {
+      "word": "plan",
+      "start": 2.096,
+      "end": 2.587
+    },
+    {
+      "word": "fixes",
+      "start": 2.587,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.296
+    },
+    {
+      "word": "code",
+      "start": 3.296,
+      "end": 3.546
+    }
+  ]
+}

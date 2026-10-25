@@ -1,0 +1,97 @@
+{
+  "id": "kh.cass.gauge.dry",
+  "speaker": "Cass",
+  "text": "A gauge that stays dry with the old leak proves nothing. It has to flood with the bug.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.133
+    },
+    {
+      "word": "gauge",
+      "start": 0.133,
+      "end": 0.432
+    },
+    {
+      "word": "that",
+      "start": 0.432,
+      "end": 0.627
+    },
+    {
+      "word": "stays",
+      "start": 0.627,
+      "end": 1.04
+    },
+    {
+      "word": "dry",
+      "start": 1.04,
+      "end": 1.312
+    },
+    {
+      "word": "with",
+      "start": 1.312,
+      "end": 1.48
+    },
+    {
+      "word": "the",
+      "start": 1.48,
+      "end": 1.66
+    },
+    {
+      "word": "old",
+      "start": 1.66,
+      "end": 1.904
+    },
+    {
+      "word": "leak",
+      "start": 1.904,
+      "end": 2.217
+    },
+    {
+      "word": "proves",
+      "start": 2.217,
+      "end": 2.62
+    },
+    {
+      "word": "nothing",
+      "start": 2.62,
+      "end": 3.253
+    },
+    {
+      "word": "It",
+      "start": 3.253,
+      "end": 3.56
+    },
+    {
+      "word": "has",
+      "start": 3.56,
+      "end": 3.733
+    },
+    {
+      "word": "to",
+      "start": 3.733,
+      "end": 3.933
+    },
+    {
+      "word": "flood",
+      "start": 3.933,
+      "end": 4.432
+    },
+    {
+      "word": "with",
+      "start": 4.432,
+      "end": 4.6
+    },
+    {
+      "word": "the",
+      "start": 4.6,
+      "end": 4.82
+    },
+    {
+      "word": "bug",
+      "start": 4.82,
+      "end": 5.07
+    }
+  ]
+}

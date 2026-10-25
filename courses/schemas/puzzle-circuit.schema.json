@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A course pack's circuit puzzle (courses/<id>/puzzles/<name>.json)",
+  "description": "A loop the player walks station by station (Keelhaven's Two Circuits: the Drydock Ring and the Lock Flight, docs/specs/ISLAND-03-keelhaven.md §5). The game owns the places, the lamps, the order and the controls; this file owns every word: the places' names, each lap's stations, their options, the reasons a wrong pick goes back, and the sections they cite. `places` binds the course's place ids to the game's (`acts`: src/game/puzzles/circuit/places.ts). docs/specs/COURSE-PACKS.md §4.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "mechanic", "chapter", "quest", "circuit", "places", "laps", "text", "cites"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mechanic": {
+      "const": "circuit"
+    },
+    "chapter": {
+      "description": "The chapter its `cites` are in.",
+      "type": "string",
+      "minLength": 1
+    },
+    "quest": {
+      "description": "The quest of its first lap (each lap names its own).",
+      "$ref": "#/$defs/id"
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "The course turns this puzzle off: its site stays as scenery and its cue does nothing."
+    },
+    "circuit": {
+      "description": "Which of the game's circuits it runs: the Drydock Ring or the Lock Flight.",
+      "enum": ["ring", "flight"]
+    },
+    "places": {
+      "description": "The course's place id → the game's place it is (`acts`, each bound once), its name on signs and in the HUD, and what it stands for in the course.",
+      "type": "object",
+      "minProperties": 2,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["acts", "name", "means"],
+        "properties": {
+          "acts": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "$ref": "#/$defs/text"
+          },
+          "means": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "laps": {
+      "description": "The laps (the ring) or parts (the flight), in order. Each runs while its quest is at `step`, and ends when its last station is green.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "quest", "step", "solved", "close", "title", "stations"],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "quest": {
+            "$ref": "#/$defs/id"
+          },
+          "step": {
+            "description": "The quest's step while the lap runs (the island's script sets it).",
+            "$ref": "#/$defs/id"
+          },
+          "solved": {
+            "description": "The step the lap's end sets, so a reload still plays its close.",
+            "$ref": "#/$defs/id"
+          },
+          "close": {
+            "description": "The island's script the lap's end plays at once (its NPC plays it too while the quest is at `solved`); it moves the quest on.",
+            "$ref": "#/$defs/id"
+          },
+          "title": {
+            "$ref": "#/$defs/text"
+          },
+          "order": {
+            "description": "The work order the lap carries (on the post or the ledger).",
+            "$ref": "#/$defs/text"
+          },
+          "stations": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "$ref": "#/$defs/station"
+            }
+          }
+        }
+      }
+    },
+    "text": {
+      "type": "object",
+      "description": "The HUD's words by key (lamps, buttons, the live region); `{name}` is filled in by the game.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "lines": {
+      "type": "object",
+      "description": "Voice line ids (voice/lines.json) by what they're for.",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[\\w.-]+$"
+      }
+    },
+    "cites": {
+      "description": "Key → a section of `chapter` (anchor and hash in lock.json): every option's and tile's `cite`.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["anchor", "hash"],
+        "properties": {
+          "anchor": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{12}$"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][\\w.:-]*$"
+    },
+    "station": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "at", "kind", "title", "cite"],
+      "description": "One stop on the lap: what the player does there (`kind`), at which place (`at`).",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "at": {
+          "description": "A key of `places`.",
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": ["choose", "watch", "sound", "seal", "tiles", "gate"]
+        },
+        "title": {
+          "description": "What the step is, in the course's words (the HUD's heading).",
+          "$ref": "#/$defs/text"
+        },
+        "prompt": {
+          "$ref": "#/$defs/text"
+        },
+        "text": {
+          "description": "What happens (a `watch` demo's caption, or the station's readout).",
+          "$ref": "#/$defs/text"
+        },
+        "line": {
+          "description": "A voice line played as the station opens.",
+          "$ref": "#/$defs/id"
+        },
+        "image": {
+          "description": "A course image (a chapter's images) shown in the spyglass at the station.",
+          "type": "string",
+          "minLength": 1
+        },
+        "caption": {
+          "description": "The spyglass's caption for `image`.",
+          "$ref": "#/$defs/text"
+        },
+        "seconds": {
+          "description": "A `watch` demo's length.",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "planks": {
+          "description": "A `sound` station's planks to tap.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "again": {
+          "description": "A `sound` station: what a plank tapped twice says.",
+          "$ref": "#/$defs/text"
+        },
+        "options": {
+          "description": "A `choose` or `seal` station's options: at least one right; every other goes back with its reason.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "tiles": {
+          "description": "A `tiles` station's claims: the ones that stick make the summary.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text", "sticks"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "text": {
+                "$ref": "#/$defs/text"
+              },
+              "sticks": {
+                "type": "boolean"
+              },
+              "reason": {
+                "$ref": "#/$defs/text"
+              },
+              "cite": {
+                "$ref": "#/$defs/id"
+              }
+            }
+          }
+        },
+        "lamps": {
+          "description": "A `gate` station's lamps, in order: all but the last light by themselves; the last is the player's seal.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text"],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/id"
+              },
+              "text": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          }
+        },
+        "hints": {
+          "description": "Wingman's three hint tiers (a question, the reason, the choice): text, not voice.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "cite": {
+          "description": "A key of `cites`: the section this station teaches.",
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "right": {
+          "const": true
+        },
+        "result": {
+          "description": "What the player sees when they pick it.",
+          "$ref": "#/$defs/text"
+        },
+        "reason": {
+          "description": "A wrong pick: why, in the course's words.",
+          "$ref": "#/$defs/text"
+        },
+        "backTo": {
+          "description": "A wrong pick: the key of the place the hull goes back to.",
+          "$ref": "#/$defs/id"
+        },
+        "cite": {
+          "description": "A wrong pick: the key of `cites` its reason comes from.",
+          "$ref": "#/$defs/id"
+        },
+        "line": {
+          "description": "A voice line played when it's picked.",
+          "$ref": "#/$defs/id"
+        }
+      }
+    }
+  }
+}

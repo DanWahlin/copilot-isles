@@ -1,0 +1,82 @@
+{
+  "id": "kh.juno.arrive.02",
+  "speaker": "Juno",
+  "text": "They say nothing leaves this yard on a confident guess. Every hull proves itself first.",
+  "words": [
+    {
+      "word": "They",
+      "start": 0,
+      "end": 0.18
+    },
+    {
+      "word": "say",
+      "start": 0.18,
+      "end": 0.56
+    },
+    {
+      "word": "nothing",
+      "start": 0.56,
+      "end": 1.166
+    },
+    {
+      "word": "leaves",
+      "start": 1.166,
+      "end": 1.472
+    },
+    {
+      "word": "this",
+      "start": 1.472,
+      "end": 1.68
+    },
+    {
+      "word": "yard",
+      "start": 1.68,
+      "end": 2.053
+    },
+    {
+      "word": "on",
+      "start": 2.053,
+      "end": 2.2
+    },
+    {
+      "word": "a",
+      "start": 2.2,
+      "end": 2.296
+    },
+    {
+      "word": "confident",
+      "start": 2.296,
+      "end": 2.893
+    },
+    {
+      "word": "guess",
+      "start": 2.893,
+      "end": 3.787
+    },
+    {
+      "word": "Every",
+      "start": 3.787,
+      "end": 4.4
+    },
+    {
+      "word": "hull",
+      "start": 4.4,
+      "end": 4.8
+    },
+    {
+      "word": "proves",
+      "start": 4.8,
+      "end": 5.349
+    },
+    {
+      "word": "itself",
+      "start": 5.349,
+      "end": 5.84
+    },
+    {
+      "word": "first",
+      "start": 5.84,
+      "end": 6.09
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "id": "kh.bram.market.bye",
+  "speaker": "Bram",
+  "text": "Off to the yard? Your starfish and your jobs go with you.",
+  "words": [
+    {
+      "word": "Off",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "to",
+      "start": 0.213,
+      "end": 0.34
+    },
+    {
+      "word": "the",
+      "start": 0.34,
+      "end": 0.48
+    },
+    {
+      "word": "yard",
+      "start": 0.48,
+      "end": 0.976
+    },
+    {
+      "word": "Your",
+      "start": 0.976,
+      "end": 1.472
+    },
+    {
+      "word": "starfish",
+      "start": 1.472,
+      "end": 2.28
+    },
+    {
+      "word": "and",
+      "start": 2.28,
+      "end": 2.432
+    },
+    {
+      "word": "your",
+      "start": 2.432,
+      "end": 2.704
+    },
+    {
+      "word": "jobs",
+      "start": 2.704,
+      "end": 3.387
+    },
+    {
+      "word": "go",
+      "start": 3.387,
+      "end": 3.648
+    },
+    {
+      "word": "with",
+      "start": 3.648,
+      "end": 3.9
+    },
+    {
+      "word": "you",
+      "start": 3.9,
+      "end": 4.15
+    }
+  ]
+}

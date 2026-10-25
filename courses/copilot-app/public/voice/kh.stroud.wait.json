@@ -1,0 +1,92 @@
+{
+  "id": "kh.stroud.wait",
+  "speaker": "Stroud",
+  "text": "The locks wait for evidence, Captain. Barty at the Old Hulk has a word for you first.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.147
+    },
+    {
+      "word": "locks",
+      "start": 0.147,
+      "end": 0.528
+    },
+    {
+      "word": "wait",
+      "start": 0.528,
+      "end": 0.74
+    },
+    {
+      "word": "for",
+      "start": 0.74,
+      "end": 0.853
+    },
+    {
+      "word": "evidence",
+      "start": 0.853,
+      "end": 1.43
+    },
+    {
+      "word": "Captain",
+      "start": 1.43,
+      "end": 2.52
+    },
+    {
+      "word": "Barty",
+      "start": 2.52,
+      "end": 3.173
+    },
+    {
+      "word": "at",
+      "start": 3.173,
+      "end": 3.32
+    },
+    {
+      "word": "the",
+      "start": 3.32,
+      "end": 3.52
+    },
+    {
+      "word": "Old",
+      "start": 3.52,
+      "end": 3.856
+    },
+    {
+      "word": "Hulk",
+      "start": 3.856,
+      "end": 4.3
+    },
+    {
+      "word": "has",
+      "start": 4.3,
+      "end": 4.56
+    },
+    {
+      "word": "a",
+      "start": 4.56,
+      "end": 4.672
+    },
+    {
+      "word": "word",
+      "start": 4.672,
+      "end": 4.84
+    },
+    {
+      "word": "for",
+      "start": 4.84,
+      "end": 5
+    },
+    {
+      "word": "you",
+      "start": 5,
+      "end": 5.213
+    },
+    {
+      "word": "first",
+      "start": 5.213,
+      "end": 5.463
+    }
+  ]
+}

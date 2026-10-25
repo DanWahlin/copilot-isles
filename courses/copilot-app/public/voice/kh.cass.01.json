@@ -1,0 +1,102 @@
+{
+  "id": "kh.cass.01",
+  "speaker": "Cass",
+  "text": "This ring's the inner loop: understand, change, inspect, test and build, preview. And again if the evidence says so.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "ring's",
+      "start": 0.288,
+      "end": 0.66
+    },
+    {
+      "word": "the",
+      "start": 0.66,
+      "end": 0.76
+    },
+    {
+      "word": "inner",
+      "start": 0.76,
+      "end": 1.04
+    },
+    {
+      "word": "loop",
+      "start": 1.04,
+      "end": 1.833
+    },
+    {
+      "word": "understand",
+      "start": 1.833,
+      "end": 2.891
+    },
+    {
+      "word": "change",
+      "start": 2.891,
+      "end": 3.77
+    },
+    {
+      "word": "inspect",
+      "start": 3.77,
+      "end": 4.72
+    },
+    {
+      "word": "test",
+      "start": 4.72,
+      "end": 5.08
+    },
+    {
+      "word": "and",
+      "start": 5.08,
+      "end": 5.293
+    },
+    {
+      "word": "build",
+      "start": 5.293,
+      "end": 6.24
+    },
+    {
+      "word": "preview",
+      "start": 6.24,
+      "end": 7.16
+    },
+    {
+      "word": "And",
+      "start": 7.16,
+      "end": 7.6
+    },
+    {
+      "word": "again",
+      "start": 7.6,
+      "end": 8.08
+    },
+    {
+      "word": "if",
+      "start": 8.08,
+      "end": 8.26
+    },
+    {
+      "word": "the",
+      "start": 8.26,
+      "end": 8.364
+    },
+    {
+      "word": "evidence",
+      "start": 8.364,
+      "end": 8.784
+    },
+    {
+      "word": "says",
+      "start": 8.784,
+      "end": 9.147
+    },
+    {
+      "word": "so",
+      "start": 9.147,
+      "end": 9.397
+    }
+  ]
+}

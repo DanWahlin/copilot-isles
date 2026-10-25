@@ -1,0 +1,87 @@
+{
+  "id": "kh.stroud.order",
+  "speaker": "Stroud",
+  "text": "Your work order: make search case-insensitive. Take it down the flight, one station at a time.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "work",
+      "start": 0.16,
+      "end": 0.547
+    },
+    {
+      "word": "order",
+      "start": 0.547,
+      "end": 1.184
+    },
+    {
+      "word": "make",
+      "start": 1.184,
+      "end": 2.171
+    },
+    {
+      "word": "search",
+      "start": 2.171,
+      "end": 2.864
+    },
+    {
+      "word": "case-insensitive",
+      "start": 2.864,
+      "end": 4.784
+    },
+    {
+      "word": "Take",
+      "start": 4.784,
+      "end": 5.733
+    },
+    {
+      "word": "it",
+      "start": 5.733,
+      "end": 5.904
+    },
+    {
+      "word": "down",
+      "start": 5.904,
+      "end": 6.18
+    },
+    {
+      "word": "the",
+      "start": 6.18,
+      "end": 6.309
+    },
+    {
+      "word": "flight",
+      "start": 6.309,
+      "end": 7
+    },
+    {
+      "word": "one",
+      "start": 7,
+      "end": 7.68
+    },
+    {
+      "word": "station",
+      "start": 7.68,
+      "end": 8.347
+    },
+    {
+      "word": "at",
+      "start": 8.347,
+      "end": 8.6
+    },
+    {
+      "word": "a",
+      "start": 8.6,
+      "end": 8.72
+    },
+    {
+      "word": "time",
+      "start": 8.72,
+      "end": 8.97
+    }
+  ]
+}

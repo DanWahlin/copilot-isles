@@ -19,6 +19,13 @@
  *   hire, every job can be done with the starfish you can find before the market);
  * - each board's chapter is in the snapshot with at least 5 topics, and each board stands on its island.
  *
+ * A course may write an island's content before the game has the island (it isn't in the registry yet:
+ * its world is in build). That content is held to all of the above but the game's side of the
+ * contract, which comes with the island's wiring step: its NPCs, the names its story answers, its
+ * puzzles' names and steps, and a market stall. Its voice lines can be `"pending": true` (written, not
+ * voiced yet, so no audio), and only such content may play a pending line; a voiced line needs its audio. The game leaves the island's content
+ * out until then (src/course/split.ts `withoutIslandsAhead`).
+ *
  * `src/content/content.test.ts` fails on any issue; `npm run content:check` (tools/content/report.ts)
  * writes them as a report for the weekly refresh PRs.
  */
@@ -52,6 +59,7 @@ import { WORKSPACE_IDS } from '../../src/game/puzzles/channel-routing/workspaces
 import { HELM_MODES, REVIEW_ACTS } from '../../src/world/sites/helms-logic';
 import { CRATE_KINDS } from '../../src/world/sites/crate-yard-logic';
 import { HALYARDS } from '../../src/world/islands/thousand-bough/set-pieces';
+import { CIRCUIT_PLACES, type CircuitKind } from '../../src/game/puzzles/circuit/places';
 import { islandAt, type IslandId } from '../../src/game/islands';
 import { ISLAND_LIST } from '../../src/islands/registry';
 import { EFFORTS, grade, priceIn, refundIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
@@ -144,6 +152,9 @@ const GROUND = Object.fromEntries((await loadChartIslands()).map((c) => [c.id, c
   Record<IslandId, (x: number, z: number) => number>
 >;
 
+/** The islands the game has (the registry): a course island that isn't one is ahead of the game. */
+const BUILT: ReadonlySet<string> = new Set(ISLAND_LIST.map((e) => e.id));
+
 /** The game's cast (every NPC a pack can give barks to), with every extra that can appear. */
 function castIds(): Set<string> {
   const anyAnchor = new Proxy({}, { get: () => ({ x: 0, z: 0 }), has: () => true }) as Record<
@@ -163,6 +174,8 @@ interface VoiceLine {
   id: string;
   speaker: string;
   text: string;
+  /** Written, not voiced yet: only content for an island the game hasn't got may play it. */
+  pending?: boolean;
 }
 
 /** A pack's files on disk (paths in the pack), less `public/`, sorted. */
@@ -285,11 +298,23 @@ export function checkContent(
   // A text-only course's "audio" is its captions (generate.ts writes them without a speech service).
   const spoken = meta.voice !== false;
   const made = spoken ? 'audio' : 'caption';
-  /** A voice line a script or a chapter plays: in the lines file, with audio that says the same. */
-  const voiced = (rel: string, path: string, id: string) => {
+  /**
+   * A voice line a script or a chapter plays: in the lines file, with audio that says the same. Content
+   * for an island the game hasn't got yet (`ahead`) may play a pending line, which has no audio yet.
+   */
+  const voiced = (rel: string, path: string, id: string, ahead = false) => {
     if (!voice) return;
     const l = lines.get(id);
     if (!l) return issue(rel, path, `"${id}" isn't in ${dir}/voice/lines.json`);
+    if (l.pending) {
+      if (!ahead)
+        issue(
+          rel,
+          path,
+          `"${id}" is pending (written, not voiced yet): voice it and drop "pending" first (docs/content-data.md)`,
+        );
+      return;
+    }
     const a = audio.get(id);
     if (!a)
       issue(
@@ -317,6 +342,11 @@ export function checkContent(
   for (const ch of Object.keys(lock.chapters))
     if (!chapterIds.has(ch))
       issue('course.json', 'source.chapters', `the snapshot has ${ch}, which isn't listed`);
+  /** A course island the game hasn't got yet (its content is written ahead of its wiring). */
+  const aheadIsland = (island: string) => meta.islands.some((i) => i.island === island) && !BUILT.has(island);
+  /** The chapter of such an island. */
+  const aheadChapter = (chapter: string) =>
+    meta.islands.some((i) => i.chapter === chapter && aheadIsland(i.island));
   const islandsSeen = new Set<string>();
   meta.islands.forEach((isl, i) => {
     const path = `islands[${i}]`;
@@ -401,7 +431,7 @@ export function checkContent(
     );
     for (const [id, s] of Object.entries(c.voiced ?? {})) {
       src(at('voiced', id), s);
-      voiced(rel, at('voiced', id), id);
+      voiced(rel, at('voiced', id), id, aheadChapter(c.chapter));
     }
     for (const [id, x] of Object.entries(c.cited ?? {})) src(`${at('cited', id)}.source`, x.source);
   }
@@ -424,6 +454,7 @@ export function checkContent(
     list: readonly PackScriptStep[],
     isScript: (name: string) => boolean,
     island: string,
+    ahead = false,
   ) => {
     /** After an `orStop` hand-off, Later ends the script: what follows mustn't move the main story. */
     let stopAt: string | null = null;
@@ -432,7 +463,7 @@ export function checkContent(
       const has = (kind: keyof typeof ids, id: string, what: string) => {
         if (!ids[kind].has(id)) issue(rel, path, `"${id}" isn't ${what} in this course`);
       };
-      if ('say' in s) voiced(rel, path, s.say);
+      if ('say' in s) voiced(rel, path, s.say, ahead);
       else if ('show' in s) has('image', s.show, 'a course image');
       else if ('quiz' in s) has('quiz', s.quiz, 'a quiz');
       else if ('page' in s) has('page', s.page, 'a page');
@@ -452,7 +483,7 @@ export function checkContent(
       } else if ('script' in s) {
         if (!isScript(s.script)) issue(rel, path, `"${s.script}" isn't a script of ${island}`);
       }
-      if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line);
+      if (('askFork' in s || 'askSetup' in s) && s.line) voiced(rel, path, s.line, ahead);
       if ('appTask' in s) {
         has('appTask', s.appTask, 'an app task (learning.json)');
         handedOff.add(s.appTask);
@@ -510,6 +541,8 @@ export function checkContent(
       for (const [id, step] of Object.entries(r.set)) questStep(rel, at(`${path}[${i}].set`, id), id, step);
     });
   for (const [rel, q] of quests) {
+    // An island the game hasn't got yet: its cast and its story's names come with its wiring.
+    const ahead = aheadIsland(q.island);
     if (rel !== `quests/${q.island}.json`) issue(rel, 'island', `should be the file's name (${rel})`);
     const isl = meta.islands.find((i) => i.island === q.island);
     if (!isl) issue(rel, 'island', `"${q.island}" isn't one of the course's islands (course.json)`);
@@ -526,30 +559,37 @@ export function checkContent(
         issue(rel, at('targets', key), `"${step}" isn't a step of ${quest}`);
     }
     for (const [name, list] of Object.entries(q.scripts))
-      steps(rel, at('scripts', name), list, (n) => Object.hasOwn(q.scripts, n), q.island);
+      steps(rel, at('scripts', name), list, (n) => Object.hasOwn(q.scripts, n), q.island, ahead);
     q.beats?.forEach((b: Beat, i) => {
       const path = `beats[${i}]`;
       for (const npc of typeof b.npc === 'string' ? [b.npc] : b.npc)
-        if (!cast.has(npc)) issue(rel, `${path}.npc`, `"${npc}" isn't one of the game's NPCs`);
+        if (!ahead && !cast.has(npc)) issue(rel, `${path}.npc`, `"${npc}" isn't one of the game's NPCs`);
       if (b.when) checkWhen(rel, `${path}.when`, b.when);
       const what = [b.script, b.say, b.none].filter((x) => x !== undefined).length;
       if (what !== 1) issue(rel, path, 'needs one of "script", "say" or "none"');
       if (b.script && !Object.hasOwn(q.scripts, b.script))
         issue(rel, `${path}.script`, `"${b.script}" isn't a script of ${q.island}`);
-      if (b.say) voiced(rel, `${path}.say`, b.say);
+      if (b.say) voiced(rel, `${path}.say`, b.say, ahead);
     });
     for (const npc of Object.keys(q.barks))
-      if (!cast.has(npc)) issue(rel, at('barks', npc), `"${npc}" isn't one of the game's NPCs`);
+      if (!ahead && !cast.has(npc)) issue(rel, at('barks', npc), `"${npc}" isn't one of the game's NPCs`);
     // The signs with course words the island's dressing asks for (ISLAND_SIGNS), and no others.
     const signs = ISLAND_SIGNS[q.island] ?? [];
     for (const n of signs)
       if (!q.signs?.[n]) issue(rel, 'signs', `needs "${n}": the game asks ${q.island} for that sign`);
     for (const n of Object.keys(q.signs ?? {}))
-      if (!signs.includes(n))
+      if (!ahead && !signs.includes(n))
         issue(rel, at('signs', n), `the game doesn't ask ${q.island} for a "${n}" sign`);
     // The story (src/game/story.ts): every condition and event the game asks the island for.
     const asks = Object.hasOwn(STORY_CONDITIONS, q.island) ? (q.island as StoryIsland) : null;
-    if (!asks) {
+    if (ahead && !asks) {
+      // The names are the wiring step's to add to STORY_CONDITIONS and STORY_EVENTS; what they mean
+      // is checked now.
+      for (const [n, when] of Object.entries(q.story?.conditions ?? {}))
+        checkWhen(rel, at('story.conditions', n), when);
+      for (const [n, rules] of Object.entries(q.story?.events ?? {}))
+        checkRules(rel, at('story.events', n), rules, true);
+    } else if (!asks) {
       if (q.story) issue(rel, 'story', `the game asks ${q.island} for no story`);
     } else if (!q.story)
       issue(rel, 'story', `is missing: the game asks ${q.island} for ${STORY_CONDITIONS[asks].join(', ')}`);
@@ -597,7 +637,13 @@ export function checkContent(
         issue(rel, 'mechanic', `should be "${mechanic}": the game's ${name} runs that mechanic`);
     }
   }
-  const checkPuzzle = (rel: string, p: PuzzleFile & Record<string, unknown>): void => {
+  /** The quests of the islands the game hasn't got yet: a puzzle that plays in one is ahead too. */
+  const aheadQuests = new Set(
+    quests.flatMap(([, q]) => (aheadIsland(q.island) ? q.quests.map((d) => d.id) : [])),
+  );
+  /** Puzzles that play in those quests (the game plays them once their island is wired in). */
+  const aheadPuzzles = new Set<string>();
+  const checkPuzzle = (rel: string, p: PuzzleFile & Record<string, unknown>, ahead: boolean): void => {
     // Every voice line it plays: its `lines`, and any `line` (or a letter's `ok`) in its content.
     const walk = (v: unknown, path: string, key: string) => {
       if (typeof v === 'string') {
@@ -607,7 +653,7 @@ export function checkContent(
           path.startsWith('lines') ||
           /^orders\.\w+\.wrong/.test(path)
         )
-          voiced(rel, path, v);
+          voiced(rel, path, v, ahead);
       } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, at(path, i), key));
       else if (v && typeof v === 'object')
         for (const [k, x] of Object.entries(v))
@@ -655,7 +701,7 @@ export function checkContent(
     // Its scripts name quest steps: checked once every quests file is (a broken one hides its quests).
     if (questsOk)
       for (const [name, list] of Object.entries((p.scripts ?? {}) as Record<string, PackScriptStep[]>))
-        steps(rel, at('scripts', name), list, () => false, rel);
+        steps(rel, at('scripts', name), list, () => false, rel, ahead);
     // The gear rack's checks: a stale one names a script of the file, and its closing script moves the
     // quest on (without one, the rack's quest would wait at its checks for good).
     if (p.mechanic === 'checklist' && Array.isArray(p.checks)) {
@@ -692,11 +738,36 @@ export function checkContent(
   };
   for (const rel of files.filter((f) => f.startsWith('puzzles/'))) {
     const name = rel.slice('puzzles/'.length, -'.json'.length);
-    if (!Object.hasOwn(GAME_PUZZLES, name))
+    // A puzzle the game doesn't play yet may play in a quest of an island it hasn't got yet.
+    const quest = (parsed.get(rel) as { quest?: unknown } | undefined)?.quest;
+    const ahead = !Object.hasOwn(GAME_PUZZLES, name) && typeof quest === 'string' && aheadQuests.has(quest);
+    if (ahead) aheadPuzzles.add(name);
+    else if (!Object.hasOwn(GAME_PUZZLES, name))
       issue(rel, '', `isn't a puzzle the game plays (${Object.keys(GAME_PUZZLES).join(', ')})`);
     const p = get<PuzzleFile & Record<string, unknown>>(rel);
     if (p) {
-      checkPuzzle(rel, p);
+      checkPuzzle(rel, p, ahead);
+      if (p.mechanic === 'circuit' && questsOk)
+        (
+          (p.laps ?? []) as {
+            quest: string;
+            step: string;
+            solved: string;
+            close: string;
+            stations: { image?: string; line?: string }[];
+          }[]
+        ).forEach((lap, i) => {
+          questStep(rel, `laps[${i}].step`, lap.quest, lap.step);
+          questStep(rel, `laps[${i}].solved`, lap.quest, lap.solved);
+          // The close script is the lap's quest's island's (the lap's end plays it).
+          const home = quests.find(([, q]) => q.quests.some((d) => d.id === lap.quest))?.[1];
+          if (home && !Object.hasOwn(home.scripts, lap.close))
+            issue(rel, `laps[${i}].close`, `"${lap.close}" isn't a script of ${home.island}`);
+          lap.stations.forEach((st, j) => {
+            if (st.image && !ids.image.has(st.image))
+              issue(rel, `laps[${i}].stations[${j}].image`, `"${st.image}" isn't a course image`);
+          });
+        });
       checkBindings(name, rel, p, issue, (n) =>
         get<PuzzleFile & Record<string, unknown>>(`puzzles/${n}.json`),
       );
@@ -766,7 +837,7 @@ export function checkContent(
       });
       // A disabled puzzle just doesn't count on the map (the puzzle file's own issues are reported there).
       o.covers.puzzles?.forEach((n, j) => {
-        if (!Object.hasOwn(GAME_PUZZLES, n))
+        if (!Object.hasOwn(GAME_PUZZLES, n) && !aheadPuzzles.has(n))
           issue(rel, `${path}.covers.puzzles[${j}]`, `"${n}" isn't a puzzle the game plays`);
       });
     });
@@ -824,20 +895,21 @@ export function checkContent(
 
   // Hooks (COURSE-PACKS.md §5): the lines and quizzes the game asks for by id.
   const h = meta.hooks;
-  const hook = (path: string, id: string) => voiced('course.json', `hooks.${path}`, id);
+  const hook = (path: string, id: string, ahead = false) => voiced('course.json', `hooks.${path}`, id, ahead);
   h.briefing.lines.forEach((id, i) => hook(`briefing.lines[${i}]`, id));
   hook('briefing.chest', h.briefing.chest);
   for (const [island, x] of Object.entries(h.islands)) {
     const path = at('islands', island);
     if (!meta.islands.some((i) => i.island === island))
       issue('course.json', `hooks.${path}`, `"${island}" isn't one of the course's islands`);
-    x.landing?.forEach((id, i) => hook(`${path}.landing[${i}]`, id));
+    const ahead = aheadIsland(island);
+    x.landing?.forEach((id, i) => hook(`${path}.landing[${i}]`, id, ahead));
     x.welcome.forEach((id, i) => {
-      if (id !== '@nav' && id !== '@starfish') hook(`${path}.welcome[${i}]`, id);
+      if (id !== '@nav' && id !== '@starfish') hook(`${path}.welcome[${i}]`, id, ahead);
     });
-    x.welcomeBack?.forEach((id, i) => hook(`${path}.welcomeBack[${i}]`, id));
-    hook(`${path}.tips.nav`, x.tips.nav);
-    hook(`${path}.tips.starfish`, x.tips.starfish);
+    x.welcomeBack?.forEach((id, i) => hook(`${path}.welcomeBack[${i}]`, id, ahead));
+    hook(`${path}.tips.nav`, x.tips.nav, ahead);
+    hook(`${path}.tips.starfish`, x.tips.starfish, ahead);
   }
   hook('sail.line', h.sail.line);
   if (h.sail.meridianOpen) hook('sail.meridianOpen', h.sail.meridianOpen);
@@ -876,6 +948,8 @@ export function checkContent(
   const castFile = get<{ speakers: Record<string, CastEntry> }>('voice/cast.json');
   if (voice && castFile) {
     for (const [i, l] of (voice.lines as VoiceLineDefinition[]).entries()) {
+      // A pending line gets its voice when it's voiced.
+      if (l.pending) continue;
       const r = resolveLine(l, castFile.speakers);
       if (!r.voice && !r.voiceEnv)
         issue(
@@ -901,6 +975,7 @@ export function checkContent(
       linesFile: `${dir}/voice/lines.json`,
       manifestPath,
       islands: meta.islands.map((i) => i.island),
+      ahead: aheadIsland,
     });
   const boards = get<CourseBoardsData>('boards.json');
   if (boards) checkBoards(boards, meta, lock, issue);
@@ -1085,6 +1160,71 @@ function checkBindings(
         });
     });
   }
+  if (p.mechanic === 'circuit' && p.places) checkCircuit(rel, p, issue);
+}
+
+interface CircuitOption {
+  id: string;
+  right?: true;
+  backTo?: string;
+  reason?: string;
+  cite?: string;
+}
+
+/**
+ * A circuit's bindings (src/game/puzzles/circuit/places.ts): each of the game's places on its circuit
+ * bound once; every station at a place; every station with options has a right one, and every wrong
+ * one goes back to a place with its reason and the section it comes from; every claim that doesn't
+ * stick says why; every `cite` is a key of `cites`.
+ */
+function checkCircuit(rel: string, p: PuzzleFile & Record<string, unknown>, issue: Issue): void {
+  const circuit = p.circuit as CircuitKind;
+  const places = Object.keys(p.places as Entries);
+  const acts = Object.values(p.places as Entries).map((v) => v.acts);
+  bindsEach(issue, rel, 'places', acts, CIRCUIT_PLACES[circuit] ?? []);
+  const cites = Object.keys((p.cites ?? {}) as object);
+  const cited = (path: string, key: string | undefined) => {
+    if (key === undefined) issue(rel, path, 'needs a "cite": the section its reason comes from');
+    else known(issue, rel, path, key, cites, 'a key of "cites"');
+  };
+  type Station = {
+    at: string;
+    kind: string;
+    cite: string;
+    options?: CircuitOption[];
+    tiles?: { sticks: boolean; reason?: string; cite?: string }[];
+    lamps?: unknown[];
+    planks?: number;
+  };
+  ((p.laps ?? []) as { stations: Station[] }[]).forEach((lap, i) =>
+    lap.stations.forEach((st, j) => {
+      const path = `laps[${i}].stations[${j}]`;
+      known(issue, rel, `${path}.at`, st.at, places, 'a key of "places"');
+      cited(`${path}.cite`, st.cite);
+      const needs = { choose: 'options', seal: 'options', tiles: 'tiles', gate: 'lamps', sound: 'planks' }[
+        st.kind
+      ] as keyof Station | undefined;
+      if (needs && st[needs] === undefined) issue(rel, path, `a "${st.kind}" station needs "${needs}"`);
+      if (st.options) {
+        if (!st.options.some((o) => o.right)) issue(rel, `${path}.options`, 'needs a right option');
+        st.options.forEach((o, k) => {
+          if (o.right) return;
+          const at = `${path}.options[${k}]`;
+          if (!o.reason) issue(rel, at, 'a wrong option needs its "reason"');
+          if (o.backTo === undefined) issue(rel, at, 'a wrong option needs "backTo": where the hull goes');
+          else known(issue, rel, `${at}.backTo`, o.backTo, places, 'a key of "places"');
+          cited(`${at}.cite`, o.cite);
+        });
+      }
+      st.tiles?.forEach((t, k) => {
+        if (t.sticks) return;
+        if (!t.reason) issue(rel, `${path}.tiles[${k}]`, 'a claim that doesn’t stick needs its "reason"');
+        cited(`${path}.tiles[${k}].cite`, t.cite);
+      });
+      if (st.tiles && !st.tiles.some((t) => t.sticks))
+        issue(rel, `${path}.tiles`, 'needs a claim that sticks');
+    }),
+  );
 }
 
 function checkMarket(
@@ -1100,6 +1240,8 @@ function checkMarket(
     manifestPath: string;
     /** The islands the course uses (each has a stall). */
     islands: readonly string[];
+    /** A course island the game hasn't got yet: its stall comes with its wiring. */
+    ahead: (island: string) => boolean;
   },
 ): void {
   const rel = 'market.json';
@@ -1231,7 +1373,10 @@ function checkMarket(
   }
   for (const [island, k] of Object.entries(keepers)) {
     const stall = MARKET_STALLS.find((s) => s.island === island && s.lines === 'keepers');
-    if (!stall) {
+    // An island the game hasn't got yet: its keeper's lines are written (voiced or pending), and its
+    // stall (the keeper's name) comes with its wiring.
+    const ahead = !stall && ctx.ahead(island);
+    if (!stall && !ahead) {
       fail(`keepers.${island}`, `"${island}" has no stall but Gilda's (src/game/market/stalls.ts)`);
       continue;
     }
@@ -1241,9 +1386,21 @@ function checkMarket(
       seen.add(g.voice);
       const l = ctx.lines.get(g.voice);
       if (!l) fail(`${path}.voice`, `"${g.voice}" isn't in ${ctx.linesFile}`);
-      else {
-        if (l.speaker !== stall.keeper.name)
-          fail(`${path}.voice`, `"${g.voice}" is ${l.speaker}'s line, not ${stall.keeper.name}'s`);
+      else if (ahead) {
+        if (l.text !== g.text)
+          fail(
+            `${path}.text`,
+            `differs from "${g.voice}" in ${ctx.linesFile}: change both to the same words`,
+          );
+        // Its stall isn't in the game yet: a pending line needs no audio; a voiced one is checked below.
+        if (l.pending) {
+          if (g.source) ctx.cite(rel, `${path}.source`, g.source);
+          continue;
+        }
+      } else {
+        if (l.pending) fail(`${path}.voice`, `"${g.voice}" is pending: voice it and drop "pending" first`);
+        if (l.speaker !== stall!.keeper.name)
+          fail(`${path}.voice`, `"${g.voice}" is ${l.speaker}'s line, not ${stall!.keeper.name}'s`);
         if (l.text !== g.text)
           fail(
             `${path}.text`,

@@ -1,0 +1,102 @@
+{
+  "id": "kh.stroud.01",
+  "speaker": "Stroud",
+  "text": "Past this gate, work moves through GitHub: an issue, a session, a pull request, checks, and then a merge.",
+  "words": [
+    {
+      "word": "Past",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "this",
+      "start": 0.288,
+      "end": 0.56
+    },
+    {
+      "word": "gate",
+      "start": 0.56,
+      "end": 1.12
+    },
+    {
+      "word": "work",
+      "start": 1.12,
+      "end": 1.533
+    },
+    {
+      "word": "moves",
+      "start": 1.533,
+      "end": 2.03
+    },
+    {
+      "word": "through",
+      "start": 2.03,
+      "end": 2.309
+    },
+    {
+      "word": "GitHub",
+      "start": 2.309,
+      "end": 3.413
+    },
+    {
+      "word": "an",
+      "start": 3.413,
+      "end": 3.6
+    },
+    {
+      "word": "issue",
+      "start": 3.6,
+      "end": 4.36
+    },
+    {
+      "word": "a",
+      "start": 4.36,
+      "end": 4.47
+    },
+    {
+      "word": "session",
+      "start": 4.47,
+      "end": 5.4
+    },
+    {
+      "word": "a",
+      "start": 5.4,
+      "end": 5.504
+    },
+    {
+      "word": "pull",
+      "start": 5.504,
+      "end": 5.84
+    },
+    {
+      "word": "request",
+      "start": 5.84,
+      "end": 6.8
+    },
+    {
+      "word": "checks",
+      "start": 6.8,
+      "end": 7.64
+    },
+    {
+      "word": "and",
+      "start": 7.64,
+      "end": 7.792
+    },
+    {
+      "word": "then",
+      "start": 7.792,
+      "end": 7.96
+    },
+    {
+      "word": "a",
+      "start": 7.96,
+      "end": 8.093
+    },
+    {
+      "word": "merge",
+      "start": 8.093,
+      "end": 8.343
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "kh.stroud.06",
+  "speaker": "Stroud",
+  "text": "So start where the bug is: Create from, Branches, the search-case branch. Then attach the issue.",
+  "words": [
+    {
+      "word": "So",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "start",
+      "start": 0.32,
+      "end": 0.747
+    },
+    {
+      "word": "where",
+      "start": 0.747,
+      "end": 0.92
+    },
+    {
+      "word": "the",
+      "start": 0.92,
+      "end": 1.12
+    },
+    {
+      "word": "bug",
+      "start": 1.12,
+      "end": 1.547
+    },
+    {
+      "word": "is",
+      "start": 1.547,
+      "end": 2.24
+    },
+    {
+      "word": "Create",
+      "start": 2.24,
+      "end": 3.296
+    },
+    {
+      "word": "from",
+      "start": 3.296,
+      "end": 4.274
+    },
+    {
+      "word": "Branches",
+      "start": 4.274,
+      "end": 5.24
+    },
+    {
+      "word": "the",
+      "start": 5.24,
+      "end": 5.429
+    },
+    {
+      "word": "search-case",
+      "start": 5.429,
+      "end": 6.343
+    },
+    {
+      "word": "branch",
+      "start": 6.343,
+      "end": 7.216
+    },
+    {
+      "word": "Then",
+      "start": 7.216,
+      "end": 7.977
+    },
+    {
+      "word": "attach",
+      "start": 7.977,
+      "end": 8.36
+    },
+    {
+      "word": "the",
+      "start": 8.36,
+      "end": 8.573
+    },
+    {
+      "word": "issue",
+      "start": 8.573,
+      "end": 8.823
+    }
+  ]
+}

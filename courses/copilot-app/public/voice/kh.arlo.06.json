@@ -1,0 +1,52 @@
+{
+  "id": "kh.arlo.06",
+  "speaker": "Arlo",
+  "text": "Push, and the check runs again. Green, this time.",
+  "words": [
+    {
+      "word": "Push",
+      "start": 0,
+      "end": 0.74
+    },
+    {
+      "word": "and",
+      "start": 0.74,
+      "end": 0.82
+    },
+    {
+      "word": "the",
+      "start": 0.82,
+      "end": 0.92
+    },
+    {
+      "word": "check",
+      "start": 0.92,
+      "end": 1.168
+    },
+    {
+      "word": "runs",
+      "start": 1.168,
+      "end": 1.427
+    },
+    {
+      "word": "again",
+      "start": 1.427,
+      "end": 2.367
+    },
+    {
+      "word": "Green",
+      "start": 2.367,
+      "end": 2.944
+    },
+    {
+      "word": "this",
+      "start": 2.944,
+      "end": 3.12
+    },
+    {
+      "word": "time",
+      "start": 3.12,
+      "end": 3.37
+    }
+  ]
+}

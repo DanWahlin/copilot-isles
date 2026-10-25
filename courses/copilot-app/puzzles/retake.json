@@ -1,0 +1,20 @@
+{
+  "$schema": "../../schemas/puzzle-ceremony.schema.json",
+  "id": "Q3.1.retake",
+  "mechanic": "ceremony",
+  "quest": "Q3.1",
+  "$comment": "The Bard's re-take on the tavern porch (Q3.1, docs/specs/ISLAND-03-keelhaven.md §7): Lyra plays a take, plays it back with one wrong note, the player picks the bar to fix, and she records it again; Salty Sway joins the Songbook. Her talk is the island's lyra script (03 · From the Studio).",
+  "text": {
+    "playBack": "Play back",
+    "recordAgain": "Record again",
+    "pick": "Which bar rang wrong?",
+    "bar1": "Bar 1",
+    "bar2": "Bar 2",
+    "bar3": "Bar 3",
+    "wrongBar": "That bar’s fine. Listen to the play-back again.",
+    "found": "That one. Adjust it, and record again.",
+    "clean": "A clean take.",
+    "hint1": "Listen to the play-back: one bar rings wrong.",
+    "hint2": "Watch the music line: the wrong note shows a red ripple."
+  }
+}

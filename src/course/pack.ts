@@ -50,7 +50,7 @@ export interface IslandQuestsFile {
     chapter: string;
     goal: string;
     next: string;
-    /** Anchorage: what's next once the next island's open (it replaces `next`). */
+    /** Anchorage and Thousand-Bough: what's next once the next island's open (it replaces `next`). */
     nextSail?: string;
   };
   quests: readonly QuestDef[];
@@ -136,6 +136,9 @@ export const PUZZLE_MECHANICS = [
   'checklist',
   'budget',
   'ceremony',
+  // Keelhaven's Two Circuits (src/game/puzzles/circuit/places.ts): its content is in the pack before
+  // the island's wiring step adds the mechanic's module.
+  'circuit',
 ] as const;
 export type PuzzleMechanic = (typeof PUZZLE_MECHANICS)[number];
 

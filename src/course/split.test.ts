@@ -5,8 +5,8 @@ import { addCoursePart, courseScript, coursePartIn, islandQuests, onCourse, setA
 import { activateCourse } from './load';
 import { assemblePack, type CoursePack, type PackFiles } from './pack';
 import { puzzleMaybe, puzzleOn, puzzleQuest } from './puzzles';
-import { islandChapter, mergePackPart, puzzleChapter, splitPack } from './split';
-import { PUZZLE_ISLANDS } from './puzzle-islands';
+import { isIslandId } from '../islands/registry';
+import { islandChapter, mergePackPart, puzzlePartChapter, splitPack, withoutIslandsAhead } from './split';
 import { join } from 'node:path';
 
 const read = (id: string) => {
@@ -46,7 +46,7 @@ describe('course pack split (src/course/split.ts)', () => {
         expect(core.puzzles[name]).toEqual(
           Object.fromEntries(
             Object.entries(p).filter(([k]) =>
-              puzzleChapter(meta, name)
+              puzzlePartChapter(meta, files, name)
                 ? ['id', 'mechanic', 'chapter', 'disabled', 'quest', 'steps'].includes(k)
                 : true,
             ),
@@ -65,13 +65,44 @@ describe('course pack split (src/course/split.ts)', () => {
         for (const path of Object.keys(part)) {
           const puzzle = /^puzzles\/(.+)\.json$/.exec(path)?.[1];
           const quests = /^quests\/(.+)\.json$/.exec(path)?.[1];
-          if (puzzle) expect(islandChapter(meta, PUZZLE_ISLANDS[puzzle]!), path).toBe(chapter);
+          if (puzzle) expect(puzzlePartChapter(meta, files, puzzle), path).toBe(chapter);
           else if (quests) expect(islandChapter(meta, quests), path).toBe(chapter);
           else expect(path).toBe(`chapters/${chapter}.json`);
         }
       }
     });
   }
+});
+
+describe('content ahead of its island (src/course/split.ts withoutIslandsAhead)', () => {
+  it('leaves out the chapter, quests, puzzles and learning rows of an island the game hasn’t got', () => {
+    const { meta, files } = read('copilot-app');
+    const split = splitPack(meta, files, { trim: true });
+    const ahead = meta.islands.filter((i) => !isIslandId(i.island));
+    const written = ahead.filter((i) => files[`chapters/${i.chapter}.json`]);
+    expect(written.length).toBeGreaterThan(0);
+    const game = withoutIslandsAhead(meta, split, isIslandId);
+    const pack = assemblePack(meta, game.core);
+    for (const i of written) {
+      expect(Object.keys(game.parts)).not.toContain(i.chapter);
+      expect(pack.chapters.map((c) => c.chapter)).not.toContain(i.chapter);
+      expect(Object.keys(pack.quests)).not.toContain(i.island);
+      for (const t of pack.learning.appTasks) expect(t.chapter).not.toBe(i.chapter);
+      for (const o of pack.learning.objectives) expect(o.chapter).not.toBe(i.chapter);
+      for (const r of pack.learning.reflections) expect(r.chapter).not.toBe(i.chapter);
+    }
+    const quests = new Set(Object.values(pack.quests).flatMap((q) => q.quests.map((d) => d.id)));
+    for (const p of Object.values(pack.puzzles)) if (p.quest) expect(quests.has(p.quest), p.id).toBe(true);
+    // The islands the game has keep everything.
+    for (const i of meta.islands.filter((x) => isIslandId(x.island)))
+      expect(Object.keys(pack.quests)).toContain(i.island);
+  });
+
+  it('changes nothing for a course whose islands the game has', () => {
+    const { meta, files } = read('copilot-cli');
+    const split = splitPack(meta, files, { trim: true });
+    expect(withoutIslandsAhead(meta, split, isIslandId)).toBe(split);
+  });
 });
 
 describe('a voyage with some chapter parts in (src/course/active.ts)', () => {
