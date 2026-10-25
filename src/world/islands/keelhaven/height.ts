@@ -1,6 +1,10 @@
 import { fbm2 } from '../../terrain/cove-height';
 import { clamp01, mulberry32, smoothstep } from '../../../util/math';
 import { KEELHAVEN as K, toFrame, toWorld, type ValleyStation } from './layout';
+import { createKeelhavenWater, type KeelhavenWater } from './water';
+import { worksCarve, worksPadAt, worksWaterAt } from './works';
+import { townGroundAt } from './town';
+import type { TerrainFreshWater } from '../../terrain/water-caps';
 
 /**
  * Keelhaven's ground: one height function, sampled by the bake.
@@ -19,6 +23,10 @@ import { KEELHAVEN as K, toFrame, toWorld, type ValleyStation } from './layout';
  *    amphitheatre head at the spine). Its walls have ribs of their own.
  * 5. The sea: deep water close in off the cliffs, a reef flat off each of the cove's headlands, a sea
  *    stack off the south-west headland.
+ * 6. The harbour works (`works.ts`): the yard's and the locks' pads, the basin, the docks and the
+ *    canal's chambers cut into them, the slipway's ramp.
+ * 7. The fresh water (`water.ts`): its pools and channels carved in last (a fall's channel cuts a
+ *    gully down its wall).
  */
 
 const SEED = 0x3_ee1_4a;
@@ -569,14 +577,39 @@ export function keelhavenHeightDry(x: number, z: number): number {
   let h = massif(x, z);
   const cove = coveValley(u, v, x, z);
   if (cove < h + 8) h = smin(h, cove, 8);
+  h = worksCarve(x, z, h);
   h = seaStacks(x, z, h);
   if (h < 0) h = reefs(u, v, x, z, h);
   return edgeApron(x, z, Math.max(h, -K.deepDepth));
 }
 
-/** Keelhaven's ground height (m) at world (x, z). No fresh water is carved yet. */
+let water: KeelhavenWater | null = null;
+
+/** Keelhaven's fresh water, carved into its uncarved height (made once). */
+export function keelhavenWater(): KeelhavenWater {
+  return (water ??= createKeelhavenWater(keelhavenHeightDry));
+}
+
+/**
+ * All of Keelhaven's water over its ground for the terrain's coarse levels to keep under: the fresh
+ * water, and the works' basin, flooded dock and canal chambers.
+ */
+export function keelhavenTerrainWater(): TerrainFreshWater {
+  const fresh = keelhavenWater();
+  return {
+    // (The fresh water's box holds the works too.)
+    box: fresh.box,
+    levelAt(x, z) {
+      const w = worksWaterAt(x, z);
+      const f = fresh.levelAt(x, z);
+      return w === null ? f : f === null ? w : Math.max(w, f);
+    },
+  };
+}
+
+/** Keelhaven's ground height (m) at world (x, z), with its fresh water carved in. */
 export function keelhavenHeight(x: number, z: number): number {
-  return keelhavenHeightDry(x, z);
+  return keelhavenWater().carve(x, z, keelhavenHeightDry(x, z));
 }
 
 /** The ground's normal at (x, z), from the height's central differences 1.5 m either side. */
@@ -659,6 +692,29 @@ export function keelhavenMasks(
   if (underSea > 0) sand = Math.max(sand, shelfSand * (1 - heads * 0.85));
   let rock = Math.max(gully * 0.8, nose, scar, fan * 0.9 * patch, sheer, seabed);
   let grass = smoothstep(0.5, 3, h) * (1 - band);
+  // The works' yard and lock terrace: trodden earth (sand, which the `town` region darkens), worn
+  // patchy, grass holding on round its edges.
+  const works = worksPadAt(x, z);
+  if (works > 0 && h > 0.5) {
+    const worn = works * (0.65 + 0.35 * smoothstep(-0.2, 0.3, fbm2(x / 9, z / 9, 2, SEED + 83)));
+    sand = Math.max(sand, worn);
+    grass *= 1 - worn * 0.85;
+  }
+  // The town's street, square and paths: trodden earth (sand, which the `town` region darkens).
+  const trodden = townGroundAt(x, z);
+  if (trodden > 0 && h > 0.5) {
+    sand = Math.max(sand, trodden * 0.95);
+    grass *= 1 - trodden * 0.9;
+  }
+  // Fresh water: wet stones at the water's edge, a green bank behind them (no sand in the river).
+  const shore = keelhavenWater().shoreDistance(x, z, 10);
+  if (shore < 10 && h > 0.5) {
+    const wet = 1 - smoothstep(0, 1.2, shore);
+    const bank = (1 - smoothstep(1, 7, shore)) * (1 - wet) * (1 - smoothstep(0.5, 1.1, slope));
+    rock = Math.max(rock, wet * 0.75);
+    grass = Math.max(grass, bank);
+    sand *= 1 - wet;
+  }
   const cliff = clamp01(band);
   rock = clamp01(rock * (1 - cliff));
   sand = clamp01(sand * (1 - cliff));

@@ -64,6 +64,15 @@ export interface ValleyStation {
   readonly halfWidth: number;
 }
 
+/** A fall to the sea on the outer coast: its stream (spring first, lip last; world x, z). */
+export interface SeaFall {
+  readonly name: string;
+  readonly line: readonly (readonly [number, number])[];
+  readonly halfWidth: number;
+  /** A sheet that falls clear of the sea cliff from the lip (else the cascade runs on to the sea). */
+  readonly curtain: boolean;
+}
+
 export const KEELHAVEN = {
   /** The island's middle (for distances and the chart). */
   center: CENTER,
@@ -219,6 +228,147 @@ export const KEELHAVEN = {
     { x: 3525, z: -1490, radius: 6, height: 9 },
     { x: 4400, z: -2130, radius: 8, height: 16 },
   ],
+
+  /**
+   * Fresh water (`water.ts`). The cove's water is in the cove frame (u, v); the sea falls on the outer
+   * coast are in world (x, z), down the floor of a hanging valley from a spring to its lip (the line's
+   * last point).
+   * - Ribbon Falls: from a spring under the head wall's crest down its gully into the Falls Pool.
+   * - The Keel River: from the Falls Pool down the valley, in rapids down the valley's step, across
+   *   the middle of the town shelf (the town to its south, the shipyard to its north) and the beach.
+   * - The sea falls: a cascade down a hanging valley's floor, then (`curtain`) a sheet that falls clear
+   *   of the sea cliff into the sea; without a curtain, the cascade runs on down to the sea.
+   */
+  water: {
+    ribbon: {
+      spring: { u: 462, v: 11, r: 4 },
+      line: [
+        [460, 12],
+        [454, 14],
+        [448, 12],
+        [442, 15],
+        [436, 18],
+        [430, 17],
+        [424, 13],
+        [418, 12],
+        [412, 15],
+        [406, 19],
+        [400, 18],
+        [394, 14],
+        [388, 13],
+        [380, 17],
+      ] as const,
+      halfWidth: 1.9,
+    },
+    fallsPool: { u: 372, v: 19, r: 12 },
+    river: {
+      line: [
+        [362, 16],
+        [346, 10],
+        [328, 0],
+        [308, -8],
+        [288, -6],
+        [270, 2],
+        [252, 8],
+        [234, 6],
+        [216, 1],
+        [200, 0],
+        [184, 0],
+        [150, 0],
+        [112, 0],
+        [74, 0],
+        [44, 0],
+        [24, 0],
+        [6, 0],
+        [-16, 0],
+      ] as const,
+      halfWidth: 2.8,
+    },
+    seaFalls: [
+      {
+        name: 'Hanging Fall',
+        line: [
+          [3692.8, -1678.1],
+          [3686.2, -1683.3],
+          [3680.2, -1682.6],
+          [3674.6, -1679.0],
+          [3668.9, -1676.3],
+          [3663.6, -1669.6],
+          [3658.4, -1663.0],
+          [3653.0, -1657.3],
+          [3647.0, -1656.6],
+          [3640.9, -1656.9],
+          [3634.5, -1660.2],
+          [3628.4, -1660.5],
+          [3622.5, -1659.8],
+          [3616.4, -1660.1],
+          [3611.1, -1656.0],
+        ],
+        halfWidth: 2.2,
+        curtain: true,
+      },
+      {
+        name: 'Twin Ribbons',
+        line: [
+          [3729.8, -1176.3],
+          [3727.6, -1169.9],
+          [3724.7, -1164.3],
+          [3717.7, -1162.9],
+          [3712.0, -1160.2],
+          [3706.3, -1157.4],
+          [3698.5, -1156.7],
+          [3692.1, -1154.7],
+          [3683.6, -1154.8],
+          [3675.9, -1154.1],
+          [3668.0, -1154.2],
+        ],
+        halfWidth: 1.8,
+        curtain: true,
+      },
+      {
+        name: 'North Spout',
+        line: [
+          [4062.9, -2225.4],
+          [4068.0, -2228.6],
+          [4072.5, -2232.7],
+          [4075.4, -2239.3],
+          [4078.9, -2245.0],
+          [4082.9, -2249.9],
+          [4087.5, -2254.0],
+          [4092.5, -2257.2],
+          [4098.7, -2258.7],
+          [4105.9, -2258.5],
+          [4109.4, -2264.2],
+          [4111.4, -2270.5],
+        ],
+        halfWidth: 1.6,
+        curtain: true,
+      },
+      {
+        name: 'South Cascade',
+        line: [
+          [3710.1, -1459.1],
+          [3711.2, -1450.7],
+          [3710.8, -1443.5],
+          [3708.0, -1438.1],
+          [3703.5, -1434.0],
+          [3700.7, -1428.6],
+          [3697.9, -1423.2],
+          [3689.4, -1422.1],
+          [3685.8, -1417.3],
+          [3680.6, -1413.7],
+          [3672.2, -1412.6],
+          [3663.8, -1411.4],
+          [3659.3, -1407.3],
+          [3656.5, -1401.9],
+          [3656.1, -1394.7],
+          [3654.8, -1386.0],
+        ],
+        halfWidth: 1.5,
+        curtain: false,
+      },
+    ] as readonly SeaFall[],
+  },
 
   /** Where the ship lies in the cove (cove frame), and the line it sails in on (from the open sea). */
   anchorage: { u: -110, v: -25 },
