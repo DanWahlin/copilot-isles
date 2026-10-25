@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { keelhavenHeight, keelhavenHeightDry, keelhavenMasks } from './height';
+import { keelhavenHeight, keelhavenHeightDry, keelhavenMasks, keelhavenWater } from './height';
 import { KEELHAVEN as K, toFrame, toWorld } from './layout';
+import { inWorks } from './works';
 
 const heightAt = (u: number, v: number) => {
   const p = toWorld(u, v);
   return keelhavenHeight(p.x, p.z);
+};
+
+/** Whether frame (u, v) lies within `r` m of fresh water (its channel cuts the beach and the shelf). */
+const byWater = (u: number, v: number, r: number) => {
+  const p = toWorld(u, v);
+  return keelhavenWater().shoreDistance(p.x, p.z, r) < r;
 };
 
 /** The steepest rise (rise/run) at frame (u, v), from central differences 1 m either side. */
@@ -76,16 +83,23 @@ describe('keelhavenHeight', () => {
       }
     // A rise of 5 m over 0.25 m is a near-sheer face (a sea cliff, a spire's side), not a step.
     expect(worst).toBeLessThan(5);
-  });
+    // About 75 000 height samples: about 3 s here, more than 5 s on a slow CI runner.
+  }, 30_000);
 
-  it('carves no fresh water yet (wet and dry heights are the same)', () => {
-    const p = toWorld(200, 0);
+  it('carves its fresh water into the ground, and leaves the rest as it was', () => {
+    const river = keelhavenWater().streams[1]!;
+    const i = Math.floor(river.count / 2);
+    const [x, z] = [river.x[i]!, river.z[i]!];
+    expect(keelhavenHeight(x, z)).toBeLessThan(keelhavenHeightDry(x, z));
+    const p = toWorld(100, 160);
     expect(keelhavenHeight(p.x, p.z)).toBe(keelhavenHeightDry(p.x, p.z));
   });
 
   it('gives a walkable beach between the headlands', () => {
     for (let u = -5; u <= 25; u += 3)
       for (let v = -70; v <= 70; v += 7) {
+        // The river's mouth and the works (the slipway, the cut, the quay) cut the beach.
+        if (byWater(u, v, 6) || inWorks(u, v, 3)) continue;
         const h = heightAt(u, v);
         expect(h).toBeGreaterThan(-0.6);
         expect(h).toBeLessThan(3.6);
@@ -97,6 +111,8 @@ describe('keelhavenHeight', () => {
     const t = K.townShelf;
     for (let u = t.u0 + 5; u <= t.u1 - 5; u += 6)
       for (let v = -(t.halfWidth - 8); v <= t.halfWidth - 8; v += 6) {
+        // The river crosses the shelf in its own bed; the works cut their chambers into it.
+        if (byWater(u, v, 6) || inWorks(u, v, 3)) continue;
         const h = heightAt(u, v);
         expect(h).toBeGreaterThanOrEqual(t.minY);
         expect(h).toBeLessThanOrEqual(t.maxY);
@@ -174,11 +190,14 @@ describe('keelhavenMasks', () => {
     }
   });
 
-  it('puts sand on the beach, plants on the town shelf, and cliff only in the sea-cliff band', () => {
+  it('puts sand on the beach and the street, plants on the town shelf, and cliff only in the sea-cliff band', () => {
     const beach = toWorld(5, 0);
     expect(keelhavenMasks(beach.x, beach.z).sand).toBeGreaterThan(0.8);
-    const shelf = toWorld(110, 0);
+    // Between the houses (off the street and the yards).
+    const shelf = toWorld(140, 56);
     expect(keelhavenMasks(shelf.x, shelf.z).grass).toBeGreaterThan(0.8);
+    const street = toWorld(46, 45);
+    expect(keelhavenMasks(street.x, street.z).sand).toBeGreaterThan(0.6);
     const high = toWorld(60, 300);
     expect(keelhavenMasks(high.x, high.z).cliff).toBe(0);
   });

@@ -1,45 +1,17 @@
-import { Color, InstancedBufferAttribute, NormalBlending, Sprite, SpriteNodeMaterial } from 'three/webgpu';
-import {
-  cameraPosition,
-  clamp,
-  color,
-  float,
-  instancedBufferAttribute,
-  mix,
-  normalize,
-  sin,
-  smoothstep,
-  texture,
-  uniform,
-  uv,
-  vec2,
-  vec3,
-} from 'three/tsl';
 import type { TierSettings } from '../../../engine/quality';
-import { releaseInstanceAttributes } from '../../../engine/instance-buffers';
-import { releaseSpriteQuad, useSpriteQuad } from '../../../engine/sprite-quad';
 import { mulberry32 } from '../../../util/math';
-import { world } from '../../uniforms';
-import { terrainNoiseTexture } from '../../terrain/noise-texture';
+import { createMistCards, type MistCards } from '../../mist/mist-cards';
 import { THOUSAND_BOUGH as TB, TREE } from './layout';
 import { thousandBoughHeight } from './height';
 import { GREAT_FALLS_CURTAIN } from './water';
 import { CURTAIN_FOOT_Y as GREAT_FALLS_FOOT_Y } from './water-mesh';
 import type { WalkClearance } from './village/clearance';
 
-// three's fluent TSL typings don't cover every scalar/vector mix used below.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyNode = any;
-
 /** Mist cards per tier (spec §9.8): none on Lite (the haze carries it), 20 / 40 / 60. */
 const COUNT: Record<TierSettings['tier'], number> = { lite: 0, low: 20, medium: 40, high: 60, ultra: 60 };
 
-export interface Mist {
-  sprite: Sprite;
-  /** How thick the mist is (1 at the island's authored mood; the Seal thins it to 0.7). */
-  setDensity(k: number): void;
-  dispose(): void;
-}
+/** The valley's mist (the Seal thins it to 0.7). */
+export type Mist = MistCards;
 
 /** A card's spot: centre and size, kept clear of the ground, the trunk, the decks and every walk. */
 export function mistCards(
@@ -137,94 +109,18 @@ function sightDistance(
 }
 
 /**
- * The valley's mist (spec §2.4): big soft cards (one instanced sprite, one material: a new shader,
- * PLAN §15.4) drifting slowly between 8 m and the mist's top, shaded from the cool shade colour to the
- * warm sun colour on the side toward the sun, fading out near the camera (gone within 6 m) and toward
- * their top and bottom, so no hard line shows where they meet the world.
+ * The valley's mist (spec §2.4): big soft cards drifting slowly between 8 m and the mist's top in the
+ * shared mist look (`createMistCards`), none on Lite (the haze carries it).
  */
 export function createMist(tier: TierSettings, clearance: WalkClearance): Mist | null {
   const n = COUNT[tier.tier];
   if (n === 0) return null;
   const cards = mistCards(n, clearance);
   if (cards.length === 0) return null;
-  const data = new Float32Array(cards.length * 4);
-  cards.forEach((c, i) => data.set([c.x, c.y, c.z, c.s], i * 4));
-  const attr = new InstancedBufferAttribute(data, 4);
-  const card = instancedBufferAttribute(attr) as AnyNode;
-  const densityU = uniform(1) as AnyNode;
-  const material = new SpriteNodeMaterial({ transparent: true, depthWrite: false, blending: NormalBlending });
-  material.name = 'thousand-bough-mist';
-  const seed = card.x.mul(0.137).add(card.z.mul(0.071));
-  const t = world.time as AnyNode;
-  const drift = vec3(
-    sin(t.mul(0.021).add(seed)).mul(4),
-    sin(t.mul(0.033).add(seed.mul(1.7))).mul(0.8),
-    sin(t.mul(0.017).add(seed.mul(2.3))).mul(4),
-  );
-  const centre = card.xyz.add(drift) as AnyNode;
-  material.positionNode = centre;
-  // Wide, low banks rather than round puffs.
-  const breathe = float(1).add(sin(t.mul(0.05).add(seed)).mul(0.06));
-  material.scaleNode = vec2(card.w.mul(1.7), card.w.mul(0.72)).mul(breathe);
-  // A soft bank broken into wisps: two layers of the shared noise (drifting slowly, each card its
-  // own patch) carve the round falloff, so its edges fray instead of ending in a sheet's outline.
-  const q = uv() as AnyNode;
-  const p = q.sub(0.5).mul(2);
-  const d2 = p.dot(p);
-  const noiseTex = terrainNoiseTexture();
-  const n1 = texture(
-    noiseTex,
-    q
-      .mul(vec2(0.55, 0.3))
-      .add(vec2(seed.mul(0.37), seed.mul(0.21)))
-      .add(t.mul(0.0035)),
-  ) as AnyNode;
-  const n2 = texture(
-    noiseTex,
-    q
-      .mul(vec2(1.3, 0.8))
-      .add(vec2(seed.mul(0.11), seed.mul(0.53)))
-      .sub(t.mul(0.006)),
-  ) as AnyNode;
-  const wisp = n1.r.mul(0.65).add(n2.g.mul(0.35));
-  const body = clamp(float(1).sub(d2), 0, 1);
-  const puff = smoothstep(0.32, 0.78, body.mul(0.75).add(wisp.mul(0.6)).sub(0.15)).mul(body.pow(1.1));
-  // Warm where the view looks toward the sun through it; cool in the shade.
-  const view = normalize(centre.sub(cameraPosition)) as AnyNode;
-  const sunward = smoothstep(-0.2, 0.85, view.dot(world.sunDir)) as AnyNode;
-  const shade = new Color(TB.mood.mistShade);
-  const sunC = new Color(TB.mood.mistSun);
-  const lit = mix(color(shade), color(sunC), sunward.mul(0.7).add(0.15)) as AnyNode;
-  const light = (world.sunColor as AnyNode)
-    .length()
-    .mul(0.13)
-    .add(world.skyColor.mul(0.9).length().mul(0.55))
-    .add(float(0.08).mul(float(1).sub(world.night.mul(0.7)))) as AnyNode;
-  material.colorNode = lit.mul(clamp(light, 0.12, 1.25));
-  const dist = centre.sub(cameraPosition).length() as AnyNode;
-  // Gone within 10 m of the camera, full by 30 m or so (no sheet across the lens).
-  const near = smoothstep(card.w.mul(0.3).add(14), card.w.mul(0.6).add(42), dist);
-  const height = smoothstep(4, 10, centre.y).mul(
-    float(1).sub(smoothstep(TB.mood.mistTop - 8, TB.mood.mistTop, centre.y)),
-  );
-  material.opacityNode = puff.mul(near).mul(height).mul(0.22).mul(densityU);
-  material.fog = true;
-  const sprite = useSpriteQuad(new Sprite(material));
-  sprite.count = cards.length;
-  sprite.name = 'thousand-bough-mist';
-  sprite.frustumCulled = false;
-  sprite.renderOrder = 2;
-  sprite.castShadow = false;
-  sprite.receiveShadow = false;
-  return {
-    sprite,
-    setDensity(k) {
-      densityU.value = k;
-    },
-    dispose() {
-      material.dispose();
-      releaseSpriteQuad(sprite);
-      releaseInstanceAttributes([attr]);
-    },
-  };
+  return createMistCards(cards, {
+    name: 'thousand-bough-mist',
+    shade: TB.mood.mistShade,
+    sun: TB.mood.mistSun,
+    top: TB.mood.mistTop,
+  });
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BoxGeometry,
+  BufferAttribute,
   BufferGeometry,
   Color,
   InstancedMesh,
@@ -9,7 +10,34 @@ import {
   MeshStandardMaterial,
   Vector3,
 } from 'three/webgpu';
-import { bakeInstances, markInstancesChanged, sharedInstancedMesh } from './instancing';
+import {
+  bakeInstances,
+  markInstancesChanged,
+  sharedInstancedMesh,
+  SHARED_INSTANCE_CAPACITY,
+} from './instancing';
+
+/** The vertex buffers a mesh's draw takes: the geometry's (interleaved once) and its two matrix buffers. */
+function vertexBuffers(mesh: InstancedMesh): number {
+  const buffers = new Set<unknown>();
+  for (const a of Object.values(mesh.geometry.attributes))
+    buffers.add('isInterleavedBufferAttribute' in a && a.isInterleavedBufferAttribute ? a.data : a);
+  return buffers.size + 2;
+}
+
+describe('sharedInstancedMesh', () => {
+  it('leaves room for the matrices in a batch past the uniform buffer (more than 1,024 instances)', () => {
+    for (const count of [16, SHARED_INSTANCE_CAPACITY + 500]) {
+      const geometry = new BufferGeometry();
+      for (const name of ['position', 'normal', 'uv', 'color', 'sway', 'part', 'branch'])
+        geometry.setAttribute(name, new BufferAttribute(new Float32Array(9), 3));
+      const mesh = sharedInstancedMesh(geometry, new MeshBasicMaterial(), count);
+      expect(mesh.instanceMatrix.count).toBeGreaterThanOrEqual(SHARED_INSTANCE_CAPACITY);
+      expect(vertexBuffers(mesh), String(count)).toBeLessThanOrEqual(8);
+      geometry.dispose();
+    }
+  });
+});
 
 describe('bakeInstances', () => {
   it('bakes every instance in place, with its colour, keeping the triangles', () => {

@@ -1581,6 +1581,22 @@ As Thousand-Bough §12.3. Any "no" sends the island back.
 | **The "Next morning" cut** (O3) | a sky jump that reads as a bug | a clear fade with Juno's line after the battle; reduced-motion cross-fade |
 | **The battle zone** near both islands | raiders near land | ≥ 80 m from every `contains`; `battletest` checks the zone |
 
+## 15. As built: the world art (branch `danwahlin-keelhaven-world`)
+
+The terrain merged in PR #21 put the cove on its own frame (`layout.ts` `toWorld(u, v)`: u inland from
+the beach's middle, v across, v > 0 to the south). The world art follows that frame, so some places
+moved from the (s, t) positions in §3. The wiring step updates the route, the cast and the stops
+from these.
+
+| Part | As built (cove frame u, v) | Code |
+| --- | --- | --- |
+| The Old Town | south of the Keel River on the town flat: the main street from the quay's root (10, 58) to the Evidence Board's square (u 98-124, v 13-38), a lane south from the square, 35 Caribbean houses, the tavern at (22, 73) | `town.ts`, `town-build.ts` |
+| The shipyard | north of the river: the yard pad (u 52-176, v -90 to -20), the basin, three drydocks, the lock flight down to the cove at v -60, the slipway, the quay and the berth (u -70) | `works.ts`, `shipyard.ts` |
+| The Gate Light | a 27 m tower in white and red bands on a bench of the North Head (-231, -157, y 44), the keeper's house beside it, a timber stair from the lock terrace up the head's cove face (`GATE_PATH`) | `town-build.ts`, `works.ts` |
+| The wrecks | on the north reef under the Gate Light: on her side (-300, -188), bow up on the crest (-345, -150), broken in two (-283, -156) | `wrecks.ts` |
+| The Old Hulk | on blocks between the yard's wall and the river (80, -11), bow to the sea, a cabin on her deck and the carved duck on her taffrail | `wrecks.ts` |
+| The far silhouette | its own ground in green to the crests (no `sheer`), the sea-cliff band, the town as blocks, the banded light, the wrecks, the falls as strips | `silhouette.ts` |
+
 ---
 
 ## Wiring contract

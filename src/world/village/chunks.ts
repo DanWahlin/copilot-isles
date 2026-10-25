@@ -153,7 +153,16 @@ export function buildChunkLodIndex(
   geometry: BufferGeometry,
   simplify: LodSimplifier,
   errors: readonly [number, number] = CHUNK_LOD_ERRORS,
+  /**
+   * Collapse across hard edges and seams too (opt-in): a town of flat-shaded kit pieces otherwise
+   * keeps most of its triangles (every hard-edge vertex is locked). The surface still moves at most
+   * the level's error; a far vertex's shading may shift a little.
+   */
+  permissive = false,
 ): boolean {
+  const flags: ('ErrorAbsolute' | 'Prune' | 'Permissive')[] = permissive
+    ? ['ErrorAbsolute', 'Prune', 'Permissive']
+    : ['ErrorAbsolute', 'Prune'];
   const input = simplifierInput(geometry, CHUNK_LOD_MIN_TRIANGLES);
   if (!input) return false;
   const { indices, positions } = input;
@@ -188,7 +197,7 @@ export function buildChunkLodIndex(
     null,
     3,
     errors[0],
-    ['ErrorAbsolute', 'Prune'],
+    flags,
   )[0];
   // LOD 2 starts from LOD 1, so it's never more than LOD 1.
   const lod2 = simplify.simplifyWithAttributes(
@@ -201,7 +210,7 @@ export function buildChunkLodIndex(
     null,
     3,
     errors[1],
-    ['ErrorAbsolute', 'Prune'],
+    flags,
   )[0];
   if (lod2.length >= full * 0.9) return false;
   setLodIndex(geometry, indices, lod1, lod2);
@@ -356,7 +365,13 @@ export const LITE_ROCK_ERROR = 0.03;
  * own units) in place: same vertices, a smaller index. For a tier's cheaper copy of small, many-times
  * instanced shapes (Lite's loose rocks). Returns the triangles saved.
  */
-export function simplifyInPlace(geometry: BufferGeometry, simplify: LodSimplifier, error: number): number {
+export function simplifyInPlace(
+  geometry: BufferGeometry,
+  simplify: LodSimplifier,
+  error: number,
+  /** Collapse across hard edges and seams too (a flat-shaded part, whose every vertex is split). */
+  permissive = false,
+): number {
   const input = simplifierInput(geometry);
   if (!input) return 0;
   const { indices, positions } = input;
@@ -380,7 +395,7 @@ export function simplifyInPlace(geometry: BufferGeometry, simplify: LodSimplifie
     null,
     3,
     error,
-    ['ErrorAbsolute'],
+    permissive ? ['ErrorAbsolute', 'Permissive'] : ['ErrorAbsolute'],
   )[0];
   if (out.length >= full) return 0;
   geometry.setIndex(new BufferAttribute(vertices <= 65535 ? new Uint16Array(out) : out, 1));

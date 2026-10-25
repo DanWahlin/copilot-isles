@@ -27,6 +27,21 @@ Port Meridian (`src/islands/meridian.ts`, `src/game/meridian-island.ts`, `src/ga
 and Thousand-Bough Isle (`src/islands/thousand-bough.ts`, `src/game/thousand-bough-island.ts`,
 `src/game/thousand-bough-session.ts`, `src/world/islands/thousand-bough/`) are the examples to copy.
 
+Build the world package from the shared builders, so a new island adds data and no new shader:
+
+| Builder | Where | Use it for |
+| --- | --- | --- |
+| Village kit and pieces | `src/world/village/kit.ts`, `pieces.ts` (`meshesFromBuckets`) | Timber, rope, stone and glass into the kit's material buckets, merged into chunks with index levels of detail. |
+| Houses | `src/world/village/house-builder.ts` (the kit's European houses), `veranda-house.ts` (Caribbean houses) | A town. `tintFor` gives the paint that reads as the colour you want over a kit texture. |
+| Wrecks | `src/world/wreck/` (`WreckDesign`) | Wrecked brigantines in the ship's look: a pose, holes, rig, a broken half. Keelhaven's are `src/world/islands/keelhaven/wrecks.ts`. |
+| Mist | `src/world/mist/mist-cards.ts` | Valley mist and fall spray: one look for every island. |
+| Plants | `addIslandPlants(…, look)` (`src/world/island-parts.ts`), `PlantPatchLook` | The island's plants as a patch of the world's vegetation, with an optional look (bark simplify, impostor handoff, tints). |
+| Rocks | `src/world/terrain/rock-assets.ts` with `createRockMaterial`, instanced | Boulders and stream stones (Thousand-Bough's and Keelhaven's `rocks.ts`). |
+
+Keelhaven's world (`src/world/islands/keelhaven/index.ts`, `createKeelhavenWorldAsync`) is built but
+not yet in the game: it's in `ISLANDS_IN_BUILD` only, and the terrain dev page shows it
+(`devpages/terrain.html?pack=keelhaven`, `?sil` for its far silhouette).
+
 ## 2. The registry entry (`IslandEntry`, `src/islands/types.ts`)
 
 Keep the entry small. The title loads the registry (the chart asks which islands are open), and the

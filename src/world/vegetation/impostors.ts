@@ -186,6 +186,8 @@ export interface ImpostorOptions {
   tint: (instance: PlantInstance) => Color;
   /** The atlas belongs to another batch (it frees it), e.g. a later island's plants. */
   sharedBake?: boolean;
+  /** How much the cards are shaded like round crowns (0-1, default 0: flat, as baked). */
+  cardShade?: number;
 }
 
 export class ImpostorBatch {
@@ -212,7 +214,7 @@ export class ImpostorBatch {
     }));
     const geometry = new PlaneGeometry(1, 1, 1, 1);
     const capacity = Math.max(1, instances.length);
-    this.fade = new InstancedBufferAttribute(new Float32Array(capacity * 2), 2);
+    this.fade = new InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
     this.tint = new InstancedBufferAttribute(new Float32Array(capacity * 3), 3);
     this.atlasUv = new InstancedBufferAttribute(new Float32Array(capacity * 4), 4);
     geometry.setAttribute('fade', this.fade);
@@ -290,7 +292,12 @@ export class ImpostorBatch {
       const thin =
         (1 - smoothstep(far - 110, far, d) * (0.35 + instance.lodSeed * 0.45)) *
         (1 - smoothstep(far - 30, far, d));
-      this.fade.setXY(this.visible, clamp01(smoothstep(near - 10, near + 6, d) * thin), at - Math.floor(at));
+      this.fade.setXYZ(
+        this.visible,
+        clamp01(smoothstep(near - 10, near + 6, d) * thin),
+        at - Math.floor(at),
+        this.options.cardShade ?? 0,
+      );
       this.visible += 1;
     }
     this.mesh.count = this.visible;
