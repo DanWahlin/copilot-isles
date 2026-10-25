@@ -33,6 +33,7 @@ import {
 } from './model-loader';
 import { scatterVegetationAsync } from './scatter';
 import type {
+  PlantPatchLook,
   CreateVegetationOptions,
   IslandVegetationRules,
   PlantInstance,
@@ -41,7 +42,14 @@ import type {
   VegetationSystem,
 } from './types';
 import { clamp01, smoothstep } from '../../util/math';
+import { loadLodSimplifier, type LodSimplifier } from '../characters/character-lod';
+import { simplifyInPlace } from '../village/chunks';
 import { disposeMaterialWithTextures } from '../../util/dispose-three';
+
+/** How a patch's plants are drawn (`VegetationSystem.addPlants`), with the simplifier loaded if needed. */
+interface PatchLook extends PlantPatchLook {
+  simplifier?: LodSimplifier | null;
+}
 
 interface PlantBatch {
   species: PlantSpecies;
@@ -54,6 +62,8 @@ interface PlantBatch {
   /** Unscaled bounding radius about the plant's root (m), for the per-instance frustum test. */
   reach: number;
   trianglesPerInstance: number;
+  /** Where it hands off to its impostor (m): the tier's (`geometryHandoff`), or a patch's nearer one. */
+  handoff: number;
   nearOnly: boolean;
   farDistance: number;
   visible: number;
@@ -189,18 +199,28 @@ function attachInstanceAttributes(
   return { fade, tint };
 }
 
+/** Whether a model part is solid (bark, a trunk, wood), not leaf cards: only those may be simplified. */
+function solidPart(part: VegetationModelPart): boolean {
+  const material = (Array.isArray(part.material) ? part.material[0] : part.material) as Material | undefined;
+  return /bark|trunk|wood/i.test(material?.name ?? '');
+}
+
 function createBatch(
   species: PlantSpecies,
   instances: PlantInstance[],
   part: VegetationModelPart,
   tier: TierSettings,
+  look: PatchLook = {},
 ): PlantBatch {
   const geometry = part.geometry.clone();
+  // A patch's cheaper solid parts: fewer triangles, the same vertices and attributes (so the same shader).
+  const error = look.simplify?.[species];
+  if (error && look.simplifier && solidPart(part)) simplifyInPlace(geometry, look.simplifier, error, true);
   const { fade, tint } = attachInstanceAttributes(geometry, instances.length);
   if (!geometry.boundingSphere) geometry.computeBoundingSphere();
   const bounds = geometry.boundingSphere!;
   const tints = new Float32Array(instances.length * 3);
-  instances.forEach((instance, i) => tintFor(instance).toArray(tints, i * 3));
+  instances.forEach((instance, i) => (look.tint?.(instance) ?? tintFor(instance)).toArray(tints, i * 3));
   const mesh = sharedInstancedMesh(geometry, part.material as Material, instances.length, { count: 0 });
   mesh.name = `vegetation-${species}`;
   mesh.receiveShadow = true;
@@ -230,6 +250,7 @@ function createBatch(
     tints,
     reach: bounds.center.length() + bounds.radius,
     trianglesPerInstance: triangleCount(geometry),
+    handoff: geometryHandoff(species, tier) * (TREE_LIKE.has(species) ? (look.handoff ?? 1) : 1),
     nearOnly,
     farDistance,
     visible: 0,
@@ -306,10 +327,10 @@ function sameFill(batch: PlantBatch, camera: PerspectiveCamera): boolean {
 }
 
 /** Fills the batch with the plants in range and in view (the frustum from `setPlantFrustum`). */
-function updateBatch(batch: PlantBatch, camera: PerspectiveCamera, tier: TierSettings): void {
+function updateBatch(batch: PlantBatch, camera: PerspectiveCamera): void {
   if (sameFill(batch, camera)) return;
   batch.visible = 0;
-  const handoff = geometryHandoff(batch.species, tier);
+  const handoff = batch.handoff;
   const tints = batch.tints;
   for (let i = 0; i < batch.instances.length; i++) {
     const instance = batch.instances[i]!;
@@ -366,14 +387,18 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
   for (const plant of options.extraPlants ?? []) scatter.plants[plant.species].push(plant);
   options.island.appendExtraPlants?.(scatter.plants, options.heightField, tier.tier, 'afterExternal');
   const casters: InstancedMesh[] = [];
-  const buildBatches = (plants: Record<PlantSpecies, PlantInstance[]>, target: Object3D): PlantBatch[] => {
+  const buildBatches = (
+    plants: Record<PlantSpecies, PlantInstance[]>,
+    target: Object3D,
+    look: PatchLook = {},
+  ): PlantBatch[] => {
     const out: PlantBatch[] = [];
     const palmInstances = collectPalmInstances(plants);
     if (palmInstances.length > 0) {
       for (const part of geometries.palmTall) {
         const partInstances = instancesForPart(palmInstances, part, options.island);
         if (partInstances.length === 0) continue;
-        out.push(createBatch('palmTall', partInstances, part, tier));
+        out.push(createBatch('palmTall', partInstances, part, tier, look));
       }
     }
     for (const species of Object.keys(plants) as PlantSpecies[]) {
@@ -383,7 +408,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       for (const part of geometries[species]) {
         const partInstances = instancesForPart(instances, part, options.island);
         if (partInstances.length === 0) continue;
-        out.push(createBatch(species, partInstances, part, tier));
+        out.push(createBatch(species, partInstances, part, tier, look));
       }
     }
     for (const batch of out) target.add(batch.mesh);
@@ -463,7 +488,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       setPlantFrustum(camera);
       updateFloraPushers(camera.position.x, camera.position.z);
       if (homeAwake) {
-        for (const batch of batches) updateBatch(batch, camera, tier);
+        for (const batch of batches) updateBatch(batch, camera);
         grass?.update(camera);
         impostors?.update(camera);
       }
@@ -481,7 +506,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       // A patch's plants only update (and count) while it's shown.
       for (const patch of patches) {
         if (!patch.group.visible) continue;
-        for (const batch of patch.batches) updateBatch(batch, camera, tier);
+        for (const batch of patch.batches) updateBatch(batch, camera);
         patch.impostors?.update(camera);
         patch.grass?.field.update(camera);
         const ps = patch.impostors?.stats();
@@ -524,7 +549,7 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         meshBatchesVisible,
       };
     },
-    async addPlants(list, name, flora) {
+    async addPlants(list, name, flora, patchLook) {
       const plants = {} as Record<PlantSpecies, PlantInstance[]>;
       for (const species of Object.keys(scatter.plants) as PlantSpecies[]) plants[species] = [];
       for (const plant of list) plants[plant.species].push(plant);
@@ -532,7 +557,10 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       patchGroup.name = name;
       patchGroup.visible = false;
       const castersBefore = casters.length;
-      const patchBatches = buildBatches(plants, patchGroup);
+      const look: PatchLook = patchLook?.simplify
+        ? { ...patchLook, simplifier: await loadLodSimplifier() }
+        : (patchLook ?? {});
+      const patchBatches = buildBatches(plants, patchGroup, look);
       const patchCasters = casters.slice(castersBefore);
       await buildSlice();
       const entries = collectTreeLike(plants);
@@ -542,7 +570,14 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
       }
       const patchImpostors =
         entries.length > 0 && impostorBake
-          ? new ImpostorBatch(entries, impostorBake, { ...impostorOptions, sharedBake: !patchOwnsBake })
+          ? new ImpostorBatch(entries, impostorBake, {
+              ...impostorOptions,
+              tint: (p) => (look.farTint ?? look.tint)?.(p) ?? tintFor(p),
+              handoff: (species) =>
+                geometryHandoff(species, tier) * (TREE_LIKE.has(species) ? (look.handoff ?? 1) : 1),
+              sharedBake: !patchOwnsBake,
+              cardShade: look.cardShade ? 1 : 0,
+            })
           : null;
       const ownsBake = patchOwnsBake && !!patchImpostors;
       // Only the first patch to bake the atlas owns it.
