@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { MERIDIAN, meridianHeight } from '../world/islands/meridian';
 import { COVE } from '../world/layout';
-import { ISLANDS, islandAt, nextMorningFrom, passageSky } from './islands';
+import { ISLANDS, islandAt, nextMorningFrom, nightAtSea, nightAtSeaSeconds, passageSky } from './islands';
 import { MERIDIAN_QUESTS, meridianTracker } from './meridian-quests';
 
 describe('islands', () => {
@@ -48,6 +48,31 @@ describe('islands', () => {
       passageSky(x, z, sky, { hold: 'keelhaven', skip: 'thousand-bough' });
       expect(sky).toEqual(kh.sky);
     }
+  });
+
+  it('passes the night at sea under a dim veil, the sun setting and rising, never a black frame', () => {
+    const tb = ISLANDS['thousand-bough'].sky;
+    const kh = ISLANDS.keelhaven.sky;
+    const sky = { hours: 0, azimuth: 0 };
+    let most = 0;
+    let lastHours = tb.hours;
+    let wrapped = false;
+    for (let t = 0; t <= nightAtSeaSeconds + 0.05; t += 1 / 30) {
+      const veil = nightAtSea(t, tb, kh, sky);
+      most = Math.max(most, veil);
+      expect(veil).toBeLessThan(0.8);
+      // Time only runs forward (through midnight once).
+      if (sky.hours < lastHours - 1e-9) {
+        expect(wrapped).toBe(false);
+        expect(veil).toBeGreaterThan(0.7);
+        wrapped = true;
+      }
+      lastHours = sky.hours;
+    }
+    expect(most).toBeGreaterThan(0.6);
+    expect(wrapped).toBe(true);
+    expect(nightAtSea(nightAtSeaSeconds, tb, kh, sky)).toBe(0);
+    expect(sky).toEqual(kh);
   });
 });
 

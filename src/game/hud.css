@@ -741,6 +741,37 @@
   transform: translate(-50%, 0);
 }
 
+/* The night passing at sea (Hud.setDawn): a dim dawn veil, never a black frame. */
+.hud-dawn {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background: linear-gradient(180deg, #1f2550 0%, #4a3f6e 45%, #a8708a 75%, #e7a274 100%);
+}
+.hud-dawn.show {
+  visibility: visible;
+}
+.hud-dawn-caption {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  transform: translateX(-50%);
+  font-family: var(--ci-display, Fraunces, Georgia, 'Times New Roman', serif);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  letter-spacing: 0.08em;
+  color: #fbe9d6;
+  text-shadow: 0 1px 6px rgba(20, 16, 40, 0.6);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+.hud-dawn-caption.show {
+  visibility: visible;
+}
+
 .hud-fade {
   position: absolute;
   inset: 0;

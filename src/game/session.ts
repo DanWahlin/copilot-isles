@@ -39,6 +39,9 @@ import {
   islandAt,
   islandLight,
   nextMorningFrom,
+  nightAtSea,
+  nightAtSeaSeconds,
+  NIGHT_AT_SEA,
   openIslands,
   otherLight,
   passageSky,
@@ -626,18 +629,32 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   let passageHold: PassageHold | null = null;
   let morningCut = false;
-  /** The "next morning" cut: a 3 s fade through the dark to the next island's morning (a plain cross-fade with reduced motion). */
+  /** The night passing at sea (`nightAtSea`): seconds into it, and its two islands' light. */
+  let nightPassing: { t: number; from: IslandId; to: IslandId } | null = null;
+  /**
+   * The "next morning": the night passes at sea under a dim dawn veil while the sun sets and rises
+   * (no black frame); with reduced motion, a plain fade.
+   */
   const nextMorning = async (): Promise<void> => {
     const hold = passageHold;
     if (!hold || morningCut || nextMorningFrom(hold.hold) !== hold.skip) return;
     morningCut = true;
-    const reduced = worldUniforms.reducedMotion.value > 0.5;
-    await hud.fade(true, reduced ? 300 : 1200);
+    if (worldUniforms.reducedMotion.value <= 0.5) {
+      nightPassing = { t: 0, from: hold.hold, to: hold.skip };
+      return;
+    }
+    await hud.fade(true, 300);
     if (passageHold === hold) passageHold = { hold: hold.skip, skip: hold.hold };
-    hud.toast('The next morning…', 2.4);
-    if (!reduced) await new Promise((r) => setTimeout(r, 600));
-    await hud.fade(false, reduced ? 300 : 1200);
+    hud.toast('Next morning', 2.4);
+    await hud.fade(false, 300);
     morningCut = false;
+  };
+  /** Ends the night at sea at once (you went ashore or travelled): the veil goes. */
+  const endNightPassing = () => {
+    if (!nightPassing) return;
+    nightPassing = null;
+    morningCut = false;
+    hud.setDawn(0, '');
   };
   /** Anchorage's gangway stays up until the christening; elsewhere you can always board. */
   const canBoard = () => (island === 'anchorage' ? storyHolds('anchorage', 'gangwayDown', quests()) : true);
@@ -1857,6 +1874,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   async function disembark(to: IslandBerth = dockTo): Promise<void> {
     mode = 'transition';
     passageHold = null;
+    endNightPassing();
     input.enabled = false;
     await hud.fade(true);
     battles.leftShip(cam);
@@ -2756,6 +2774,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               else if (!evening && (here >= 1 || ahead > here)) passageHold = null;
             }
             passageSky(pose.x, pose.z, sailSky, passageHold);
+            if (nightPassing) {
+              const n = nightPassing;
+              n.t += dt;
+              const veil = nightAtSea(n.t, ISLANDS[n.from].sky, ISLANDS[n.to].sky, sailSky);
+              hud.setDawn(veil, 'Next morning');
+              // From daybreak on, the morning's light holds until you're there.
+              if (n.t > NIGHT_AT_SEA.sink && passageHold?.hold === n.from)
+                passageHold = { hold: n.to, skip: n.from };
+              if (n.t >= nightAtSeaSeconds) endNightPassing();
+            }
             if (
               Math.abs(engine.clock.hours - sailSky.hours) > 0.01 ||
               Math.abs(engine.clock.azimuth - sailSky.azimuth) > 0.3
@@ -2829,6 +2857,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
     passageHold = null;
+    endNightPassing();
     if (arrival && arrival.phase !== 'done') await endArrival('cut');
     dialogue.cancel();
     wingman?.landNow();
