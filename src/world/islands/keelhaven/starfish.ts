@@ -11,7 +11,7 @@ const SPOTS = [
   { id: 'sf.k.beach', name: "In the beach's tide line", u: 3, v: 26 },
   { id: 'sf.k.dock', name: "By Drydock 3's head", u: 169, v: -45 },
   { id: 'sf.k.lock', name: 'On the lock terrace by the lower gate', u: 14, v: -47 },
-  { id: 'sf.k.light', name: "At the Gate Light's door", u: -223, v: -151, y: 44 },
+  { id: 'sf.k.light', name: "At the Gate Light's door", u: -226.5, v: -153, y: 44 },
 ] as const;
 
 export const KEELHAVEN_STARFISH: readonly StarfishSpot[] = SPOTS.map((s) => ({
