@@ -16,14 +16,17 @@ Every island is a package; shared systems never import an island's coordinates.
 | Seam                       | Shared side (generic)                                                                                                                                                                                     | Island side (data)                                                                                                                                 |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Berth, music, sky, arrival | `src/game/islands.ts` (`ISLANDS`, `IslandId`)                                                                                                                                                             | one entry per island                                                                                                                               |
-| Terrain looks              | `src/world/terrain/terrain-material.ts` + `terrain-regions.ts` (`TerrainRegions`, `combineTerrainRegions`)                                                                                                | `src/world/islands/anchorage/terrain-regions.ts`, `src/world/islands/meridian-terrain-regions.ts`; registry `src/world/islands/terrain-regions.ts` |
+| Terrain looks              | `src/world/terrain/terrain-material.ts` + `terrain-regions.ts` (`TerrainRegions`, `combineTerrainRegions`)                                                                                                | `src/world/islands/anchorage/terrain-regions.ts`, `meridian-terrain-regions.ts`, `keelhaven/terrain-regions.ts`; the registry `terrain-regions.ts` |
 | Vegetation                 | `src/world/vegetation/scatter.ts`, `grass.ts`, `vegetation.ts` (`IslandVegetationRules` in `vegetation/types.ts`: bounds, grass bounds, species rules, exclusions, curated/extra plants, hero palm zones) | `src/world/islands/anchorage/vegetation-rules.ts` (`ANCHORAGE_VEGETATION`)                                                                         |
 | Grass and flowers (flora)  | `src/world/flora/` (`FloraPalette`, `FloraRules` in `types.ts`; `scatterFlora`, drifts, plant forms, species table, terrain `floraGround`), drawn by `vegetation/grass.ts`                                | `anchorage/flora*.ts`, `meridian-flora*.ts`, `thousand-bough/flora*.ts`; registry `src/world/islands/flora-palettes.ts`                            |
 | Starfish                   | `src/world/starfish/spots.ts` (`StarfishSpot`, `STARFISH`)                                                                                                                                                | `src/world/islands/anchorage/starfish.ts`, `src/world/islands/meridian-starfish.ts`                                                                |
 | Compass routes             | `src/game/wayfinding/` (`WalkGraph`, `SeaChart`, `CompassRoute`, `Wayfinder`)                                                                                                                             | `src/world/islands/anchorage/waypoints.ts`, `meridian-waypoints.ts`, `thousand-bough/waypoints.ts`; registry `src/world/islands/waypoints.ts`      |
 | Towns                      | `src/world/village/kit.ts` (kit loader, buckets, `transform`/`paint`/`localToWorld`, colliders, anchors), `house-builder.ts`, `materials.ts`                                                              | `src/world/islands/anchorage/village.ts` (+ `buildings.ts`, `plantings.ts`, `lighthouse-stair.ts`), `src/world/meridian-town/`                     |
 | Shore batteries            | `src/world/village/shore-battery.ts` (decks, stairs, fences, guns into the town buckets; walk surfaces, colliders), `shore-cannon.ts` (the gun model and its levels)                                      | `src/world/islands/anchorage/batteries.ts`, `src/world/islands/meridian-batteries.ts` (+ the citadel's embrasures)                                 |
-| Island layout data         | none                                                                                                                                                                                                      | `src/world/layout.ts` (`COVE`, Anchorage), `src/world/islands/meridian.ts` (`MERIDIAN`)                                                            |
+| Island layout data         | none                                                                                                                                                                                                      | `src/world/layout.ts` (`COVE`), `islands/meridian.ts` (`MERIDIAN`), `islands/keelhaven/layout.ts` (`KEELHAVEN`)                                    |
+| Ocean shallows (depth)     | `src/world/ocean/water-depth-texture.ts`: the home tile and one island tile slot holding the nearest lent tile (`addWaterDepthTile`, `tileUvBounds`); one format, so a swap builds no shader              | a streamed island builds its tile from its baked terrain and lends it while in memory (`thousand-bough/stream.ts`)                                 |
+| Coast foam surf            | `src/world/terrain/coast-foam.ts` `exposure` (0-1, default 0): a wider, whiter ribbon where the open sea reaches a steep shore (`shoreExposure`)                                                          | the island passes it                                                                                                                               |
+| Terrain levels of detail   | `src/world/terrain/terrain-mesh.ts`, opt-in: `prefilter` (coarse levels' mean height), `maxMergedTriangles` (Lite/Low far blocks), `morphFrames` (a chunk eases to its new level)                         | `KEELHAVEN.terrain`; the other islands keep the defaults                                                                                           |
 
 Adding an island: create its package, add one line to each registry, done. If you find yourself
 writing `smoothstep(548, 566, P.x)` or `COVE.` inside a shared file, stop and add a region or rule to
@@ -550,6 +553,23 @@ hook (release it when the site is freed).
   resident (held by `debug.keepResident` for the set, so the moment is the same on any machine), and
   with it freed (issue 263 made the first draw its silhouette). Compare trees on the same machine,
   same script, measured settled, before blaming or clearing a change.
+
+- **An empty slot must hold no point (issue 305):** the ocean's island tile slot started with an inverse
+  span of 0, so every point mapped to uv 0, read as inside, and took the 1 × 1 deep stand-in: Anchorage's
+  and Meridian's home-tile shallows went navy, and the census and hitch guard saw nothing. Test the empty
+  case of any slot or registry, and diff screenshots of the islands that shouldn't change against `main`.
+- **Tall fluted walls (Keelhaven, issue 305):** flutes read by geometry and side light, not paint: painted
+  stripes read as stripes. Ribs added to a wall keep its slope; gullies cut into it leave a flat bench at
+  its foot. A sun much higher than ~50° lights the flutes evenly: pick the time by measured flute
+  contrast. Faces over ~74° read as rock and go near-black in shade, so keep plants to ~75° (masks and
+  shader), cap a sea cliff's height, and give shaded walls bounced light. Read features off a polygon
+  coast with a weighted mean of the segments' along-coast distance (the nearest point jumps on every
+  corner's bisector), and blend across the coast's start (the distance wraps there).
+- **Pops on tall walls (issue 305):** coarse levels that point-sample a fluted wall differ most where they
+  swap. Prefilter them (the mean height over each vertex's footprint) and ease a chunk to its new level
+  over a few frames (`morphFrames`: its vertex buffers change, no new geometry or shader). A merged far
+  block may show only when all its chunks are at its level, or a coarser chunk jumps to it uneased.
+  Measure with the pop metric (frozen clock, 1 m camera steps, 16 px blocks).
 
 ### CPU and GPU time (issues 11 and 29)
 

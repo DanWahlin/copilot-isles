@@ -252,10 +252,12 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
 
   // Big smooth grassy hills (the islands' `grassHill` regions) skip the height bands and strata.
   const headlandHill = R.grassHill;
+  // Fluted green walls keep their plant cover: the slope rules for rock and cliff stay off them.
+  const notPali = float(1).sub(R.paliWall);
   const steepSlope = smoothstep(0.68, 0.46, N.y);
   // On those hills and the islands' other grassy slopes, only the near-sheer faces take the cliff colouring.
   const grassyHill = headlandHill.max(R.grassySlopes);
-  const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72))).mul(
+  const cliffInfluence = saturate(cliffMask.add(steepSlope.mul(0.72).mul(notPali))).mul(
     float(1).sub(grassyHill.mul(smoothstep(0.42, 0.55, N.y))),
   );
   const steepFace = steepSlope.mul(saturate(cliffMask.add(rockMask)));
@@ -509,12 +511,13 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   base = mix(
     base,
     rockBandColor.mul(float(0.72).add(strata.mul(0.36)).add(fineStrata.mul(0.22))),
-    slopeOutcrop.mul(0.42).add(slopeScree.mul(0.28)).mul(float(1).sub(headlandHill)),
+    slopeOutcrop.mul(0.42).add(slopeScree.mul(0.28)).mul(float(1).sub(headlandHill)).mul(notPali),
   );
   const hillSlope = smoothstep(1.0, 0.82, N.y)
     .mul(smoothstep(2.5, 38, y))
     .mul(midDetail)
-    .mul(float(1).sub(headlandHill));
+    .mul(float(1).sub(headlandHill))
+    .mul(notPali);
   const hillBand = fract(y.div(6.4).add(noiseLow.b.sub(0.5).mul(0.54)).add(noiseMid.r.sub(0.5).mul(0.16)));
   const hillDark = pow(saturate(float(0.6).sub(hillBand).mul(2.0)), 1.2).mul(hillSlope);
   const hillLight = pow(saturate(hillBand.sub(0.43).mul(1.8)), 1.2).mul(hillSlope);
@@ -539,7 +542,14 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(smoothstep(3, 8, y))
     .mul(float(1).sub(cliffMask))
     .mul(float(1).sub(sandMask));
-  base = mix(base, hilltopGreen, hilltopMeadow.mul(midDetail).mul(float(1).sub(headlandScrub.mul(0.85))));
+  base = mix(
+    base,
+    hilltopGreen,
+    hilltopMeadow
+      .mul(midDetail)
+      .mul(float(1).sub(headlandScrub.mul(0.85)))
+      .mul(notPali),
+  );
   const dirtSpots = smoothstep(
     0.57,
     0.65,
@@ -557,7 +567,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(saturate(grassMask.mul(0.9).add(rockMask.mul(0.45))))
     .mul(smoothstep(0.28, 0.88, N.y));
   const warmHeadland = mix(color(0x5c7136), color(0xa29569), noiseLow.a.mul(0.46).add(noiseMid.r.mul(0.54)));
-  base = mix(base, warmHeadland, sunnyHeadland.mul(0.24));
+  base = mix(base, warmHeadland, sunnyHeadland.mul(0.24).mul(notPali));
   base = mix(base, meridianBluffCliff, meridianBluffMask);
   // The town's bare ground: warm, trodden earth between the gardens, not pale beach sand.
   const townEarth = mix(color(0x6b4a2e), color(0xa07848), fineNoise.mul(0.5).add(sandDetail.mul(0.3)));
@@ -635,6 +645,131 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
   const basaltMossTone = mix(color(0x34502a), color(0x6b8a3c), noiseFine.g.mul(0.6).add(noiseMid.r.mul(0.4)));
   base = mix(base, mix(basaltTone, basaltMossTone, basaltMoss.mul(0.92)), R.basalt);
 
+  // Fluted green walls (`paliWall`): a forest canopy over the whole region (walls up to near-sheer,
+  // crests, valley floors), yellow-green on the open ribs and crests and dark wet green in the gullies
+  // (the bake's sky openness), in lumpy crowns with dark gaps between them (two scales, the finer one
+  // faded by its footprint); rock only in broken patches where the bake has it (gully floors, spur
+  // noses, crest scars, fans), grey-brown basalt with red laterite on open ground; dark layered basalt
+  // in the sea cliff, which the shader also finds from height and steepness (so a coarse level keeps it).
+  const paliSteep = smoothstep(0.92, 0.55, N.y);
+  const paliSheer = smoothstep(0.3, 0.14, N.y);
+  const paliOpen = saturate(light.x.sub(0.62).mul(2.8));
+  const paliGully = saturate(float(0.72).sub(light.x).mul(3.0));
+  const canopyPatch = noiseMid.g.mul(0.45).add(noiseLow.a.mul(0.35)).add(faceNoise.mul(0.2));
+  let canopy = mix(color(0x2c4d22), color(0x6f8d36), smoothstep(0.25, 0.75, canopyPatch));
+  canopy = mix(canopy, color(0x9cb04e), paliOpen.mul(0.6));
+  canopy = mix(canopy, color(0x183420), paliGully.mul(0.75));
+  // Crowns on any face: the noise on the plane the face looks along (flat ground, or an upright face).
+  // The noise has 5-9 features a tile, so a tile of about 22 m gives crowns of 3-5 m.
+  // Upright faces take the two diagonal planes (x + z and z - x across), each weighted by how square the
+  // face stands to it, so no face sees its noise smeared sideways.
+  const crownUvA = vec2(P.x.mul(0.03).add(P.z.mul(0.009)), P.z.mul(0.03).sub(P.x.mul(0.009)));
+  const crownUvB = vec2(P.x.mul(0.022).add(P.z.mul(0.022)), P.y.mul(0.034));
+  const crownUvC = vec2(P.z.mul(0.022).sub(P.x.mul(0.022)), P.y.mul(0.034).add(0.43));
+  const crownFlat = textureNode(noiseTexture, crownUvA) as AnyNode;
+  const crownSideA = textureNode(noiseTexture, crownUvB) as AnyNode;
+  const crownSideB = textureNode(noiseTexture, crownUvC) as AnyNode;
+  const sideWeightB = pow(abs(N.x.sub(N.z)), 3);
+  const sideWeightC = pow(abs(N.x.add(N.z)), 3);
+  const crownSide = crownSideA.g
+    .mul(sideWeightB)
+    .add(crownSideB.g.mul(sideWeightC))
+    .div(sideWeightB.add(sideWeightC).max(0.0001));
+  const crownNoise = mix(crownFlat.g, crownSide, smoothstep(0.85, 0.5, N.y));
+  const crownFade = float(1).sub(smoothstep(0.02, 0.06, crownUvA.x.fwidth().add(crownUvB.y.fwidth())));
+  const crownLump = smoothstep(0.3, 0.72, crownNoise);
+  // Lit crowns and dark gaps between them (a fake occlusion).
+  const crowns = float(0.74)
+    .add(crownLump.mul(0.46))
+    .sub(smoothstep(0.36, 0.2, crownNoise).mul(0.34));
+  // Clumps of trees (tens of metres): lit tops and shaded gaps, always on (the crowns' far average).
+  const clump = smoothstep(0.35, 0.7, noiseLow.g.mul(0.6).add(noiseLow.a.mul(0.4)));
+  const clumps = float(0.86).add(clump.mul(0.24));
+  canopy = canopy.mul(mix(clumps, crowns, crownFade));
+  // The face's level direction (along a steep face, across its fall line).
+  const faceLevel = vec2(N.z.negate(), N.x).div(vec2(N.x, N.z).length().max(0.05));
+  // Near the camera: shrub crowns a metre or two across, runnels down the steep faces and small
+  // ledges across them, as colour and as bump (the light breaks up the smooth ground). Each fades out
+  // by distance and before it's a few pixels wide.
+  const nearFade = float(1).sub(smoothstep(30, 130, detailDistance));
+  const fineCrownA = textureNode(noiseTexture, crownUvA.mul(4.3)) as AnyNode;
+  const fineCrownB = textureNode(noiseTexture, crownUvB.mul(4.3)) as AnyNode;
+  const fineCrownC = textureNode(noiseTexture, crownUvC.mul(4.3)) as AnyNode;
+  const fineCrownSide = fineCrownB.r
+    .mul(sideWeightB)
+    .add(fineCrownC.r.mul(sideWeightC))
+    .div(sideWeightB.add(sideWeightC).max(0.0001));
+  const fineCrown = mix(fineCrownA.r, fineCrownSide, smoothstep(0.85, 0.5, N.y));
+  const fineCrownFade = float(1).sub(smoothstep(0.08, 0.25, crownUvA.mul(4.3).x.fwidth()));
+  const runnelPhase = vec2(P.x, P.z).dot(faceLevel).div(2.6).add(fineCrown.mul(1.4)).add(crownNoise.mul(3));
+  const runnelFade = float(1)
+    .sub(smoothstep(0.15, 0.4, runnelPhase.fwidth()))
+    .mul(paliSteep);
+  const runnel = smoothstep(0.78, 0.97, abs(sin(runnelPhase.mul(Math.PI)))).mul(runnelFade);
+  const ledgePhase = y.div(2.9).add(fineCrown.mul(0.9)).add(crownNoise.mul(1.6));
+  const ledgeFade = float(1)
+    .sub(smoothstep(0.12, 0.35, ledgePhase.fwidth()))
+    .mul(paliSteep);
+  const ledge = smoothstep(0.82, 0.96, fract(ledgePhase)).mul(ledgeFade);
+  const nearCrown = smoothstep(0.25, 0.75, fineCrown).mul(fineCrownFade);
+  const paliNear = nearFade.mul(R.paliWall);
+  canopy = canopy.mul(
+    float(1).add(nearCrown.sub(0.5).mul(0.42).sub(runnel.mul(0.24)).add(ledge.mul(0.16)).mul(paliNear)),
+  );
+  const paliDetail = nearCrown.mul(0.9).sub(runnel.mul(0.6)).add(ledge.mul(0.45));
+  // The fine flutes: a faint shade across steep faces, faded out before it's a few pixels wide.
+  const flutePhase = vec2(P.x, P.z).dot(faceLevel).div(10.5).add(faceNoise.mul(2.2)).add(y.mul(0.018));
+  const fluteFade = float(1)
+    .sub(smoothstep(0.12, 0.35, flutePhase.fwidth()))
+    .mul(paliSteep);
+  const fluteRib = pow(abs(fract(flutePhase).sub(0.5)).mul(2), 1.6);
+  const fluteShade = float(1).add(fluteRib.sub(0.45).mul(0.22).mul(fluteFade));
+  // Rock in broken patches, of varied width, stretched down steep faces (the flat-projected noise).
+  const breakup = noiseMid.r.mul(0.45).add(noiseFine.b.mul(0.35)).add(crownNoise.mul(0.2));
+  const paliPatch = smoothstep(
+    0.5,
+    0.62,
+    rockMask.mul(0.7).add(breakup.sub(0.5).mul(0.9)).add(paliSheer.mul(0.3)),
+  ).mul(smoothstep(0.25, 0.45, rockMask).max(paliSheer));
+  const laterite = smoothstep(0.5, 0.75, noiseLow.g.mul(0.6).add(noiseMid.b.mul(0.4))).mul(
+    smoothstep(0.5, 0.85, N.y).max(paliOpen.mul(0.6)),
+  );
+  const paliRock = mix(
+    mix(color(0x433a32), color(0x7a6a5a), noiseLow.r.mul(0.4).add(faceGrain.mul(0.6))),
+    mix(color(0x7a3f24), color(0xa65e36), noiseFine.a),
+    laterite,
+  )
+    .mul(float(0.84).add(strata.mul(0.1)).add(fineStrata.mul(0.08)))
+    .mul(float(0.85).add(paliOpen.mul(0.25)));
+  // The sea cliff: the bake's cliff, or any sheer face low on the coast (a coarse level's vertices
+  // miss the narrow band, the shader doesn't).
+  const bandTop = float(30).add(faceNoise.sub(0.5).mul(18));
+  const seaBand = cliffMask.max(
+    smoothstep(0.72, 0.42, N.y)
+      .mul(float(1).sub(smoothstep(bandTop.sub(5), bandTop, y)))
+      .mul(smoothstep(-4, -0.5, y)),
+  );
+  const paliBand = mix(color(0x15120f), color(0x433a31), faceNoise.mul(0.45).add(faceGrain.mul(0.55)))
+    .mul(float(0.8).add(strata.mul(0.24)).add(fineStrata.mul(0.12)).add(ledges.mul(0.1)))
+    .mul(float(1).sub(cliffBeds.mul(0.3)))
+    .mul(float(1).sub(notch.mul(0.55)))
+    .mul(float(1).sub(algaeBase.mul(0.35)));
+  let paliColor = mix(canopy.mul(fluteShade), paliRock, paliPatch);
+  paliColor = mix(paliColor, paliBand, seaBand);
+  // The surf collar: white water breaking on the cliffs' feet, its top surging (broad, slow swells
+  // along the coast, so it reads at a distance and doesn't shimmer).
+  const surgePhase = P.x.mul(0.021).add(P.z.mul(0.017)).add(faceNoise.mul(3)).sub(world.time.mul(0.45));
+  const surfTop = float(1.6).add(sin(surgePhase).mul(0.5).add(0.5).mul(2.4));
+  const surfLace = smoothstep(0.3, 0.7, noiseMid.b.mul(0.5).add(noiseFine.g.mul(0.5)));
+  const surf = smoothstep(0.8, 0.5, N.y)
+    .mul(smoothstep(-0.6, 0.2, y))
+    .mul(float(1).sub(smoothstep(surfTop.mul(0.55), surfTop, y.add(surfLace.mul(0.8)))));
+  paliColor = mix(paliColor, color(0xeef4f2), surf.mul(0.88));
+  // Out of the water only (the reefs and the sea floor keep their own look), but the sea cliff's foot
+  // goes on down a little way.
+  const paliDry = smoothstep(-0.9, 0.1, y).max(seaBand.mul(float(1).sub(underwater)));
+  base = mix(base, paliColor, R.paliWall.mul(paliDry));
+
   // The islands' flora carried on in the ground, from the feet to the horizon (0 draws, so Lite's
   // meadows get it too): open grassy ground takes its island's sward (the blades' mean tone, with
   // tussock grain), forest floors a moss carpet, and both the flower drifts past the plants' reach
@@ -650,6 +785,7 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(R.forestFloor))
     .mul(float(1).sub(underwater))
     .mul(float(1).sub(cliffInfluence))
+    .mul(notPali)
     .mul(saturate(flora.inside));
   const forest = R.forestFloor.mul(saturate(flora.inside)).mul(float(1).sub(underwater));
   const tussock = grassFineA.mul(0.55).add(grassFineB.mul(0.45));
@@ -701,8 +837,18 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
           .mul(float(1).sub(smoothstep(0.5, 22.0, y.negate())))
           .mul(saturate(world.sunDir.y.mul(1.8)))
           .mul(float(1).sub(world.night));
+  // Fluted walls far off fade into the island's haze (aerial perspective), so ranges behind ranges
+  // read paler and bluer: the scene's haze grows too slowly over the few hundred metres between them.
+  // Not for a view from high above (looking down, there's little air between).
+  const lookingDown = positionWorld.sub(cameraPosition).normalize().y.negate();
+  const paliHaze = R.paliWall
+    .mul(smoothstep(520, 1700, detailDistance))
+    .mul(0.45)
+    .mul(smoothstep(0.45, 0.2, lookingDown))
+    .mul(float(1).sub(world.night));
   material.colorNode = base
     .mul(float(0.62).add(terrainLight.mul(0.58)))
+    .mul(float(1).sub(paliHaze))
     .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.08)));
   material.roughnessNode = saturate(
     float(0.84)
@@ -714,10 +860,15 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
       .sub(R.cave.mul(0.62)),
   );
   material.aoNode = light.x;
+  // On fluted walls (`paliWall`) the near detail's own relief takes over from the meadow's.
+  const paliBump = paliNear.mul(paliDry);
   const bumpStrength = closeDetail
     .mul(grassMask.mul(0.22).add(pathSandMask.mul(0.13)).add(beachSandMask.mul(0.09)))
-    .mul(float(1).sub(underwater.mul(0.85)));
-  if (!options.miniature) material.normalNode = bumpMap(detailHeight, bumpStrength);
+    .mul(float(1).sub(underwater.mul(0.85)))
+    .mul(float(1).sub(paliBump))
+    .add(paliBump.mul(0.5));
+  if (!options.miniature)
+    material.normalNode = bumpMap(mix(detailHeight, paliDetail, paliBump), bumpStrength);
 
   const viewDir = cameraPosition.sub(positionWorld).normalize();
   const fresnelRim = pow(float(1).sub(saturate(dot(normalWorld, viewDir))), 2.2);
@@ -728,7 +879,9 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(float(1).sub(world.night))
     .mul(float(1).sub(cliffMask.mul(0.75)))
     // The headland's shoulders all stand over a big drop; only a faint glow there, or its whole top goes gold.
-    .mul(float(1).sub(headlandScrub.mul(0.85)));
+    .mul(float(1).sub(headlandScrub.mul(0.85)))
+    // So does every rib on a fluted wall: no glow down the flutes.
+    .mul(float(1).sub(R.paliWall.mul(0.9)));
   // The meadow's sheen under a gust, seen at a slant, and its glow when you look toward a low sun.
   const grazing = pow(float(1).sub(saturate(dot(N, viewDir))), 1.5);
   const sunUp = smoothstep(0.02, 0.2, world.sunDir.y).mul(float(1).sub(world.night));
@@ -740,9 +893,18 @@ export function createTerrainMaterial(options: TerrainMaterialOptions = {}): Mes
     .mul(meadow)
     .mul(sunUp);
   const meadowLight = sward.mul(gustSheen.mul(0.3).add(forwardGlow.mul(0.32)));
+  const hazeTone = mix(
+    vec3(world.hazeColor.r, world.hazeColor.g, world.hazeColor.b),
+    vec3(0.78, 0.86, 0.95),
+    0.6,
+  );
+  // Shaded walls get light bounced off the sunlit walls across the valley (green, not black).
+  const paliBounce = base.mul(R.paliWall).mul(0.09).mul(float(1).sub(world.night));
   material.emissiveNode = vec3(world.sunColor.r, world.sunColor.g, world.sunColor.b)
     .mul(rim.mul(0.55).add(meadowLight))
-    .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.18)));
+    .add(paliBounce)
+    .add(vec3(0.65, 0.95, 1.0).mul(caustics.mul(0.18)))
+    .add(hazeTone.mul(paliHaze.mul(0.9)));
   return material;
 }
 

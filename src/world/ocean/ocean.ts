@@ -1,6 +1,14 @@
 // Adapted from Tidewater © 2026 DRG Software Solutions LLC, MIT, src/ocean/WaterMaterial.js@fd6cae6
 // Adapted from NAGI © 2026 NAGI contributors, MIT, src/ocean.js@16c552b
-import { Mesh, MeshBasicNodeMaterial, NoBlending, type Camera, type Node, type Texture } from 'three/webgpu';
+import {
+  Mesh,
+  MeshBasicNodeMaterial,
+  NoBlending,
+  Vector4,
+  type Camera,
+  type Node,
+  type Texture,
+} from 'three/webgpu';
 import {
   Fn,
   attribute,
@@ -47,7 +55,14 @@ import { shipOcean } from './ship-interaction';
 import { MatchedDepth } from './depth-copy';
 import { createPolarGrid, cullPolarSectors, type PolarGridOptions } from './polar-grid';
 import { createRippleTexture } from './ripple-texture';
-import { WATER_DEPTH_BOUNDS, waterDepthTexture } from './water-depth-texture';
+import {
+  WATER_DEPTH_BOUNDS,
+  nearestWaterDepthTile,
+  tileUvBounds,
+  waterDepthPlaceholder,
+  waterDepthTexture,
+  type WaterDepthTile,
+} from './water-depth-texture';
 import { FADE_DISTANCE, WaveField, wavesForTier } from './waves';
 import { seaState } from './sea-state';
 import { seaUniforms, syncSea } from './sea-uniforms';
@@ -113,6 +128,11 @@ export function createOcean({
   const geo = createPolarGrid(oceanGrid(tier));
   const ripple = createRippleTexture(256);
   const floorTex = useTerrainDepth ? waterDepthTexture() : null;
+  // The island slot (`tileUvBounds`): empty until an island lends its tile.
+  const islandTile = useTerrainDepth ? texture(waterDepthPlaceholder()) : null;
+  const islandTileBounds = uniform(new Vector4());
+  tileUvBounds(null, islandTileBounds.value);
+  let boundTile: WaterDepthTile | null = null;
   // The colour graph is built once per pass that draws the sea; each build's depth node is this ocean's.
   const depthCopies = new MatchedDepth();
   // The sea state's live amplitudes (uniforms): a change of state builds no new shader.
@@ -174,7 +194,17 @@ export function createOcean({
       .and(floorUvRaw.x.lessThanEqual(1))
       .and(floorUvRaw.y.greaterThanEqual(0))
       .and(floorUvRaw.y.lessThanEqual(1));
-    const floorY = select(floorOk, texture(floorTex, floorUv).r, float(-58));
+    const homeY = select(floorOk, texture(floorTex, floorUv).r, float(-58));
+    // The nearest streamed island's own tile (`addWaterDepthTile`), in a second slot: its bounds and
+    // texture change with a uniform and the node's value, so a swap builds no shader.
+    const tileUvRaw = rest.sub(islandTileBounds.xy).mul(islandTileBounds.zw);
+    const tileOk = tileUvRaw.x
+      .greaterThanEqual(0)
+      .and(tileUvRaw.x.lessThanEqual(1))
+      .and(tileUvRaw.y.greaterThanEqual(0))
+      .and(tileUvRaw.y.lessThanEqual(1));
+    const tileY = islandTile!.sample(clamp(tileUvRaw, vec2(0.001), vec2(0.999))).r;
+    const floorY = select(tileOk, tileY, homeY);
     terrainDepthNode = max(offset.y.mul(fade).sub(floorY), 0);
   }
   const vTerrainDepth = varying(terrainDepthNode, 'vTerrainDepth');
@@ -557,6 +587,14 @@ export function createOcean({
       previousWaveTime.value = lastWaveTime;
       lastWaveTime = time;
       mesh.position.set(camera.position.x, 0, camera.position.z);
+      if (islandTile) {
+        const tile = nearestWaterDepthTile(camera.position.x, camera.position.z);
+        if (tile !== boundTile) {
+          boundTile = tile;
+          islandTile.value = tile ? tile.texture : waterDepthPlaceholder();
+          tileUvBounds(tile, islandTileBounds.value);
+        }
+      }
       field.setFocus(camera.position.x, camera.position.z);
       world.focus.value.set(camera.position.x, camera.position.z);
     },

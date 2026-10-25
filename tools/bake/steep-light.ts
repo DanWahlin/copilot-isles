@@ -4,6 +4,13 @@ const RADIUS = 7;
 const SIGMA_D = 5;
 const SIGMA_H = 1.4;
 
+export interface SteepLightOptions {
+  /** How far (grid cells) a point takes the mean from. Default 7 (14 m on a 2 m grid). */
+  radius?: number;
+  /** The spread of the distance weight (cells). Default 5. */
+  sigma?: number;
+}
+
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
   return t * t * (3 - 2 * t);
@@ -17,10 +24,13 @@ function smoothstep(edge0: number, edge1: number, x: number): number {
  * values down the face's tall triangles into vertical streaks. Each steep point takes a weighted mean
  * of the points within 14 m that stand at nearly its height (a bilateral filter on height), so the
  * shading still falls off up and down the face but no longer flickers along it. Flat and gentle
- * ground keeps its own value.
+ * ground keeps its own value. A fluted wall takes a smaller radius (`options`), so the flutes keep
+ * their own shade.
  */
-export function smoothSteepLight(data: TerrainBakeData): void {
+export function smoothSteepLight(data: TerrainBakeData, options: SteepLightOptions = {}): void {
   const { nx, nz, heights, normals } = data;
+  const radius = options.radius ?? RADIUS;
+  const sigma = options.sigma ?? SIGMA_D;
   const channels = [data.ao, data.sunMorning, data.sunGolden, data.rim];
   const raw = channels.map((c) => c.slice());
   const sums = new Float64Array(channels.length);
@@ -32,16 +42,16 @@ export function smoothSteepLight(data: TerrainBakeData): void {
       const h = heights[i]!;
       sums.fill(0);
       let total = 0;
-      for (let dz = -RADIUS; dz <= RADIUS; dz++) {
+      for (let dz = -radius; dz <= radius; dz++) {
         const jz = iz + dz;
         if (jz < 0 || jz >= nz) continue;
-        for (let dx = -RADIUS; dx <= RADIUS; dx++) {
+        for (let dx = -radius; dx <= radius; dx++) {
           const jx = ix + dx;
           if (jx < 0 || jx >= nx) continue;
           const j = jz * nx + jx;
           const dh = heights[j]! - h;
           const w = Math.exp(
-            -(dx * dx + dz * dz) / (2 * SIGMA_D * SIGMA_D) - (dh * dh) / (2 * SIGMA_H * SIGMA_H),
+            -(dx * dx + dz * dz) / (2 * sigma * sigma) - (dh * dh) / (2 * SIGMA_H * SIGMA_H),
           );
           total += w;
           for (let c = 0; c < channels.length; c++) sums[c]! += raw[c]![j]! * w;
