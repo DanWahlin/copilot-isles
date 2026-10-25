@@ -171,7 +171,8 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
         if (r1 >= s.to - 0.01 && !openTo(c, c.u1 + 1.5, s.v - s.out * 1)) r1 += WALL;
       }
       const len = r1 - r0e;
-      if (len < 0.3) continue;
+      // An end wall's run can be one sample at a corner shared with the next chamber: no stub there.
+      if (len < (s.along === 'v' ? 1 : 0.3)) continue;
       const mid = (r0e + r1) / 2;
       const off = (s.out * WALL) / 2;
       const u = s.along === 'v' ? s.u + off : mid;
@@ -197,9 +198,13 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
         s.along === 'v' ? len : WALL + 0.16,
         YARD_PAINT.paving,
       );
-      const hu = (s.along === 'v' ? WALL + 0.16 : len) / 2;
-      const hv = (s.along === 'v' ? len : WALL + 0.16) / 2;
-      out.decks.push(uvDeck(cu - hu, cu + hu, cv - hv, cv + hv, top, false));
+      // Walked over its width and an apron outside it: the ground's cut for the chamber leaves a gutter
+      // along the wall's back, deeper than a step (only where the ground is lower than the coping).
+      const du = s.along === 'v' ? (s.out * APRON) / 2 : 0;
+      const dv = s.along === 'v' ? 0 : (s.out * APRON) / 2;
+      const hu = (s.along === 'v' ? WALL + 0.16 + APRON : len) / 2;
+      const hv = (s.along === 'v' ? len : WALL + 0.16 + APRON) / 2;
+      out.decks.push(uvDeck(cu + du - hu, cu + du + hu, cv + dv - hv, cv + dv + hv, top, false));
       // A rail along the inner edge, posts every 2.4 m (not on the cut's low quay walls, nor the basin's
       // quay faces, where boats tie up).
       // The canal's rails leave a gap at each gate's hinge, where you step onto its walkway.
@@ -227,15 +232,20 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
       }
 }
 
+/** How far (m) a chamber wall's walk surface reaches past its back. */
+const APRON = 1.4;
+
 /** Where a gate's walkway meets a canal wall (u): a gap in the wall's rail from `GATE_GAP[0]` to `[1]` m past it. */
 const GATE_GAP = [-0.45, 0.95] as const;
+/** The gates in order along u (`railRuns` walks them so). */
+const GATES_UP = [...GATES].sort((x, y) => x - y);
 
 /** A side's rail runs, `r0` to `r1`, split round the canal gates' hinges (the docks' sides are whole). */
 function railRuns(c: Chamber, along: 'u' | 'v', r0: number, r1: number): [number, number][] {
   if (along !== 'u' || c.name.startsWith('dock')) return [[r0, r1]];
   const runs: [number, number][] = [];
   let a = r0;
-  for (const g of GATES) {
+  for (const g of GATES_UP) {
     const g0 = g + GATE_GAP[0];
     const g1 = g + GATE_GAP[1];
     if (g1 <= a || g0 >= r1) continue;
@@ -341,10 +351,11 @@ function mitreGate(
     // The walkway plank on top of the leaf.
     ubox(b, 'wood', uc, floor + h + 0.06, v, 0.8, 0.12, leafLen, YARD_PAINT.silver, -side * tilt);
     const walk = floor + h + 0.12;
-    out.decks.push(lineDeck([u, CANAL.v + side * half, walk], [u + point, CANAL.v, walk], 0.4, true));
-    // The walker's fences down both edges of the walkway (the hand rail and the drop), stopping short
-    // of the mitre so you can turn onto the other leaf.
-    for (const edge of [-0.42, 0.42]) {
+    out.decks.push(lineDeck([u, CANAL.v + side * half, walk], [u + point, CANAL.v, walk], 0.5, true));
+    // The walker's fences down both edges of the walkway (the hand rail and the drop), a body's width
+    // out so the walker's middle stays on the plank, stopping short of the mitre so you can turn onto
+    // the other leaf.
+    for (const edge of [-0.8, 0.8]) {
       const nu = (half / leafLen) * side * edge;
       const nv = (point / leafLen) * edge;
       const m = at(

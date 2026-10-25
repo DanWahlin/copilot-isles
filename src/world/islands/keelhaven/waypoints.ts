@@ -5,6 +5,7 @@ import { keelhavenHeight } from './height';
 import { toWorld } from './layout';
 import { STREET } from './town';
 import { GATE_PATH } from './works';
+import { gateStairY } from './gate-stair';
 
 /**
  * Keelhaven's routes for the compass (src/game/wayfinding/), in the as-built cove frame: the Old Town
@@ -25,8 +26,8 @@ const path = (...ids: string[]) => {
   for (let i = 1; i < ids.length; i++) legs.push([ids[i - 1]!, ids[i]!]);
 };
 
-// The quay, from its head past the gangway to its root and down its steps to the street.
-at('quay.head', -92, 60, H.deck);
+// The quay, from Bram's stall at its head past the gangway to its root and down its steps to the street.
+at('quay.head', -84, 60, H.deck);
 at('quay.gangway', -62, 58.7, H.deck);
 at('quay.board', -24, 60, H.deck);
 at('quay.root', 5, 60, H.deck);
@@ -39,110 +40,161 @@ path('quay.root', ...STREET.map((_, i) => `street.${i}`));
 at('tavern', 13.5, 69.5);
 path('street.0', 'tavern');
 at('square', 111, 26);
+// Round the Evidence Board, which stands on the bridge's line.
+at('square.board', 117.5, 17);
 at('bridge.s', 112, 11);
 at('bridge.n', 112, -5.5);
 at('yard.gate', 112, -21);
-path(`street.${STREET.length - 1}`, 'square', 'bridge.s', 'bridge.n', 'yard.gate');
-// The yard: along the basin's south side to the dock heads, and west to the lock terrace.
-at('yard.south', 128, -29);
-at('docks.head', 171, -50);
-// Along the dock heads: Drydock 2 (Cass) and Drydock 1 (Dory).
-at('docks.d2', 171, -58.5);
-at('docks.d1', 171, -73);
-path('yard.gate', 'yard.south', 'docks.head', 'docks.d2', 'docks.d1');
-at('yard.west', 90, -28);
+path(`street.${STREET.length - 1}`, 'square', 'square.board', 'bridge.s', 'bridge.n', 'yard.gate');
+// The yard: down to the Fitting Basin's coping, then east past Drydock 3 to the dock heads, and west
+// past the hull boards (clear of the sheds and the timber stacks) to the lock terrace.
+at('yard.basin', 113, -33.2, 5.2);
+at('docks.head', 168.5, -34);
+// Down the dock heads, between their rails and the bollards: Drydock 2 (Cass) and Drydock 1 (Dory).
+at('docks.d2', 168.5, -58.5);
+at('docks.d1', 168.5, -73);
+path('yard.gate', 'yard.basin', 'docks.head', 'docks.d2', 'docks.d1');
+at('yard.west', 98, -34.6, 5.2);
+at('yard.corner', 58, -33);
 at('locks.top', 50, -45);
 at('locks.near', 38, -47);
-path('yard.gate', 'yard.west', 'locks.top', 'locks.near');
+path('yard.basin', 'yard.west', 'yard.corner', 'locks.top', 'locks.near');
 // Over Lock 2's upper gate (its two leaves meet in a V upstream) to the far towpath.
-at('gate.near', 36.3, -54.6, 4.02);
+at('gate.near', 36, -54, 3.6);
 at('gate.mitre', 37.4, -60, 4.02);
-at('gate.far', 36.3, -65.4, 4.02);
+at('gate.far', 36, -66, 3.6);
 at('locks.far', 30, -70);
 path('locks.near', 'gate.near', 'gate.mitre', 'gate.far', 'locks.far');
 // The stair up the North Head to the Gate Light.
-GATE_PATH.forEach((p, i) => at(`stair.${i}`, p[0], p[1], p[2] + 0.2));
+GATE_PATH.forEach((p, i) => at(`stair.${i}`, p[0], p[1], gateStairY(p[0], p[1])));
 path('locks.far', ...GATE_PATH.map((_, i) => `stair.${i}`));
 at('light', -224, -150, 44);
 path(`stair.${GATE_PATH.length - 1}`, 'light');
-
-/** A closed coast in the cove frame (u, v), in world points. */
-const coast = (pts: readonly (readonly [number, number])[]) =>
-  pts.map(([u, v]) => {
-    const p = toWorld(u, v);
-    return { x: Math.round(p.x), z: Math.round(p.z) };
-  });
 
 export const KEELHAVEN_WAYS: IslandWays = {
   walk: { nodes, legs },
   sea: {
     coasts: [
-      // The −3.5 m line round the island (traced from its height, 14 m tolerance), with the cove's
-      // shore drawn in by hand: the north shore in to the beach, the quay as a jetty to its head, and
-      // out along the south shore.
+      // Where the island is too shallow for the ship (under 3.1 m), 18 m wider, traced from its height
+      // (8 m tolerance). The cove stays open from its mouth to the quay's face, and the quay is land.
       [
-        { x: 3860, z: -2354 },
-        { x: 3806, z: -2308 },
-        { x: 3700, z: -2139 },
-        { x: 3644, z: -2197 },
-        { x: 3586, z: -2188 },
-        { x: 3612, z: -2133 },
-        { x: 3684, z: -2111 },
-        { x: 3685, z: -2060 },
-        ...coast([
-          [-120, -112],
-          [-61, -98],
-          [-30, -70],
-          [-12, -40],
-          [-8, 0],
-          [-12, 46],
-          [-100, 54.5],
-          [-106, 60],
-          [-100, 66],
-          [-60, 84],
-          [-136, 116],
-        ]),
-        { x: 3595, z: -1764 },
-        { x: 3574, z: -1484 },
-        { x: 3660, z: -1372 },
-        { x: 3629, z: -1196 },
-        { x: 3680, z: -1100 },
-        { x: 3756, z: -1070 },
-        { x: 3847, z: -1084 },
-        { x: 4004, z: -954 },
-        { x: 4108, z: -1014 },
-        { x: 4212, z: -1010 },
-        { x: 4321, z: -1076 },
-        { x: 4356, z: -1244 },
-        { x: 4348, z: -1393 },
-        { x: 4434, z: -1580 },
-        { x: 4381, z: -1716 },
-        { x: 4313, z: -1796 },
-        { x: 4375, z: -1948 },
-        { x: 4390, z: -2076 },
-        { x: 4364, z: -2137 },
-        { x: 4304, z: -2164 },
-        { x: 4244, z: -2227 },
-        { x: 4175, z: -2220 },
-        { x: 4092, z: -2313 },
-      ],
-      // The sea stack off the north-west point.
-      [
-        { x: 3524, z: -1133 },
-        { x: 3524, z: -1108 },
-        { x: 3548, z: -1101 },
-        { x: 3559, z: -1124 },
-        { x: 3532, z: -1138 },
+        { x: 3856, z: -2374 },
+        { x: 3786, z: -2316 },
+        { x: 3700, z: -2182 },
+        { x: 3632, z: -2222 },
+        { x: 3588, z: -2218 },
+        { x: 3570, z: -2200 },
+        { x: 3566, z: -2168 },
+        { x: 3582, z: -2136 },
+        { x: 3620, z: -2102 },
+        { x: 3666, z: -2088 },
+        { x: 3666, z: -2052 },
+        { x: 3778, z: -1952 },
+        { x: 3770, z: -1924 },
+        { x: 3802, z: -1896 },
+        { x: 3744, z: -1814 },
+        { x: 3696, z: -1846 },
+        { x: 3682, z: -1836 },
+        { x: 3688, z: -1822 },
+        { x: 3636, z: -1842 },
+        { x: 3610, z: -1832 },
+        { x: 3566, z: -1728 },
+        { x: 3574, z: -1640 },
+        { x: 3554, z: -1484 },
+        { x: 3570, z: -1444 },
+        { x: 3642, z: -1368 },
+        { x: 3638, z: -1320 },
+        { x: 3610, z: -1244 },
+        { x: 3610, z: -1192 },
+        { x: 3622, z: -1152 },
+        { x: 3670, z: -1080 },
+        { x: 3700, z: -1058 },
+        { x: 3752, z: -1050 },
+        { x: 3792, z: -1050 },
+        { x: 3836, z: -1070 },
+        { x: 3880, z: -1038 },
+        { x: 3948, z: -958 },
+        { x: 4004, z: -934 },
+        { x: 4080, z: -962 },
+        { x: 4116, z: -994 },
+        { x: 4224, z: -994 },
+        { x: 4268, z: -1022 },
+        { x: 4316, z: -1034 },
+        { x: 4338, z: -1068 },
+        { x: 4378, z: -1248 },
+        { x: 4366, z: -1392 },
+        { x: 4454, z: -1580 },
+        { x: 4398, z: -1728 },
+        { x: 4330, z: -1796 },
+        { x: 4394, z: -1944 },
+        { x: 4410, z: -2012 },
+        { x: 4402, z: -2100 },
+        { x: 4430, z: -2132 },
+        { x: 4416, z: -2154 },
+        { x: 4380, z: -2150 },
+        { x: 4316, z: -2178 },
+        { x: 4260, z: -2242 },
+        { x: 4224, z: -2250 },
+        { x: 4184, z: -2238 },
+        { x: 4104, z: -2330 },
+        { x: 4036, z: -2338 },
+        { x: 3964, z: -2366 },
       ],
       // The reef flat off the cove's south headland.
       [
-        { x: 3388, z: -1926 },
-        { x: 3377, z: -1892 },
-        { x: 3396, z: -1863 },
-        { x: 3476, z: -1830 },
-        { x: 3494, z: -1844 },
-        { x: 3484, z: -1885 },
-        { x: 3396, z: -1928 },
+        { x: 3400, z: -1950 },
+        { x: 3362, z: -1928 },
+        { x: 3354, z: -1904 },
+        { x: 3366, z: -1868 },
+        { x: 3424, z: -1818 },
+        { x: 3500, z: -1818 },
+        { x: 3514, z: -1844 },
+        { x: 3502, z: -1896 },
+        { x: 3452, z: -1938 },
+      ],
+      // The sea stack off the north-west point.
+      [
+        { x: 3536, z: -1162 },
+        { x: 3506, z: -1144 },
+        { x: 3498, z: -1120 },
+        { x: 3536, z: -1078 },
+        { x: 3560, z: -1086 },
+        { x: 3582, z: -1116 },
+        { x: 3570, z: -1144 },
+      ],
+      // Rocks and reefs offshore.
+      [
+        { x: 4504, z: -1650 },
+        { x: 4478, z: -1624 },
+        { x: 4490, z: -1588 },
+        { x: 4520, z: -1574 },
+        { x: 4538, z: -1584 },
+        { x: 4542, z: -1604 },
+        { x: 4526, z: -1640 },
+      ],
+      [
+        { x: 4416, z: -1046 },
+        { x: 4390, z: -1028 },
+        { x: 4386, z: -1004 },
+        { x: 4400, z: -982 },
+        { x: 4424, z: -978 },
+        { x: 4450, z: -992 },
+        { x: 4454, z: -1016 },
+        { x: 4440, z: -1038 },
+      ],
+      [
+        { x: 3880, z: -2442 },
+        { x: 3850, z: -2408 },
+        { x: 3884, z: -2378 },
+        { x: 3902, z: -2388 },
+        { x: 3910, z: -2416 },
+      ],
+      [
+        { x: 3520, z: -1514 },
+        { x: 3498, z: -1488 },
+        { x: 3524, z: -1462 },
+        { x: 3550, z: -1492 },
+        { x: 3540, z: -1510 },
       ],
     ],
     lanes: H.lane.slice(0, 3),

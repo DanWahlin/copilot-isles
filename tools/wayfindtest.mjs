@@ -10,7 +10,7 @@
 //     once the step says to board, and every quest step of every island has a compass target.
 //  4. In irons by Port Meridian's harbour, Wingman's tacking tip plays once a voyage.
 // node tools/wayfindtest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--only=legs,sea,sitting,tack]
-//                            [--webgl] [--verbose]
+//                            [--islands=<id,…>] [--webgl] [--verbose]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 import { ISLAND_IDS, OPEN_FLAGS, STREAMED } from './lib/islands.mjs';
@@ -21,6 +21,8 @@ const out = opt.out || 'tmp/shots/wayfind';
 mkdirSync(out, { recursive: true });
 const only = opt.only ? String(opt.only).split(',') : ['legs', 'sea', 'sitting', 'tack'];
 const tag = opt.webgl ? 'gl' : 'gpu';
+/** `--islands=keelhaven,…`: walk only these islands' legs. */
+const islands = opt.islands ? String(opt.islands).split(',') : ISLAND_IDS;
 
 const browser = await launchChrome();
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -76,7 +78,7 @@ let hitchesChecked = null;
 
 // ---- 1. Walking legs --------------------------------------------------------------------------
 if (only.includes('legs')) {
-  for (const id of ISLAND_IDS) {
+  for (const id of islands) {
     await ashore(id);
     const r = await S(async (id) => {
       const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();

@@ -5,7 +5,8 @@ import { box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/
 import { addVerandaHouse, tintFor } from '../../village/veranda-house';
 import { mulberry32 } from '../../../util/math';
 import { keelhavenHeight } from './height';
-import { GATE_PATH, GATE_PATH_HALF } from './works';
+import { GATE_PATH_HALF } from './works';
+import { GATE_TREAD, gateStairTreads } from './gate-stair';
 import { FRAME, toFrame, toWorld, type Uv } from './layout';
 import { lineDeck, type WalkDeck } from './decks';
 import { YARD_PAINT, at, ground, ropeCoil, stores, ubox, YAW_U, type ShipyardOut } from './shipyard';
@@ -1179,104 +1180,77 @@ function barrels(b: Buckets, out: ShipyardOut, u: number, v: number, seed: numbe
  * to the light. The ground isn't cut for it (the far terrain levels can't hold a narrow bench).
  */
 function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
-  const step = lite ? 2.8 : 1.4;
+  const step = GATE_TREAD;
   const half = GATE_PATH_HALF * 0.5;
-  let run = 0;
-  let next = 0;
+  const treads = gateStairTreads();
   let nextLamp = 30;
-  let k = 0;
   let prevRail: { x: number; y: number; z: number } | null = null;
-  // The treads only climb: over a gully they bridge on taller posts (a dip read as a sag in the stair).
-  let climb = -Infinity;
-  for (let i = 0; i + 1 < GATE_PATH.length; i++) {
-    const a = GATE_PATH[i]!;
-    const e = GATE_PATH[i + 1]!;
-    const len = Math.hypot(e[0] - a[0], e[1] - a[1]);
-    const tu = (e[0] - a[0]) / len;
-    const tv = (e[1] - a[1]) / len;
-    // Across, toward the drop (the side whose ground is lower).
-    const mu = (a[0] + e[0]) / 2;
-    const mv = (a[1] + e[1]) / 2;
-    const side = ground(mu - tv * 5, mv + tu * 5) < ground(mu + tv * 5, mv - tu * 5) ? 1 : -1;
-    const nu = -tv * side;
-    const nv = tu * side;
+  for (let k = 0; k < treads.length; k++) {
+    const { u, v, y, tu, tv, nu, nv, s } = treads[k]!;
     const dx = tu * FRAME.axis.x + tv * FRAME.across.x;
     const dz = tu * FRAME.axis.z + tv * FRAME.across.z;
     const yaw = Math.atan2(-dz, dx);
-    for (let t = next - run; t < len; t += step) {
-      const u = a[0] + tu * (t + step / 2);
-      const v = a[1] + tv * (t + step / 2);
-      // The tread stands on the slope's high edge and over the ground on its line.
-      const high = ground(u - nu * half, v - nv * half);
-      const along = (t + step / 2) / len;
-      const profile = a[2] + (e[2] - a[2]) * Math.min(1, along);
-      climb = Math.max(climb, Math.max(high, ground(u, v), profile) + 0.14);
-      const y = climb;
-      const c = at(u, y, v);
-      box(
+    const c = at(u, y, v);
+    box(
+      b,
+      'wood',
+      c.x,
+      y - 0.04,
+      c.z,
+      step + 0.03,
+      0.08,
+      half * 2,
+      yaw,
+      k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
+    );
+    // Walked tread by tread, with a fence along its drop edge (the rope rail).
+    out.decks.push(
+      lineDeck(
+        [u - (tu * step) / 2, v - (tv * step) / 2, y],
+        [u + (tu * step) / 2, v + (tv * step) / 2, y],
+        half,
+        true,
+      ),
+    );
+    const fence = at(u + nu * (half - 0.04), 0, v + nv * (half - 0.04));
+    out.colliders.push({
+      x: fence.x,
+      z: fence.z,
+      hx: step / 2 + 0.02,
+      hz: 0.06,
+      rot: yaw,
+      y0: y - 0.6,
+      y1: y + 1.1,
+      height: 1,
+    });
+    // A bearer under it, and a post down to the ground at its drop edge.
+    const du = u + nu * (half - 0.08);
+    const dv = v + nv * (half - 0.08);
+    const g = ground(du, dv);
+    const q = at(du, g, dv);
+    if (y - g > 0.2)
+      rod(
         b,
         'wood',
-        c.x,
-        y - 0.04,
-        c.z,
-        step + 0.03,
-        0.08,
-        half * 2,
-        yaw,
-        k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
+        { x: q.x, y: g - 0.3, z: q.z },
+        { x: q.x, y: y - 0.08, z: q.z },
+        0.07,
+        5,
+        YARD_PAINT.weathered,
       );
-      // Walked tread by tread, with a fence along its drop edge (the rope rail).
-      out.decks.push(
-        lineDeck(
-          [u - (tu * step) / 2, v - (tv * step) / 2, y],
-          [u + (tu * step) / 2, v + (tv * step) / 2, y],
-          half,
-          true,
-        ),
-      );
-      const fence = at(u + nu * (half - 0.04), 0, v + nv * (half - 0.04));
-      out.colliders.push({
-        x: fence.x,
-        z: fence.z,
-        hx: step / 2 + 0.02,
-        hz: 0.06,
-        rot: yaw,
-        y0: y - 0.6,
-        y1: y + 1.1,
-        height: 1,
-      });
-      // A bearer under it, and a post down to the ground at its drop edge.
-      const du = u + nu * (half - 0.08);
-      const dv = v + nv * (half - 0.08);
-      const g = ground(du, dv);
-      const q = at(du, g, dv);
-      if (y - g > 0.2)
-        rod(
-          b,
-          'wood',
-          { x: q.x, y: g - 0.3, z: q.z },
-          { x: q.x, y: y - 0.08, z: q.z },
-          0.07,
-          5,
-          YARD_PAINT.weathered,
-        );
-      // The rail: a post every other tread, a rope between.
-      if (k % (lite ? 2 : 2) === 0) {
-        const top = { x: q.x, y: y + 1.0, z: q.z };
-        rod(b, 'wood', { x: q.x, y: y - 0.08, z: q.z }, top, 0.05, 5, YARD_PAINT.weathered);
-        out.circles.push({ x: q.x, z: q.z, r: 0.1, y0: g - 0.5, y1: y + 1, height: y + 1 - g });
-        if (prevRail && !lite && Math.hypot(top.x - prevRail.x, top.z - prevRail.z) < 4)
-          rope(b, prevRail, top, 0.1, 0.02, YARD_PAINT.rope, 4);
-        prevRail = top;
-      }
-      if (run + t >= nextLamp) {
-        nextLamp = run + t + 40;
-        lampPost(b, out, u - nu * (half + 0.5), v - nv * (half + 0.5), armYaw(nu, nv));
-      }
-      k++;
-      next = run + t + step;
+    // The rail: a post every other tread, a rope between.
+    if (k % 2 === 0) {
+      const top = { x: q.x, y: y + 1.0, z: q.z };
+      rod(b, 'wood', { x: q.x, y: y - 0.08, z: q.z }, top, 0.05, 5, YARD_PAINT.weathered);
+      out.circles.push({ x: q.x, z: q.z, r: 0.1, y0: g - 0.5, y1: y + 1, height: y + 1 - g });
+      if (prevRail && !lite && Math.hypot(top.x - prevRail.x, top.z - prevRail.z) < 4)
+        rope(b, prevRail, top, 0.1, 0.02, YARD_PAINT.rope, 4);
+      prevRail = top;
     }
-    run += len;
+    if (s >= nextLamp) {
+      nextLamp = s + 40;
+      lampPost(b, out, u - nu * (half + 0.5), v - nv * (half + 0.5), armYaw(nu, nv));
+    }
   }
 }
 
