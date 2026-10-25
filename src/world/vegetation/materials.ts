@@ -777,7 +777,8 @@ export function createRecoloredLeafMaterial(map: Texture, name: string): MeshSta
 
 /**
  * The far plants' cards: each instance's `atlasUv` holds two baked views' tiles (xy and zw, `tileSize`
- * square) and its `fade` the dissolve (x) and how far to blend from the first view to the second (y).
+ * square) and its `fade` the dissolve (x), how far to blend from the first view to the second (y),
+ * and how much to shade the card like a round crown (z, 0-1: a patch's look, `PlantPatchLook.cardShade`).
  */
 export function createImpostorMaterial(atlas: Texture, tileSize: number): MeshStandardNodeMaterial {
   atlas.wrapS = ClampToEdgeWrapping;
@@ -787,7 +788,7 @@ export function createImpostorMaterial(atlas: Texture, tileSize: number): MeshSt
   const material = new MeshStandardNodeMaterial({ side: DoubleSide, roughness: 0.9, metalness: 0 });
   material.name = 'vegetation-impostor';
   const tint = attribute('tint', 'vec3') as AnyNode;
-  const fade = attribute('fade', 'vec2') as AnyNode;
+  const fade = attribute('fade', 'vec3') as AnyNode;
   const tiles = attribute('atlasUv', 'vec4') as AnyNode;
   // Render-target tiles come back vertically flipped relative to the card's UVs.
   const cardUv = (vec2 as AnyNode)((uv() as AnyNode).x, float(1).sub((uv() as AnyNode).y)).mul(tileSize);
@@ -806,12 +807,22 @@ export function createImpostorMaterial(atlas: Texture, tileSize: number): MeshSt
   ) as AnyNode;
   // The atlas holds albedo; light the card like a canopy (mostly up, a little toward the viewer)
   // so distant trees follow the scene's sun and time of day.
+  // The card's sides lean out like a round crown's (its middle about 0.6 up), so the sun lights one
+  // side of a far tree and leaves the other in shade.
   const upView = (vec3(0, 1, 0) as AnyNode).transformDirection(cameraViewMatrix);
+  const round = (uv() as AnyNode).sub(vec2(0.5, 0.6)).mul(fade.z);
   material.normalNode = upView
     .mul(0.8)
-    .add(vec3(0, 0, 0.45))
+    .add(vec3(round.x.mul(0.9), round.y.mul(0.3), 0.45))
     .normalize() as AnyNode;
-  material.colorNode = sample.rgb.mul(tint.mul(0.16).add(0.84)) as AnyNode;
+  // A flat card reads as a cut-out: shade it like a crown, darker low down and at its thin,
+  // half-covered edges, and its trunk (bark: redder than green) in the shade under the crown, so a far
+  // stand reads as round crowns over a dark understory, not a row of flat discs on sticks.
+  const bark = smoothstep(-0.01, 0.06, sample.r.sub(sample.g));
+  const crown = mix(float(0.74), float(1.06), smoothstep(0.08, 0.8, (uv() as AnyNode).y))
+    .mul(mix(float(0.78), float(1), smoothstep(0.35, 0.95, alpha)))
+    .mul(mix(float(1), float(0.45), bark));
+  material.colorNode = sample.rgb.mul(tint.mul(0.16).add(0.84)).mul(mix(float(1), crown, fade.z)) as AnyNode;
   material.maskNode = greaterThan(sample.a.mul(fade.x), interleavedGradientNoise().mul(0.8).add(0.1));
   return material;
 }

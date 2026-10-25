@@ -92,8 +92,9 @@ const releaseOnDispose = (e: { target: InstancedMesh }) => void releaseInstanceB
 
 /**
  * An InstancedMesh that shares its shader with others of the same material (see above), drawing
- * `count` instances (all of them by default). A geometry with too many vertex buffers for that has
- * its per-vertex attributes interleaved into one (`interleaveVertexAttributes`) first. Its `dispose`
+ * `count` instances (all of them by default). A geometry with too many vertex buffers for that (or,
+ * past 1,024 instances, for the matrices' attributes at all) has its per-vertex attributes
+ * interleaved into one (`interleaveVertexAttributes`) first. Its `dispose`
  * frees the instance buffers three made for it (`releaseInstanceBuffers`, issue 262), not its
  * geometry's: send it only when the mesh won't be drawn again.
  */
@@ -103,7 +104,14 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
   capacity: number,
   opts: { count?: number; instanceColors?: boolean } = {},
 ): InstancedMesh<G, M> {
-  if (sharedInstanceCapacity(geometry, capacity, opts.instanceColors) < SHARED_INSTANCE_CAPACITY)
+  // Past the uniform buffer's room the matrices are attributes whatever the geometry: interleave its
+  // attributes if they'd leave no vertex buffers for them (a big batch of a many-attribute plant).
+  const big = Math.max(1, capacity) >= SHARED_INSTANCE_CAPACITY;
+  if (
+    big
+      ? bufferCount(geometry) + 2 + (opts.instanceColors ? 1 : 0) > MAX_VERTEX_BUFFERS
+      : sharedInstanceCapacity(geometry, capacity, opts.instanceColors) < SHARED_INSTANCE_CAPACITY
+  )
     interleaveVertexAttributes(geometry);
   const mesh = new InstancedMesh<G, M>(
     geometry,

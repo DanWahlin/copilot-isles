@@ -18,7 +18,7 @@ import type { TerrainBakeData } from './terrain/bake';
 import type { CompositeHeightField } from './terrain/composite-height-field';
 import type { CreatedTerrain } from './terrain/terrain-mesh';
 import type { VegetationSystem } from './vegetation';
-import type { PlantInstance, VegetationPatch } from './vegetation/types';
+import type { PlantInstance, PlantPatchLook, VegetationPatch } from './vegetation/types';
 import { LITE_ROCK_ERROR, simplifyInPlace } from './village/chunks';
 
 /** What a streamed island (Port Meridian, Thousand-Bough) takes from the world it streams into. */
@@ -83,13 +83,16 @@ export async function addIslandPlants(
   flora: readonly PlantInstance[],
   name: string,
   rules: FloraRules,
-  terrain: CreatedTerrain,
+  terrain: Pick<CreatedTerrain, 'heightField' | 'heightGrid'>,
+  /** How the island's plants are drawn, if not as every island's (`PlantPatchLook`). */
+  look?: PlantPatchLook,
 ): Promise<VegetationPatch> {
-  const plants = await vegetation.addPlants(flora, name, {
-    rules,
-    heightField: terrain.heightField,
-    heightGrid: terrain.heightGrid,
-  });
+  const plants = await vegetation.addPlants(
+    flora,
+    name,
+    { rules, heightField: terrain.heightField, heightGrid: terrain.heightGrid },
+    look,
+  );
   if (ctx.skipShadows) skipSunShadows(plants.group);
   return plants;
 }

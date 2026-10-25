@@ -1,6 +1,7 @@
 import type { CircleObstacle } from '../../contracts';
 import { COVE } from '../../layout';
 import { BRIGANTINE_HALF_LENGTH, keelHeightAt } from '../../ship/lines';
+import { WreckFrame } from '../../wreck/frame';
 
 /**
  * Where the wreck lies (COVE.wreck), as plain numbers: the terrain's sand bar, the wreck's mesh, its
@@ -20,27 +21,14 @@ interface Vec3Out {
   z: number;
 }
 
+const frame = new WreckFrame(W);
+
 /**
  * A wreck-local point (ship-local: +x port, +y up, +z bow, waterline at 0) in world space. It is
  * the ship's own rotation order (yaw, then pitch, then roll: three's 'YXZ').
  */
 export function wreckToWorld(x: number, y: number, z: number, out: Vec3Out): Vec3Out {
-  const x1 = x * cr - y * sr;
-  const y1 = x * sr + y * cr;
-  const y2 = y1 * cp - z * sp;
-  const z2 = y1 * sp + z * cp;
-  out.x = W.x + x1 * ch + z2 * sh;
-  out.y = W.y + y2;
-  out.z = W.z - x1 * sh + z2 * ch;
-  return out;
-}
-
-/** World-down in the wreck's own frame (what hanging ropes and rags follow). */
-export function wreckDown(out: Vec3Out): Vec3Out {
-  out.x = -cp * sr;
-  out.y = -cp * cr;
-  out.z = sp;
-  return out;
+  return frame.toWorld(x, y, z, out);
 }
 
 /** Along (+ toward the bow) and across (+ toward her port side) the wreck's centre line, in plan. */

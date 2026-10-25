@@ -142,6 +142,8 @@ export interface IslandStreamSpec {
 export interface IslandInBuild {
   id: string;
   terrainRegions: TerrainRegions;
+  /** Its grass and flower palette (the dev pages draw its flora with it), once it has one. */
+  floraPalette?: FloraPalette;
 }
 
 /**

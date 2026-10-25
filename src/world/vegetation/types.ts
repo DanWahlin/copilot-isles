@@ -1,4 +1,4 @@
-import type { PerspectiveCamera, Group, Object3D, WebGPURenderer } from 'three/webgpu';
+import type { Color, PerspectiveCamera, Group, Object3D, WebGPURenderer } from 'three/webgpu';
 import type { HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { VegetationExclude } from './exclusions';
@@ -118,6 +118,26 @@ export interface FloraSource {
   heightGrid: HeightGrid;
 }
 
+/**
+ * How a patch's plants are drawn, opt-in per island (the defaults are every other island's look):
+ * - `simplify`: per species, how far (m, at scale 1) its solid parts (bark, not leaf cards) may move
+ *   when they're simplified to fewer triangles (same vertices: the same shader);
+ * - `handoff`: a share of the tier's distance where trees and palms hand off to their impostors;
+ * - `tint`: a plant's tint, or null for the shared one (a narrow spread of greens per species);
+ * - `farTint`: its far card's tint (default `tint`). The far cards take only a sixth of their tint
+ *   (the shared impostor look), so a patch that wants its far canopy to vary as much as its near one
+ *   gives them a stronger tint;
+ * - `cardShade`: its far cards shaded like round crowns (darker low and at their thin edges, the
+ *   trunk in shade, the sun on one side), so a far forest doesn't read as flat discs on sticks.
+ */
+export interface PlantPatchLook {
+  simplify?: Partial<Record<PlantSpecies, number>>;
+  handoff?: number;
+  tint?: (plant: PlantInstance) => Color | null;
+  farTint?: (plant: PlantInstance) => Color | null;
+  cardShade?: boolean;
+}
+
 /** Plants added after the island's own (another island's), drawn only while `group` is visible. */
 export interface VegetationPatch {
   group: Group;
@@ -130,7 +150,12 @@ export interface VegetationSystem {
    * Adds another island's plants as their own batches and impostors, under a hidden group (show it
    * when that island's in view). Shares the loaded models and the impostor atlas; freed with the system.
    */
-  addPlants(plants: readonly PlantInstance[], name: string, flora?: FloraSource): Promise<VegetationPatch>;
+  addPlants(
+    plants: readonly PlantInstance[],
+    name: string,
+    flora?: FloraSource,
+    look?: PlantPatchLook,
+  ): Promise<VegetationPatch>;
   /** Frees a patch from `addPlants` (its island has unloaded); the shared models and atlas stay. */
   removePlants(patch: VegetationPatch): void;
   /** The first island's own plants (batches, casters, grass, impostors), not the patches. */

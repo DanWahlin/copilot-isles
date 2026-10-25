@@ -80,7 +80,10 @@ describe('the island registry', () => {
     expect(ISLAND_TERRAIN_REGIONS).toEqual(
       [...ISLAND_LIST, ...ISLANDS_IN_BUILD].map((e) => e.terrainRegions),
     );
-    expect(ISLAND_FLORA_PALETTES).toEqual(ISLAND_LIST.map((e) => e.floraPalette));
+    expect(ISLAND_FLORA_PALETTES).toEqual([
+      ...ISLAND_LIST.map((e) => e.floraPalette),
+      ...ISLANDS_IN_BUILD.flatMap((e) => (e.floraPalette ? [e.floraPalette] : [])),
+    ]);
     for (const e of ISLAND_LIST) expect(MUSIC_TRACKS[e.music], e.id).toBe(e.theme);
     expect(MARKET_STALLS.map((m) => m.island)).toEqual(ISLAND_LIST.filter((e) => e.market).map((e) => e.id));
   });

@@ -1,9 +1,8 @@
-import { Group, Mesh, type BufferGeometry, type Material } from 'three/webgpu';
+import { Group, type Mesh } from 'three/webgpu';
 import type { TierSettings } from '../../../../engine/quality';
 import { SignSet, type PaintedSign } from '../../../sites/sign';
-import { eachChunk, chunkOptions } from '../../../village/chunks';
-import type { MaterialKey, VillageKit } from '../../../village/kit';
-import { makeBuckets, PAINT, box, cone, lanternPaint, rod, type Buckets } from './pieces';
+import type { VillageKit } from '../../../village/kit';
+import { makeBuckets, meshesFromBuckets, PAINT, box, cone, lanternPaint, rod, type Buckets } from './pieces';
 import { buildHouses } from './houses';
 import { buildStructureSteps, type StructureOut } from './structure';
 import type { WalkClearance } from './clearance';
@@ -44,48 +43,6 @@ function lantern(buckets: Buckets, l: { x: number; y: number; z: number; hang: b
       3,
       PAINT.iron,
     );
-}
-
-/**
- * Merges each bucket into chunks of its kit material (one draw a chunk, no new shader), breathing
- * between chunks.
- */
-async function meshesFromBuckets(
-  buckets: Buckets,
-  kit: VillageKit,
-  tier: TierSettings,
-  name: string,
-  into: Group,
-  breathe: () => Promise<void>,
-  shadows = true,
-): Promise<Mesh[]> {
-  const meshes: Mesh[] = [];
-  // Lite draws the small metal, cloth and rope parts with the timber (three draws fewer; they're tiny there).
-  if (tier.tier === 'lite')
-    for (const k of ['metal', 'cloth', 'rope'] as MaterialKey[])
-      if (k in buckets && buckets[k].length) buckets.wood.push(...buckets[k].splice(0));
-  for (const key of Object.keys(buckets) as MaterialKey[]) {
-    const parts: BufferGeometry[] = buckets[key];
-    if (parts.length === 0) continue;
-    const flat = parts.map((g) => {
-      if (!g.index) return g;
-      const f = g.toNonIndexed();
-      g.dispose();
-      return f;
-    });
-    await breathe();
-    for (const chunk of eachChunk(flat, chunkOptions(tier))) {
-      const mesh = new Mesh(chunk.geometry, kit.materials[key] as Material);
-      mesh.name = `${name}-${key}`;
-      // Only the timber, thatch and stone cast (rope, iron, cloth and glass are too fine to show).
-      mesh.castShadow = shadows && (key === 'wood' || key === 'thatch' || key === 'stone');
-      mesh.receiveShadow = key !== 'glow' && key !== 'halo';
-      into.add(mesh);
-      meshes.push(mesh);
-      await breathe();
-    }
-  }
-  return meshes;
 }
 
 /**
