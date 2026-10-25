@@ -83,7 +83,8 @@ describe('keelhavenHeight', () => {
       }
     // A rise of 5 m over 0.25 m is a near-sheer face (a sea cliff, a spire's side), not a step.
     expect(worst).toBeLessThan(5);
-  });
+    // About 75 000 height samples: about 3 s here, more than 5 s on a slow CI runner.
+  }, 30_000);
 
   it('carves its fresh water into the ground, and leaves the rest as it was', () => {
     const river = keelhavenWater().streams[1]!;
