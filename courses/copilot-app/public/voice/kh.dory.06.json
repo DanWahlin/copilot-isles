@@ -1,0 +1,97 @@
+{
+  "id": "kh.dory.06",
+  "speaker": "Dory",
+  "text": "The terminal reuses its shell when it can, so where you were and what you set carry over.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.231
+    },
+    {
+      "word": "terminal",
+      "start": 0.231,
+      "end": 0.907
+    },
+    {
+      "word": "reuses",
+      "start": 0.907,
+      "end": 1.58
+    },
+    {
+      "word": "its",
+      "start": 1.58,
+      "end": 1.813
+    },
+    {
+      "word": "shell",
+      "start": 1.813,
+      "end": 2.112
+    },
+    {
+      "word": "when",
+      "start": 2.112,
+      "end": 2.293
+    },
+    {
+      "word": "it",
+      "start": 2.293,
+      "end": 2.52
+    },
+    {
+      "word": "can",
+      "start": 2.52,
+      "end": 3.68
+    },
+    {
+      "word": "so",
+      "start": 3.68,
+      "end": 3.88
+    },
+    {
+      "word": "where",
+      "start": 3.88,
+      "end": 4.14
+    },
+    {
+      "word": "you",
+      "start": 4.14,
+      "end": 4.416
+    },
+    {
+      "word": "were",
+      "start": 4.416,
+      "end": 4.86
+    },
+    {
+      "word": "and",
+      "start": 4.86,
+      "end": 5.088
+    },
+    {
+      "word": "what",
+      "start": 5.088,
+      "end": 5.32
+    },
+    {
+      "word": "you",
+      "start": 5.32,
+      "end": 5.6
+    },
+    {
+      "word": "set",
+      "start": 5.6,
+      "end": 6.173
+    },
+    {
+      "word": "carry",
+      "start": 6.173,
+      "end": 6.736
+    },
+    {
+      "word": "over",
+      "start": 6.736,
+      "end": 6.986
+    }
+  ]
+}

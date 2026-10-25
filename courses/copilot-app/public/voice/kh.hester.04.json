@@ -1,0 +1,107 @@
+{
+  "id": "kh.hester.04",
+  "speaker": "Hester",
+  "text": "Your judgment comes in twice. On your machine, you decide if the diff, tests, build and preview show it's ready.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0,
+      "end": 0.204
+    },
+    {
+      "word": "judgment",
+      "start": 0.204,
+      "end": 0.613
+    },
+    {
+      "word": "comes",
+      "start": 0.613,
+      "end": 0.907
+    },
+    {
+      "word": "in",
+      "start": 0.907,
+      "end": 1.053
+    },
+    {
+      "word": "twice",
+      "start": 1.053,
+      "end": 1.84
+    },
+    {
+      "word": "On",
+      "start": 1.84,
+      "end": 2.368
+    },
+    {
+      "word": "your",
+      "start": 2.368,
+      "end": 2.61
+    },
+    {
+      "word": "machine",
+      "start": 2.61,
+      "end": 3.4
+    },
+    {
+      "word": "you",
+      "start": 3.4,
+      "end": 3.577
+    },
+    {
+      "word": "decide",
+      "start": 3.577,
+      "end": 3.947
+    },
+    {
+      "word": "if",
+      "start": 3.947,
+      "end": 4.04
+    },
+    {
+      "word": "the",
+      "start": 4.04,
+      "end": 4.24
+    },
+    {
+      "word": "diff",
+      "start": 4.24,
+      "end": 4.973
+    },
+    {
+      "word": "tests",
+      "start": 4.973,
+      "end": 5.747
+    },
+    {
+      "word": "build",
+      "start": 5.747,
+      "end": 6.14
+    },
+    {
+      "word": "and",
+      "start": 6.14,
+      "end": 6.39
+    },
+    {
+      "word": "preview",
+      "start": 6.39,
+      "end": 6.96
+    },
+    {
+      "word": "show",
+      "start": 6.96,
+      "end": 7.307
+    },
+    {
+      "word": "it's",
+      "start": 7.307,
+      "end": 7.493
+    },
+    {
+      "word": "ready",
+      "start": 7.493,
+      "end": 7.743
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "id": "kh.dory.04",
+  "speaker": "Dory",
+  "text": "Every dock has its own tool chest. Run npm install the first time you use a new worktree.",
+  "words": [
+    {
+      "word": "Every",
+      "start": 0,
+      "end": 0.496
+    },
+    {
+      "word": "dock",
+      "start": 0.496,
+      "end": 0.98
+    },
+    {
+      "word": "has",
+      "start": 0.98,
+      "end": 1.32
+    },
+    {
+      "word": "its",
+      "start": 1.32,
+      "end": 1.5
+    },
+    {
+      "word": "own",
+      "start": 1.5,
+      "end": 1.76
+    },
+    {
+      "word": "tool",
+      "start": 1.76,
+      "end": 2.173
+    },
+    {
+      "word": "chest",
+      "start": 2.173,
+      "end": 3.18
+    },
+    {
+      "word": "Run",
+      "start": 3.18,
+      "end": 4.16
+    },
+    {
+      "word": "npm",
+      "start": 4.16,
+      "end": 4.83
+    },
+    {
+      "word": "install",
+      "start": 4.83,
+      "end": 5.68
+    },
+    {
+      "word": "the",
+      "start": 5.68,
+      "end": 5.987
+    },
+    {
+      "word": "first",
+      "start": 5.987,
+      "end": 6.416
+    },
+    {
+      "word": "time",
+      "start": 6.416,
+      "end": 6.86
+    },
+    {
+      "word": "you",
+      "start": 6.86,
+      "end": 7.16
+    },
+    {
+      "word": "use",
+      "start": 7.16,
+      "end": 7.6
+    },
+    {
+      "word": "a",
+      "start": 7.6,
+      "end": 7.76
+    },
+    {
+      "word": "new",
+      "start": 7.76,
+      "end": 8.08
+    },
+    {
+      "word": "worktree",
+      "start": 8.08,
+      "end": 8.33
+    }
+  ]
+}

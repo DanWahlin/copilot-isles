@@ -1,0 +1,32 @@
+{
+  "id": "kh.bram.market.fair",
+  "speaker": "Bram",
+  "text": "Right-sized, and a fair price.",
+  "words": [
+    {
+      "word": "Right-sized",
+      "start": 0,
+      "end": 1.32
+    },
+    {
+      "word": "and",
+      "start": 1.32,
+      "end": 1.48
+    },
+    {
+      "word": "a",
+      "start": 1.48,
+      "end": 1.584
+    },
+    {
+      "word": "fair",
+      "start": 1.584,
+      "end": 1.947
+    },
+    {
+      "word": "price",
+      "start": 1.947,
+      "end": 2.197
+    }
+  ]
+}

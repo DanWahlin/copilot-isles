@@ -1126,7 +1126,7 @@ Seal).
 | `kh.hester.04` | Hester | Your judgment comes in twice. On your machine, you decide if the diff, tests, build and preview show it's ready. | `[§core-concept-…]` |
 | `kh.hester.05` | Hester | On GitHub, you review the pull request, its comments and checks, and decide when it's ready to merge. | `[§core-concept-…]` |
 | `kh.hester.06` | Hester | Dory's at Drydock 1, up the ramp. Start with a hull you know is sound. | nav |
-| `kh.dory.01` | Dory | Before you change a thing, prove the hull's sound. That's your known-good baseline. | `[§confirm-the-sample-app-is-ready]` |
+| `kh.dory.01` | Dory | Before you change a thing, prove the hull is sound. That's your known-good baseline. | `[§confirm-the-sample-app-is-ready]` |
 | `kh.dory.02` | Dory | In the app, that's a new worktree session, the review panel, and its Terminal tab. | `[§confirm-…]` |
 | `kh.dory.03` | Dory | Four planks ring true: four passing tests. And she floats: the build works. | `[§confirm-…]` |
 | `kh.dory.04` | Dory | Every dock has its own tool chest. Run npm install the first time you use a new worktree. | `[§confirm-…]` |
@@ -1173,7 +1173,7 @@ Seal).
 | `kh.arlo.03` | Arlo | Answer the whole comment, not half of it. Then commit, push, and check the pull request. | `[§respond-…]` |
 | `kh.arlo.04` | Arlo | A CI check is an automated validation run on a pull request, often through GitHub Actions. | `[§fix-a-failing-check]` |
 | `kh.arlo.05` | Arlo | The Book app web lamp is red. Read why, then ask for the smallest fix. | `[§fix-a-failing-check]` |
-| `kh.arlo.weaken` | Arlo | Filing down the gauge turns the lamp green and leaves the hull wrong. Don't weaken the failing test. | `[§fix-a-failing-check]` |
+| `kh.arlo.weaken` | Arlo | Filing down the gauge turns the lamp green, and leaves the ship's hull wrong. Don't weaken the failing test. | `[§fix-a-failing-check]` |
 | `kh.arlo.06` | Arlo | Push, and the lamp runs again. Green, this time. | `[§fix-a-failing-check]` |
 | `kh.arlo.actions` | Arlo | No lamp after a push? New forks start with workflows off, so turn them on in your fork's Actions tab. | `[00 §add-the-course-practice-items]` |
 | `kh.arlo.07` | Arlo | Gate 2 opens only when the diff, local validation, GitHub checks and your own review agree. | `[§key-takeaways]` |
@@ -1732,11 +1732,13 @@ web**), `ledgerIssues`, `ledgerPulls`, `ledgerAll`, `ledgerFork` (the ledgers an
 
 ### W.9 Voice
 
-117 lines in `voice/lines.json` are `"pending": true`: 104 island lines and 13 market lines (Bram).
-For each new speaker (Hester, Dory, Cass, Barty, Stroud, Arlo,
-Ottoline, Bram), add the chosen voice to `voice/cast.json`. Lyra keeps Azure `en-GB-LibbyNeural`; Juno
-and Wingman keep theirs. Then drop `pending` from the lines and run `npx tsx tools/voice/generate.ts
---course copilot-app --only=<speakers>` and `npm run voice:lipsync`.
+Done on 2026-10-25. Dan chose a voice for each new speaker, and each one is in `voice/cast.json`
+(ElevenLabs `eleven_v3`): Hester (Hollie), Dory (Louisamay), Cass (Ruby B), Barty (Aldric Solheim),
+Stroud (Gideon), Arlo (Robert), Ottoline (Cassandra Woodhouse) and Bram (Hendrik Vorster). Lyra keeps
+Azure `en-GB-LibbyNeural`; Juno and Wingman keep theirs. The 117 lines (104 island lines and 13 market
+lines) have their audio, their word timings and their mouth cues, and none is pending. To change a
+line, edit its text, then run `npx tsx tools/voice/generate.ts --course copilot-app --only=<id>` and
+`npm run voice:lipsync -- --course copilot-app`. ART_PROVENANCE.md and docs/voices.md list the voices.
 
 ### W.10 Not in this branch
 

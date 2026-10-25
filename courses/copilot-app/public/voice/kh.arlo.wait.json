@@ -1,0 +1,82 @@
+{
+  "id": "kh.arlo.wait",
+  "speaker": "Arlo",
+  "text": "Hello, Captain! Stroud sends every hull down to me. See him at Lock 1 first.",
+  "words": [
+    {
+      "word": "Hello",
+      "start": 0,
+      "end": 0.51
+    },
+    {
+      "word": "Captain",
+      "start": 0.51,
+      "end": 1.12
+    },
+    {
+      "word": "Stroud",
+      "start": 1.12,
+      "end": 1.573
+    },
+    {
+      "word": "sends",
+      "start": 1.573,
+      "end": 1.893
+    },
+    {
+      "word": "every",
+      "start": 1.893,
+      "end": 2.208
+    },
+    {
+      "word": "hull",
+      "start": 2.208,
+      "end": 2.448
+    },
+    {
+      "word": "down",
+      "start": 2.448,
+      "end": 2.667
+    },
+    {
+      "word": "to",
+      "start": 2.667,
+      "end": 2.827
+    },
+    {
+      "word": "me",
+      "start": 2.827,
+      "end": 3.28
+    },
+    {
+      "word": "See",
+      "start": 3.28,
+      "end": 3.78
+    },
+    {
+      "word": "him",
+      "start": 3.78,
+      "end": 3.893
+    },
+    {
+      "word": "at",
+      "start": 3.893,
+      "end": 4.032
+    },
+    {
+      "word": "Lock",
+      "start": 4.032,
+      "end": 4.22
+    },
+    {
+      "word": "1",
+      "start": 4.22,
+      "end": 4.48
+    },
+    {
+      "word": "first",
+      "start": 4.48,
+      "end": 4.73
+    }
+  ]
+}

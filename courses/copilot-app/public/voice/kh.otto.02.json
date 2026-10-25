@@ -1,0 +1,87 @@
+{
+  "id": "kh.otto.02",
+  "speaker": "Ottoline",
+  "text": "A change is ready only when the diff, local validation, GitHub checks and human review agree.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.149
+    },
+    {
+      "word": "change",
+      "start": 0.149,
+      "end": 0.613
+    },
+    {
+      "word": "is",
+      "start": 0.613,
+      "end": 0.787
+    },
+    {
+      "word": "ready",
+      "start": 0.787,
+      "end": 1.248
+    },
+    {
+      "word": "only",
+      "start": 1.248,
+      "end": 1.792
+    },
+    {
+      "word": "when",
+      "start": 1.792,
+      "end": 1.94
+    },
+    {
+      "word": "the",
+      "start": 1.94,
+      "end": 2.112
+    },
+    {
+      "word": "diff",
+      "start": 2.112,
+      "end": 2.947
+    },
+    {
+      "word": "local",
+      "start": 2.947,
+      "end": 3.353
+    },
+    {
+      "word": "validation",
+      "start": 3.353,
+      "end": 4.526
+    },
+    {
+      "word": "GitHub",
+      "start": 4.526,
+      "end": 4.88
+    },
+    {
+      "word": "checks",
+      "start": 4.88,
+      "end": 5.46
+    },
+    {
+      "word": "and",
+      "start": 5.46,
+      "end": 5.827
+    },
+    {
+      "word": "human",
+      "start": 5.827,
+      "end": 6.24
+    },
+    {
+      "word": "review",
+      "start": 6.24,
+      "end": 6.813
+    },
+    {
+      "word": "agree",
+      "start": 6.813,
+      "end": 7.063
+    }
+  ]
+}

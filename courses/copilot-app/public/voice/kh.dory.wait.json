@@ -1,0 +1,62 @@
+{
+  "id": "kh.dory.wait",
+  "speaker": "Dory",
+  "text": "Hester first, Captain. She'll tell you what we're proving up here.",
+  "words": [
+    {
+      "word": "Hester",
+      "start": 0,
+      "end": 0.453
+    },
+    {
+      "word": "first",
+      "start": 0.453,
+      "end": 0.86
+    },
+    {
+      "word": "Captain",
+      "start": 0.86,
+      "end": 1.54
+    },
+    {
+      "word": "She'll",
+      "start": 1.54,
+      "end": 2.208
+    },
+    {
+      "word": "tell",
+      "start": 2.208,
+      "end": 2.42
+    },
+    {
+      "word": "you",
+      "start": 2.42,
+      "end": 2.512
+    },
+    {
+      "word": "what",
+      "start": 2.512,
+      "end": 2.667
+    },
+    {
+      "word": "we're",
+      "start": 2.667,
+      "end": 2.84
+    },
+    {
+      "word": "proving",
+      "start": 2.84,
+      "end": 3.2
+    },
+    {
+      "word": "up",
+      "start": 3.2,
+      "end": 3.424
+    },
+    {
+      "word": "here",
+      "start": 3.424,
+      "end": 3.674
+    }
+  ]
+}

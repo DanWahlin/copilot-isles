@@ -1,0 +1,77 @@
+{
+  "id": "kh.juno.arrive.01",
+  "speaker": "Juno",
+  "text": "Keelhaven, Captain. Shipwrights, a tavern, and a lock flight cut right through the headland.",
+  "words": [
+    {
+      "word": "Keelhaven",
+      "start": 0,
+      "end": 0.61
+    },
+    {
+      "word": "Captain",
+      "start": 0.61,
+      "end": 1.168
+    },
+    {
+      "word": "Shipwrights",
+      "start": 1.168,
+      "end": 2.2
+    },
+    {
+      "word": "a",
+      "start": 2.2,
+      "end": 2.309
+    },
+    {
+      "word": "tavern",
+      "start": 2.309,
+      "end": 2.84
+    },
+    {
+      "word": "and",
+      "start": 2.84,
+      "end": 3
+    },
+    {
+      "word": "a",
+      "start": 3,
+      "end": 3.088
+    },
+    {
+      "word": "lock",
+      "start": 3.088,
+      "end": 3.326
+    },
+    {
+      "word": "flight",
+      "start": 3.326,
+      "end": 3.68
+    },
+    {
+      "word": "cut",
+      "start": 3.68,
+      "end": 3.973
+    },
+    {
+      "word": "right",
+      "start": 3.973,
+      "end": 4.26
+    },
+    {
+      "word": "through",
+      "start": 4.26,
+      "end": 4.42
+    },
+    {
+      "word": "the",
+      "start": 4.42,
+      "end": 4.528
+    },
+    {
+      "word": "headland",
+      "start": 4.528,
+      "end": 4.778
+    }
+  ]
+}

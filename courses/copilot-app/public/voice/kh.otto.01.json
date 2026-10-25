@@ -1,0 +1,77 @@
+{
+  "id": "kh.otto.01",
+  "speaker": "Ottoline",
+  "text": "From up here you can see both circuits, Captain. The cove, and the locks.",
+  "words": [
+    {
+      "word": "From",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "up",
+      "start": 0.213,
+      "end": 0.384
+    },
+    {
+      "word": "here",
+      "start": 0.384,
+      "end": 0.66
+    },
+    {
+      "word": "you",
+      "start": 0.66,
+      "end": 0.78
+    },
+    {
+      "word": "can",
+      "start": 0.78,
+      "end": 1
+    },
+    {
+      "word": "see",
+      "start": 1,
+      "end": 1.184
+    },
+    {
+      "word": "both",
+      "start": 1.184,
+      "end": 1.493
+    },
+    {
+      "word": "circuits",
+      "start": 1.493,
+      "end": 2.06
+    },
+    {
+      "word": "Captain",
+      "start": 2.06,
+      "end": 2.73
+    },
+    {
+      "word": "The",
+      "start": 2.73,
+      "end": 2.96
+    },
+    {
+      "word": "cove",
+      "start": 2.96,
+      "end": 3.6
+    },
+    {
+      "word": "and",
+      "start": 3.6,
+      "end": 3.88
+    },
+    {
+      "word": "the",
+      "start": 3.88,
+      "end": 4.08
+    },
+    {
+      "word": "locks",
+      "start": 4.08,
+      "end": 4.33
+    }
+  ]
+}

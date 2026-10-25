@@ -1,0 +1,87 @@
+{
+  "id": "kh.bram.market.broke",
+  "speaker": "Bram",
+  "text": "No starfish left? There are plenty hidden round the islands. Come back when you've found some.",
+  "words": [
+    {
+      "word": "No",
+      "start": 0,
+      "end": 0.224
+    },
+    {
+      "word": "starfish",
+      "start": 0.224,
+      "end": 0.8
+    },
+    {
+      "word": "left",
+      "start": 0.8,
+      "end": 1.293
+    },
+    {
+      "word": "There",
+      "start": 1.293,
+      "end": 1.8
+    },
+    {
+      "word": "are",
+      "start": 1.8,
+      "end": 2.011
+    },
+    {
+      "word": "plenty",
+      "start": 2.011,
+      "end": 2.617
+    },
+    {
+      "word": "hidden",
+      "start": 2.617,
+      "end": 3.013
+    },
+    {
+      "word": "round",
+      "start": 3.013,
+      "end": 3.3
+    },
+    {
+      "word": "the",
+      "start": 3.3,
+      "end": 3.43
+    },
+    {
+      "word": "islands",
+      "start": 3.43,
+      "end": 4.256
+    },
+    {
+      "word": "Come",
+      "start": 4.256,
+      "end": 4.56
+    },
+    {
+      "word": "back",
+      "start": 4.56,
+      "end": 4.912
+    },
+    {
+      "word": "when",
+      "start": 4.912,
+      "end": 5.06
+    },
+    {
+      "word": "you've",
+      "start": 5.06,
+      "end": 5.333
+    },
+    {
+      "word": "found",
+      "start": 5.333,
+      "end": 5.68
+    },
+    {
+      "word": "some",
+      "start": 5.68,
+      "end": 5.93
+    }
+  ]
+}

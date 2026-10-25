@@ -1989,704 +1989,587 @@
     {
       "id": "kh.juno.arrive.01",
       "speaker": "Juno",
-      "text": "Keelhaven, Captain. Shipwrights, a tavern, and a lock flight cut right through the headland.",
-      "pending": true
+      "text": "Keelhaven, Captain. Shipwrights, a tavern, and a lock flight cut right through the headland."
     },
     {
       "id": "kh.juno.arrive.02",
       "speaker": "Juno",
-      "text": "They say nothing leaves this yard on a confident guess. Every hull proves itself first.",
-      "pending": true
+      "text": "They say nothing leaves this yard on a confident guess. Every hull proves itself first."
     },
     {
       "id": "wingman.kh.01",
       "speaker": "Wingman",
-      "text": "Wrecks on the reef! I'm staying well clear of the reef.",
-      "pending": true
+      "text": "Wrecks on the reef! I'm staying well clear of the reef."
     },
     {
       "id": "wingman.kh.02",
       "speaker": "Wingman",
-      "text": "Two circuits here, Captain: the drydocks in the cove, then the locks out to sea.",
-      "pending": true
+      "text": "Two circuits here, Captain: the drydocks in the cove, then the locks out to sea."
     },
     {
       "id": "wingman.kh.03",
       "speaker": "Wingman",
-      "text": "Lost? Follow the compass, or head for the Gate Light on the North Head.",
-      "pending": true
+      "text": "Lost? Follow the compass, or head for the Gate Light on the North Head."
     },
     {
       "id": "wingman.starfish.keelhaven",
       "speaker": "Wingman",
-      "text": "Five starfish on Keelhaven. One's up by the falls, if you fancy a walk.",
-      "pending": true
+      "text": "Five starfish on Keelhaven. One's up by the falls, if you fancy a walk."
     },
     {
       "id": "kh.lyra.01",
       "speaker": "Lyra",
-      "text": "Captain! A musician doesn't keep the first take just because it's finished.",
-      "pending": true
+      "text": "Captain! A musician doesn't keep the first take just because it's finished."
     },
     {
       "id": "kh.lyra.02",
       "speaker": "Lyra",
-      "text": "They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence.",
-      "pending": true
+      "text": "They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence."
     },
     {
       "id": "kh.lyra.retake",
       "speaker": "Lyra",
-      "text": "Listen to my take. One note rings wrong. Find the bar, and I'll play it again.",
-      "pending": true
+      "text": "Listen to my take. One note rings wrong. Find the bar, and I'll play it again."
     },
     {
       "id": "kh.lyra.03",
       "speaker": "Lyra",
-      "text": "Then a finished take moves through production. The producer tracks the brief, the feedback, the quality checks and the final approval.",
-      "pending": true
+      "text": "Then a finished take moves through production. The producer tracks the brief, the feedback, the quality checks and the final approval."
     },
     {
       "id": "kh.lyra.04",
       "speaker": "Lyra",
-      "text": "That's the outer loop: issues and pull requests move validated work through GitHub.",
-      "pending": true
+      "text": "That's the outer loop: issues and pull requests move validated work through GitHub."
     },
     {
       "id": "kh.lyra.05",
       "speaker": "Lyra",
-      "text": "Hester's board is by the river bridge. She'll show you what counts as evidence.",
-      "pending": true
+      "text": "Hester's board is by the river bridge. She'll show you what counts as evidence."
     },
     {
       "id": "kh.lyra.done",
       "speaker": "Lyra",
-      "text": "Listen, adjust, play it again. That tune never gets old, Captain.",
-      "pending": true
+      "text": "Listen, adjust, play it again. That tune never gets old, Captain."
     },
     {
       "id": "kh.hester.wait",
       "speaker": "Hester",
-      "text": "Busy at the board, Captain. Hear Lyra's tale on the tavern porch first.",
-      "pending": true
+      "text": "Busy at the board, Captain. Hear Lyra's tale on the tavern porch first."
     },
     {
       "id": "kh.hester.01",
       "speaker": "Hester",
-      "text": "I pulled those name boards off the reef, Captain. Every one of them sailed on a confident guess.",
-      "pending": true
+      "text": "I pulled those name boards off the reef, Captain. Every one of them sailed on a confident guess."
     },
     {
       "id": "kh.hester.02",
       "speaker": "Hester",
-      "text": "A confident response from Copilot isn't the same as validated software.",
-      "pending": true
+      "text": "A confident response from Copilot isn't the same as validated software."
     },
     {
       "id": "kh.hester.03",
       "speaker": "Hester",
-      "text": "So we check four kinds of evidence. Each one answers its own question.",
-      "pending": true
+      "text": "So we check four kinds of evidence. Each one answers its own question."
     },
     {
       "id": "kh.hester.04",
       "speaker": "Hester",
-      "text": "Your judgment comes in twice. On your machine, you decide if the diff, tests, build and preview show it's ready.",
-      "pending": true
+      "text": "Your judgment comes in twice. On your machine, you decide if the diff, tests, build and preview show it's ready."
     },
     {
       "id": "kh.hester.05",
       "speaker": "Hester",
-      "text": "On GitHub, you review the pull request, its comments and checks, and decide when it's ready to merge.",
-      "pending": true
+      "text": "On GitHub, you review the pull request, its comments and checks, and decide when it's ready to merge."
     },
     {
       "id": "kh.hester.06",
       "speaker": "Hester",
-      "text": "Dory's at Drydock 1, up the ramp. Start with a hull you know is sound.",
-      "pending": true
+      "text": "Dory's at Drydock 1, up the ramp. Start with a hull you know is sound."
     },
     {
       "id": "kh.hester.done",
       "speaker": "Hester",
-      "text": "Four kinds of evidence, and your judgment in both loops. Nothing sails on a guess.",
-      "pending": true
+      "text": "Four kinds of evidence, and your judgment in both loops. Nothing sails on a guess."
     },
     {
       "id": "kh.dory.wait",
       "speaker": "Dory",
-      "text": "Hester first, Captain. She'll tell you what we're proving up here.",
-      "pending": true
+      "text": "Hester first, Captain. She'll tell you what we're proving up here."
     },
     {
       "id": "kh.dory.01",
       "speaker": "Dory",
-      "text": "Before you change a thing, prove the hull's sound. That's your known-good baseline.",
-      "pending": true
+      "text": "Before you change a thing, prove the hull is sound. That's your known-good baseline."
     },
     {
       "id": "kh.dory.02",
       "speaker": "Dory",
-      "text": "In the app, that's a new worktree session, the review panel, and its Terminal tab.",
-      "pending": true
+      "text": "In the app, that's a new worktree session, the review panel, and its Terminal tab."
     },
     {
       "id": "kh.dory.03",
       "speaker": "Dory",
-      "text": "Four planks ring true: four passing tests. And she floats: the build works.",
-      "pending": true
+      "text": "Four planks ring true: four passing tests. And she floats: the build works."
     },
     {
       "id": "kh.dory.04",
       "speaker": "Dory",
-      "text": "Every dock has its own tool chest. Run npm install the first time you use a new worktree.",
-      "pending": true
+      "text": "Every dock has its own tool chest. Run npm install the first time you use a new worktree."
     },
     {
       "id": "kh.dory.05",
       "speaker": "Dory",
-      "text": "A reply may show a Run button by a snippet. Or copy the snippet into the Terminal tab yourself.",
-      "pending": true
+      "text": "A reply may show a Run button by a snippet. Or copy the snippet into the Terminal tab yourself."
     },
     {
       "id": "kh.dory.06",
       "speaker": "Dory",
-      "text": "The terminal reuses its shell when it can, so where you were and what you set carry over.",
-      "pending": true
+      "text": "The terminal reuses its shell when it can, so where you were and what you set carry over."
     },
     {
       "id": "kh.dory.07",
       "speaker": "Dory",
-      "text": "Cass runs Drydock 2, next along. Mind her slate.",
-      "pending": true
+      "text": "Cass runs Drydock 2, next along. Mind her slate."
     },
     {
       "id": "kh.dory.done",
       "speaker": "Dory",
-      "text": "Sound hull, own tool chest. That dock is ready for work.",
-      "pending": true
+      "text": "Sound hull, own tool chest. That dock is ready for work."
     },
     {
       "id": "kh.cass.wait",
       "speaker": "Cass",
-      "text": "Dory's got your baseline to prove first, Captain. Then come and see my ring.",
-      "pending": true
+      "text": "Dory's got your baseline to prove first, Captain. Then come and see my ring."
     },
     {
       "id": "kh.cass.01",
       "speaker": "Cass",
-      "text": "This ring's the inner loop: understand, change, inspect, test and build, preview. And again if the evidence says so.",
-      "pending": true
+      "text": "This ring's the inner loop: understand, change, inspect, test and build, preview. And again if the evidence says so."
     },
     {
       "id": "kh.cass.02",
       "speaker": "Cass",
-      "text": "Today's work order: the unread count ignores the filters. Read it at the post, then pick the plan.",
-      "pending": true
+      "text": "Today's work order: the unread count ignores the filters. Read it at the post, then pick the plan."
     },
     {
       "id": "kh.cass.ring",
       "speaker": "Cass",
-      "text": "The lit lamp's your next station, Captain. Follow the ring round.",
-      "pending": true
+      "text": "The lit lamp's your next station, Captain. Follow the ring round."
     },
     {
       "id": "kh.cass.plan.ok",
       "speaker": "Cass",
-      "text": "Right. The count has to come from the books the filters show.",
-      "pending": true
+      "text": "Right. The count has to come from the books the filters show."
     },
     {
       "id": "kh.cass.plan.hide",
       "speaker": "Cass",
-      "text": "That hides the number. The plan has to connect the stats to the books you see.",
-      "pending": true
+      "text": "That hides the number. The plan has to connect the stats to the books you see."
     },
     {
       "id": "kh.cass.plan.test",
       "speaker": "Cass",
-      "text": "Changing the test weakens it. The plan fixes the code.",
-      "pending": true
+      "text": "Changing the test weakens it. The plan fixes the code."
     },
     {
       "id": "kh.cass.03",
       "speaker": "Cass",
-      "text": "Now the slate. Is every chalk mark part of this job?",
-      "pending": true
+      "text": "Now the slate. Is every chalk mark part of this job?"
     },
     {
       "id": "kh.cass.stray",
       "speaker": "Cass",
-      "text": "That plank's on the wrong hull. Pry it off or have the crew revise it. You'll get a confirmation first.",
-      "pending": true
+      "text": "That plank's on the wrong hull. Pry it off or have the crew revise it. You'll get a confirmation first."
     },
     {
       "id": "kh.cass.04",
       "speaker": "Cass",
-      "text": "Hammer and float. If the crew already ran them, don't run them twice.",
-      "pending": true
+      "text": "Hammer and float. If the crew already ran them, don't run them twice."
     },
     {
       "id": "kh.cass.05",
       "speaker": "Cass",
-      "text": "Up the lookout. Pick the check that shows the bug, and shows the fix.",
-      "pending": true
+      "text": "Up the lookout. Pick the check that shows the bug, and shows the fix."
     },
     {
       "id": "kh.cass.unread",
       "speaker": "Cass",
-      "text": "Unread alone won't tell you. All five unread books would still show.",
-      "pending": true
+      "text": "Unread alone won't tell you. All five unread books would still show."
     },
     {
       "id": "kh.cass.06",
       "speaker": "Cass",
-      "text": "Fantasy and Unread: only The Night Circus, and the count says one. With the bug, it said five.",
-      "pending": true
+      "text": "Fantasy and Unread: only The Night Circus, and the count says one. With the bug, it said five."
     },
     {
       "id": "kh.cass.claim",
       "speaker": "Cass",
-      "text": "That's a claim, not evidence. Seal it when the diff, tests, build and preview agree.",
-      "pending": true
+      "text": "That's a claim, not evidence. Seal it when the diff, tests, build and preview agree."
     },
     {
       "id": "kh.cass.07",
       "speaker": "Cass",
-      "text": "One inner-loop cycle: plan, change, inspect, test, build and preview. Stop the server with Control+C.",
-      "pending": true
+      "text": "One inner-loop cycle: plan, change, inspect, test, build and preview. Stop the server with Control+C."
     },
     {
       "id": "kh.cass.08",
       "speaker": "Cass",
-      "text": "One more lap. A regression test proves the bug would fail before the fix and pass after.",
-      "pending": true
+      "text": "One more lap. A regression test proves the bug would fail before the fix and pass after."
     },
     {
       "id": "kh.cass.gauge.dry",
       "speaker": "Cass",
-      "text": "A gauge that stays dry with the old leak proves nothing. It has to flood with the bug.",
-      "pending": true
+      "text": "A gauge that stays dry with the old leak proves nothing. It has to flood with the bug."
     },
     {
       "id": "kh.cass.gauge.lower",
       "speaker": "Cass",
-      "text": "Lowering the old mark weakens an expectation. Check what the filters show instead.",
-      "pending": true
+      "text": "Lowering the old mark weakens an expectation. Check what the filters show instead."
     },
     {
       "id": "kh.cass.09",
       "speaker": "Cass",
-      "text": "That's the one. It checks what the filters show, and the tests and build pass.",
-      "pending": true
+      "text": "That's the one. It checks what the filters show, and the tests and build pass."
     },
     {
       "id": "kh.cass.10",
       "speaker": "Cass",
-      "text": "Barty lodges in the Old Hulk across the basin. Show him your evidence before the locks.",
-      "pending": true
+      "text": "Barty lodges in the Old Hulk across the basin. Show him your evidence before the locks."
     },
     {
       "id": "kh.cass.done",
       "speaker": "Cass",
-      "text": "Two laps, every lamp green. That hull is ready, Captain.",
-      "pending": true
+      "text": "Two laps, every lamp green. That hull is ready, Captain."
     },
     {
       "id": "kh.barty.wait",
       "speaker": "Barty",
-      "text": "Ah, Captain. Finish your laps with Cass, and then I'll read your evidence.",
-      "pending": true
+      "text": "Ah, Captain. Finish your laps with Cass, and then I'll read your evidence."
     },
     {
       "id": "kh.barty.01",
       "speaker": "Barty",
-      "text": "I'm from another port, Captain. A different eye sees different gaps.",
-      "pending": true
+      "text": "I'm from another port, Captain. A different eye sees different gaps."
     },
     {
       "id": "kh.barty.02",
       "speaker": "Barty",
-      "text": "The rubber duck agent is a constructive critic. It finds missing evidence or assumptions before you open a pull request.",
-      "pending": true
+      "text": "The rubber duck agent is a constructive critic. It finds missing evidence or assumptions before you open a pull request."
     },
     {
       "id": "kh.barty.03",
       "speaker": "Barty",
-      "text": "In the app, type a slash to open the palette, then send /rubber-duck with your request.",
-      "pending": true
+      "text": "In the app, type a slash to open the palette, then send /rubber-duck with your request."
     },
     {
       "id": "kh.barty.04",
       "speaker": "Barty",
-      "text": "Compare what it says with your evidence, and close the gaps that matter. You still decide.",
-      "pending": true
+      "text": "Compare what it says with your evidence, and close the gaps that matter. You still decide."
     },
     {
       "id": "kh.barty.05",
       "speaker": "Barty",
-      "text": "No /rubber-duck? Choose a different model for the session, or send the same request without the slash.",
-      "pending": true
+      "text": "No /rubber-duck? Choose a different model for the session, or send the same request without the slash."
     },
     {
       "id": "kh.barty.06",
       "speaker": "Barty",
-      "text": "Stroud keeps the harbour office at Lock 1. That's where the work goes to GitHub.",
-      "pending": true
+      "text": "Stroud keeps the harbour office at Lock 1. That's where the work goes to GitHub."
     },
     {
       "id": "kh.barty.done",
       "speaker": "Barty",
-      "text": "A second opinion before the pull request. Good habit, Captain.",
-      "pending": true
+      "text": "A second opinion before the pull request. Good habit, Captain."
     },
     {
       "id": "kh.barty.polish",
       "speaker": "Barty",
-      "text": "One more thing. Pick & Polish lets you pick an element in the preview and attach it to your next prompt.",
-      "pending": true
+      "text": "One more thing. Pick & Polish lets you pick an element in the preview and attach it to your next prompt."
     },
     {
       "id": "kh.barty.polish.go",
       "speaker": "Barty",
-      "text": "Try it in the app on a book card, then come back and tell me what you saw.",
-      "pending": true
+      "text": "Try it in the app on a book card, then come back and tell me what you saw."
     },
     {
       "id": "kh.barty.polish.ask",
       "speaker": "Barty",
-      "text": "Back again, Captain. Did you try Pick & Polish?",
-      "pending": true
+      "text": "Back again, Captain. Did you try Pick & Polish?"
     },
     {
       "id": "kh.barty.polish.back",
       "speaker": "Barty",
-      "text": "A visual change still needs the same diff, tests, build and preview. Good work.",
-      "pending": true
+      "text": "A visual change still needs the same diff, tests, build and preview. Good work."
     },
     {
       "id": "kh.stroud.wait",
       "speaker": "Stroud",
-      "text": "The locks wait for evidence, Captain. Barty at the Old Hulk has a word for you first.",
-      "pending": true
+      "text": "The locks wait for evidence, Captain. Barty at the Old Hulk has a word for you first."
     },
     {
       "id": "kh.stroud.01",
       "speaker": "Stroud",
-      "text": "Past this gate, work moves through GitHub: an issue, a session, a pull request, checks, and then a merge.",
-      "pending": true
+      "text": "Past this gate, work moves through GitHub: an issue, a session, a pull request, checks, and then a merge."
     },
     {
       "id": "kh.stroud.02",
       "speaker": "Stroud",
-      "text": "There are two approval gates on the way: one after the diff, one after the checks. Both seals are yours.",
-      "pending": true
+      "text": "There are two approval gates on the way: one after the diff, one after the checks. Both seals are yours."
     },
     {
       "id": "kh.stroud.03",
       "speaker": "Stroud",
-      "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both.",
-      "pending": true
+      "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both."
     },
     {
       "id": "kh.stroud.04",
       "speaker": "Stroud",
-      "text": "Practice pull requests are on Authored by me. If one's missing, check the tab, the repository and your access.",
-      "pending": true
+      "text": "Practice pull requests are on Authored by me. If one's missing, check the tab, the repository and your access."
     },
     {
       "id": "kh.stroud.order",
       "speaker": "Stroud",
-      "text": "Your work order: make search case-insensitive. Take it down the flight, one station at a time.",
-      "pending": true
+      "text": "Your work order: make search case-insensitive. Take it down the flight, one station at a time."
     },
     {
       "id": "kh.stroud.flight",
       "speaker": "Stroud",
-      "text": "Follow the lit lamp down the flight, Captain. I'll be here at the office.",
-      "pending": true
+      "text": "Follow the lit lamp down the flight, Captain. I'll be here at the office."
     },
     {
       "id": "kh.stroud.05",
       "speaker": "Stroud",
-      "text": "This order rings the bell at the main slipway. But search already works on main.",
-      "pending": true
+      "text": "This order rings the bell at the main slipway. But search already works on main."
     },
     {
       "id": "kh.stroud.06",
       "speaker": "Stroud",
-      "text": "So start where the bug is: Create from, Branches, the search-case branch. Then attach the issue.",
-      "pending": true
+      "text": "So start where the bug is: Create from, Branches, the search-case branch. Then attach the issue."
     },
     {
       "id": "kh.stroud.07",
       "speaker": "Stroud",
-      "text": "Your petition claims only what you saw. Don't claim a check passed unless the terminal or CI shows it.",
-      "pending": true
+      "text": "Your petition claims only what you saw. Don't claim a check passed unless the terminal or CI shows it."
     },
     {
       "id": "kh.stroud.08",
       "speaker": "Stroud",
-      "text": "Lockfall fills the lock by itself. Checks run on the pull request, and you read them.",
-      "pending": true
+      "text": "Lockfall fills the lock by itself. Checks run on the pull request, and you read them."
     },
     {
       "id": "kh.stroud.09",
       "speaker": "Stroud",
-      "text": "That hull waits in the basin. Don't merge this practice pull request: main already has the fix.",
-      "pending": true
+      "text": "That hull waits in the basin. Don't merge this practice pull request: main already has the fix."
     },
     {
       "id": "kh.stroud.10",
       "speaker": "Stroud",
-      "text": "Arlo keeps Lock 2 with two more hulls. One has a note, one has a red lamp.",
-      "pending": true
+      "text": "Arlo keeps Lock 2 with two more hulls. One has a note, one has a red lamp."
     },
     {
       "id": "kh.stroud.done",
       "speaker": "Stroud",
-      "text": "Your hull waits in the basin, Captain. Arlo has the rest of the flight.",
-      "pending": true
+      "text": "Your hull waits in the basin, Captain. Arlo has the rest of the flight."
     },
     {
       "id": "kh.arlo.wait",
       "speaker": "Arlo",
-      "text": "Hello, Captain! Stroud sends the hulls down. See him at Lock 1 first.",
-      "pending": true
+      "text": "Hello, Captain! Stroud sends every hull down to me. See him at Lock 1 first."
     },
     {
       "id": "kh.arlo.01",
       "speaker": "Arlo",
-      "text": "Two seeded pull requests, Captain. You'll find both on Authored by me.",
-      "pending": true
+      "text": "Two seeded pull requests, Captain. You'll find both on Authored by me."
     },
     {
       "id": "kh.arlo.flight",
       "speaker": "Arlo",
-      "text": "Follow the lit lamp, Captain. The barge is ready when you need it.",
-      "pending": true
+      "text": "Follow the lit lamp, Captain. The barge is ready when you need it."
     },
     {
       "id": "kh.arlo.02",
       "speaker": "Arlo",
-      "text": "This note asks for more helpful guidance. The barge is a new session, started from the pull request.",
-      "pending": true
+      "text": "This note asks for more helpful guidance. The barge is a new session, started from the pull request."
     },
     {
       "id": "kh.arlo.03",
       "speaker": "Arlo",
-      "text": "Answer the whole comment, not half of it. Then commit, push, and check the pull request.",
-      "pending": true
+      "text": "Answer the whole comment, not half of it. Then commit, push, and check the pull request."
     },
     {
       "id": "kh.arlo.04",
       "speaker": "Arlo",
-      "text": "A CI check is an automated validation run on a pull request, often through GitHub Actions.",
-      "pending": true
+      "text": "A CI check is an automated validation run on a pull request, often through GitHub Actions."
     },
     {
       "id": "kh.arlo.05",
       "speaker": "Arlo",
-      "text": "The Book app web lamp is red. Read why, then ask for the smallest fix.",
-      "pending": true
+      "text": "The Book app web lamp is red. Read why, then ask for the smallest fix."
     },
     {
       "id": "kh.arlo.weaken",
       "speaker": "Arlo",
-      "text": "Filing down the gauge turns the lamp green and leaves the hull wrong. Don't weaken the failing test.",
-      "pending": true
+      "text": "Filing down the gauge turns the lamp green, and leaves the ship's hull wrong. Don't weaken the failing test."
     },
     {
       "id": "kh.arlo.rerun",
       "speaker": "Arlo",
-      "text": "Running the lamp again won't change it. The code is still wrong.",
-      "pending": true
+      "text": "Running the lamp again won't change it. The code is still wrong."
     },
     {
       "id": "kh.arlo.06",
       "speaker": "Arlo",
-      "text": "Push, and the check runs again. Green, this time.",
-      "pending": true
+      "text": "Push, and the check runs again. Green, this time."
     },
     {
       "id": "kh.arlo.actions",
       "speaker": "Arlo",
-      "text": "No lamp after a push? New forks turn workflows off. Turn them on in your fork's Actions tab.",
-      "pending": true
+      "text": "No lamp after a push? New forks turn workflows off. Turn them on in your fork's Actions tab."
     },
     {
       "id": "kh.arlo.07",
       "speaker": "Arlo",
-      "text": "Gate 2 opens only when the diff, local validation, GitHub checks and your own review agree.",
-      "pending": true
+      "text": "Gate 2 opens only when the diff, local validation, GitHub checks and your own review agree."
     },
     {
       "id": "kh.arlo.08",
       "speaker": "Arlo",
-      "text": "And the Sea Gate stays shut. The course doesn't ask you to merge these practice pull requests.",
-      "pending": true
+      "text": "And the Sea Gate stays shut. The course doesn't ask you to merge these practice pull requests."
     },
     {
       "id": "kh.arlo.tug",
       "speaker": "Arlo",
-      "text": "That tug's Agent Merge: it merges only when GitHub allows. It's a finishing aid, not a replacement for human review.",
-      "pending": true
+      "text": "That tug's Agent Merge: it merges only when GitHub allows. It's a finishing aid, not a replacement for human review."
     },
     {
       "id": "kh.arlo.09",
       "speaker": "Arlo",
-      "text": "Ottoline keeps the Gate Light, through the rock cut. Off you go, Captain.",
-      "pending": true
+      "text": "Ottoline keeps the Gate Light, through the rock cut. Off you go, Captain."
     },
     {
       "id": "kh.arlo.done",
       "speaker": "Arlo",
-      "text": "Both hulls answered, both lamps green, and the Sea Gate still shut. Nice work.",
-      "pending": true
+      "text": "Every hull is through, every lamp is green, and the Sea Gate's still shut. Nice work."
     },
     {
       "id": "wingman.kh.seals",
       "speaker": "Wingman",
-      "text": "Two seals, Captain. And not one hull launched. That's the job.",
-      "pending": true
+      "text": "Two seals, Captain. And not one hull launched. That's the job."
     },
     {
       "id": "kh.otto.wait",
       "speaker": "Ottoline",
-      "text": "The Gate Light waits, Captain. Bring your hulls down the flight first.",
-      "pending": true
+      "text": "The Gate Light waits, Captain. Bring your hulls down the flight first."
     },
     {
       "id": "kh.otto.01",
       "speaker": "Ottoline",
-      "text": "From up here you can see both circuits, Captain. The cove, and the locks.",
-      "pending": true
+      "text": "From up here you can see both circuits, Captain. The cove, and the locks."
     },
     {
       "id": "kh.otto.02",
       "speaker": "Ottoline",
-      "text": "A change is ready only when the diff, local validation, GitHub checks and human review agree.",
-      "pending": true
+      "text": "A change is ready only when the diff, local validation, GitHub checks and human review agree."
     },
     {
       "id": "kh.otto.03",
       "speaker": "Ottoline",
-      "text": "Next, Guildcrest. Its guild reuses this workflow with a review skill and a custom agent.",
-      "pending": true
+      "text": "Next, Guildcrest. Its guild reuses this workflow with a review skill and a custom agent."
     },
     {
       "id": "kh.otto.retry",
       "speaker": "Ottoline",
-      "text": "Not yet, Captain. Read the evidence again, and come back when you're ready.",
-      "pending": true
+      "text": "Not yet, Captain. Read the evidence again, and come back when you're ready."
     },
     {
       "id": "kh.otto.assign.01",
       "speaker": "Ottoline",
-      "text": "One more job: run both loops on a small UI change, and open a pull request.",
-      "pending": true
+      "text": "One more job: run both loops on a small UI change, and open a pull request."
     },
     {
       "id": "kh.otto.assign.go",
       "speaker": "Ottoline",
-      "text": "Do it in the app, then come back and show me what you've got.",
-      "pending": true
+      "text": "Do it in the app, then come back and show me what you've got."
     },
     {
       "id": "kh.otto.assign.ask",
       "speaker": "Ottoline",
-      "text": "You're back, Captain. Show me your pull request.",
-      "pending": true
+      "text": "You're back, Captain. Show me your pull request."
     },
     {
       "id": "kh.otto.assign.back",
       "speaker": "Ottoline",
-      "text": "One focused change, an honest summary, and Book app web passing. That's the whole craft.",
-      "pending": true
+      "text": "One focused change, an honest summary, and Book app web passing. That's the whole craft."
     },
     {
       "id": "kh.otto.done",
       "speaker": "Ottoline",
-      "text": "Fair winds, Captain. The Gate Light will see you out.",
-      "pending": true
+      "text": "Fair winds, Captain. The Gate Light will see you out."
     },
     {
       "id": "kh.bram.market.hello",
       "speaker": "Bram",
-      "text": "Welcome aboard, Captain! Bram's Model Market. Hire a model that fits the job. Bigger ones cost more starfish.",
-      "pending": true
+      "text": "Welcome aboard, Captain! Bram's Model Market. Hire a model that fits the job. Bigger ones cost more starfish."
     },
     {
       "id": "kh.bram.market.open",
       "speaker": "Bram",
-      "text": "Take a job off the board, then hire a model and set the effort dial.",
-      "pending": true
+      "text": "Take a job off the board, then hire a model and set the effort dial."
     },
     {
       "id": "kh.bram.market.auto",
       "speaker": "Bram",
-      "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
-      "pending": true
+      "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind."
     },
     {
       "id": "kh.bram.market.right",
       "speaker": "Bram",
-      "text": "Right-sized! Some starfish back for you.",
-      "pending": true
+      "text": "Right-sized! Some starfish back for you."
     },
     {
       "id": "kh.bram.market.fair",
       "speaker": "Bram",
-      "text": "Right-sized, and a fair price.",
-      "pending": true
+      "text": "Right-sized, and a fair price."
     },
     {
       "id": "kh.bram.market.keep",
       "speaker": "Bram",
-      "text": "Right-sized. A quick look is fine on the model you've got, at its default effort. Bigger ones only cost more.",
-      "pending": true
+      "text": "Right-sized. A quick look is fine on the model you've got, at its default effort. Bigger ones only cost more."
     },
     {
       "id": "kh.bram.market.over.effort",
       "speaker": "Bram",
-      "text": "High effort for a quick look? Default effort would have done it.",
-      "pending": true
+      "text": "High effort for a quick look? Default effort would have done it."
     },
     {
       "id": "kh.bram.market.short",
       "speaker": "Bram",
-      "text": "Not enough for this one. Try again with a stronger model or more effort.",
-      "pending": true
+      "text": "Not enough for this one. Try again with a stronger model or more effort."
     },
     {
       "id": "kh.bram.market.hard.auto",
       "speaker": "Bram",
-      "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort.",
-      "pending": true
+      "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort."
     },
     {
       "id": "kh.bram.market.broke",
       "speaker": "Bram",
-      "text": "No starfish left? There are plenty hidden round the islands. Come back when you've found some.",
-      "pending": true
+      "text": "No starfish left? There are plenty hidden round the islands. Come back when you've found some."
     },
     {
       "id": "kh.bram.market.done",
       "speaker": "Bram",
-      "text": "The whole board, right-sized! You know your models, Captain.",
-      "pending": true
+      "text": "The whole board, right-sized! You know your models, Captain."
     },
     {
       "id": "kh.bram.market.early",
       "speaker": "Bram",
-      "text": "Not yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson.",
-      "pending": true
+      "text": "Not yet, Captain. Oren on Port Meridian teaches models first. Come and see me after his lesson."
     },
     {
       "id": "kh.bram.market.bye",
       "speaker": "Bram",
-      "text": "Off to the yard? Your starfish and your jobs go with you.",
-      "pending": true
+      "text": "Off to the yard? Your starfish and your jobs go with you."
     }
   ]
 }

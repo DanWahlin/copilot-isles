@@ -1,0 +1,102 @@
+{
+  "id": "kh.dory.05",
+  "speaker": "Dory",
+  "text": "A reply may show a Run button by a snippet. Or copy the snippet into the Terminal tab yourself.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.173
+    },
+    {
+      "word": "reply",
+      "start": 0.173,
+      "end": 0.7
+    },
+    {
+      "word": "may",
+      "start": 0.7,
+      "end": 0.944
+    },
+    {
+      "word": "show",
+      "start": 0.944,
+      "end": 1.28
+    },
+    {
+      "word": "a",
+      "start": 1.28,
+      "end": 1.44
+    },
+    {
+      "word": "Run",
+      "start": 1.44,
+      "end": 1.737
+    },
+    {
+      "word": "button",
+      "start": 1.737,
+      "end": 2.16
+    },
+    {
+      "word": "by",
+      "start": 2.16,
+      "end": 2.36
+    },
+    {
+      "word": "a",
+      "start": 2.36,
+      "end": 2.48
+    },
+    {
+      "word": "snippet",
+      "start": 2.48,
+      "end": 3.867
+    },
+    {
+      "word": "Or",
+      "start": 3.867,
+      "end": 5.024
+    },
+    {
+      "word": "copy",
+      "start": 5.024,
+      "end": 5.64
+    },
+    {
+      "word": "the",
+      "start": 5.64,
+      "end": 5.81
+    },
+    {
+      "word": "snippet",
+      "start": 5.81,
+      "end": 6.224
+    },
+    {
+      "word": "into",
+      "start": 6.224,
+      "end": 6.5
+    },
+    {
+      "word": "the",
+      "start": 6.5,
+      "end": 6.622
+    },
+    {
+      "word": "Terminal",
+      "start": 6.622,
+      "end": 7.22
+    },
+    {
+      "word": "tab",
+      "start": 7.22,
+      "end": 7.6
+    },
+    {
+      "word": "yourself",
+      "start": 7.6,
+      "end": 7.85
+    }
+  ]
+}

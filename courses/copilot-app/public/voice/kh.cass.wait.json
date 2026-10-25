@@ -1,0 +1,77 @@
+{
+  "id": "kh.cass.wait",
+  "speaker": "Cass",
+  "text": "Dory's got your baseline to prove first, Captain. Then come and see my ring.",
+  "words": [
+    {
+      "word": "Dory's",
+      "start": 0,
+      "end": 0.44
+    },
+    {
+      "word": "got",
+      "start": 0.44,
+      "end": 0.592
+    },
+    {
+      "word": "your",
+      "start": 0.592,
+      "end": 0.791
+    },
+    {
+      "word": "baseline",
+      "start": 0.791,
+      "end": 1.387
+    },
+    {
+      "word": "to",
+      "start": 1.387,
+      "end": 1.507
+    },
+    {
+      "word": "prove",
+      "start": 1.507,
+      "end": 1.893
+    },
+    {
+      "word": "first",
+      "start": 1.893,
+      "end": 2.22
+    },
+    {
+      "word": "Captain",
+      "start": 2.22,
+      "end": 2.896
+    },
+    {
+      "word": "Then",
+      "start": 2.896,
+      "end": 3.648
+    },
+    {
+      "word": "come",
+      "start": 3.648,
+      "end": 3.88
+    },
+    {
+      "word": "and",
+      "start": 3.88,
+      "end": 4.06
+    },
+    {
+      "word": "see",
+      "start": 4.06,
+      "end": 4.293
+    },
+    {
+      "word": "my",
+      "start": 4.293,
+      "end": 4.464
+    },
+    {
+      "word": "ring",
+      "start": 4.464,
+      "end": 4.714
+    }
+  ]
+}

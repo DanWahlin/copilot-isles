@@ -1,0 +1,77 @@
+{
+  "id": "kh.barty.polish.back",
+  "speaker": "Barty",
+  "text": "A visual change still needs the same diff, tests, build and preview. Good work.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.16
+    },
+    {
+      "word": "visual",
+      "start": 0.16,
+      "end": 0.72
+    },
+    {
+      "word": "change",
+      "start": 0.72,
+      "end": 1.293
+    },
+    {
+      "word": "still",
+      "start": 1.293,
+      "end": 1.813
+    },
+    {
+      "word": "needs",
+      "start": 1.813,
+      "end": 2.12
+    },
+    {
+      "word": "the",
+      "start": 2.12,
+      "end": 2.304
+    },
+    {
+      "word": "same",
+      "start": 2.304,
+      "end": 2.672
+    },
+    {
+      "word": "diff",
+      "start": 2.672,
+      "end": 3.773
+    },
+    {
+      "word": "tests",
+      "start": 3.773,
+      "end": 4.747
+    },
+    {
+      "word": "build",
+      "start": 4.747,
+      "end": 5.38
+    },
+    {
+      "word": "and",
+      "start": 5.38,
+      "end": 5.76
+    },
+    {
+      "word": "preview",
+      "start": 5.76,
+      "end": 6.64
+    },
+    {
+      "word": "Good",
+      "start": 6.64,
+      "end": 7.696
+    },
+    {
+      "word": "work",
+      "start": 7.696,
+      "end": 7.946
+    }
+  ]
+}

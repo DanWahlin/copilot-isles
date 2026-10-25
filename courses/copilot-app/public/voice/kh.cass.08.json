@@ -1,0 +1,92 @@
+{
+  "id": "kh.cass.08",
+  "speaker": "Cass",
+  "text": "One more lap. A regression test proves the bug would fail before the fix and pass after.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.304
+    },
+    {
+      "word": "more",
+      "start": 0.304,
+      "end": 0.64
+    },
+    {
+      "word": "lap",
+      "start": 0.64,
+      "end": 1.12
+    },
+    {
+      "word": "A",
+      "start": 1.12,
+      "end": 1.324
+    },
+    {
+      "word": "regression",
+      "start": 1.324,
+      "end": 1.824
+    },
+    {
+      "word": "test",
+      "start": 1.824,
+      "end": 2.137
+    },
+    {
+      "word": "proves",
+      "start": 2.137,
+      "end": 2.5
+    },
+    {
+      "word": "the",
+      "start": 2.5,
+      "end": 2.62
+    },
+    {
+      "word": "bug",
+      "start": 2.62,
+      "end": 2.827
+    },
+    {
+      "word": "would",
+      "start": 2.827,
+      "end": 3.024
+    },
+    {
+      "word": "fail",
+      "start": 3.024,
+      "end": 3.326
+    },
+    {
+      "word": "before",
+      "start": 3.326,
+      "end": 3.62
+    },
+    {
+      "word": "the",
+      "start": 3.62,
+      "end": 3.78
+    },
+    {
+      "word": "fix",
+      "start": 3.78,
+      "end": 4.2
+    },
+    {
+      "word": "and",
+      "start": 4.2,
+      "end": 4.64
+    },
+    {
+      "word": "pass",
+      "start": 4.64,
+      "end": 5.04
+    },
+    {
+      "word": "after",
+      "start": 5.04,
+      "end": 5.29
+    }
+  ]
+}

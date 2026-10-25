@@ -1,0 +1,97 @@
+{
+  "id": "kh.hester.01",
+  "speaker": "Hester",
+  "text": "I pulled those name boards off the reef, Captain. Every one of them sailed on a confident guess.",
+  "words": [
+    {
+      "word": "I",
+      "start": 0,
+      "end": 0.194
+    },
+    {
+      "word": "pulled",
+      "start": 0.194,
+      "end": 0.44
+    },
+    {
+      "word": "those",
+      "start": 0.44,
+      "end": 0.688
+    },
+    {
+      "word": "name",
+      "start": 0.688,
+      "end": 0.926
+    },
+    {
+      "word": "boards",
+      "start": 0.926,
+      "end": 1.24
+    },
+    {
+      "word": "off",
+      "start": 1.24,
+      "end": 1.4
+    },
+    {
+      "word": "the",
+      "start": 1.4,
+      "end": 1.568
+    },
+    {
+      "word": "reef",
+      "start": 1.568,
+      "end": 1.88
+    },
+    {
+      "word": "Captain",
+      "start": 1.88,
+      "end": 2.44
+    },
+    {
+      "word": "Every",
+      "start": 2.44,
+      "end": 3.08
+    },
+    {
+      "word": "one",
+      "start": 3.08,
+      "end": 3.227
+    },
+    {
+      "word": "of",
+      "start": 3.227,
+      "end": 3.312
+    },
+    {
+      "word": "them",
+      "start": 3.312,
+      "end": 3.497
+    },
+    {
+      "word": "sailed",
+      "start": 3.497,
+      "end": 3.867
+    },
+    {
+      "word": "on",
+      "start": 3.867,
+      "end": 3.96
+    },
+    {
+      "word": "a",
+      "start": 3.96,
+      "end": 4.048
+    },
+    {
+      "word": "confident",
+      "start": 4.048,
+      "end": 4.547
+    },
+    {
+      "word": "guess",
+      "start": 4.547,
+      "end": 4.797
+    }
+  ]
+}

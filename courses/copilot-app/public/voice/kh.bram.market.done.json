@@ -1,0 +1,52 @@
+{
+  "id": "kh.bram.market.done",
+  "speaker": "Bram",
+  "text": "The whole board, right-sized! You know your models, Captain.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.253
+    },
+    {
+      "word": "whole",
+      "start": 0.253,
+      "end": 0.827
+    },
+    {
+      "word": "board",
+      "start": 0.827,
+      "end": 1.68
+    },
+    {
+      "word": "right-sized",
+      "start": 1.68,
+      "end": 2.92
+    },
+    {
+      "word": "You",
+      "start": 2.92,
+      "end": 3.344
+    },
+    {
+      "word": "know",
+      "start": 3.344,
+      "end": 3.648
+    },
+    {
+      "word": "your",
+      "start": 3.648,
+      "end": 3.909
+    },
+    {
+      "word": "models",
+      "start": 3.909,
+      "end": 4.59
+    },
+    {
+      "word": "Captain",
+      "start": 4.59,
+      "end": 4.84
+    }
+  ]
+}

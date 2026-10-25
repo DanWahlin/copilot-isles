@@ -1,0 +1,117 @@
+{
+  "id": "kh.bram.market.auto",
+  "speaker": "Bram",
+  "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
+  "words": [
+    {
+      "word": "Auto's",
+      "start": 0,
+      "end": 0.587
+    },
+    {
+      "word": "on",
+      "start": 0.587,
+      "end": 0.66
+    },
+    {
+      "word": "the",
+      "start": 0.66,
+      "end": 0.8
+    },
+    {
+      "word": "menu",
+      "start": 0.8,
+      "end": 1.2
+    },
+    {
+      "word": "too",
+      "start": 1.2,
+      "end": 1.64
+    },
+    {
+      "word": "The",
+      "start": 1.64,
+      "end": 2.1
+    },
+    {
+      "word": "app",
+      "start": 2.1,
+      "end": 2.48
+    },
+    {
+      "word": "picks",
+      "start": 2.48,
+      "end": 2.92
+    },
+    {
+      "word": "a",
+      "start": 2.92,
+      "end": 3.027
+    },
+    {
+      "word": "model",
+      "start": 3.027,
+      "end": 3.44
+    },
+    {
+      "word": "for",
+      "start": 3.44,
+      "end": 3.74
+    },
+    {
+      "word": "you",
+      "start": 3.74,
+      "end": 4.2
+    },
+    {
+      "word": "and",
+      "start": 4.2,
+      "end": 4.387
+    },
+    {
+      "word": "tells",
+      "start": 4.387,
+      "end": 4.76
+    },
+    {
+      "word": "you",
+      "start": 4.76,
+      "end": 5.013
+    },
+    {
+      "word": "which",
+      "start": 5.013,
+      "end": 5.78
+    },
+    {
+      "word": "and",
+      "start": 5.78,
+      "end": 6.18
+    },
+    {
+      "word": "why",
+      "start": 6.18,
+      "end": 6.8
+    },
+    {
+      "word": "It's",
+      "start": 6.8,
+      "end": 7.42
+    },
+    {
+      "word": "not",
+      "start": 7.42,
+      "end": 7.7
+    },
+    {
+      "word": "Autopilot",
+      "start": 7.7,
+      "end": 8.64
+    },
+    {
+      "word": "mind",
+      "start": 8.64,
+      "end": 8.89
+    }
+  ]
+}

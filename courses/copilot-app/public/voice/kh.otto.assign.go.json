@@ -1,0 +1,77 @@
+{
+  "id": "kh.otto.assign.go",
+  "speaker": "Ottoline",
+  "text": "Do it in the app, then come back and show me what you've got.",
+  "words": [
+    {
+      "word": "Do",
+      "start": 0,
+      "end": 0.107
+    },
+    {
+      "word": "it",
+      "start": 0.107,
+      "end": 0.213
+    },
+    {
+      "word": "in",
+      "start": 0.213,
+      "end": 0.34
+    },
+    {
+      "word": "the",
+      "start": 0.34,
+      "end": 0.5
+    },
+    {
+      "word": "app",
+      "start": 0.5,
+      "end": 1.232
+    },
+    {
+      "word": "then",
+      "start": 1.232,
+      "end": 1.392
+    },
+    {
+      "word": "come",
+      "start": 1.392,
+      "end": 1.6
+    },
+    {
+      "word": "back",
+      "start": 1.6,
+      "end": 1.98
+    },
+    {
+      "word": "and",
+      "start": 1.98,
+      "end": 2.224
+    },
+    {
+      "word": "show",
+      "start": 2.224,
+      "end": 2.533
+    },
+    {
+      "word": "me",
+      "start": 2.533,
+      "end": 2.672
+    },
+    {
+      "word": "what",
+      "start": 2.672,
+      "end": 2.82
+    },
+    {
+      "word": "you've",
+      "start": 2.82,
+      "end": 3.1
+    },
+    {
+      "word": "got",
+      "start": 3.1,
+      "end": 3.35
+    }
+  ]
+}

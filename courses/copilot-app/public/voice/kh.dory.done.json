@@ -1,0 +1,62 @@
+{
+  "id": "kh.dory.done",
+  "speaker": "Dory",
+  "text": "Sound hull, own tool chest. That dock is ready for work.",
+  "words": [
+    {
+      "word": "Sound",
+      "start": 0,
+      "end": 0.528
+    },
+    {
+      "word": "hull",
+      "start": 0.528,
+      "end": 1.74
+    },
+    {
+      "word": "own",
+      "start": 1.74,
+      "end": 2.256
+    },
+    {
+      "word": "tool",
+      "start": 2.256,
+      "end": 2.747
+    },
+    {
+      "word": "chest",
+      "start": 2.747,
+      "end": 3.648
+    },
+    {
+      "word": "That",
+      "start": 3.648,
+      "end": 4.592
+    },
+    {
+      "word": "dock",
+      "start": 4.592,
+      "end": 5.2
+    },
+    {
+      "word": "is",
+      "start": 5.2,
+      "end": 5.6
+    },
+    {
+      "word": "ready",
+      "start": 5.6,
+      "end": 6.1
+    },
+    {
+      "word": "for",
+      "start": 6.1,
+      "end": 6.512
+    },
+    {
+      "word": "work",
+      "start": 6.512,
+      "end": 6.762
+    }
+  ]
+}

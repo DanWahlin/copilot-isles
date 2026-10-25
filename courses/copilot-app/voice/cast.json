@@ -132,6 +132,38 @@
     "Lani": {
       "tts": "elevenlabs",
       "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    "Hester": {
+      "tts": "elevenlabs",
+      "voice": "0OwZP0QpHVtGE4KSbAqu"
+    },
+    "Dory": {
+      "tts": "elevenlabs",
+      "voice": "t6WJWTYTryhcQnrBHdCr"
+    },
+    "Cass": {
+      "tts": "elevenlabs",
+      "voice": "jUPSOpRcPt8GMPsWx5fy"
+    },
+    "Barty": {
+      "tts": "elevenlabs",
+      "voice": "5GM4aByyJu1ecbL4rKms"
+    },
+    "Stroud": {
+      "tts": "elevenlabs",
+      "voice": "q1h5HGdnfVxp4TXTJRNN"
+    },
+    "Arlo": {
+      "tts": "elevenlabs",
+      "voice": "A41HRDgOrF1mgUtjuSGM"
+    },
+    "Ottoline": {
+      "tts": "elevenlabs",
+      "voice": "A3TiUH9xcSptIzvOUBnB"
+    },
+    "Bram": {
+      "tts": "elevenlabs",
+      "voice": "JbAJPrBwqw2dm8hxfklG"
     }
   }
 }

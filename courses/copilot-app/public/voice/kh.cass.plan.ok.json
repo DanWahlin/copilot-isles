@@ -1,0 +1,67 @@
+{
+  "id": "kh.cass.plan.ok",
+  "speaker": "Cass",
+  "text": "Right. The count has to come from the books the filters show.",
+  "words": [
+    {
+      "word": "Right",
+      "start": 0,
+      "end": 0.66
+    },
+    {
+      "word": "The",
+      "start": 0.66,
+      "end": 1.027
+    },
+    {
+      "word": "count",
+      "start": 1.027,
+      "end": 1.4
+    },
+    {
+      "word": "has",
+      "start": 1.4,
+      "end": 1.547
+    },
+    {
+      "word": "to",
+      "start": 1.547,
+      "end": 1.664
+    },
+    {
+      "word": "come",
+      "start": 1.664,
+      "end": 1.952
+    },
+    {
+      "word": "from",
+      "start": 1.952,
+      "end": 2.12
+    },
+    {
+      "word": "the",
+      "start": 2.12,
+      "end": 2.307
+    },
+    {
+      "word": "books",
+      "start": 2.307,
+      "end": 2.66
+    },
+    {
+      "word": "the",
+      "start": 2.66,
+      "end": 2.78
+    },
+    {
+      "word": "filters",
+      "start": 2.78,
+      "end": 3.28
+    },
+    {
+      "word": "show",
+      "start": 3.28,
+      "end": 3.53
+    }
+  ]
+}

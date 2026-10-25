@@ -1,0 +1,57 @@
+{
+  "id": "kh.barty.done",
+  "speaker": "Barty",
+  "text": "A second opinion before the pull request. Good habit, Captain.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.137
+    },
+    {
+      "word": "second",
+      "start": 0.137,
+      "end": 0.55
+    },
+    {
+      "word": "opinion",
+      "start": 0.55,
+      "end": 1.109
+    },
+    {
+      "word": "before",
+      "start": 1.109,
+      "end": 1.56
+    },
+    {
+      "word": "the",
+      "start": 1.56,
+      "end": 1.744
+    },
+    {
+      "word": "pull",
+      "start": 1.744,
+      "end": 2.1
+    },
+    {
+      "word": "request",
+      "start": 2.1,
+      "end": 3.168
+    },
+    {
+      "word": "Good",
+      "start": 3.168,
+      "end": 4.08
+    },
+    {
+      "word": "habit",
+      "start": 4.08,
+      "end": 4.64
+    },
+    {
+      "word": "Captain",
+      "start": 4.64,
+      "end": 4.89
+    }
+  ]
+}

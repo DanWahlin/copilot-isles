@@ -1,0 +1,77 @@
+{
+  "id": "kh.lyra.05",
+  "speaker": "Lyra",
+  "text": "Hester's board is by the river bridge. She'll show you what counts as evidence.",
+  "words": [
+    {
+      "word": "Hester's",
+      "start": 0.052625,
+      "end": 0.513166
+    },
+    {
+      "word": "board",
+      "start": 0.513166,
+      "end": 0.934208
+    },
+    {
+      "word": "is",
+      "start": 0.934208,
+      "end": 1.092125
+    },
+    {
+      "word": "by",
+      "start": 1.092125,
+      "end": 1.35525
+    },
+    {
+      "word": "the",
+      "start": 1.35525,
+      "end": 1.434208
+    },
+    {
+      "word": "river",
+      "start": 1.434208,
+      "end": 1.723666
+    },
+    {
+      "word": "bridge",
+      "start": 1.723666,
+      "end": 3.263166
+    },
+    {
+      "word": "She'll",
+      "start": 3.263166,
+      "end": 3.565791
+    },
+    {
+      "word": "show",
+      "start": 3.565791,
+      "end": 3.881583
+    },
+    {
+      "word": "you",
+      "start": 3.881583,
+      "end": 4
+    },
+    {
+      "word": "what",
+      "start": 4,
+      "end": 4.184208
+    },
+    {
+      "word": "counts",
+      "start": 4.184208,
+      "end": 4.64475
+    },
+    {
+      "word": "as",
+      "start": 4.64475,
+      "end": 4.802625
+    },
+    {
+      "word": "evidence",
+      "start": 4.802625,
+      "end": 5.052625
+    }
+  ]
+}

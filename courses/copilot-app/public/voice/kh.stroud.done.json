@@ -1,0 +1,77 @@
+{
+  "id": "kh.stroud.done",
+  "speaker": "Stroud",
+  "text": "Your hull waits in the basin, Captain. Arlo has the rest of the flight.",
+  "words": [
+    {
+      "word": "Your",
+      "start": 0,
+      "end": 0.24
+    },
+    {
+      "word": "hull",
+      "start": 0.24,
+      "end": 0.627
+    },
+    {
+      "word": "waits",
+      "start": 0.627,
+      "end": 0.987
+    },
+    {
+      "word": "in",
+      "start": 0.987,
+      "end": 1.06
+    },
+    {
+      "word": "the",
+      "start": 1.06,
+      "end": 1.2
+    },
+    {
+      "word": "basin",
+      "start": 1.2,
+      "end": 1.75
+    },
+    {
+      "word": "Captain",
+      "start": 1.75,
+      "end": 2.533
+    },
+    {
+      "word": "Arlo",
+      "start": 2.533,
+      "end": 2.94
+    },
+    {
+      "word": "has",
+      "start": 2.94,
+      "end": 3.14
+    },
+    {
+      "word": "the",
+      "start": 3.14,
+      "end": 3.264
+    },
+    {
+      "word": "rest",
+      "start": 3.264,
+      "end": 3.547
+    },
+    {
+      "word": "of",
+      "start": 3.547,
+      "end": 3.62
+    },
+    {
+      "word": "the",
+      "start": 3.62,
+      "end": 3.737
+    },
+    {
+      "word": "flight",
+      "start": 3.737,
+      "end": 3.987
+    }
+  ]
+}

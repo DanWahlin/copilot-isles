@@ -1,0 +1,82 @@
+{
+  "id": "kh.barty.06",
+  "speaker": "Barty",
+  "text": "Stroud keeps the harbour office at Lock 1. That's where the work goes to GitHub.",
+  "words": [
+    {
+      "word": "Stroud",
+      "start": 0,
+      "end": 0.533
+    },
+    {
+      "word": "keeps",
+      "start": 0.533,
+      "end": 0.82
+    },
+    {
+      "word": "the",
+      "start": 0.82,
+      "end": 0.93
+    },
+    {
+      "word": "harbour",
+      "start": 0.93,
+      "end": 1.36
+    },
+    {
+      "word": "office",
+      "start": 1.36,
+      "end": 1.92
+    },
+    {
+      "word": "at",
+      "start": 1.92,
+      "end": 2.144
+    },
+    {
+      "word": "Lock",
+      "start": 2.144,
+      "end": 2.52
+    },
+    {
+      "word": "1",
+      "start": 2.52,
+      "end": 3.168
+    },
+    {
+      "word": "That's",
+      "start": 3.168,
+      "end": 4.107
+    },
+    {
+      "word": "where",
+      "start": 4.107,
+      "end": 4.28
+    },
+    {
+      "word": "the",
+      "start": 4.28,
+      "end": 4.48
+    },
+    {
+      "word": "work",
+      "start": 4.48,
+      "end": 4.88
+    },
+    {
+      "word": "goes",
+      "start": 4.88,
+      "end": 5.227
+    },
+    {
+      "word": "to",
+      "start": 5.227,
+      "end": 5.383
+    },
+    {
+      "word": "GitHub",
+      "start": 5.383,
+      "end": 5.633
+    }
+  ]
+}

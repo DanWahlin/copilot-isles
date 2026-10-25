@@ -1,0 +1,72 @@
+{
+  "id": "kh.cass.gauge.lower",
+  "speaker": "Cass",
+  "text": "Lowering the old mark weakens an expectation. Check what the filters show instead.",
+  "words": [
+    {
+      "word": "Lowering",
+      "start": 0,
+      "end": 0.42
+    },
+    {
+      "word": "the",
+      "start": 0.42,
+      "end": 0.54
+    },
+    {
+      "word": "old",
+      "start": 0.54,
+      "end": 0.8
+    },
+    {
+      "word": "mark",
+      "start": 0.8,
+      "end": 1.2
+    },
+    {
+      "word": "weakens",
+      "start": 1.2,
+      "end": 1.787
+    },
+    {
+      "word": "an",
+      "start": 1.787,
+      "end": 1.913
+    },
+    {
+      "word": "expectation",
+      "start": 1.913,
+      "end": 3.047
+    },
+    {
+      "word": "Check",
+      "start": 3.047,
+      "end": 3.296
+    },
+    {
+      "word": "what",
+      "start": 3.296,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.5
+    },
+    {
+      "word": "filters",
+      "start": 3.5,
+      "end": 3.984
+    },
+    {
+      "word": "show",
+      "start": 3.984,
+      "end": 4.3
+    },
+    {
+      "word": "instead",
+      "start": 4.3,
+      "end": 4.55
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "id": "kh.barty.polish",
+  "speaker": "Barty",
+  "text": "One more thing. Pick & Polish lets you pick an element in the preview and attach it to your next prompt.",
+  "words": [
+    {
+      "word": "One",
+      "start": 0,
+      "end": 0.288
+    },
+    {
+      "word": "more",
+      "start": 0.288,
+      "end": 0.56
+    },
+    {
+      "word": "thing",
+      "start": 0.56,
+      "end": 1.264
+    },
+    {
+      "word": "Pick",
+      "start": 1.264,
+      "end": 2.446
+    },
+    {
+      "word": "Polish",
+      "start": 2.446,
+      "end": 3.312
+    },
+    {
+      "word": "lets",
+      "start": 3.312,
+      "end": 3.8
+    },
+    {
+      "word": "you",
+      "start": 3.8,
+      "end": 4
+    },
+    {
+      "word": "pick",
+      "start": 4,
+      "end": 4.4
+    },
+    {
+      "word": "an",
+      "start": 4.4,
+      "end": 4.63
+    },
+    {
+      "word": "element",
+      "start": 4.63,
+      "end": 5.173
+    },
+    {
+      "word": "in",
+      "start": 5.173,
+      "end": 5.3
+    },
+    {
+      "word": "the",
+      "start": 5.3,
+      "end": 5.44
+    },
+    {
+      "word": "preview",
+      "start": 5.44,
+      "end": 6.2
+    },
+    {
+      "word": "and",
+      "start": 6.2,
+      "end": 6.88
+    },
+    {
+      "word": "attach",
+      "start": 6.88,
+      "end": 7.44
+    },
+    {
+      "word": "it",
+      "start": 7.44,
+      "end": 7.707
+    },
+    {
+      "word": "to",
+      "start": 7.707,
+      "end": 7.968
+    },
+    {
+      "word": "your",
+      "start": 7.968,
+      "end": 8.272
+    },
+    {
+      "word": "next",
+      "start": 8.272,
+      "end": 8.811
+    },
+    {
+      "word": "prompt",
+      "start": 8.811,
+      "end": 9.061
+    }
+  ]
+}

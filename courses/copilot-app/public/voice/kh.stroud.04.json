@@ -1,0 +1,102 @@
+{
+  "id": "kh.stroud.04",
+  "speaker": "Stroud",
+  "text": "Practice pull requests are on Authored by me. If one's missing, check the tab, the repository and your access.",
+  "words": [
+    {
+      "word": "Practice",
+      "start": 0,
+      "end": 0.448
+    },
+    {
+      "word": "pull",
+      "start": 0.448,
+      "end": 0.711
+    },
+    {
+      "word": "requests",
+      "start": 0.711,
+      "end": 1.32
+    },
+    {
+      "word": "are",
+      "start": 1.32,
+      "end": 1.493
+    },
+    {
+      "word": "on",
+      "start": 1.493,
+      "end": 1.664
+    },
+    {
+      "word": "Authored",
+      "start": 1.664,
+      "end": 2.32
+    },
+    {
+      "word": "by",
+      "start": 2.32,
+      "end": 2.587
+    },
+    {
+      "word": "me",
+      "start": 2.587,
+      "end": 3.013
+    },
+    {
+      "word": "If",
+      "start": 3.013,
+      "end": 3.32
+    },
+    {
+      "word": "one's",
+      "start": 3.32,
+      "end": 3.58
+    },
+    {
+      "word": "missing",
+      "start": 3.58,
+      "end": 4.2
+    },
+    {
+      "word": "check",
+      "start": 4.2,
+      "end": 4.44
+    },
+    {
+      "word": "the",
+      "start": 4.44,
+      "end": 4.64
+    },
+    {
+      "word": "tab",
+      "start": 4.64,
+      "end": 5.32
+    },
+    {
+      "word": "the",
+      "start": 5.32,
+      "end": 5.52
+    },
+    {
+      "word": "repository",
+      "start": 5.52,
+      "end": 6.42
+    },
+    {
+      "word": "and",
+      "start": 6.42,
+      "end": 6.752
+    },
+    {
+      "word": "your",
+      "start": 6.752,
+      "end": 6.983
+    },
+    {
+      "word": "access",
+      "start": 6.983,
+      "end": 7.233
+    }
+  ]
+}

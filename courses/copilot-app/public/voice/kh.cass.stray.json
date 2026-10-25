@@ -1,0 +1,107 @@
+{
+  "id": "kh.cass.stray",
+  "speaker": "Cass",
+  "text": "That plank's on the wrong hull. Pry it off or have the crew revise it. You'll get a confirmation first.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.133
+    },
+    {
+      "word": "plank's",
+      "start": 0.133,
+      "end": 0.533
+    },
+    {
+      "word": "on",
+      "start": 0.533,
+      "end": 0.66
+    },
+    {
+      "word": "the",
+      "start": 0.66,
+      "end": 0.76
+    },
+    {
+      "word": "wrong",
+      "start": 0.76,
+      "end": 1.024
+    },
+    {
+      "word": "hull",
+      "start": 1.024,
+      "end": 1.5
+    },
+    {
+      "word": "Pry",
+      "start": 1.5,
+      "end": 1.947
+    },
+    {
+      "word": "it",
+      "start": 1.947,
+      "end": 2.06
+    },
+    {
+      "word": "off",
+      "start": 2.06,
+      "end": 2.293
+    },
+    {
+      "word": "or",
+      "start": 2.293,
+      "end": 2.432
+    },
+    {
+      "word": "have",
+      "start": 2.432,
+      "end": 2.58
+    },
+    {
+      "word": "the",
+      "start": 2.58,
+      "end": 2.688
+    },
+    {
+      "word": "crew",
+      "start": 2.688,
+      "end": 2.949
+    },
+    {
+      "word": "revise",
+      "start": 2.949,
+      "end": 3.413
+    },
+    {
+      "word": "it",
+      "start": 3.413,
+      "end": 3.7
+    },
+    {
+      "word": "You'll",
+      "start": 3.7,
+      "end": 4.1
+    },
+    {
+      "word": "get",
+      "start": 4.1,
+      "end": 4.2
+    },
+    {
+      "word": "a",
+      "start": 4.2,
+      "end": 4.295
+    },
+    {
+      "word": "confirmation",
+      "start": 4.295,
+      "end": 5.04
+    },
+    {
+      "word": "first",
+      "start": 5.04,
+      "end": 5.29
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "kh.barty.03",
+  "speaker": "Barty",
+  "text": "In the app, type a slash to open the palette, then send /rubber-duck with your request.",
+  "words": [
+    {
+      "word": "In",
+      "start": 0,
+      "end": 0.12
+    },
+    {
+      "word": "the",
+      "start": 0.12,
+      "end": 0.34
+    },
+    {
+      "word": "app",
+      "start": 0.34,
+      "end": 1.104
+    },
+    {
+      "word": "type",
+      "start": 1.104,
+      "end": 1.44
+    },
+    {
+      "word": "a",
+      "start": 1.44,
+      "end": 1.64
+    },
+    {
+      "word": "slash",
+      "start": 1.64,
+      "end": 2.373
+    },
+    {
+      "word": "to",
+      "start": 2.373,
+      "end": 2.704
+    },
+    {
+      "word": "open",
+      "start": 2.704,
+      "end": 3
+    },
+    {
+      "word": "the",
+      "start": 3,
+      "end": 3.19
+    },
+    {
+      "word": "palette",
+      "start": 3.19,
+      "end": 4.4
+    },
+    {
+      "word": "then",
+      "start": 4.4,
+      "end": 4.976
+    },
+    {
+      "word": "send",
+      "start": 4.976,
+      "end": 6.537
+    },
+    {
+      "word": "rubber-duck",
+      "start": 6.537,
+      "end": 9.264
+    },
+    {
+      "word": "with",
+      "start": 9.264,
+      "end": 9.872
+    },
+    {
+      "word": "your",
+      "start": 9.872,
+      "end": 10.1
+    },
+    {
+      "word": "request",
+      "start": 10.1,
+      "end": 10.35
+    }
+  ]
+}

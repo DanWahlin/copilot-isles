@@ -1,0 +1,62 @@
+{
+  "id": "kh.cass.03",
+  "speaker": "Cass",
+  "text": "Now the slate. Is every chalk mark part of this job?",
+  "words": [
+    {
+      "word": "Now",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "the",
+      "start": 0.2,
+      "end": 0.387
+    },
+    {
+      "word": "slate",
+      "start": 0.387,
+      "end": 0.933
+    },
+    {
+      "word": "Is",
+      "start": 0.933,
+      "end": 1.24
+    },
+    {
+      "word": "every",
+      "start": 1.24,
+      "end": 1.507
+    },
+    {
+      "word": "chalk",
+      "start": 1.507,
+      "end": 1.904
+    },
+    {
+      "word": "mark",
+      "start": 1.904,
+      "end": 2.224
+    },
+    {
+      "word": "part",
+      "start": 2.224,
+      "end": 2.507
+    },
+    {
+      "word": "of",
+      "start": 2.507,
+      "end": 2.608
+    },
+    {
+      "word": "this",
+      "start": 2.608,
+      "end": 2.9
+    },
+    {
+      "word": "job",
+      "start": 2.9,
+      "end": 3.15
+    }
+  ]
+}

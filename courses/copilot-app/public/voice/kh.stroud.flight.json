@@ -1,0 +1,77 @@
+{
+  "id": "kh.stroud.flight",
+  "speaker": "Stroud",
+  "text": "Follow the lit lamp down the flight, Captain. I'll be here at the office.",
+  "words": [
+    {
+      "word": "Follow",
+      "start": 0,
+      "end": 0.26
+    },
+    {
+      "word": "the",
+      "start": 0.26,
+      "end": 0.38
+    },
+    {
+      "word": "lit",
+      "start": 0.38,
+      "end": 0.64
+    },
+    {
+      "word": "lamp",
+      "start": 0.64,
+      "end": 1.024
+    },
+    {
+      "word": "down",
+      "start": 1.024,
+      "end": 1.3
+    },
+    {
+      "word": "the",
+      "start": 1.3,
+      "end": 1.406
+    },
+    {
+      "word": "flight",
+      "start": 1.406,
+      "end": 1.82
+    },
+    {
+      "word": "Captain",
+      "start": 1.82,
+      "end": 2.72
+    },
+    {
+      "word": "I'll",
+      "start": 2.72,
+      "end": 3.227
+    },
+    {
+      "word": "be",
+      "start": 3.227,
+      "end": 3.36
+    },
+    {
+      "word": "here",
+      "start": 3.36,
+      "end": 3.76
+    },
+    {
+      "word": "at",
+      "start": 3.76,
+      "end": 3.96
+    },
+    {
+      "word": "the",
+      "start": 3.96,
+      "end": 4.149
+    },
+    {
+      "word": "office",
+      "start": 4.149,
+      "end": 4.399
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "kh.barty.wait",
+  "speaker": "Barty",
+  "text": "Ah, Captain. Finish your laps with Cass, and then I'll read your evidence.",
+  "words": [
+    {
+      "word": "Ah",
+      "start": 0,
+      "end": 0.68
+    },
+    {
+      "word": "Captain",
+      "start": 0.68,
+      "end": 1.154
+    },
+    {
+      "word": "Finish",
+      "start": 1.154,
+      "end": 1.872
+    },
+    {
+      "word": "your",
+      "start": 1.872,
+      "end": 2.08
+    },
+    {
+      "word": "laps",
+      "start": 2.08,
+      "end": 2.432
+    },
+    {
+      "word": "with",
+      "start": 2.432,
+      "end": 2.688
+    },
+    {
+      "word": "Cass",
+      "start": 2.688,
+      "end": 3.6
+    },
+    {
+      "word": "and",
+      "start": 3.6,
+      "end": 3.888
+    },
+    {
+      "word": "then",
+      "start": 3.888,
+      "end": 4.16
+    },
+    {
+      "word": "I'll",
+      "start": 4.16,
+      "end": 4.464
+    },
+    {
+      "word": "read",
+      "start": 4.464,
+      "end": 4.768
+    },
+    {
+      "word": "your",
+      "start": 4.768,
+      "end": 5.076
+    },
+    {
+      "word": "evidence",
+      "start": 5.076,
+      "end": 5.326
+    }
+  ]
+}

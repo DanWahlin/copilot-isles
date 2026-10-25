@@ -1,0 +1,67 @@
+{
+  "id": "kh.cass.unread",
+  "speaker": "Cass",
+  "text": "Unread alone won't tell you. All five unread books would still show.",
+  "words": [
+    {
+      "word": "Unread",
+      "start": 0,
+      "end": 0.48
+    },
+    {
+      "word": "alone",
+      "start": 0.48,
+      "end": 0.94
+    },
+    {
+      "word": "won't",
+      "start": 0.94,
+      "end": 1.248
+    },
+    {
+      "word": "tell",
+      "start": 1.248,
+      "end": 1.5
+    },
+    {
+      "word": "you",
+      "start": 1.5,
+      "end": 1.9
+    },
+    {
+      "word": "All",
+      "start": 1.9,
+      "end": 2.4
+    },
+    {
+      "word": "five",
+      "start": 2.4,
+      "end": 2.777
+    },
+    {
+      "word": "unread",
+      "start": 2.777,
+      "end": 3.187
+    },
+    {
+      "word": "books",
+      "start": 3.187,
+      "end": 3.56
+    },
+    {
+      "word": "would",
+      "start": 3.56,
+      "end": 3.813
+    },
+    {
+      "word": "still",
+      "start": 3.813,
+      "end": 4.16
+    },
+    {
+      "word": "show",
+      "start": 4.16,
+      "end": 4.41
+    }
+  ]
+}

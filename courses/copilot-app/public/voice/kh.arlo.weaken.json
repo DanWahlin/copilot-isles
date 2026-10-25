@@ -1,0 +1,102 @@
+{
+  "id": "kh.arlo.weaken",
+  "speaker": "Arlo",
+  "text": "Filing down the gauge turns the lamp green, and leaves the ship's hull wrong. Don't weaken the failing test.",
+  "words": [
+    {
+      "word": "Filing",
+      "start": 0,
+      "end": 0.368
+    },
+    {
+      "word": "down",
+      "start": 0.368,
+      "end": 0.58
+    },
+    {
+      "word": "the",
+      "start": 0.58,
+      "end": 0.707
+    },
+    {
+      "word": "gauge",
+      "start": 0.707,
+      "end": 1.093
+    },
+    {
+      "word": "turns",
+      "start": 1.093,
+      "end": 1.38
+    },
+    {
+      "word": "the",
+      "start": 1.38,
+      "end": 1.488
+    },
+    {
+      "word": "lamp",
+      "start": 1.488,
+      "end": 1.747
+    },
+    {
+      "word": "green",
+      "start": 1.747,
+      "end": 2.28
+    },
+    {
+      "word": "and",
+      "start": 2.28,
+      "end": 2.446
+    },
+    {
+      "word": "leaves",
+      "start": 2.446,
+      "end": 2.74
+    },
+    {
+      "word": "the",
+      "start": 2.74,
+      "end": 2.864
+    },
+    {
+      "word": "ship's",
+      "start": 2.864,
+      "end": 3.28
+    },
+    {
+      "word": "hull",
+      "start": 3.28,
+      "end": 3.707
+    },
+    {
+      "word": "wrong",
+      "start": 3.707,
+      "end": 4.62
+    },
+    {
+      "word": "Don't",
+      "start": 4.62,
+      "end": 5.417
+    },
+    {
+      "word": "weaken",
+      "start": 5.417,
+      "end": 5.78
+    },
+    {
+      "word": "the",
+      "start": 5.78,
+      "end": 5.88
+    },
+    {
+      "word": "failing",
+      "start": 5.88,
+      "end": 6.256
+    },
+    {
+      "word": "test",
+      "start": 6.256,
+      "end": 6.506
+    }
+  ]
+}

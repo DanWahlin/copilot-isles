@@ -1,0 +1,92 @@
+{
+  "id": "kh.stroud.09",
+  "speaker": "Stroud",
+  "text": "That hull waits in the basin. Don't merge this practice pull request: main already has the fix.",
+  "words": [
+    {
+      "word": "That",
+      "start": 0,
+      "end": 0.336
+    },
+    {
+      "word": "hull",
+      "start": 0.336,
+      "end": 0.8
+    },
+    {
+      "word": "waits",
+      "start": 0.8,
+      "end": 1.253
+    },
+    {
+      "word": "in",
+      "start": 1.253,
+      "end": 1.38
+    },
+    {
+      "word": "the",
+      "start": 1.38,
+      "end": 1.533
+    },
+    {
+      "word": "basin",
+      "start": 1.533,
+      "end": 2.3
+    },
+    {
+      "word": "Don't",
+      "start": 2.3,
+      "end": 3.107
+    },
+    {
+      "word": "merge",
+      "start": 3.107,
+      "end": 3.488
+    },
+    {
+      "word": "this",
+      "start": 3.488,
+      "end": 3.733
+    },
+    {
+      "word": "practice",
+      "start": 3.733,
+      "end": 4.224
+    },
+    {
+      "word": "pull",
+      "start": 4.224,
+      "end": 4.55
+    },
+    {
+      "word": "request",
+      "start": 4.55,
+      "end": 5.552
+    },
+    {
+      "word": "main",
+      "start": 5.552,
+      "end": 6.07
+    },
+    {
+      "word": "already",
+      "start": 6.07,
+      "end": 6.68
+    },
+    {
+      "word": "has",
+      "start": 6.68,
+      "end": 7.12
+    },
+    {
+      "word": "the",
+      "start": 7.12,
+      "end": 7.5
+    },
+    {
+      "word": "fix",
+      "start": 7.5,
+      "end": 7.75
+    }
+  ]
+}

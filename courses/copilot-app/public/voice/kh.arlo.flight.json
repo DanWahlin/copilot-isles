@@ -1,0 +1,72 @@
+{
+  "id": "kh.arlo.flight",
+  "speaker": "Arlo",
+  "text": "Follow the lit lamp, Captain. The barge is ready when you need it.",
+  "words": [
+    {
+      "word": "Follow",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "the",
+      "start": 0.28,
+      "end": 0.44
+    },
+    {
+      "word": "lit",
+      "start": 0.44,
+      "end": 0.608
+    },
+    {
+      "word": "lamp",
+      "start": 0.608,
+      "end": 1.07
+    },
+    {
+      "word": "Captain",
+      "start": 1.07,
+      "end": 1.48
+    },
+    {
+      "word": "The",
+      "start": 1.48,
+      "end": 1.68
+    },
+    {
+      "word": "barge",
+      "start": 1.68,
+      "end": 1.973
+    },
+    {
+      "word": "is",
+      "start": 1.973,
+      "end": 2.107
+    },
+    {
+      "word": "ready",
+      "start": 2.107,
+      "end": 2.272
+    },
+    {
+      "word": "when",
+      "start": 2.272,
+      "end": 2.42
+    },
+    {
+      "word": "you",
+      "start": 2.42,
+      "end": 2.512
+    },
+    {
+      "word": "need",
+      "start": 2.512,
+      "end": 2.693
+    },
+    {
+      "word": "it",
+      "start": 2.693,
+      "end": 2.888
+    }
+  ]
+}

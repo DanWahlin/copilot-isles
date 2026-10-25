@@ -1,0 +1,92 @@
+{
+  "id": "kh.barty.05",
+  "speaker": "Barty",
+  "text": "No /rubber-duck? Choose a different model for the session, or send the same request without the slash.",
+  "words": [
+    {
+      "word": "No",
+      "start": 0,
+      "end": 0.949
+    },
+    {
+      "word": "rubber-duck",
+      "start": 0.949,
+      "end": 2.766
+    },
+    {
+      "word": "Choose",
+      "start": 2.766,
+      "end": 3.56
+    },
+    {
+      "word": "a",
+      "start": 3.56,
+      "end": 3.648
+    },
+    {
+      "word": "different",
+      "start": 3.648,
+      "end": 4.16
+    },
+    {
+      "word": "model",
+      "start": 4.16,
+      "end": 4.6
+    },
+    {
+      "word": "for",
+      "start": 4.6,
+      "end": 4.76
+    },
+    {
+      "word": "the",
+      "start": 4.76,
+      "end": 4.95
+    },
+    {
+      "word": "session",
+      "start": 4.95,
+      "end": 6.107
+    },
+    {
+      "word": "or",
+      "start": 6.107,
+      "end": 6.4
+    },
+    {
+      "word": "send",
+      "start": 6.4,
+      "end": 6.74
+    },
+    {
+      "word": "the",
+      "start": 6.74,
+      "end": 6.88
+    },
+    {
+      "word": "same",
+      "start": 6.88,
+      "end": 7.27
+    },
+    {
+      "word": "request",
+      "start": 7.27,
+      "end": 7.87
+    },
+    {
+      "word": "without",
+      "start": 7.87,
+      "end": 8.66
+    },
+    {
+      "word": "the",
+      "start": 8.66,
+      "end": 8.827
+    },
+    {
+      "word": "slash",
+      "start": 8.827,
+      "end": 9.077
+    }
+  ]
+}

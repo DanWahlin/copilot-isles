@@ -1,0 +1,97 @@
+{
+  "id": "kh.barty.polish.go",
+  "speaker": "Barty",
+  "text": "Try it in the app on a book card, then come back and tell me what you saw.",
+  "words": [
+    {
+      "word": "Try",
+      "start": 0,
+      "end": 0.293
+    },
+    {
+      "word": "it",
+      "start": 0.293,
+      "end": 0.427
+    },
+    {
+      "word": "in",
+      "start": 0.427,
+      "end": 0.52
+    },
+    {
+      "word": "the",
+      "start": 0.52,
+      "end": 0.72
+    },
+    {
+      "word": "app",
+      "start": 0.72,
+      "end": 1.013
+    },
+    {
+      "word": "on",
+      "start": 1.013,
+      "end": 1.16
+    },
+    {
+      "word": "a",
+      "start": 1.16,
+      "end": 1.248
+    },
+    {
+      "word": "book",
+      "start": 1.248,
+      "end": 1.536
+    },
+    {
+      "word": "card",
+      "start": 1.536,
+      "end": 2.768
+    },
+    {
+      "word": "then",
+      "start": 2.768,
+      "end": 3.024
+    },
+    {
+      "word": "come",
+      "start": 3.024,
+      "end": 3.392
+    },
+    {
+      "word": "back",
+      "start": 3.392,
+      "end": 3.98
+    },
+    {
+      "word": "and",
+      "start": 3.98,
+      "end": 4.464
+    },
+    {
+      "word": "tell",
+      "start": 4.464,
+      "end": 4.853
+    },
+    {
+      "word": "me",
+      "start": 4.853,
+      "end": 5.248
+    },
+    {
+      "word": "what",
+      "start": 5.248,
+      "end": 5.82
+    },
+    {
+      "word": "you",
+      "start": 5.82,
+      "end": 6.12
+    },
+    {
+      "word": "saw",
+      "start": 6.12,
+      "end": 6.37
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "id": "kh.arlo.03",
+  "speaker": "Arlo",
+  "text": "Answer the whole comment, not half of it. Then commit, push, and check the pull request.",
+  "words": [
+    {
+      "word": "Answer",
+      "start": 0,
+      "end": 0.36
+    },
+    {
+      "word": "the",
+      "start": 0.36,
+      "end": 0.52
+    },
+    {
+      "word": "whole",
+      "start": 0.52,
+      "end": 0.78
+    },
+    {
+      "word": "comment",
+      "start": 0.78,
+      "end": 1.32
+    },
+    {
+      "word": "not",
+      "start": 1.32,
+      "end": 1.488
+    },
+    {
+      "word": "half",
+      "start": 1.488,
+      "end": 1.707
+    },
+    {
+      "word": "of",
+      "start": 1.707,
+      "end": 1.813
+    },
+    {
+      "word": "it",
+      "start": 1.813,
+      "end": 2.144
+    },
+    {
+      "word": "Then",
+      "start": 2.144,
+      "end": 2.789
+    },
+    {
+      "word": "commit",
+      "start": 2.789,
+      "end": 3.408
+    },
+    {
+      "word": "push",
+      "start": 3.408,
+      "end": 4.12
+    },
+    {
+      "word": "and",
+      "start": 4.12,
+      "end": 4.28
+    },
+    {
+      "word": "check",
+      "start": 4.28,
+      "end": 4.5
+    },
+    {
+      "word": "the",
+      "start": 4.5,
+      "end": 4.608
+    },
+    {
+      "word": "pull",
+      "start": 4.608,
+      "end": 4.86
+    },
+    {
+      "word": "request",
+      "start": 4.86,
+      "end": 5.11
+    }
+  ]
+}

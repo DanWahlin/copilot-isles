@@ -1,0 +1,62 @@
+{
+  "id": "wingman.kh.seals",
+  "speaker": "Wingman",
+  "text": "Two seals, Captain. And not one hull launched. That's the job.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.227
+    },
+    {
+      "word": "seals",
+      "start": 0.227,
+      "end": 0.785
+    },
+    {
+      "word": "Captain",
+      "start": 0.785,
+      "end": 1.14
+    },
+    {
+      "word": "And",
+      "start": 1.14,
+      "end": 1.48
+    },
+    {
+      "word": "not",
+      "start": 1.48,
+      "end": 1.68
+    },
+    {
+      "word": "one",
+      "start": 1.68,
+      "end": 1.984
+    },
+    {
+      "word": "hull",
+      "start": 1.984,
+      "end": 2.293
+    },
+    {
+      "word": "launched",
+      "start": 2.293,
+      "end": 2.896
+    },
+    {
+      "word": "That's",
+      "start": 2.896,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.52
+    },
+    {
+      "word": "job",
+      "start": 3.52,
+      "end": 3.77
+    }
+  ]
+}

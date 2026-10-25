@@ -1,0 +1,82 @@
+{
+  "id": "kh.hester.done",
+  "speaker": "Hester",
+  "text": "Four kinds of evidence, and your judgment in both loops. Nothing sails on a guess.",
+  "words": [
+    {
+      "word": "Four",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "kinds",
+      "start": 0.213,
+      "end": 0.507
+    },
+    {
+      "word": "of",
+      "start": 0.507,
+      "end": 0.622
+    },
+    {
+      "word": "evidence",
+      "start": 0.622,
+      "end": 1.32
+    },
+    {
+      "word": "and",
+      "start": 1.32,
+      "end": 1.696
+    },
+    {
+      "word": "your",
+      "start": 1.696,
+      "end": 1.822
+    },
+    {
+      "word": "judgment",
+      "start": 1.822,
+      "end": 2.373
+    },
+    {
+      "word": "in",
+      "start": 2.373,
+      "end": 2.528
+    },
+    {
+      "word": "both",
+      "start": 2.528,
+      "end": 2.8
+    },
+    {
+      "word": "loops",
+      "start": 2.8,
+      "end": 3.43
+    },
+    {
+      "word": "Nothing",
+      "start": 3.43,
+      "end": 4.547
+    },
+    {
+      "word": "sails",
+      "start": 4.547,
+      "end": 4.933
+    },
+    {
+      "word": "on",
+      "start": 4.933,
+      "end": 5.08
+    },
+    {
+      "word": "a",
+      "start": 5.08,
+      "end": 5.2
+    },
+    {
+      "word": "guess",
+      "start": 5.2,
+      "end": 5.45
+    }
+  ]
+}

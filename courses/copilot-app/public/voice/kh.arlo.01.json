@@ -1,0 +1,67 @@
+{
+  "id": "kh.arlo.01",
+  "speaker": "Arlo",
+  "text": "Two seeded pull requests, Captain. You'll find both on Authored by me.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.206
+    },
+    {
+      "word": "seeded",
+      "start": 0.206,
+      "end": 0.512
+    },
+    {
+      "word": "pull",
+      "start": 0.512,
+      "end": 0.684
+    },
+    {
+      "word": "requests",
+      "start": 0.684,
+      "end": 1.265
+    },
+    {
+      "word": "Captain",
+      "start": 1.265,
+      "end": 1.68
+    },
+    {
+      "word": "You'll",
+      "start": 1.68,
+      "end": 2.288
+    },
+    {
+      "word": "find",
+      "start": 2.288,
+      "end": 2.576
+    },
+    {
+      "word": "both",
+      "start": 2.576,
+      "end": 3.04
+    },
+    {
+      "word": "on",
+      "start": 3.04,
+      "end": 3.264
+    },
+    {
+      "word": "Authored",
+      "start": 3.264,
+      "end": 3.76
+    },
+    {
+      "word": "by",
+      "start": 3.76,
+      "end": 4.053
+    },
+    {
+      "word": "me",
+      "start": 4.053,
+      "end": 4.303
+    }
+  ]
+}

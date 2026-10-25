@@ -1,0 +1,72 @@
+{
+  "id": "kh.arlo.09",
+  "speaker": "Arlo",
+  "text": "Ottoline keeps the Gate Light, through the rock cut. Off you go, Captain.",
+  "words": [
+    {
+      "word": "Ottoline",
+      "start": 0,
+      "end": 0.6
+    },
+    {
+      "word": "keeps",
+      "start": 0.6,
+      "end": 0.82
+    },
+    {
+      "word": "the",
+      "start": 0.82,
+      "end": 0.928
+    },
+    {
+      "word": "Gate",
+      "start": 0.928,
+      "end": 1.173
+    },
+    {
+      "word": "Light",
+      "start": 1.173,
+      "end": 1.55
+    },
+    {
+      "word": "through",
+      "start": 1.55,
+      "end": 1.78
+    },
+    {
+      "word": "the",
+      "start": 1.78,
+      "end": 1.872
+    },
+    {
+      "word": "rock",
+      "start": 1.872,
+      "end": 2.1
+    },
+    {
+      "word": "cut",
+      "start": 2.1,
+      "end": 2.9
+    },
+    {
+      "word": "Off",
+      "start": 2.9,
+      "end": 3.22
+    },
+    {
+      "word": "you",
+      "start": 3.22,
+      "end": 3.333
+    },
+    {
+      "word": "go",
+      "start": 3.333,
+      "end": 3.57
+    },
+    {
+      "word": "Captain",
+      "start": 3.57,
+      "end": 3.82
+    }
+  ]
+}

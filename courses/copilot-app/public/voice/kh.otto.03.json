@@ -1,0 +1,82 @@
+{
+  "id": "kh.otto.03",
+  "speaker": "Ottoline",
+  "text": "Next, Guildcrest. Its guild reuses this workflow with a review skill and a custom agent.",
+  "words": [
+    {
+      "word": "Next",
+      "start": 0,
+      "end": 0.707
+    },
+    {
+      "word": "Guildcrest",
+      "start": 0.707,
+      "end": 1.74
+    },
+    {
+      "word": "Its",
+      "start": 1.74,
+      "end": 2.48
+    },
+    {
+      "word": "guild",
+      "start": 2.48,
+      "end": 2.987
+    },
+    {
+      "word": "reuses",
+      "start": 2.987,
+      "end": 3.648
+    },
+    {
+      "word": "this",
+      "start": 3.648,
+      "end": 3.902
+    },
+    {
+      "word": "workflow",
+      "start": 3.902,
+      "end": 4.464
+    },
+    {
+      "word": "with",
+      "start": 4.464,
+      "end": 4.76
+    },
+    {
+      "word": "a",
+      "start": 4.76,
+      "end": 4.857
+    },
+    {
+      "word": "review",
+      "start": 4.857,
+      "end": 5.28
+    },
+    {
+      "word": "skill",
+      "start": 5.28,
+      "end": 5.74
+    },
+    {
+      "word": "and",
+      "start": 5.74,
+      "end": 5.96
+    },
+    {
+      "word": "a",
+      "start": 5.96,
+      "end": 6.057
+    },
+    {
+      "word": "custom",
+      "start": 6.057,
+      "end": 6.48
+    },
+    {
+      "word": "agent",
+      "start": 6.48,
+      "end": 6.73
+    }
+  ]
+}

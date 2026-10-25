@@ -1,0 +1,72 @@
+{
+  "id": "kh.otto.retry",
+  "speaker": "Ottoline",
+  "text": "Not yet, Captain. Read the evidence again, and come back when you're ready.",
+  "words": [
+    {
+      "word": "Not",
+      "start": 0,
+      "end": 0.38
+    },
+    {
+      "word": "yet",
+      "start": 0.38,
+      "end": 0.7
+    },
+    {
+      "word": "Captain",
+      "start": 0.7,
+      "end": 1.328
+    },
+    {
+      "word": "Read",
+      "start": 1.328,
+      "end": 1.86
+    },
+    {
+      "word": "the",
+      "start": 1.86,
+      "end": 1.964
+    },
+    {
+      "word": "evidence",
+      "start": 1.964,
+      "end": 2.387
+    },
+    {
+      "word": "again",
+      "start": 2.387,
+      "end": 2.8
+    },
+    {
+      "word": "and",
+      "start": 2.8,
+      "end": 3.104
+    },
+    {
+      "word": "come",
+      "start": 3.104,
+      "end": 3.424
+    },
+    {
+      "word": "back",
+      "start": 3.424,
+      "end": 3.712
+    },
+    {
+      "word": "when",
+      "start": 3.712,
+      "end": 3.86
+    },
+    {
+      "word": "you're",
+      "start": 3.86,
+      "end": 4.053
+    },
+    {
+      "word": "ready",
+      "start": 4.053,
+      "end": 4.303
+    }
+  ]
+}

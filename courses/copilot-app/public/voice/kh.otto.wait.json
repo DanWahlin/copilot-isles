@@ -1,0 +1,67 @@
+{
+  "id": "kh.otto.wait",
+  "speaker": "Ottoline",
+  "text": "The Gate Light waits, Captain. Bring your hulls down the flight first.",
+  "words": [
+    {
+      "word": "The",
+      "start": 0,
+      "end": 0.128
+    },
+    {
+      "word": "Gate",
+      "start": 0.128,
+      "end": 0.36
+    },
+    {
+      "word": "Light",
+      "start": 0.36,
+      "end": 0.627
+    },
+    {
+      "word": "waits",
+      "start": 0.627,
+      "end": 1.23
+    },
+    {
+      "word": "Captain",
+      "start": 1.23,
+      "end": 1.627
+    },
+    {
+      "word": "Bring",
+      "start": 1.627,
+      "end": 2.208
+    },
+    {
+      "word": "your",
+      "start": 2.208,
+      "end": 2.448
+    },
+    {
+      "word": "hulls",
+      "start": 2.448,
+      "end": 2.768
+    },
+    {
+      "word": "down",
+      "start": 2.768,
+      "end": 2.98
+    },
+    {
+      "word": "the",
+      "start": 2.98,
+      "end": 3.086
+    },
+    {
+      "word": "flight",
+      "start": 3.086,
+      "end": 3.453
+    },
+    {
+      "word": "first",
+      "start": 3.453,
+      "end": 3.703
+    }
+  ]
+}

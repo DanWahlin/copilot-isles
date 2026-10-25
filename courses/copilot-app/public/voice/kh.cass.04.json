@@ -1,0 +1,72 @@
+{
+  "id": "kh.cass.04",
+  "speaker": "Cass",
+  "text": "Hammer and float. If the crew already ran them, don't run them twice.",
+  "words": [
+    {
+      "word": "Hammer",
+      "start": 0,
+      "end": 0.46
+    },
+    {
+      "word": "and",
+      "start": 0.46,
+      "end": 0.733
+    },
+    {
+      "word": "float",
+      "start": 0.733,
+      "end": 1.387
+    },
+    {
+      "word": "If",
+      "start": 1.387,
+      "end": 1.64
+    },
+    {
+      "word": "the",
+      "start": 1.64,
+      "end": 1.824
+    },
+    {
+      "word": "crew",
+      "start": 1.824,
+      "end": 2.12
+    },
+    {
+      "word": "already",
+      "start": 2.12,
+      "end": 2.48
+    },
+    {
+      "word": "ran",
+      "start": 2.48,
+      "end": 2.752
+    },
+    {
+      "word": "them",
+      "start": 2.752,
+      "end": 3.32
+    },
+    {
+      "word": "don't",
+      "start": 3.32,
+      "end": 3.64
+    },
+    {
+      "word": "run",
+      "start": 3.64,
+      "end": 3.808
+    },
+    {
+      "word": "them",
+      "start": 3.808,
+      "end": 4.08
+    },
+    {
+      "word": "twice",
+      "start": 4.08,
+      "end": 4.33
+    }
+  ]
+}

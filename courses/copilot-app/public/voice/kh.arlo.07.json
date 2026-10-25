@@ -1,0 +1,87 @@
+{
+  "id": "kh.arlo.07",
+  "speaker": "Arlo",
+  "text": "Gate 2 opens only when the diff, local validation, GitHub checks and your own review agree.",
+  "words": [
+    {
+      "word": "Gate",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "2",
+      "start": 0.32,
+      "end": 0.627
+    },
+    {
+      "word": "opens",
+      "start": 0.627,
+      "end": 1.008
+    },
+    {
+      "word": "only",
+      "start": 1.008,
+      "end": 1.232
+    },
+    {
+      "word": "when",
+      "start": 1.232,
+      "end": 1.38
+    },
+    {
+      "word": "the",
+      "start": 1.38,
+      "end": 1.536
+    },
+    {
+      "word": "diff",
+      "start": 1.536,
+      "end": 2.2
+    },
+    {
+      "word": "local",
+      "start": 2.2,
+      "end": 2.458
+    },
+    {
+      "word": "validation",
+      "start": 2.458,
+      "end": 3.577
+    },
+    {
+      "word": "GitHub",
+      "start": 3.577,
+      "end": 3.989
+    },
+    {
+      "word": "checks",
+      "start": 3.989,
+      "end": 4.48
+    },
+    {
+      "word": "and",
+      "start": 4.48,
+      "end": 4.752
+    },
+    {
+      "word": "your",
+      "start": 4.752,
+      "end": 4.94
+    },
+    {
+      "word": "own",
+      "start": 4.94,
+      "end": 5.166
+    },
+    {
+      "word": "review",
+      "start": 5.166,
+      "end": 5.507
+    },
+    {
+      "word": "agree",
+      "start": 5.507,
+      "end": 5.757
+    }
+  ]
+}

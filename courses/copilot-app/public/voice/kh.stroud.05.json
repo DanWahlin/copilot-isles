@@ -1,0 +1,82 @@
+{
+  "id": "kh.stroud.05",
+  "speaker": "Stroud",
+  "text": "This order rings the bell at the main slipway. But search already works on main.",
+  "words": [
+    {
+      "word": "This",
+      "start": 0,
+      "end": 0.28
+    },
+    {
+      "word": "order",
+      "start": 0.28,
+      "end": 0.52
+    },
+    {
+      "word": "rings",
+      "start": 0.52,
+      "end": 0.74
+    },
+    {
+      "word": "the",
+      "start": 0.74,
+      "end": 0.864
+    },
+    {
+      "word": "bell",
+      "start": 0.864,
+      "end": 1.173
+    },
+    {
+      "word": "at",
+      "start": 1.173,
+      "end": 1.3
+    },
+    {
+      "word": "the",
+      "start": 1.3,
+      "end": 1.408
+    },
+    {
+      "word": "main",
+      "start": 1.408,
+      "end": 1.68
+    },
+    {
+      "word": "slipway",
+      "start": 1.68,
+      "end": 2.66
+    },
+    {
+      "word": "But",
+      "start": 2.66,
+      "end": 3.509
+    },
+    {
+      "word": "search",
+      "start": 3.509,
+      "end": 3.99
+    },
+    {
+      "word": "already",
+      "start": 3.99,
+      "end": 4.56
+    },
+    {
+      "word": "works",
+      "start": 4.56,
+      "end": 4.987
+    },
+    {
+      "word": "on",
+      "start": 4.987,
+      "end": 5.152
+    },
+    {
+      "word": "main",
+      "start": 5.152,
+      "end": 5.402
+    }
+  ]
+}

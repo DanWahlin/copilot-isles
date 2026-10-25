@@ -1,0 +1,97 @@
+{
+  "id": "kh.hester.05",
+  "speaker": "Hester",
+  "text": "On GitHub, you review the pull request, its comments and checks, and decide when it's ready to merge.",
+  "words": [
+    {
+      "word": "On",
+      "start": 0,
+      "end": 0.149
+    },
+    {
+      "word": "GitHub",
+      "start": 0.149,
+      "end": 0.9
+    },
+    {
+      "word": "you",
+      "start": 0.9,
+      "end": 1.017
+    },
+    {
+      "word": "review",
+      "start": 1.017,
+      "end": 1.38
+    },
+    {
+      "word": "the",
+      "start": 1.38,
+      "end": 1.472
+    },
+    {
+      "word": "pull",
+      "start": 1.472,
+      "end": 1.67
+    },
+    {
+      "word": "request",
+      "start": 1.67,
+      "end": 2.44
+    },
+    {
+      "word": "its",
+      "start": 2.44,
+      "end": 2.604
+    },
+    {
+      "word": "comments",
+      "start": 2.604,
+      "end": 2.98
+    },
+    {
+      "word": "and",
+      "start": 2.98,
+      "end": 3.109
+    },
+    {
+      "word": "checks",
+      "start": 3.109,
+      "end": 3.72
+    },
+    {
+      "word": "and",
+      "start": 3.72,
+      "end": 4.137
+    },
+    {
+      "word": "decide",
+      "start": 4.137,
+      "end": 4.512
+    },
+    {
+      "word": "when",
+      "start": 4.512,
+      "end": 4.667
+    },
+    {
+      "word": "it's",
+      "start": 4.667,
+      "end": 4.84
+    },
+    {
+      "word": "ready",
+      "start": 4.84,
+      "end": 5.067
+    },
+    {
+      "word": "to",
+      "start": 5.067,
+      "end": 5.187
+    },
+    {
+      "word": "merge",
+      "start": 5.187,
+      "end": 5.437
+    }
+  ]
+}

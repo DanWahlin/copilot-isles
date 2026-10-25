@@ -1,0 +1,97 @@
+{
+  "id": "kh.stroud.03",
+  "speaker": "Stroud",
+  "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.32
+    },
+    {
+      "word": "ledgers",
+      "start": 0.32,
+      "end": 1.2
+    },
+    {
+      "word": "Issues",
+      "start": 1.2,
+      "end": 2.26
+    },
+    {
+      "word": "and",
+      "start": 2.26,
+      "end": 2.624
+    },
+    {
+      "word": "Pull",
+      "start": 2.624,
+      "end": 2.969
+    },
+    {
+      "word": "requests",
+      "start": 2.969,
+      "end": 4.304
+    },
+    {
+      "word": "Each",
+      "start": 4.304,
+      "end": 4.8
+    },
+    {
+      "word": "view",
+      "start": 4.8,
+      "end": 5.16
+    },
+    {
+      "word": "has",
+      "start": 5.16,
+      "end": 5.34
+    },
+    {
+      "word": "its",
+      "start": 5.34,
+      "end": 5.58
+    },
+    {
+      "word": "own",
+      "start": 5.58,
+      "end": 5.84
+    },
+    {
+      "word": "filter",
+      "start": 5.84,
+      "end": 7.12
+    },
+    {
+      "word": "so",
+      "start": 7.12,
+      "end": 7.34
+    },
+    {
+      "word": "set",
+      "start": 7.34,
+      "end": 7.552
+    },
+    {
+      "word": "your",
+      "start": 7.552,
+      "end": 7.792
+    },
+    {
+      "word": "fork",
+      "start": 7.792,
+      "end": 8.347
+    },
+    {
+      "word": "in",
+      "start": 8.347,
+      "end": 8.64
+    },
+    {
+      "word": "both",
+      "start": 8.64,
+      "end": 8.89
+    }
+  ]
+}

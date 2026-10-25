@@ -1,0 +1,52 @@
+{
+  "id": "kh.dory.07",
+  "speaker": "Dory",
+  "text": "Cass runs Drydock 2, next along. Mind her slate.",
+  "words": [
+    {
+      "word": "Cass",
+      "start": 0,
+      "end": 0.48
+    },
+    {
+      "word": "runs",
+      "start": 0.48,
+      "end": 0.88
+    },
+    {
+      "word": "Drydock",
+      "start": 0.88,
+      "end": 1.54
+    },
+    {
+      "word": "2",
+      "start": 1.54,
+      "end": 2
+    },
+    {
+      "word": "next",
+      "start": 2,
+      "end": 2.413
+    },
+    {
+      "word": "along",
+      "start": 2.413,
+      "end": 3.376
+    },
+    {
+      "word": "Mind",
+      "start": 3.376,
+      "end": 4.12
+    },
+    {
+      "word": "her",
+      "start": 4.12,
+      "end": 4.347
+    },
+    {
+      "word": "slate",
+      "start": 4.347,
+      "end": 4.597
+    }
+  ]
+}

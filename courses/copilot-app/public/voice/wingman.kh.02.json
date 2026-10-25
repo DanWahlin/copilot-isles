@@ -1,0 +1,82 @@
+{
+  "id": "wingman.kh.02",
+  "speaker": "Wingman",
+  "text": "Two circuits here, Captain: the drydocks in the cove, then the locks out to sea.",
+  "words": [
+    {
+      "word": "Two",
+      "start": 0,
+      "end": 0.204
+    },
+    {
+      "word": "circuits",
+      "start": 0.204,
+      "end": 0.592
+    },
+    {
+      "word": "here",
+      "start": 0.592,
+      "end": 0.85
+    },
+    {
+      "word": "Captain",
+      "start": 0.85,
+      "end": 1.7
+    },
+    {
+      "word": "the",
+      "start": 1.7,
+      "end": 1.84
+    },
+    {
+      "word": "drydocks",
+      "start": 1.84,
+      "end": 2.347
+    },
+    {
+      "word": "in",
+      "start": 2.347,
+      "end": 2.42
+    },
+    {
+      "word": "the",
+      "start": 2.42,
+      "end": 2.56
+    },
+    {
+      "word": "cove",
+      "start": 2.56,
+      "end": 3.312
+    },
+    {
+      "word": "then",
+      "start": 3.312,
+      "end": 3.46
+    },
+    {
+      "word": "the",
+      "start": 3.46,
+      "end": 3.573
+    },
+    {
+      "word": "locks",
+      "start": 3.573,
+      "end": 3.9
+    },
+    {
+      "word": "out",
+      "start": 3.9,
+      "end": 4.107
+    },
+    {
+      "word": "to",
+      "start": 4.107,
+      "end": 4.26
+    },
+    {
+      "word": "sea",
+      "start": 4.26,
+      "end": 4.51
+    }
+  ]
+}

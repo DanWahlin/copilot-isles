@@ -1,0 +1,77 @@
+{
+  "id": "kh.dory.01",
+  "speaker": "Dory",
+  "text": "Before you change a thing, prove the hull is sound. That's your known-good baseline.",
+  "words": [
+    {
+      "word": "Before",
+      "start": 0,
+      "end": 0.46
+    },
+    {
+      "word": "you",
+      "start": 0.46,
+      "end": 0.697
+    },
+    {
+      "word": "change",
+      "start": 0.697,
+      "end": 1.08
+    },
+    {
+      "word": "a",
+      "start": 1.08,
+      "end": 1.187
+    },
+    {
+      "word": "thing",
+      "start": 1.187,
+      "end": 2.013
+    },
+    {
+      "word": "prove",
+      "start": 2.013,
+      "end": 2.54
+    },
+    {
+      "word": "the",
+      "start": 2.54,
+      "end": 2.8
+    },
+    {
+      "word": "hull",
+      "start": 2.8,
+      "end": 3.227
+    },
+    {
+      "word": "is",
+      "start": 3.227,
+      "end": 3.533
+    },
+    {
+      "word": "sound",
+      "start": 3.533,
+      "end": 4.288
+    },
+    {
+      "word": "That's",
+      "start": 4.288,
+      "end": 4.912
+    },
+    {
+      "word": "your",
+      "start": 4.912,
+      "end": 5.12
+    },
+    {
+      "word": "known-good",
+      "start": 5.12,
+      "end": 5.92
+    },
+    {
+      "word": "baseline",
+      "start": 5.92,
+      "end": 6.17
+    }
+  ]
+}

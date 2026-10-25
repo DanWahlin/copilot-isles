@@ -1,0 +1,97 @@
+{
+  "id": "kh.arlo.actions",
+  "speaker": "Arlo",
+  "text": "No lamp after a push? New forks turn workflows off. Turn them on in your fork's Actions tab.",
+  "words": [
+    {
+      "word": "No",
+      "start": 0,
+      "end": 0.224
+    },
+    {
+      "word": "lamp",
+      "start": 0.224,
+      "end": 0.52
+    },
+    {
+      "word": "after",
+      "start": 0.52,
+      "end": 0.76
+    },
+    {
+      "word": "a",
+      "start": 0.76,
+      "end": 0.896
+    },
+    {
+      "word": "push",
+      "start": 0.896,
+      "end": 1.83
+    },
+    {
+      "word": "New",
+      "start": 1.83,
+      "end": 2.24
+    },
+    {
+      "word": "forks",
+      "start": 2.24,
+      "end": 2.688
+    },
+    {
+      "word": "turn",
+      "start": 2.688,
+      "end": 2.936
+    },
+    {
+      "word": "workflows",
+      "start": 2.936,
+      "end": 3.54
+    },
+    {
+      "word": "off",
+      "start": 3.54,
+      "end": 4.096
+    },
+    {
+      "word": "Turn",
+      "start": 4.096,
+      "end": 4.832
+    },
+    {
+      "word": "them",
+      "start": 4.832,
+      "end": 5.067
+    },
+    {
+      "word": "on",
+      "start": 5.067,
+      "end": 5.36
+    },
+    {
+      "word": "in",
+      "start": 5.36,
+      "end": 5.536
+    },
+    {
+      "word": "your",
+      "start": 5.536,
+      "end": 5.68
+    },
+    {
+      "word": "fork's",
+      "start": 5.68,
+      "end": 6.14
+    },
+    {
+      "word": "Actions",
+      "start": 6.14,
+      "end": 6.66
+    },
+    {
+      "word": "tab",
+      "start": 6.66,
+      "end": 6.91
+    }
+  ]
+}
