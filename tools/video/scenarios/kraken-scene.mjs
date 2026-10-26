@@ -45,7 +45,7 @@ export default {
         last = s.phase;
         api.mark(s.phase);
       }
-      if (s.time > 48 || (s.time > 30 && s.phase === 'none')) break;
+      if (s.time > 46 || (s.time > 30 && s.phase === 'none')) break;
       await api.pause(200);
     }
     api.log(`hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`);

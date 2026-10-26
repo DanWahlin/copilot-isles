@@ -196,6 +196,9 @@ kraken.on((e) => {
       hitLog.push({ t: st, shipId: h.shipId, kind: h.kind, strike: h.strike, damage: h.damage });
   if (e.type === 'caught') {
     lure.caughtAt = st;
+    // She's the kraken's now: off the list its strikes test (a battle drops a sunk ship too).
+    const i = hullList.findIndex((h) => h.id === e.shipId);
+    if (i >= 0) hullList.splice(i, 1);
     say(`It has the ${NAMES[e.shipId] ?? 'raider'}! It's taking her down!`, t);
   }
 });
@@ -694,9 +697,12 @@ const KINDS = ['tip', 'group', 'arc'] as const;
 let kindAt = 0;
 const sight = (kind?: (typeof KINDS)[number], distance?: number) => {
   if (scenario !== 'sightings') restart('sightings');
-  // The deck camera first: a sighting is placed in the camera's view.
+  // The deck camera first (on your ship where she is now): a sighting is placed in the camera's view.
+  mine.update(0, clock.sim, myEnv);
+  mine.group.updateMatrixWorld(true);
   snapCamera = true;
   frameCamera(1);
+  controls.update();
   camera.updateMatrixWorld();
   sightings.force(kind ?? (tier.tier === 'lite' ? 'tip' : KINDS[kindAt++ % KINDS.length]), distance);
 };
