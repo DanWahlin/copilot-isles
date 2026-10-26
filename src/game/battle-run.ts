@@ -44,6 +44,8 @@ export interface BattleRunOptions {
 const BRIEF_KEY = 'kraken-isles.battleBriefing.hidden';
 /** After the win, the camera holds its turn round your ship this long (s) before it's yours again. */
 const WON_HOLD = 9;
+/** How much way your ship loses while a mid-battle event plays (`ShipDynamics.held`). */
+const HEAVE_TO = 0.85;
 /** How far a stick or key must go before it moves between the question's choices. */
 const NAV_EDGE = 0.6;
 
@@ -288,6 +290,10 @@ export class BattleRun {
    * waits (the helm keys move between its choices). True when it took the helm this frame.
    */
   steer(dt: number, s: InputState, helm: Helm, dyn: ShipDynamics): boolean {
+    // While a mid-battle event plays (the kraken's beat) the crew heaves to and watches: her way comes
+    // off (her sails stay set), and comes back after.
+    const watching = this.active && this.battle.phase === 'event';
+    dyn.held = watching ? Math.min(HEAVE_TO, dyn.held + dt * 0.4) : Math.max(0, dyn.held - dt * 0.5);
     if (!this.active) return false;
     if (this.hud.choosing) {
       helm.update(dt, 0, 0, dyn);
@@ -427,7 +433,8 @@ export class BattleRun {
     this.lineQueue.length = 0;
     this.battle.dispose();
     this.hud.dispose();
-    // Your ship comes out of it patched: no shot holes, scorch, or guns run in.
+    // Your ship comes out of it patched: no shot holes, scorch, or guns run in; and free to sail.
+    cove.ship.dynamics.held = 0;
     cove.ship.clearScorch();
     cove.ship.uniforms.sailHoles.value = 0;
   }

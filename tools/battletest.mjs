@@ -303,7 +303,8 @@ function krakenWave(page, t0) {
       // Take the helm (a helm key) and hold her course over a tell on it.
       if (!onYou && age > 20_000 && l.playerHits === 0) {
         await tap(page, 'KeyW');
-        if (await K(page, 'k.debugTell("onYou")')) onYou = Date.now();
+        onYou = Date.now();
+        if (!(await K(page, 'k.debugTell("onYou")'))) fail('no tell could be placed on your course');
       }
       return onYou > 0 && Date.now() - onYou < 8_000;
     },

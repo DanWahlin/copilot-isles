@@ -54,7 +54,8 @@ async function sailToward(api, x, z, ms, done) {
  * to bring the raiders' hulls down (as tools/battletest.mjs does) so a long fight ends;
  * `duringFight(api, wave, ms)`, a step each poll (true while you hold the helm yourself);
  * `afterReward(page, api, wave)`, what plays between a wave's reward and the next; and `reading`,
- * how long (ms) each question is read before it's answered.
+ * how long (ms) each question is read before it's answered; `answered`, how long its answer shows; and
+ * `lullCut`, the trim of the lull between a wave and its question.
  */
 export function battleScenario({
   rightFirst = false,
@@ -68,6 +69,8 @@ export function battleScenario({
   duringFight = null,
   afterReward = null,
   reading = 4500,
+  answered = 5500,
+  lullCut = null,
   ...meta
 } = {}) {
   return {
@@ -158,7 +161,8 @@ export function battleScenario({
             } else await api.pause(350);
           }
         }, fightCut(wave));
-        await waitPhase(api, ['question'], 40_000);
+        if (lullCut) await api.cutWhile(() => waitPhase(api, ['question'], 40_000), lullCut);
+        else await waitPhase(api, ['question'], 40_000);
         api.mark(`question ${wave + 1}`);
         // The bosun's question: read it, then answer with the mouse (wave 1 wrong, wave 2 right).
         await api.pause(reading);
@@ -167,7 +171,7 @@ export function battleScenario({
         const pick = wave === 0 && !rightFirst ? (right + 1) % n : right;
         api.mark(`answer ${wave + 1}`);
         await api.click(`.bh-options .bh-choice:nth-child(${pick + 1})`);
-        await api.pause(5500);
+        await api.pause(answered);
         // Wave 1: "Make repairs and sail on" (or, answered right, the first reward). Then quick
         // repairs and the double-shotted volley in turn.
         api.mark(`reward ${wave + 1}`);

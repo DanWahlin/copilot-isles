@@ -54,8 +54,10 @@ export default battleScenario({
   chapter: 'Questions from Course Chapter 02 · Sessions, Worktrees & Context',
   labelsSeen: false,
   reading: 3200,
+  answered: 3500,
+  lullCut: { head: 3500, tail: 1500 },
   // Waves 1 and 3 short; wave 2 (the kraken's) long enough to see it work.
-  fightCut: (wave) => (wave === 1 ? { head: 36_000, tail: 6_000 } : { head: 13_000, tail: 6_000 }),
+  fightCut: (wave) => (wave === 1 ? { head: 30_000, tail: 5_000 } : { head: 10_000, tail: 4_000 }),
   hurry: (wave, ms) => wave !== 1 || ms > 38_000,
   async duringFight(api, wave, ms) {
     if (wave !== 1) return false;
@@ -75,7 +77,8 @@ export default battleScenario({
     if (!forced.onYou && ms > 20_000 && l.playerHits === 0) {
       // Take the helm (a helm key) and hold her course over a tell on it.
       await api.hold('KeyW', 200);
-      if (await kraken(api, 'k.debugTell("onYou")')) forced.onYou = Date.now();
+      forced.onYou = Date.now();
+      if (!(await kraken(api, 'k.debugTell("onYou")'))) api.log('no tell on your course');
     }
     return forced.onYou > 0 && Date.now() - forced.onYou < 8_000;
   },
@@ -87,7 +90,8 @@ export default battleScenario({
     api.mark('evidence');
     await krakenUntil(api, (k) => k.stage === 'approach', 10_000);
     api.mark('flagship');
-    await krakenUntil(api, (k) => k.wrap === 'grip', 40_000);
+    // The flagship's run in is trimmed a little; she still sails into it on camera.
+    await api.cutWhile(() => krakenUntil(api, (k) => k.wrap === 'grip', 40_000), { head: 9000, tail: 6000 });
     api.mark('taken');
     await krakenUntil(api, (k) => k.wrap === 'break', 30_000);
     api.mark('break');
