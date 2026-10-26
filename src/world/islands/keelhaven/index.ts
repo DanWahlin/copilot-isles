@@ -1,4 +1,4 @@
-import { Group, Vector3, type Camera, type Mesh } from 'three/webgpu';
+import { Group, Mesh, Vector3, type Camera, type Material } from 'three/webgpu';
 import { loadLodSimplifier } from '../../characters/character-lod';
 import { ChunkLods, chunkLodEdges, chunkLodFloor } from '../../village/chunks';
 import type { TierSettings } from '../../../engine/quality';
@@ -14,6 +14,7 @@ import { createDockHull } from './dock-hull';
 import { createKeelhavenWrecksSteps, hulkDressing } from './wrecks';
 import { createKeelhavenRocks } from './rocks';
 import { toWorld } from './layout';
+import { CHAMBERS } from './works';
 import { buildShipyard, type ShipyardOut } from './shipyard';
 import { buildTown } from './town-build';
 import { createKeelhavenMist } from './mist';
@@ -22,6 +23,9 @@ import { createKeelhavenWaterMesh } from './water-mesh';
 import { KEELHAVEN_ANCHORS } from './anchors';
 import { addKeelhavenMarket } from './market';
 import { buildKeelhavenProps, createToolChest, type ToolChest } from './props';
+import { buildCircuitProps, FLIGHT_HULLS, HULL_REST, type FlightHull } from './circuit';
+import { LampSet, type LampLook } from './lamps';
+import { headingUv } from './anchors';
 
 /**
  * Keelhaven's world (no gameplay yet), the world its stream will build (`IslandStream.world`, like
@@ -46,11 +50,25 @@ export interface KeelhavenWorld {
    * perches on the standing wreck's masts.
    */
   birds: { center: Vector3; radius: number; seed: number; perches: Vector3[] }[];
-  /** Runs what moves (nothing yet: the sheerlegs' block, the gates and the lamps come with the wiring). */
+  /** The Two Circuits' moving parts: the lamps, the flight's hulls and the locks' water. */
+  circuit: KeelhavenCircuitWorld;
+  /** Runs what moves (nothing by itself: the circuits move the hulls, the water and the lamps). */
   update(dt: number, t: number): void;
   /** The island's plants, built a slice at a time, for `vegetation.addPlants`. */
   plants(breathe: () => Promise<void>): Promise<PlantInstance[]>;
   dispose(): void;
+}
+
+/** The circuits' moving parts (the game's puzzle drives them; nothing here keeps time). */
+export interface KeelhavenCircuitWorld {
+  /** Paints a lamp of the island's lamp set (`ring:<place>`, `flight:<place>`, `lock:<i>`, `gate2:<i>`, `gateLight`). */
+  lamp(key: string, look: LampLook): void;
+  /** Puts a flight hull at cove frame (u, v), its waterline at `y`, bow along (du, dv), heeled by `roll`. */
+  hull(id: FlightHull, u: number, v: number, y: number, du: number, dv: number, roll?: number): void;
+  /** A lock's water level (`lock1`, `lock2`), in place. */
+  water(chamber: string, y: number): void;
+  /** A lamp's look now (for tests). */
+  look(key: string): LampLook | null;
 }
 
 export interface KeelhavenWorldOptions {
@@ -58,6 +76,16 @@ export interface KeelhavenWorldOptions {
   /** The island's own baked ground (the drawn ground: the water's depth reads over it). */
   heightField: HeightField;
   kit: VillageKit;
+}
+
+/** The flight's hulls are the dock hull at this size (they fit a lock two abreast). */
+const HULL_SCALE = 0.5;
+
+/** The still water's level where a hull rests at u (the basin, the pound, Lock 2 or the cut). */
+function restWater(u: number): number {
+  for (const c of CHAMBERS)
+    if (c.water !== null && u > c.u0 && u < c.u1 && !c.name.startsWith('dock')) return c.water;
+  return 0;
 }
 
 /** Builds Keelhaven's world a few milliseconds a frame (`breathe` between parts). */
@@ -95,6 +123,7 @@ export async function createKeelhavenWorldAsync(
   const courseBoard = signs ? islandCourseBoard('keelhaven') : null;
   // The stops' set pieces with the course's words, and Bram's booth on the quay.
   buildKeelhavenProps(buckets, signs, works);
+  buildCircuitProps(buckets, works, o.tier.tier === 'lite');
   addKeelhavenMarket(buckets, works, o.tier.tier === 'lite' || o.tier.tier === 'low');
   if (signs && courseBoard) {
     const pose = COURSE_BOARDS.keelhaven;
@@ -120,6 +149,43 @@ export async function createKeelhavenWorldAsync(
   group.add(toolChest.group);
   const hull = createDockHull(o.tier.tier, works.dockHull);
   group.add(hull.mesh);
+  // The lamps that change, one mesh in the kit's glow material.
+  const lamps = new LampSet(works.lamps, o.kit.materials.glow as Material);
+  works.lamps.length = 0;
+  if (lamps.mesh) {
+    lamps.mesh.updateMatrixWorld(true);
+    group.add(lamps.mesh);
+  }
+  // The flight's three hulls: the dock hull's geometry and material at half size (no new shader).
+  const hulls = {} as Record<FlightHull, Mesh>;
+  for (const id of FLIGHT_HULLS) {
+    const m = new Mesh(hull.mesh.geometry, hull.mesh.material);
+    m.name = `keelhaven-hull-${id}`;
+    m.scale.setScalar(HULL_SCALE);
+    m.castShadow = false;
+    m.receiveShadow = true;
+    hulls[id] = m;
+    group.add(m);
+  }
+  const chambers = (water.mesh.userData.chambers ?? {}) as Record<string, [number, number]>;
+  const circuit: KeelhavenCircuitWorld = {
+    lamp: (key, look) => lamps.set(key, look),
+    look: (key) => lamps.look(key),
+    hull(id, u, v, y, du, dv, roll = 0) {
+      const m = hulls[id];
+      const p = toWorld(u, v);
+      m.position.set(p.x, y, p.z);
+      m.rotation.set(0, headingUv(du, dv), roll, 'YXZ');
+    },
+    water(chamber, y) {
+      const r = chambers[chamber];
+      if (r) water.setLevel(r[0], r[1], y);
+    },
+  };
+  for (const id of FLIGHT_HULLS) {
+    const r = HULL_REST[id];
+    circuit.hull(id, r.u, r.v, restWater(r.u), r.du, r.dv);
+  }
   await breathe();
   // The reef's wrecks and the Old Hulk: one mesh in the ship's look.
   const wreckSteps = createKeelhavenWrecksSteps(o.tier.tier);
@@ -141,6 +207,7 @@ export async function createKeelhavenWorldAsync(
     works,
     anchors: KEELHAVEN_ANCHORS,
     toolChest,
+    circuit,
     shipObstacles: () => works.shipObstacles,
     birds: [
       { center: new Vector3(harbour.x, 0, harbour.z), radius: 180, seed: 0x6b1d5, perches: [] },
@@ -165,6 +232,7 @@ export async function createKeelhavenWorldAsync(
       mist?.dispose();
       for (const m of meshes) m.geometry.dispose();
       hull.dispose();
+      lamps.dispose();
       wrecks.dispose();
       rocks.dispose();
     },

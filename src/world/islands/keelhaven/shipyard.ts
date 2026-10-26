@@ -3,14 +3,27 @@ import type { BoxCollider } from '../../../game/collision';
 import type { CircleObstacle } from '../../contracts';
 import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import type { MaterialKey, VillageKit } from '../../village/kit';
-import { beam, box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
+import { beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from '../../village/pieces';
 import { halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
 import { mulberry32 } from '../../../util/math';
 import { addVerandaHouse } from '../../village/veranda-house';
 import { FRAME, toWorld } from './layout';
 import { keelhavenHeight } from './height';
-import { BERTH, CANAL, CHAMBERS, DOCKS, GATES, PADS, QUAY, SLIPWAY, WALL, type Chamber } from './works';
+import {
+  BERTH,
+  CANAL,
+  CHAMBERS,
+  DOCKS,
+  GATES,
+  PADS,
+  QUAY,
+  SEA_GATE_U,
+  SLIPWAY,
+  WALL,
+  type Chamber,
+} from './works';
 import { lineDeck, uvDeck, type WalkDeck } from './decks';
+import { LAMP_LOOKS, type LampLook, type LampPiece } from './lamps';
 
 /**
  * Keelhaven's shipyard and harbour (spec §3.4-§3.7, in the merged cove frame): the stone-walled
@@ -62,6 +75,23 @@ export interface ShipyardOut {
   berth: { x: number; z: number; heading: number };
   /** The walk surfaces over the ground: copings, caissons, gate walkways, the quay, steps and stairs. */
   decks: WalkDeck[];
+  /** The glass of the lamps that change (lamps.ts `LampSet`): out of the buckets, by lamp. */
+  lamps: LampPiece[];
+}
+
+/** A lamp's glass for `out.lamps` under `key`: `make` builds it with the pieces into a scratch bucket. */
+export function lampGlass(
+  out: ShipyardOut,
+  key: string,
+  look: LampLook,
+  make: (b: Buckets) => BufferGeometry,
+): void {
+  const scratch = makeBuckets();
+  const geo = make(scratch);
+  const c = geo.getAttribute('color');
+  const p = LAMP_LOOKS[look];
+  for (let i = 0; i < c.count; i++) c.setXYZ(i, p[0], p[1], p[2]);
+  out.lamps.push({ key, geo });
 }
 
 /** The frame's axes as a yaw: a box's local x along u, its local z along v. */
@@ -393,15 +423,26 @@ function mitreGate(
   }
 }
 
-/** A post with a lamp (red, or green for the open way), its glass glowing at night. */
-function lockLamp(b: Buckets, u: number, v: number, y: number, colour: 'red' | 'green'): void {
+/**
+ * A post with a lamp (red, or green for the open way), its glass glowing at night. The glass is a
+ * lamp of the island's lamp set (`lock:<i>`, upstream first): the circuits run it, and the Seal turns
+ * every one green.
+ */
+function lockLamp(
+  b: Buckets,
+  out: ShipyardOut,
+  key: string,
+  u: number,
+  v: number,
+  y: number,
+  colour: 'red' | 'green',
+): void {
   const p = at(u, y, v);
   rod(b, 'wood', p, { x: p.x, y: y + 3.2, z: p.z }, 0.11, 6, YARD_PAINT.tar);
   box(b, 'wood', p.x, y + 3.25, p.z, 0.6, 0.1, 0.12, YAW_U + Math.PI / 2, YARD_PAINT.tar);
-  const g = box(b, 'glow', p.x, y + 3.0, p.z, 0.26, 0.34, 0.26, YAW_U, 0xffffff);
-  const c = colour === 'red' ? [5.2, 1.1, 0.6] : [0.9, 4.6, 1.3];
-  const attr = g.getAttribute('color');
-  for (let i = 0; i < attr.count; i++) attr.setXYZ(i, c[0]!, c[1]!, c[2]!);
+  lampGlass(out, key, colour === 'red' ? 'notReady' : 'ready', (s) =>
+    box(s, 'glow', p.x, y + 3.0, p.z, 0.26, 0.34, 0.26, YAW_U, 0xffffff),
+  );
   cone(b, 'metal', p.x, y + 3.17, p.z, 0.24, 0.2, 6, YARD_PAINT.iron);
   // A blank brass plate on the post (its words come from the course pack later).
   box(b, 'metal', p.x, y + 1.5, p.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
@@ -964,6 +1005,7 @@ export function* buildShipyard(
     dockHull: { ...at(DOCKS.u0 + 20, DOCKS.floor + DOCKS.blocks + 2.75, DOCKS.v[1]), heading: HEADING_U },
     berth: { x: berth.x, z: berth.z, heading: HEADING_U + Math.PI },
     decks: [],
+    lamps: [],
   };
   CHAMBERS.forEach((c, i) => chamberWalls(b, out, c, i));
   yield;
@@ -975,8 +1017,31 @@ export function* buildShipyard(
     const up = CHAMBERS.find((c) => Math.abs(c.u0 - u) < 0.01 && !c.name.startsWith('dock'));
     if (!down) return;
     mitreGate(b, out, u, down.floor, down.top, up?.top ?? down.top);
-    lockLamp(b, u + 3, CANAL.v - CANAL.half - WALL + 0.4, down.top, i % 2 ? 'green' : 'red');
+    lockLamp(
+      b,
+      out,
+      `lock:${i}`,
+      u + 3,
+      CANAL.v - CANAL.half - WALL + 0.4,
+      down.top,
+      i % 2 ? 'green' : 'red',
+    );
   });
+  // The Sea Gate across the cut's mouth, shut, and steps down from Lock 2's copings to the cut's.
+  const cutIndex = CHAMBERS.findIndex((c) => c.name === 'cut');
+  const cut = CHAMBERS[cutIndex]!;
+  const lock2Index = CHAMBERS.findIndex((c) => c.name === 'lock2');
+  mitreGate(b, out, SEA_GATE_U, cut.floor, cut.top, cut.top);
+  for (const side of [1, -1])
+    steps(
+      b,
+      out,
+      cut.u1 - 1.8,
+      CANAL.v + side * (CANAL.half + WALL / 2),
+      cut.top + cutIndex * 0.012,
+      CHAMBERS[lock2Index]!.top + lock2Index * 0.012,
+      WALL - 0.2,
+    );
   steps(b, out, 50.2, CANAL.v + CANAL.half + WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
   steps(b, out, 50.2, CANAL.v - CANAL.half - WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
   yield;

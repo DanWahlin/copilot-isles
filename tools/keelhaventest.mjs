@@ -2,8 +2,10 @@
 // End-to-end Chapter 03 run on Keelhaven, in the course's order (docs/specs/ISLAND-03-keelhaven.md §4):
 // ashore at the Old Town quay (the arrival flyover, Juno and Wingman), Lyra's re-take on the tavern porch
 // (a wrong bar first), Hester's Evidence Board, Dory's sounding, tool chest and bell cord (and her app
-// card), Cass at Drydock 2, Barty at the Old Hulk, Stroud's ledgers (the wrong port first), Arlo at Lock 2,
-// and Ottoline's Trial at the Gate Light. Then the chests, the bottles and the starfish.
+// card), Cass and the Drydock Ring's two laps, Barty at the Old Hulk, Stroud's ledgers (the wrong port
+// first) and the Lock Flight's two parts (Stroud's and Arlo's), station by station with a wrong pick first
+// where there is one, and Ottoline's Trial at the Gate Light and the Seal (the light kindles, the lamps
+// turn green). Then the chests, the bottles and the starfish.
 // Each NPC is walked up to from a free side and talked to with E; quizzes are answered, cards confirmed
 // with I did it. Fails on any page error, a missing beat, or a hitch after warm-up. Screenshots at every beat.
 //   node tools/keelhaventest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--tier=high] [--webgl]
@@ -85,8 +87,24 @@ async function clickHotspot() {
   await page.mouse.click(box.x, box.y);
 }
 
-/** A set piece's choice card (the re-take, the sounding, the ledgers…): a wrong pick first where there is one. */
-const WRONG_FIRST = { bar2: 'bar1', fork: 'all' };
+/**
+ * A set piece's or a circuit station's choice card (the re-take, the sounding, the ledgers, the ring,
+ * the flight): a wrong pick first where there is one, so each way back is played too.
+ */
+const WRONG_FIRST = {
+  bar2: 'bar1',
+  fork: 'all',
+  // The Drydock Ring: a plan that hides the number, approving a slate with a stray mark, a check that
+  // can't tell the bug from the fix, and the gauge that never floods.
+  filtered: 'hide',
+  pry: 'approve',
+  both: 'unread',
+  new: 'always',
+  // The Lock Flight: the issue's own New session (on main), half an answer, a gauge filed down.
+  dock3: 'main',
+  whole: 'half',
+  fix: 'file',
+};
 const cardTried = new Set();
 async function answerChoice() {
   const v = await kh('card');
@@ -98,7 +116,10 @@ async function answerChoice() {
     await page.waitForTimeout(400);
     await shot(`card-${v.title.replace(/[^\w]+/g, '_').slice(0, 24)}`);
   }
-  let pick = ids.find((id) => !v.options.find((o) => o.id === id).tried) ?? ids[0];
+  // Never the circuit's own Leave or Skip (a demo plays out by itself).
+  const free = ids.filter((id) => !id.startsWith('·leave') && !id.startsWith('·skip'));
+  if (!free.length) return false;
+  let pick = free.find((id) => !v.options.find((o) => o.id === id).tried) ?? free[0];
   for (const [right, wrong] of Object.entries(WRONG_FIRST))
     if (ids.includes(right) && ids.includes(wrong) && !cardTried.has(wrong)) pick = wrong;
     else if (ids.includes(right)) pick = right;
@@ -212,8 +233,50 @@ async function talk(id) {
 }
 /** The compass's gold marker label (its next stop). */
 const compassLabel = () => S(() => document.querySelector('.hud-compass-label')?.textContent ?? null);
-/** Sets a quest step (a puzzle the run doesn't play yet). */
-const setQuest = (id, step) => S(([id, step]) => window.__dev.session().debug.quest(id, step), [id, step]);
+
+/**
+ * Plays a circuit's lap whose quest is `quest`: walks to the station that waits (the compass points
+ * at it), presses E, answers its card (a wrong pick first where there is one), and goes on until the
+ * lap's closing script is through and its quest is done.
+ */
+async function circuit(name, quest) {
+  const P = (k) => S(([n, k]) => window.__dev.session().debug.puzzle(n)?.[k]?.() ?? null, [name, k]);
+  const label = await compassLabel();
+  for (let guard = 0; guard < 40; guard++) {
+    const st = await P('station');
+    if (!st) break;
+    const c = await compassLabel();
+    if (!c || c === label) note(`compass at ${st.at}: ${c}`);
+    if (!c) fail(`${name} ${st.at}: no compass target`);
+    const spot = (await P('spots')).find((x) => x.id.endsWith(`:${st.at}`) && x.on);
+    if (!spot) {
+      fail(`${name} ${st.at}: no usable station`);
+      break;
+    }
+    await S(
+      ([x, z, y]) => window.__dev.session().debug.teleport(x, z, undefined, y + 0.3),
+      [spot.x, spot.z, spot.y],
+    );
+    await page.waitForTimeout(450);
+    const prompt = await S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+    if (!prompt) fail(`${name} ${st.at}: no prompt at the station`);
+    await tap('KeyE');
+    await page.waitForTimeout(600);
+    const key = `${name}-${st.at}-${st.kind}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      await page.waitForTimeout(900);
+      await shot(key);
+    }
+    for (let k = 0; k < 200 && (await P('open')); k++) {
+      if (!(await answerChoice())) await page.waitForTimeout(300);
+      else await page.waitForTimeout(500);
+    }
+  }
+  await drive(`${name} close`, (st) => st.quests[quest] === 'done' && !st.dialogue && !st.quiz && !st.reveal);
+  await page.waitForTimeout(1200);
+  await shot(`${name}-${quest}-done`);
+}
 
 // ---- Ashore at the Old Town quay (the chart's travel), with the arrival flyover ----
 const q = await S(() => window.__dev.session().islandQuay('keelhaven'));
@@ -268,11 +331,15 @@ for (const s of stops) {
 }
 if (!(await kh('toolChestOnRack'))) fail('Dory’s tool chest isn’t on Drydock 2’s rack');
 
-// Cass: the Drydock Ring's two laps (the circuit, milestone 3) are set from here.
+// Cass: the Drydock Ring's two laps, station by station (the circuit).
 await talk('cass');
 await drive('cass', (st) => st.quests['Q3.4'] === 'ring' && !st.dialogue);
-await setQuest('Q3.4', 'done');
-await setQuest('Q3.5', 'done');
+await circuit('drydock-ring', 'Q3.4');
+await talk('cass');
+await drive('cass lap 2', (st) => st.quests['Q3.5'] === 'ring' && !st.dialogue);
+await circuit('drydock-ring', 'Q3.5');
+if (!(await page.evaluate(() => window.__dev.learn.isChestOpen('C3.2'))))
+  fail('chest C3.2 didn’t open after lap 2');
 await page.waitForTimeout(800);
 
 for (const s of [
@@ -287,15 +354,42 @@ for (const s of [
   if (!c?.includes(s.next)) fail(`after ${s.npc} the compass points at ${c}, not ${s.next}`);
 }
 
-// The Lock Flight (milestone 3) is set from here; Arlo and Ottoline then talk.
-await setQuest('Q3.8', 'done');
-await setQuest('Q3.9', 'done');
-await page.waitForTimeout(600);
+// The Lock Flight: Stroud's part 1 at Lock 1, then Arlo's part 2 at Lock 2.
+await talk('stroud');
+await drive('stroud flight', (st) => st.quests['Q3.8'] === 'flight' && !st.dialogue);
+await circuit('lock-flight', 'Q3.8');
+const hull = await kh('hull', 'search');
+if (hull && hull.u > 50) fail(`your hull is at u ${hull.u.toFixed(1)}, not down the flight`);
 await talk('arlo');
-await drive('arlo', (st) => !st.dialogue, 30000);
+await drive('arlo', (st) => st.quests['Q3.9'] === 'flight' && !st.dialogue);
+await circuit('lock-flight', 'Q3.9');
+if (!(await page.evaluate(() => window.__dev.learn.isChestOpen('C3.3'))))
+  fail('chest C3.3 didn’t open after part 2');
+
+// Ottoline's Trial at the Gate Light, and the Seal: the light kindles and the lamps answer.
 await talk('ottoline');
-await page.waitForTimeout(1500);
 await shot('ottoline-gate-light');
+// The Seal's moment, caught while the trial's script plays it.
+let sealSeen = false;
+const sealWatch = (async () => {
+  for (let i = 0; i < 1200 && !sealSeen; i++) {
+    if ((await kh('lamp', 'gateLight')) === 'kindled') {
+      sealSeen = true;
+      await page.waitForTimeout(1600);
+      await shot('seal-gate-light');
+      return;
+    }
+    await page.waitForTimeout(200);
+  }
+})();
+await drive('trial', (st) => st.quests['Q3.10'] === 'done' && !st.dialogue && !st.quiz && !st.reveal, 240000);
+sealSeen = true;
+await sealWatch;
+if ((await kh('lamp', 'gateLight')) !== 'kindled') fail('the Gate Light isn’t kindled after the Seal');
+for (let i = 0; i < 4; i++)
+  if ((await kh('lamp', `lock:${i}`)) !== 'ready') fail(`lock lamp ${i} isn’t green after the Seal`);
+const seals = await S(() => window.__dev.learn.getState().seals ?? null);
+note(`seals ${JSON.stringify(seals)}`);
 
 // ---- Chests, bottles and starfish ----
 const chests = await S(() =>

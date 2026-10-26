@@ -98,8 +98,12 @@ function addCurtain(strips: WaterStrips, c: Curtain): void {
  */
 function addWorksWater(strips: WaterStrips): void {
   const TILE = 8;
+  /** Each chamber's quads, so a lock's water can rise and fall (`setLevel`). */
+  const ranges: Record<string, [number, number]> = {};
+  strips.mesh.userData.chambers = ranges;
   for (const c of CHAMBERS) {
     if (c.water === null) continue;
+    const first = strips.count;
     const depth = c.water - c.floor;
     const nu = Math.max(1, Math.ceil((c.u1 - c.u0) / TILE));
     const nv = Math.max(1, Math.ceil((c.v1 - c.v0) / TILE));
@@ -131,6 +135,7 @@ function addWorksWater(strips: WaterStrips): void {
           },
         );
       }
+    ranges[c.name] = [first, strips.count];
   }
   // Leaks at the gates: a thin white sheet down the mitre from the upper water to the lower.
   for (const g of GATES) {

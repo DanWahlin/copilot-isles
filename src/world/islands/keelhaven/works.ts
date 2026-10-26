@@ -98,6 +98,8 @@ export const CHAMBERS: readonly Chamber[] = [
 
 /** Where the canal's gates stand (u), each pair of mitre leaves across the canal, upstream first. */
 export const GATES = [72, 52, 36, 16] as const;
+/** The Sea Gate: shut mitre leaves across the cut's mouth (practice hulls aren't merged). */
+export const SEA_GATE_U = -24;
 export { CANAL };
 
 /**

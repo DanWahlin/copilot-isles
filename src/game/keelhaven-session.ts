@@ -16,6 +16,7 @@ import { DOCKS, PADS, worksWaterAt } from '../world/islands/keelhaven/works';
 import { createBottles, type BottleSite } from '../world/sites/bottles';
 import { loadVillageKit } from '../world/village/kit';
 import { createChoiceCard } from './choice-card';
+import { createKeelhavenCircuits } from './keelhaven-circuits';
 import type { BoxCollider, InlandWater, WalkSurface } from './collision';
 import type { CameraShot } from './follow-camera';
 import type { IslandContentHost } from './island-code';
@@ -348,6 +349,20 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
       await host.openChest(c.id);
     });
 
+  // ---- The Two Circuits (spec §5) and the Seal (§4.5) ----
+  const circuits = createKeelhavenCircuits(host, {
+    ask,
+    card: {
+      message: (t, tone) => card.message(t, tone),
+      busy: (on) => card.busy(on),
+      close: () => card.close(),
+      choose: (id) => card.choose(id),
+    },
+  });
+  host.cues.set('kh-ring', () => circuits.cue('ring'));
+  host.cues.set('kh-flight', () => circuits.cue('flight'));
+  host.cues.set('kh-seal', () => circuits.seal());
+
   async function setup(w: KeelhavenWorld): Promise<{ roots: Object3D[]; reveal(): void }> {
     const none = { roots: [] as Object3D[], reveal() {} };
     if (disposed || world) return none;
@@ -435,6 +450,11 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         onInteract: () => void readBottle(id, p),
       });
     }
+    // The circuits: their stations, lamps and moving hulls, laid out as the save says.
+    for (const p of circuits.create(w)) {
+      host.puzzles.push(p);
+      added.puzzles.push(p);
+    }
     return {
       roots,
       reveal() {
@@ -452,6 +472,7 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
   function teardown(): void {
     generation++;
     card.close();
+    circuits.teardown();
     if (!world) return;
     host.world.remove(added.colliders);
     for (const id of added.interactions) host.interactions.remove(id);
@@ -496,7 +517,9 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
       if (crowd && Math.hypot(eye.x - KEELHAVEN.center.x, eye.z - KEELHAVEN.center.z) < NEAR)
         crowd.update(dt, at);
     },
-    update() {},
+    update(dt) {
+      if (world) circuits.update(dt);
+    },
     bottles: () =>
       Object.entries(bottleSite?.spots() ?? {}).map(([id, p]) => ({
         id,
@@ -510,6 +533,8 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
       card: () => card.view,
       choose: (id: string) => card.choose(id),
       toolChestOnRack: () => story('dockKitted'),
+      hull: (id: 'search' | 'note' | 'stats') => circuits.debug.hull(id),
+      lamp: (key: string) => circuits.debug.lamp(key),
     },
     dispose() {
       disposed = true;

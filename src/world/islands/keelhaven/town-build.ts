@@ -9,7 +9,17 @@ import { GATE_PATH_HALF } from './works';
 import { GATE_TREAD, gateStairTreads } from './gate-stair';
 import { FRAME, toFrame, toWorld, type Uv } from './layout';
 import { lineDeck, type WalkDeck } from './decks';
-import { YARD_PAINT, at, ground, ropeCoil, stores, ubox, YAW_U, type ShipyardOut } from './shipyard';
+import {
+  YARD_PAINT,
+  at,
+  ground,
+  lampGlass,
+  ropeCoil,
+  stores,
+  ubox,
+  YAW_U,
+  type ShipyardOut,
+} from './shipyard';
 import {
   BOARD,
   BRIDGE,
@@ -575,8 +585,8 @@ function repaint(g: BufferGeometry, key: MaterialKey, hex: number, k = 1): Buffe
 /**
  * The Gate Light: the island's landmark, where the Trial is held. A tall tapering tower in white and
  * red bands on the North Head's bench (it reads from the quay and from the sea off the cove's mouth),
- * a corbelled gallery with an iron rail, the lantern room's glass (bright warm white: by day it
- * catches the sun, by night it's the light) under a brass dome and vane, slit windows up the tower,
+ * a corbelled gallery with an iron rail, the lantern room's glass (faint until the Seal kindles it
+ * white-gold) under a brass dome and vane, slit windows up the tower,
  * its door, and the keeper's house beside it.
  */
 function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean): void {
@@ -658,30 +668,23 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
     'plaster',
     0xc4382a,
   );
-  const glass = rod(
-    b,
-    'glow',
-    { x: p.x, y: top + 1.3, z: p.z },
-    { x: p.x, y: top + 5.1, z: p.z },
-    lr,
-    seg,
-    0xffffff,
+  // The glass and the lens inside: a lamp of the island's lamp set (`gateLight`), faint until the Seal
+  // kindles it white-gold (bright enough to read by day: the glow material shows its paint at 0.18).
+  lampGlass(out, 'gateLight', 'banked', (s) =>
+    rod(s, 'glow', { x: p.x, y: top + 1.3, z: p.z }, { x: p.x, y: top + 5.1, z: p.z }, lr, seg, 0xffffff),
   );
-  const col = glass.getAttribute('color');
-  // Bright enough to read warm white by day (the glow material shows its paint at 0.18 in daylight).
-  for (let i = 0; i < col.count; i++) col.setXYZ(i, 6.2, 5.8, 4.6);
-  // The lens inside, brighter still.
-  const lens = rod(
-    b,
-    'glow',
-    { x: p.x, y: top + 2.0, z: p.z },
-    { x: p.x, y: top + 4.2, z: p.z },
-    0.9,
-    lite ? 8 : 12,
-    0xffffff,
-    0.75,
+  lampGlass(out, 'gateLight', 'banked', (s) =>
+    rod(
+      s,
+      'glow',
+      { x: p.x, y: top + 2.0, z: p.z },
+      { x: p.x, y: top + 4.2, z: p.z },
+      0.9,
+      lite ? 8 : 12,
+      0xffffff,
+      0.75,
+    ),
   );
-  lanternPaint(lens, 7.5);
   for (let k = 0; k < (lite ? 6 : 10); k++) {
     const a = (k / (lite ? 6 : 10)) * Math.PI * 2;
     const q = { x: p.x + Math.cos(a) * (lr + 0.02), z: p.z + Math.sin(a) * (lr + 0.02) };
