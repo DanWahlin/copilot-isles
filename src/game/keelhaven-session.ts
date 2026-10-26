@@ -534,6 +534,8 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
       choose: (id: string) => card.choose(id),
       toolChestOnRack: () => story('dockKitted'),
       hull: (id: 'search' | 'note' | 'stats') => circuits.debug.hull(id),
+      /** Plays the Seal's moment (for a test's shots). */
+      seal: () => circuits.seal(),
       /** Frames a view of the lock flight for a test's shots (`null` gives the camera back). */
       view: (name: 'lock1' | 'pound' | null) => {
         if (!name) return host.frame(null);

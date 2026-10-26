@@ -316,11 +316,13 @@ export function createKeelhavenCircuits(
     async seal() {
       if (!world) return;
       const r = reduced();
-      // The Gate Light from the air on its seaward side, then the lock flight from over the yard.
+      // The Gate Light, then the lock flight from over the yard.
+      // Out over the sea west of the North Head and above the lantern, looking down past it into the
+      // cove, so the lit lantern reads against the harbour, the yard and the locks.
       const L = toWorld(GATE_LIGHT.u, GATE_LIGHT.v);
-      const e = toWorld(GATE_LIGHT.u + 24, GATE_LIGHT.v + 22);
-      const lantern = GATE_LIGHT.y + 29;
-      const light: CameraShot = { x: e.x, y: lantern + 2, z: e.z, tx: L.x, ty: lantern - 3, tz: L.z };
+      const e = toWorld(GATE_LIGHT.u - 60, GATE_LIGHT.v - 26);
+      const lantern = GATE_LIGHT.y + 30;
+      const light: CameraShot = { x: e.x, y: lantern + 14, z: e.z, tx: L.x, ty: lantern - 6, tz: L.z };
       const fe = toWorld(62, -36);
       const ft = toWorld(36, -62);
       const locks: CameraShot = { x: fe.x, y: yard + 13, z: fe.z, tx: ft.x, ty: 3, tz: ft.z };
