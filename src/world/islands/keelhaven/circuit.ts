@@ -1,4 +1,5 @@
 import { box, cone, rod, rope, type Buckets } from '../../village/pieces';
+import { lampHead } from './lamps';
 import { toWorld } from './layout';
 import { YARD_PAINT, at, ground, lampGlass, ubox, YAW_U, type ShipyardOut } from './shipyard';
 import { CANAL, CHAMBERS, DOCKS, PADS, SEA_GATE_U, WALL } from './works';
@@ -96,9 +97,22 @@ function stationPost(
 ): void {
   const p = at(u, y, v);
   rod(b, 'wood', p, { x: p.x, y: y + h, z: p.z }, 0.09, 6, YARD_PAINT.tar);
-  cone(b, 'metal', p.x, y + h + 0.17, p.z, 0.2, 0.18, 6, YARD_PAINT.iron);
-  lampGlass(out, key, 'dark', (s) =>
-    box(s, 'glow', p.x, y + h - 0.12, p.z, 0.24, 0.3, 0.24, YAW_U, 0xffffff),
+  lampGlass(
+    out,
+    key,
+    'dark',
+    (s) =>
+      lampHead(b, s, {
+        x: p.x,
+        y: y + h - 0.12,
+        z: p.z,
+        w: 0.24,
+        h: 0.3,
+        yaw: YAW_U,
+        capR: 0.2,
+        capH: 0.18,
+        capColour: YARD_PAINT.iron,
+      }).glass,
   );
   out.circles.push({ x: p.x, z: p.z, r: 0.18, y0: y - 0.5, y1: y + h + 0.3, height: h + 0.3 });
 }

@@ -67,7 +67,7 @@
   max-width: min(46rem, 86vw);
   padding: 0.8em 1.4em 0.9em;
   border-radius: 0.9em;
-  background: var(--glass);
+  background: rgba(10, 22, 32, 0.64);
   border: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -92,12 +92,22 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
+/* Words not spoken yet read at 0.8 (each spoken word lights to 1). Over the caption's darker glass
+   they keep WCAG AA (4.5:1) over sea, sand and sky. */
 .hud-line span {
-  opacity: 0.55;
+  opacity: 0.8;
   transition: opacity 0.12s linear;
 }
 .hud-line span.spoken {
   opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-line span {
+    transition: none;
+  }
+}
+:root.reduced-motion .hud-line span {
+  transition: none;
 }
 /* A text-only course's caption: the whole line at once, and a button that moves it on (a tap). */
 .hud-subtitle.is-text {

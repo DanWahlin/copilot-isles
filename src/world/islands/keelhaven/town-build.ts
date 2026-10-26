@@ -2,6 +2,7 @@ import { BufferAttribute, BufferGeometry, Color } from 'three/webgpu';
 import { HOUSE_STOREY_HEIGHT, type HouseSide } from '../../village/house-builder';
 import type { MaterialKey, VillageKit } from '../../village/kit';
 import { box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
+import { lampHead } from './lamps';
 import { addVerandaHouse, tintFor } from '../../village/veranda-house';
 import { mulberry32 } from '../../../util/math';
 import { keelhavenHeight } from './height';
@@ -218,9 +219,18 @@ function house(
   const porch = h.porch.front > 0;
   const lamp = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.28);
   const lp = at(lamp.u, base + (porch && h.storeys === 1 ? 2.05 : 2.5), lamp.v);
-  const glow = box(b, 'glow', lp.x, lp.y, lp.z, 0.2, 0.28, 0.2, yaw, 0xffffff);
-  lanternPaint(glow, 4.2);
-  cone(b, 'metal', lp.x, lp.y + 0.14, lp.z, 0.18, 0.15, 6, YARD_PAINT.iron);
+  const head = lampHead(b, b, {
+    x: lp.x,
+    y: lp.y,
+    z: lp.z,
+    w: 0.2,
+    h: 0.28,
+    yaw,
+    capR: 0.18,
+    capH: 0.15,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.2);
   const wall = at(
     housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.02).u,
     lp.y + 0.35,
@@ -414,9 +424,18 @@ function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: nu
   rod(b, 'wood', { x: p.x, y: g - 0.3, z: p.z }, { x: p.x, y: g + 3.4, z: p.z }, 0.09, 6, YARD_PAINT.tar);
   const arm = { x: p.x + Math.cos(armYaw) * 0.7, y: g + 3.3, z: p.z - Math.sin(armYaw) * 0.7 };
   rod(b, 'wood', { x: p.x, y: g + 3.3, z: p.z }, arm, 0.04, 4, YARD_PAINT.tar);
-  const glow = box(b, 'glow', arm.x, arm.y - 0.45, arm.z, 0.22, 0.3, 0.22, armYaw, 0xffffff);
-  lanternPaint(glow, 4.6);
-  cone(b, 'metal', arm.x, arm.y - 0.3, arm.z, 0.2, 0.16, 6, YARD_PAINT.iron);
+  const head = lampHead(b, b, {
+    x: arm.x,
+    y: arm.y - 0.45,
+    z: arm.z,
+    w: 0.22,
+    h: 0.3,
+    yaw: armYaw,
+    capR: 0.2,
+    capH: 0.16,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.6);
   rod(b, 'metal', arm, { x: arm.x, y: arm.y - 0.3, z: arm.z }, 0.015, 3, YARD_PAINT.iron);
   out.circles.push({ x: p.x, z: p.z, r: 0.2, y0: g - 0.5, y1: g + 3.4, height: 3.4 });
 }

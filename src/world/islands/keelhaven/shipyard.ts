@@ -23,7 +23,7 @@ import {
   type Chamber,
 } from './works';
 import { lineDeck, uvDeck, type WalkDeck } from './decks';
-import { LAMP_LOOKS, type LampLook, type LampPiece } from './lamps';
+import { LAMP_LOOKS, lampHead, type LampLook, type LampPiece } from './lamps';
 
 /**
  * Keelhaven's shipyard and harbour (spec §3.4-§3.7, in the merged cove frame): the stone-walled
@@ -440,10 +440,23 @@ function lockLamp(
   const p = at(u, y, v);
   rod(b, 'wood', p, { x: p.x, y: y + 3.2, z: p.z }, 0.11, 6, YARD_PAINT.tar);
   box(b, 'wood', p.x, y + 3.25, p.z, 0.6, 0.1, 0.12, YAW_U + Math.PI / 2, YARD_PAINT.tar);
-  lampGlass(out, key, colour === 'red' ? 'notReady' : 'ready', (s) =>
-    box(s, 'glow', p.x, y + 3.0, p.z, 0.26, 0.34, 0.26, YAW_U, 0xffffff),
+  lampGlass(
+    out,
+    key,
+    colour === 'red' ? 'notReady' : 'ready',
+    (s) =>
+      lampHead(b, s, {
+        x: p.x,
+        y: y + 3.0,
+        z: p.z,
+        w: 0.26,
+        h: 0.34,
+        yaw: YAW_U,
+        capR: 0.24,
+        capH: 0.2,
+        capColour: YARD_PAINT.iron,
+      }).glass,
   );
-  cone(b, 'metal', p.x, y + 3.17, p.z, 0.24, 0.2, 6, YARD_PAINT.iron);
   // A blank brass plate on the post (its words come from the course pack later).
   box(b, 'metal', p.x, y + 1.5, p.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
 }
@@ -914,9 +927,18 @@ function quay(b: Buckets, out: ShipyardOut): void {
   // A lamp at the head, a crane and stores at the root.
   const lamp = at(q.u0 + 1.5, q.top, q.v);
   rod(b, 'wood', lamp, { x: lamp.x, y: q.top + 4.2, z: lamp.z }, 0.14, 6, YARD_PAINT.tar);
-  const g = box(b, 'glow', lamp.x, q.top + 4.0, lamp.z, 0.3, 0.4, 0.3, YAW_U, 0xffffff);
-  lanternPaint(g);
-  cone(b, 'metal', lamp.x, q.top + 4.2, lamp.z, 0.27, 0.22, 6, YARD_PAINT.iron);
+  const lampTop = lampHead(b, b, {
+    x: lamp.x,
+    y: q.top + 4.0,
+    z: lamp.z,
+    w: 0.3,
+    h: 0.4,
+    yaw: YAW_U,
+    capR: 0.27,
+    capH: 0.22,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(lampTop.glass);
   jibCrane(b, out, q.u1 - 16, q.v + 2, q.top, -Math.PI / 2 - 0.4, 7);
   stores(b, q.u1 - 10, q.v + 1.5, q.top, 0x51);
   ropeCoil(b, q.u0 + 18, q.v - 2.6, q.top);
