@@ -52,6 +52,6 @@ export const keelhavenTerrainRegions: TerrainRegions = (ctx) => {
       .mul(float(1).sub(smoothstep(p.v1 - 2, p.v1 + 4, v)));
   // The town's flat (its street, square and paths are the bake's sand there).
   const townFlat = pad({ u0: 4, u1: 136, v0: 6, v1: 72 }).mul(smoothstep(1.2, 2.2, y));
-  const town = max(max(pad(PADS.yard), pad(PADS.locks)), max(pad(PADS.light), townFlat));
+  const town = max(max(max(pad(PADS.yard), pad(PADS.locks)), pad(PADS.cut)), max(pad(PADS.light), townFlat));
   return { paliWall, forestFloor, town };
 };

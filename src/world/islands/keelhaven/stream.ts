@@ -21,12 +21,14 @@ import { createIslandDepthTile } from '../depth-tile';
 import { footprintDistance } from '../footprint';
 import type { IslandStream, IslandStreamCreateContext } from '../island-stream';
 import { SilhouetteSwap } from '../silhouette-swap';
+import { worksFoamSkip, worksSkin } from './apron';
 import { KEELHAVEN_FLORA } from './flora';
 import { keelhavenTerrainWater } from './height';
 import { createKeelhavenWorldAsync, type KeelhavenWorld } from './index';
 import { KEELHAVEN as K } from './layout';
 import { createKeelhavenSilhouette } from './silhouette';
 import { KEELHAVEN_PLANT_LOOK } from './vegetation';
+import { worksApronSteps, worksPin } from './works';
 import { KEELHAVEN_WRECKS } from './wrecks';
 
 /** Keelhaven's stream (its registry entry holds its ranges and outline): its world is the town and works. */
@@ -66,6 +68,14 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
       ctx.courseData?.(priority),
     ]);
     if (disposed) return null;
+    // The works' apron (made once): a skin of ground over the ramp the pinned lock floors make.
+    const apronSteps = worksApronSteps();
+    let apron = apronSteps.next();
+    while (!apron.done) {
+      await ctx.breathe();
+      apron = apronSteps.next();
+    }
+    if (disposed) return null;
     const terrain = await createTerrainAsync(
       {
         tier,
@@ -78,6 +88,9 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
         prefilter: K.terrain.prefilter,
         maxMergedTriangles: K.terrain.maxMergedTriangles,
         morphFrames: K.terrain.morphFrames,
+        // Every level keeps the works' floors and pads level, and the apron covers the ramp between.
+        pin: worksPin,
+        skin: worksSkin(apron.value),
       },
       ctx.breathe,
     );
@@ -90,6 +103,8 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
       // Surf on the outer coast's cliff feet, and a wash round each wreck on the reef.
       exposure: 1,
       rings: KEELHAVEN_WRECKS.map((d) => wreckWaterline(d.pose)),
+      // None along the works' walls (the cut's water is sheltered).
+      skip: worksFoamSkip,
     });
     self.foam = foam;
     await depth?.build(data, ctx.breathe);

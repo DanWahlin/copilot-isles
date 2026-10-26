@@ -1,4 +1,5 @@
 import { box, cone, rod, rope, type Buckets } from '../../village/pieces';
+import { APRON_LIFT } from './apron';
 import { lampHead } from './lamps';
 import { toWorld } from './layout';
 import { YARD_PAINT, at, ground, lampGlass, ubox, YAW_U, type ShipyardOut } from './shipyard';
@@ -117,32 +118,131 @@ function stationPost(
   out.circles.push({ x: p.x, z: p.z, r: 0.18, y0: y - 0.5, y1: y + h + 0.3, height: h + 0.3 });
 }
 
+/** Chalk on a slate (paving's matte texture, like the ring's slate). */
+const CHALK = { white: 0xf2efe6, added: 0xb4e6a6, removed: 0xf2aaa0 } as const;
+
+/**
+ * A diff in chalk on a slate's face at cove frame (u, y, v), facing +v: a file's name line, then its
+ * lines, a red minus by the one taken out and a green plus by each one put in; then the test file's.
+ * Plain strokes, no words (the card says what they mean).
+ */
+function diffMarks(b: Buckets, u: number, y: number, v: number): void {
+  const rows: readonly (readonly [mark: 'file' | '+' | '-', length: number])[] = [
+    ['file', 0.9],
+    ['-', 0.95],
+    ['+', 1.1],
+    ['+', 0.7],
+    ['file', 0.75],
+    ['+', 1.2],
+    ['+', 0.85],
+  ];
+  const lineH = 0.12;
+  const left = u - 0.8;
+  rows.forEach(([mark, length], k) => {
+    const ry = y + 0.38 - k * lineH;
+    const mv = v + 0.01;
+    if (mark === 'file') {
+      ubox(b, 'paving', left + length / 2, ry, mv, length, 0.035, 0.012, CHALK.white);
+      return;
+    }
+    const c = mark === '+' ? CHALK.added : CHALK.removed;
+    ubox(b, 'paving', left + 0.06, ry, mv, 0.09, 0.025, 0.012, c);
+    if (mark === '+') ubox(b, 'paving', left + 0.06, ry, mv, 0.025, 0.09, 0.012, c);
+    ubox(b, 'paving', left + 0.18 + length / 2, ry, mv, length, 0.025, 0.012, c);
+  });
+}
+
+/**
+ * The tally gear the Drydock Ring's crew fits planks to (the Book App's unread count): an upright
+ * spoked wheel on a timber frame, facing the coping you watch from (−v), with its tally board on the
+ * frame and two chalk marks on it.
+ */
+function tallyGear(b: Buckets, out: ShipyardOut, u: number, v: number, y: number): void {
+  const r = 0.72;
+  const hub = y + 1.15;
+  const n = 12;
+  // The rim (a ring of short rods), eight spokes and the hub, the wheel's face across u.
+  for (let k = 0; k < n; k++) {
+    const a0 = (k / n) * Math.PI * 2;
+    const a1 = ((k + 1) / n) * Math.PI * 2;
+    rod(
+      b,
+      'wood',
+      at(u + Math.cos(a0) * r, hub + Math.sin(a0) * r, v),
+      at(u + Math.cos(a1) * r, hub + Math.sin(a1) * r, v),
+      0.05,
+      5,
+      YARD_PAINT.oak,
+    );
+  }
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    rod(
+      b,
+      'wood',
+      at(u, hub, v),
+      at(u + Math.cos(a) * r, hub + Math.sin(a) * r, v),
+      0.03,
+      4,
+      YARD_PAINT.weathered,
+    );
+  }
+  rod(b, 'metal', at(u, hub, v - 0.22), at(u, hub, v + 0.22), 0.09, 8, YARD_PAINT.iron);
+  // Its frame: a post each side of the wheel along v, a cross-tree and a foot each.
+  for (const dv of [-0.3, 0.3]) {
+    ubox(b, 'wood', u, y + 0.62, v + dv, 0.14, 1.24, 0.12, YARD_PAINT.tar);
+    ubox(b, 'wood', u, y + 0.05, v + dv, 1.3, 0.1, 0.16, YARD_PAINT.tar);
+  }
+  // The tally board on the frame's front post, two chalk marks on it.
+  const tv = v - 0.3 - 0.06 - 0.02 - 0.012;
+  ubox(b, 'stone', u - 0.95, y + 0.85, tv, 0.5, 0.36, 0.04, YARD_PAINT.slate);
+  ubox(b, 'wood', u - 0.82, y + 0.45, tv + 0.02, 0.08, 0.9, 0.06, YARD_PAINT.tar);
+  for (const du of [-0.08, 0.04])
+    ubox(b, 'paving', u - 0.95 + du, y + 0.85, tv - 0.026, 0.03, 0.22, 0.012, CHALK.white);
+  out.colliders.push({ ...toWorld(u - 0.2, v), hx: 0.95, hz: 0.45, rot: YAW_U, height: 2 });
+}
+
 /** Builds the circuits' posts, lamps and set pieces into `b` (their glass into `out.lamps`). */
 export function buildCircuitProps(b: Buckets, out: ShipyardOut, lite: boolean): void {
   // ---- The Drydock Ring round Drydock 2 ----
   const R = CIRCUIT_SPOTS.ring;
   stationPost(b, out, R.post!.lamp, R.post!.u + 1.8, R.post!.v - 0.6, yard);
-  // The work-order post's board, under its lamp.
-  ubox(b, 'wood', R.post!.u + 1.75, yard + 1.5, R.post!.v - 0.6, 0.06, 0.6, 0.9, YARD_PAINT.limewash);
+  // The work-order post's board under its lamp: a board each side of the post, clear of it.
+  for (const side of [1, -1])
+    ubox(
+      b,
+      'wood',
+      R.post!.u + 1.8 + side * 0.132,
+      yard + 1.5,
+      R.post!.v - 0.6,
+      0.04,
+      0.6,
+      0.9,
+      YARD_PAINT.limewash,
+    );
+  // The strips of yard between the docks' walls are the works' apron (apron.ts), a little over the
+  // yard: the stack, the slate, the tally gear and the lookout's lamp stand on it.
+  const strip = yard + APRON_LIFT;
   // The plank stack between Drydock 2 and Drydock 3, its lamp at its end.
   const sv = D2 + 9.2;
   for (let k = 0; k < 4; k++)
-    ubox(b, 'wood', R.stack!.u, dockTop + 0.12 + k * 0.17, sv, 4.2 - k * 0.3, 0.15, 0.9, YARD_PAINT.oak);
+    ubox(b, 'wood', R.stack!.u, strip + 0.075 + k * 0.17, sv, 4.2 - k * 0.3, 0.15, 0.9, YARD_PAINT.oak);
   out.colliders.push({ ...toWorld(R.stack!.u, sv), hx: 2.2, hz: 0.55, rot: YAW_U, height: 0.9 });
-  stationPost(b, out, R.stack!.lamp, R.stack!.u + 2.9, sv, dockTop);
+  stationPost(b, out, R.stack!.lamp, R.stack!.u + 2.9, sv, strip);
+  tallyGear(b, out, R.stack!.u - 3.4, sv, strip);
   // The slate: a dark board on two legs, its chalk marks on it, facing the coping.
   const sl = R.slate!;
   for (const du of [-0.8, 0.8]) {
-    const p = at(sl.u + du, dockTop, sv);
-    rod(b, 'wood', p, { x: p.x, y: dockTop + 1.8, z: p.z }, 0.06, 5, YARD_PAINT.tar);
+    const p = at(sl.u + du, strip, sv);
+    rod(b, 'wood', p, { x: p.x, y: strip + 1.8, z: p.z }, 0.06, 5, YARD_PAINT.tar);
   }
-  ubox(b, 'stone', sl.u, dockTop + 1.3, sv - 0.05, 1.9, 1.0, 0.06, YARD_PAINT.slate);
+  ubox(b, 'stone', sl.u, strip + 1.3, sv - 0.05, 1.9, 1.0, 0.06, YARD_PAINT.slate);
   for (let k = 0; k < 3; k++)
     ubox(
       b,
       'paving',
       sl.u - 0.5 + k * 0.5,
-      dockTop + 1.3 + (k - 1) * 0.12,
+      strip + 1.3 + (k - 1) * 0.12,
       sv - 0.09,
       0.3,
       0.04,
@@ -150,14 +250,14 @@ export function buildCircuitProps(b: Buckets, out: ShipyardOut, lite: boolean): 
       0xf2efe6,
     );
   out.colliders.push({ ...toWorld(sl.u, sv), hx: 1.0, hz: 0.25, rot: YAW_U, height: 1.8 });
-  stationPost(b, out, sl.lamp, sl.u + 1.5, sv, dockTop);
+  stationPost(b, out, sl.lamp, sl.u + 1.5, sv, strip);
   // The caisson's lamp on the coping at its end; the lookout's on the far side, with a rail.
   stationPost(b, out, R.caisson!.lamp, R.caisson!.u - 1.6, D2 + 7.4, dockTop);
   const lk = R.lookout!;
-  stationPost(b, out, lk.lamp, lk.u, lk.v - 1.8, dockTop, 3.2);
-  const r0 = at(lk.u - 1.2, dockTop + 1.0, lk.v - 1.7);
-  const r1 = at(lk.u + 1.2, dockTop + 1.0, lk.v - 1.7);
-  for (const r of [r0, r1]) rod(b, 'wood', { x: r.x, y: dockTop, z: r.z }, r, 0.05, 5, YARD_PAINT.weathered);
+  stationPost(b, out, lk.lamp, lk.u, lk.v - 1.8, strip, 3.2);
+  const r0 = at(lk.u - 1.2, strip + 1.0, lk.v - 1.7);
+  const r1 = at(lk.u + 1.2, strip + 1.0, lk.v - 1.7);
+  for (const r of [r0, r1]) rod(b, 'wood', { x: r.x, y: strip, z: r.z }, r, 0.05, 5, YARD_PAINT.weathered);
   rod(b, 'wood', r0, r1, 0.04, 5, YARD_PAINT.weathered);
 
   // ---- The Lock Flight ----
@@ -180,13 +280,16 @@ export function buildCircuitProps(b: Buckets, out: ShipyardOut, lite: boolean): 
     YARD_PAINT.rope,
     2,
   );
-  // Lock 1's slate (the diff) on the yard's edge by the coping, and Gate 1's post by its gate.
+  // Lock 1's slate (the diff) on the yard's edge by the coping, its marked face to you on the yard
+  // (+v), its legs behind it; and Gate 1's post by its gate.
   const ls = F.slate!;
+  const slateV = ls.v - 1.25;
   for (const du of [-0.8, 0.8]) {
-    const p = at(ls.u + du, yard, ls.v - 1.2);
+    const p = at(ls.u + du, yard, slateV - 0.1);
     rod(b, 'wood', p, { x: p.x, y: yard + 1.8, z: p.z }, 0.06, 5, YARD_PAINT.tar);
   }
-  ubox(b, 'stone', ls.u, yard + 1.3, ls.v - 1.25, 1.9, 1.0, 0.06, YARD_PAINT.slate);
+  ubox(b, 'stone', ls.u, yard + 1.3, slateV, 1.9, 1.0, 0.06, YARD_PAINT.slate);
+  diffMarks(b, ls.u, yard + 1.3, slateV + 0.03);
   out.colliders.push({ ...toWorld(ls.u, ls.v - 1.2), hx: 1.0, hz: 0.25, rot: YAW_U, height: 1.8 });
   stationPost(b, out, ls.lamp, ls.u + 1.5, ls.v - 1.2, yard);
   stationPost(b, out, F.gate1!.lamp, F.gate1!.u - 1.4, F.gate1!.v - 1.2, yard, 2.2);

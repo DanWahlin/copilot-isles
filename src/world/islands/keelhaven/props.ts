@@ -6,7 +6,7 @@ import type { SignSet } from '../../sites/sign';
 import { islandSign } from '../../../course/active';
 import { toWorld } from './layout';
 import { headingUv } from './anchors';
-import { YARD_PAINT, at, ground, signBoard, ubox, YAW_U, type ShipyardOut } from './shipyard';
+import { LAMP_PLATE_OFF, YARD_PAINT, at, ground, signBoard, ubox, YAW_U, type ShipyardOut } from './shipyard';
 import { CANAL, CHAMBERS, DOCKS, GATES, PADS, SLIPWAY, WALL } from './works';
 
 /**
@@ -20,6 +20,11 @@ import { CANAL, CHAMBERS, DOCKS, GATES, PADS, SLIPWAY, WALL } from './works';
 
 // Cream lettering on the sign set's own painted board (it covers the timber face it hangs on).
 const SIGN_COLOUR = ['#f6e7c8'];
+/** The lecterns' slope: tilted up toward the reader on the yard side (+v). */
+const LECTERN_TILT = 0.32;
+/** The ledgers' name posts and boards (m). */
+const NAME_POST_R = 0.07;
+const NAME_BOARD_T = 0.04;
 const yard = PADS.yard.y;
 const face = (du: number, dv: number) => headingUv(du, dv);
 
@@ -68,10 +73,11 @@ function lettering(
   dv: number,
   w: number,
   h: number,
+  twoSided = true,
 ): void {
   const words = signs ? islandSign('keelhaven', name) : '';
   if (!signs || !words) return;
-  const s = signs.add([words], w, h, { twoSided: true, colors: SIGN_COLOUR });
+  const s = signs.add([words], w, h, { twoSided, colors: SIGN_COLOUR });
   const p = toWorld(u, v);
   s.object.position.set(p.x, y, p.z);
   s.object.rotation.y = face(du, dv);
@@ -90,37 +96,56 @@ export function buildKeelhavenProps(b: Buckets, signs: SignSet | null, out: Ship
   signBoard(b, slipU, slipV, gs, 1.8);
   out.colliders.push({ ...toWorld(slipU, slipV), hx: 0.2, hz: 1.2, rot: YAW_U, height: 2.4 });
   lettering(signs, 'slipway', slipU - 0.05, gs + 1.9, slipV, -1, 0, 1.75, 0.5);
-  // The lock lamps' brass plates (shipyard.ts `lockLamp`): "Book app web" on each.
+  // The lock lamps' brass plates (shipyard.ts `lockLamp`, one each side of the post): "Book app web"
+  // on each, read from either side.
   const tops = CHAMBERS.filter((c) => !c.name.startsWith('dock') && c.name !== 'basin');
   for (const u of GATES) {
     const down = tops.find((c) => Math.abs(c.u1 - u) < 0.01);
     if (!down) continue;
-    lettering(
-      signs,
-      'lampPlate',
-      u + 3 + 0.03,
-      down.top + 1.5,
-      CANAL.v - CANAL.half - WALL + 0.4,
-      1,
-      0,
-      0.4,
-      0.26,
-    );
+    for (const side of [1, -1])
+      lettering(
+        signs,
+        'lampPlate',
+        u + 3 + side * (LAMP_PLATE_OFF + 0.021),
+        down.top + 1.5,
+        CANAL.v - CANAL.half - WALL + 0.4,
+        side,
+        0,
+        0.4,
+        0.26,
+        false,
+      );
   }
-  // Stroud's ledgers: a lectern each, the book open on its slope, its name board over it and its
-  // port dial (a brass plate) on its front.
+  // Stroud's ledgers: a lectern each, its slope and the open book tilted toward you as you come from
+  // the yard (+v), its name board over it and its port dial (a brass plate) on its front.
   for (const l of KEELHAVEN_SET.ledgers) {
     const y = ground(l.u, l.v);
     const p = at(l.u, y, l.v);
     rod(b, 'wood', p, { x: p.x, y: y + 1.0, z: p.z }, 0.1, 6, YARD_PAINT.tar);
-    ubox(b, 'wood', l.u, y + 1.08, l.v, 1.1, 0.08, 0.7, YARD_PAINT.weathered, 0, -0.32);
-    ubox(b, 'cloth', l.u, y + 1.14, l.v, 0.9, 0.03, 0.56, YARD_PAINT.canvas, 0, -0.32);
-    ubox(b, 'wood', l.u, y + 1.155, l.v, 0.03, 0.02, 0.56, YARD_PAINT.tar, 0, -0.32);
-    // The name board on a post behind it.
-    const post = at(l.u, y, l.v - 0.6);
-    rod(b, 'wood', post, { x: post.x, y: y + 2.3, z: post.z }, 0.07, 6, YARD_PAINT.tar);
-    ubox(b, 'wood', l.u, y + 2.05, l.v - 0.62, 1.3, 0.42, 0.06, YARD_PAINT.limewash);
-    lettering(signs, l.sign, l.u, y + 2.05, l.v - 0.58, 0, 1, 1.2, 0.36);
+    ubox(b, 'wood', l.u, y + 1.08, l.v, 1.1, 0.08, 0.7, YARD_PAINT.weathered, 0, LECTERN_TILT);
+    ubox(b, 'cloth', l.u, y + 1.14, l.v, 0.9, 0.03, 0.56, YARD_PAINT.canvas, 0, LECTERN_TILT);
+    ubox(b, 'wood', l.u, y + 1.155, l.v, 0.03, 0.02, 0.56, YARD_PAINT.tar, 0, LECTERN_TILT);
+    // The name board on a post behind it: a board each side of the post, the words on both, so the
+    // post never crosses them.
+    const pv = l.v - 0.6;
+    const post = at(l.u, y, pv);
+    rod(b, 'wood', post, { x: post.x, y: y + 2.3, z: post.z }, NAME_POST_R, 6, YARD_PAINT.tar);
+    for (const side of [1, -1]) {
+      const bv = pv + side * (NAME_POST_R + 0.012 + NAME_BOARD_T / 2);
+      ubox(b, 'wood', l.u, y + 2.05, bv, 1.3, 0.42, NAME_BOARD_T, YARD_PAINT.limewash);
+      lettering(
+        signs,
+        l.sign,
+        l.u,
+        y + 2.05,
+        bv + side * (NAME_BOARD_T / 2 + 0.001),
+        0,
+        side,
+        1.2,
+        0.36,
+        false,
+      );
+    }
     // The dial: a round brass plate on the lectern's front, its setting lettered on it.
     ubox(b, 'metal', l.u, y + 0.62, l.v + 0.11, 0.64, 0.26, 0.03, 0xb8923e);
     lettering(signs, l.dial, l.u, y + 0.62, l.v + 0.135, 0, 1, 0.6, 0.22);
@@ -243,13 +268,14 @@ export function buildKeelhavenProps(b: Buckets, signs: SignSet | null, out: Ship
   // The practice hulls' name boards on the basin's south quay, facing the yard.
   for (const h of KEELHAVEN_SET.hulls) {
     const y = ground(h.u, h.v);
-    for (const du of [-1.2, 1.2]) {
+    // Its posts stand just past the board's ends (never across its words).
+    for (const du of [-1.39, 1.39]) {
       const p = at(h.u + du, y, h.v);
       rod(b, 'wood', p, { x: p.x, y: y + 2.4, z: p.z }, 0.08, 6, YARD_PAINT.tar);
     }
     ubox(b, 'wood', h.u, y + 1.9, h.v, 2.6, 0.7, 0.08, YARD_PAINT.limewash);
     lettering(signs, h.sign, h.u, y + 1.9, h.v + 0.05, 0, 1, 2.4, 0.5);
-    out.colliders.push({ ...toWorld(h.u, h.v), hx: 1.4, hz: 0.2, rot: YAW_U, height: 2.4 });
+    out.colliders.push({ ...toWorld(h.u, h.v), hx: 1.5, hz: 0.2, rot: YAW_U, height: 2.4 });
   }
 }
 

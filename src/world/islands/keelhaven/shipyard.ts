@@ -20,8 +20,11 @@ import {
   SEA_GATE_U,
   SLIPWAY,
   WALL,
+  padFlatAt,
+  worksApronSteps,
   type Chamber,
 } from './works';
+import { APRON_LIFT } from './apron';
 import { lineDeck, uvDeck, type WalkDeck } from './decks';
 import { LAMP_LOOKS, lampHead, type LampLook, type LampPiece } from './lamps';
 
@@ -228,12 +231,14 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
         s.along === 'v' ? len : WALL + 0.16,
         YARD_PAINT.paving,
       );
-      // Walked over its width and an apron outside it: the ground's cut for the chamber leaves a gutter
-      // along the wall's back, deeper than a step (only where the ground is lower than the coping).
-      const du = s.along === 'v' ? (s.out * APRON) / 2 : 0;
-      const dv = s.along === 'v' ? 0 : (s.out * APRON) / 2;
-      const hu = (s.along === 'v' ? WALL + 0.16 + APRON : len) / 2;
-      const hv = (s.along === 'v' ? len : WALL + 0.16 + APRON) / 2;
+      // Walked over its width, and over a strip outside it where no works apron is (the ground off a
+      // pad can dip at the wall's back on a coarse tier's grid).
+      const back = s.along === 'v' ? [s.u + s.out * (WALL + 0.7), mid] : [mid, s.v + s.out * (WALL + 0.7)];
+      const apron = padFlatAt(back[0]!, back[1]!) === null ? APRON : 0;
+      const du = s.along === 'v' ? (s.out * apron) / 2 : 0;
+      const dv = s.along === 'v' ? 0 : (s.out * apron) / 2;
+      const hu = (s.along === 'v' ? WALL + 0.16 + apron : len) / 2;
+      const hv = (s.along === 'v' ? len : WALL + 0.16 + apron) / 2;
       out.decks.push(uvDeck(cu + du - hu, cu + du + hu, cv + dv - hv, cv + dv + hv, top, false));
       // A rail along the inner edge, posts every 2.4 m (not on the cut's low quay walls, nor the basin's
       // quay faces, where boats tie up).
@@ -457,9 +462,15 @@ function lockLamp(
         capColour: YARD_PAINT.iron,
       }).glass,
   );
-  // A blank brass plate on the post (its words come from the course pack later).
-  box(b, 'metal', p.x, y + 1.5, p.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
+  // A brass plate each side of the post, clear of it (props.ts letters both from the course pack).
+  for (const side of [1, -1]) {
+    const q = at(u + side * LAMP_PLATE_OFF, y, v);
+    box(b, 'metal', q.x, y + 1.5, q.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
+  }
 }
+
+/** How far (u) a lock lamp's plates stand off its post's middle: post 0.11, a gap, half a plate. */
+export const LAMP_PLATE_OFF = 0.11 + 0.012 + 0.02;
 
 /** A gabled, open-sided shed (posts, a ridge, two roof slopes of planks), long along u. */
 export function shed(
@@ -829,12 +840,71 @@ function sheerlegs(b: Buckets, out: ShipyardOut, y: number): void {
   );
   box(b, 'wood', hook.x, hook.y + 0.6, hook.z, 0.5, 0.8, 0.3, YAW_U, YARD_PAINT.tar);
   box(b, 'metal', hook.x, hook.y, hook.z, 0.12, 0.6, 0.12, YAW_U, YARD_PAINT.iron);
-  // The capstan that hauls the falls, by the legs' feet.
-  const cap = at(176, y, DOCKS.v[1]);
-  rod(b, 'wood', cap, { x: cap.x, y: y + 1.0, z: cap.z }, 0.45, 10, YARD_PAINT.tar, 0.38);
-  for (const a of [0, Math.PI / 2])
-    box(b, 'wood', cap.x, y + 0.85, cap.z, 3.2, 0.12, 0.12, YAW_U + a, YARD_PAINT.weathered);
-  out.circles.push({ x: cap.x, z: cap.z, r: 0.6, y0: y - 0.5, y1: y + 1.2, height: 1.2 });
+  // The capstan that hauls the falls, between the legs' feet: a waisted drum with the fall's turns
+  // on it, a round head with four bars standing out of it, on a low timber base.
+  const cap = at(174, y, DOCKS.v[1]);
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y, z: cap.z },
+    { x: cap.x, y: y + 0.12, z: cap.z },
+    0.75,
+    10,
+    YARD_PAINT.weathered,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.12, z: cap.z },
+    { x: cap.x, y: y + 0.6, z: cap.z },
+    0.42,
+    10,
+    YARD_PAINT.tar,
+    0.32,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.6, z: cap.z },
+    { x: cap.x, y: y + 0.92, z: cap.z },
+    0.32,
+    10,
+    YARD_PAINT.tar,
+    0.4,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.92, z: cap.z },
+    { x: cap.x, y: y + 1.12, z: cap.z },
+    0.5,
+    10,
+    YARD_PAINT.weathered,
+  );
+  rod(
+    b,
+    'rope',
+    { x: cap.x, y: y + 0.4, z: cap.z },
+    { x: cap.x, y: y + 0.66, z: cap.z },
+    0.38,
+    10,
+    YARD_PAINT.rope,
+  );
+  for (let k = 0; k < 4; k++) {
+    const a = YAW_U + (k * Math.PI) / 2 + Math.PI / 4;
+    const r0 = 0.45;
+    const r1 = 1.5;
+    rod(
+      b,
+      'wood',
+      { x: cap.x + Math.cos(a) * r0, y: y + 1.02, z: cap.z - Math.sin(a) * r0 },
+      { x: cap.x + Math.cos(a) * r1, y: y + 1.0, z: cap.z - Math.sin(a) * r1 },
+      0.045,
+      5,
+      YARD_PAINT.oak,
+    );
+  }
+  out.circles.push({ x: cap.x, z: cap.z, r: 0.8, y0: y - 0.5, y1: y + 1.2, height: 1.2 });
 }
 
 /** A timber jib crane on a post: a braced jib, its fall and hook, a winch at its foot. */
@@ -1031,6 +1101,9 @@ export function* buildShipyard(
   };
   CHAMBERS.forEach((c, i) => chamberWalls(b, out, c, i));
   yield;
+  // The works' apron (the terrain's skin over the pads, apron.ts) is walked as it's drawn.
+  for (const r of yield* worksApronSteps())
+    out.decks.push(uvDeck(r.u0, r.u1, r.v0, r.v1, r.y + APRON_LIFT, false));
   const yard = PADS.yard.y;
   // The lock flight's gates (upstream first), its lamps and its towpath steps.
   const tops = CHAMBERS.filter((c) => !c.name.startsWith('dock') && c.name !== 'basin');
@@ -1054,7 +1127,8 @@ export function* buildShipyard(
   const cut = CHAMBERS[cutIndex]!;
   const lock2Index = CHAMBERS.findIndex((c) => c.name === 'lock2');
   mitreGate(b, out, SEA_GATE_U, cut.floor, cut.top, cut.top);
-  for (const side of [1, -1])
+  // (Only if the cut's copings are lower than Lock 2's.)
+  for (const side of CHAMBERS[lock2Index]!.top - cut.top > 0.1 ? [1, -1] : [])
     steps(
       b,
       out,
@@ -1406,7 +1480,8 @@ function xzOf(u: number, v: number): { x: number; z: number } {
 
 /** A blank board on two posts (its words are painted from the course pack later). */
 export function signBoard(b: Buckets, u: number, v: number, y: number, w: number): void {
-  for (const dv of [-w / 2, w / 2]) {
+  // The posts stand just past the board's ends, so neither crosses its words on either face.
+  for (const dv of [-(w / 2 + 0.19), w / 2 + 0.19]) {
     const p = at(u, y, v + dv);
     rod(b, 'wood', p, { x: p.x, y: y + 2.4, z: p.z }, 0.08, 6, YARD_PAINT.tar);
   }
