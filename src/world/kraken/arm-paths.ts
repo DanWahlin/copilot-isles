@@ -157,7 +157,8 @@ export function railGrip(out: Points, z: number, press: number): void {
  * it an S: out away from `lean` low down, its tip hooked back over toward it. `slack` lengthens the
  * route by what the bones cut off its bends (a pose that ran off the end is posed again with it), so
  * the arm never runs off its end in a straight stub. `lead` is the arm's first bone's length (its
- * route's first leg).
+ * route's first leg). `aside` (0…1) scales its bow to one side (0: it stays in its lean's plane, as
+ * the arc over a ship's deck must, clear of her rig).
  */
 export function standPath(
   out: PointSink,
@@ -180,6 +181,7 @@ export function standPath(
   back = 0,
   slack = 0,
   lead = 3,
+  aside = 1,
 ): void {
   out.push(bx, by, bz);
   // Out and down from its socket (as far as its first bone, which lies along this leg rather than
@@ -225,7 +227,7 @@ export function standPath(
   if (above <= 0.05) return;
   // A short arm is all tip: a hook, not an S.
   const s = back * Math.min(1, above / 14);
-  freeArm(out, ex, ez, sea, above, armLength, phase, wave, leanX, leanZ, curl, bow, s);
+  freeArm(out, ex, ez, sea, above, armLength, phase, wave, leanX, leanZ, curl, bow, s, aside);
 }
 
 /**
@@ -297,6 +299,7 @@ export function freeArm(
   curl: number,
   bow: number,
   back = 0,
+  aside = 1,
 ): void {
   const steps = FREE_ARM_STEPS;
   const ds = len / steps;
@@ -313,6 +316,8 @@ export function freeArm(
   const sway = 0.12 + 0.07 * wave;
   const sx = -leanZ;
   const sz = leanX;
+  // Which side it bows to: fixed by the way it leans, so each arm has its own.
+  const side = (Math.sin(7 * Math.atan2(leanX, leanZ)) >= 0 ? 1 : -1) * aside;
   let x = ex;
   let y = sea;
   let z = ez;
@@ -326,7 +331,11 @@ export function freeArm(
       sBy * Math.sin(Math.PI * 2 * u) +
       sway * Math.sqrt(u) * Math.sin(Math.PI * 1.4 * u - phase);
     th += Math.min(turnMax, Math.max(-turnMax, want - th));
-    const across = 0.5 * sway * u * Math.sin(Math.PI * 1.1 * u - phase * 0.8 + 1.3);
+    // Across its lean too, so it reads curved from any side (seen along its lean, a planar J is a
+    // straight column): a bow to one side and the tip curling that way, and a sway.
+    const across =
+      side * (0.5 * Math.sin(Math.PI * u) + 0.7 * curlBy * tip * tip * (3 - 2 * tip)) * k +
+      0.5 * sway * u * Math.sin(Math.PI * 1.1 * u - phase * 0.8 + 1.3);
     const c = Math.cos(across);
     const h = Math.sin(th) * c;
     x += (leanX * h + sx * Math.sin(across)) * ds;
@@ -379,7 +388,14 @@ export function pullArc(out: Points, z: number, rise: number, press: number): vo
   const steps = 8;
   for (let s = 0; s <= steps; s++) {
     const a = (Math.PI * s * rise) / steps;
-    out.push(cx + r * Math.cos(a), sheer + 1 + 7 * Math.sin(a) * (0.7 + 0.3 * rise) - press * (s / steps), z);
+    // It sweeps in along her as it rises and comes over (never a flat half-circle, which reads as a
+    // straight post seen edge-on).
+    const along = 3.5 * (1 - (s * rise) / steps) ** 2;
+    out.push(
+      cx + r * Math.cos(a),
+      sheer + 1 + 7 * Math.sin(a) * (0.7 + 0.3 * rise) - press * (s / steps),
+      z + along,
+    );
   }
   if (rise < 0.98) return;
   // On the deck inside the rail, never toward her centre line (her stern is narrow).

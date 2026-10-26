@@ -1083,6 +1083,7 @@ export class KrakenEncounter {
           _o.x,
           _o.z,
           wArc,
+          0,
         );
       }
       const wMast = ease((w - b.grip) / (tm.grip * 0.6)) * release;

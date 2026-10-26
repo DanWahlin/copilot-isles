@@ -74,6 +74,7 @@ describe('wrap shapes keep clear of the rig', () => {
           0,
           0,
           7,
+          0,
         );
         const over = new Points(64);
         for (let i = 4; i < p.n; i++) over.push(p.xyz[i * 3]!, p.xyz[i * 3 + 1]!, p.xyz[i * 3 + 2]!);

@@ -137,6 +137,7 @@ export function poseFreeArm(
   ox = NaN,
   oz = NaN,
   weight = 1,
+  aside = 1,
 ): void {
   if (weight <= 0) return;
   arm.poser.base(_base);
@@ -160,7 +161,7 @@ export function poseFreeArm(
   let best = 0;
   let bestErr = Infinity;
   for (let tries = 0; tries < FIT_TRIES; tries++) {
-    buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, slack);
+    buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, slack, aside);
     const fit = followPath(path, arm.poser.lengths, _fitJoints);
     const err = fit > 0 ? fit * 3 : -fit;
     if (err < bestErr) {
@@ -173,7 +174,7 @@ export function poseFreeArm(
     }
     slack += fit > 0 ? fit + 0.1 : fit * 0.9;
   }
-  buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, best);
+  buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, best, aside);
   arm.poser.pose(path, weight, _freeAim);
 }
 
@@ -196,6 +197,7 @@ function buildFree(
   ox: number,
   oz: number,
   slack: number,
+  aside: number,
 ): void {
   path.clear();
   standPath(
@@ -219,6 +221,7 @@ function buildFree(
     back,
     slack,
     arm.poser.lengths[0]!,
+    aside,
   );
   path.build();
 }
