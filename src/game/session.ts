@@ -725,6 +725,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     onDone: (id, how) => o.onBattle?.(id, how),
     toast: (text, seconds) => hud.toast(text, seconds),
     onStart: (id) => puzzleLabel(`battle:${id}`),
+    say: (ids) => dialogue.play(ids),
   });
   battles.prefetch(island);
   let scriptRunning = false;

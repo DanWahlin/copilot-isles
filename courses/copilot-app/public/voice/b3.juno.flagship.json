@@ -1,0 +1,57 @@
+{
+  "id": "b3.juno.flagship",
+  "speaker": "Juno",
+  "text": "Their flagship's sailing straight over it! They haven't even looked.",
+  "words": [
+    {
+      "word": "Their",
+      "start": 0,
+      "end": 0.213
+    },
+    {
+      "word": "flagship's",
+      "start": 0.213,
+      "end": 0.85
+    },
+    {
+      "word": "sailing",
+      "start": 0.85,
+      "end": 1.262
+    },
+    {
+      "word": "straight",
+      "start": 1.262,
+      "end": 1.824
+    },
+    {
+      "word": "over",
+      "start": 1.824,
+      "end": 2.213
+    },
+    {
+      "word": "it",
+      "start": 2.213,
+      "end": 2.816
+    },
+    {
+      "word": "They",
+      "start": 2.816,
+      "end": 3.24
+    },
+    {
+      "word": "haven't",
+      "start": 3.24,
+      "end": 3.584
+    },
+    {
+      "word": "even",
+      "start": 3.584,
+      "end": 3.931
+    },
+    {
+      "word": "looked",
+      "start": 3.931,
+      "end": 4.181
+    }
+  ]
+}

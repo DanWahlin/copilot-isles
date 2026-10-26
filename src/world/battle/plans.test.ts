@@ -25,13 +25,22 @@ describe('battle plans', () => {
     }
   });
 
-  it('has a place for mid-battle events, and no battle has one yet', () => {
+  it("brings the kraken after battle 3's first wave, with its course lines; no other battle has an event", () => {
     for (const plan of BATTLE_PLANS) {
+      if (plan.id === 'passage-thousand-bough-keelhaven') continue;
       expect(plan.events, plan.id).toEqual([]);
-      for (let w = 1; w <= plan.waves.length; w++) expect(eventsAfter(plan, w)).toEqual([]);
+      expect(plan.kraken, plan.id).toBeNull();
     }
-    const withKraken: BattlePlan = { ...BATTLE_PLANS[2]!, events: [{ afterWave: 1, kind: 'kraken' }] };
-    expect(eventsAfter(withKraken, 1)).toEqual([{ afterWave: 1, kind: 'kraken' }]);
-    expect(eventsAfter(withKraken, 2)).toEqual([]);
+    const b3 = BATTLE_PLANS[2]!;
+    expect(eventsAfter(b3, 1)).toEqual([{ afterWave: 1, kind: 'kraken' }]);
+    for (let w = 2; w <= b3.waves.length; w++) expect(eventsAfter(b3, w)).toEqual([]);
+    expect(b3.kraken?.flagship).toBeTruthy();
+    // Every raider slot sails one rig after the kraken comes, so each hull it may break is cut once.
+    for (let slot = 0; slot < 2; slot++) {
+      const rigs = new Set(b3.waves.slice(1).map((w) => w.raiders[slot]?.kind));
+      expect(rigs.size, `slot ${slot}`).toBe(1);
+    }
+    const other: BattlePlan = { ...BATTLE_PLANS[0]!, events: [{ afterWave: 2, kind: 'kraken' }] };
+    expect(eventsAfter(other, 1)).toEqual([]);
   });
 });

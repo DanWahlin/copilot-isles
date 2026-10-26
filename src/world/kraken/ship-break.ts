@@ -5,9 +5,9 @@ import {
   LineSegments,
   Matrix4,
   Mesh,
+  Object3D,
   Vector3,
   type Material,
-  type Object3D,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MeshBuilder } from '../ship/mesh-builder';
@@ -64,7 +64,7 @@ export function cutShip(
   ship.updateMatrixWorld(true);
   _inv.copy(ship.matrixWorld).invert();
   const bounds = [-Infinity, ...cuts, Infinity];
-  const parts: { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean }[][] = [];
+  const parts: { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean; after: Drawn }[][] = [];
   for (let k = 0; k < bounds.length - 1; k++) parts.push([]);
   ship.traverseVisible((object) => {
     const mesh = object as Mesh;
@@ -80,7 +80,7 @@ export function cutShip(
       const g = lines
         ? clipLines(source, bounds[k]!, bounds[k + 1]!)
         : clipTriangles(source, bounds[k]!, bounds[k + 1]!);
-      if (g) parts[k]!.push({ material, lines, geometry: g, shadow: mesh.castShadow });
+      if (g) parts[k]!.push({ material, lines, geometry: g, shadow: mesh.castShadow, after: drawnHook(mesh) });
     }
     source.dispose();
   });
@@ -102,7 +102,13 @@ export function cutShip(
     const list = parts[k]!;
     if (caps.positions.length) {
       const indexed = caps.build();
-      list.push({ material: capMaterial, lines: false, geometry: indexed.toNonIndexed(), shadow: true });
+      list.push({
+        material: capMaterial,
+        lines: false,
+        geometry: indexed.toNonIndexed(),
+        shadow: true,
+        after: null,
+      });
       indexed.dispose();
     }
     const pivotZ =
@@ -131,6 +137,8 @@ export function cutShip(
         ? new LineSegments(merged.geometry, material)
         : new Mesh(merged.geometry, material);
       draw.castShadow = merged.shadow;
+      // A part that reports its draws (the sails' state check) reports them from its piece too.
+      if (merged.after) draw.onAfterRender = merged.after;
       draw.receiveShadow = true;
       draw.name = `piece ${k} ${merged.material.name || merged.material.type}`;
       inner.add(draw);
@@ -152,10 +160,17 @@ export function cutShip(
   };
 }
 
+/** A part's own draw callback (`onAfterRender`), or null when it has none. */
+type Drawn = Object3D['onAfterRender'] | null;
+
+function drawnHook(o: Object3D): Drawn {
+  return o.onAfterRender === Object3D.prototype.onAfterRender ? null : o.onAfterRender;
+}
+
 /** Parts of one piece that share a material, a kind and an attribute layout, merged into one. */
 function mergeAlike(
-  list: { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean }[],
-): { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean }[] {
+  list: { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean; after: Drawn }[],
+): { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean; after: Drawn }[] {
   const sets = new Map<string, typeof list>();
   for (const p of list) {
     const layout = Object.keys(p.geometry.attributes)
@@ -190,6 +205,7 @@ function mergeAlike(
       lines: set[0]!.lines,
       geometry: merged,
       shadow: set.some((p) => p.shadow),
+      after: set.find((p) => p.after)?.after ?? null,
     });
   }
   return out;

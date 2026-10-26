@@ -1,0 +1,82 @@
+{
+  "id": "b3.juno.evidence",
+  "speaker": "Juno",
+  "text": "Captain! Bubbles ahead, and a big dark shadow under them. That's evidence: something's down there.",
+  "words": [
+    {
+      "word": "Captain",
+      "start": 0,
+      "end": 0.72
+    },
+    {
+      "word": "Bubbles",
+      "start": 0.72,
+      "end": 1.187
+    },
+    {
+      "word": "ahead",
+      "start": 1.187,
+      "end": 1.86
+    },
+    {
+      "word": "and",
+      "start": 1.86,
+      "end": 1.96
+    },
+    {
+      "word": "a",
+      "start": 1.96,
+      "end": 2.1
+    },
+    {
+      "word": "big",
+      "start": 2.1,
+      "end": 2.496
+    },
+    {
+      "word": "dark",
+      "start": 2.496,
+      "end": 2.937
+    },
+    {
+      "word": "shadow",
+      "start": 2.937,
+      "end": 3.333
+    },
+    {
+      "word": "under",
+      "start": 3.333,
+      "end": 3.648
+    },
+    {
+      "word": "them",
+      "start": 3.648,
+      "end": 4.24
+    },
+    {
+      "word": "That's",
+      "start": 4.24,
+      "end": 4.702
+    },
+    {
+      "word": "evidence",
+      "start": 4.702,
+      "end": 5.568
+    },
+    {
+      "word": "something's",
+      "start": 5.568,
+      "end": 6.208
+    },
+    {
+      "word": "down",
+      "start": 6.208,
+      "end": 6.44
+    },
+    {
+      "word": "there",
+      "start": 6.44,
+      "end": 6.69
+    }
+  ]
+}

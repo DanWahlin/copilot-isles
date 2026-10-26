@@ -1,0 +1,62 @@
+{
+  "id": "b3.juno.hit",
+  "speaker": "Juno",
+  "text": "It hit our hull! Watch for the bubbles before it strikes.",
+  "words": [
+    {
+      "word": "It",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "hit",
+      "start": 0.2,
+      "end": 0.38
+    },
+    {
+      "word": "our",
+      "start": 0.38,
+      "end": 0.64
+    },
+    {
+      "word": "hull",
+      "start": 0.64,
+      "end": 1.16
+    },
+    {
+      "word": "Watch",
+      "start": 1.16,
+      "end": 1.8
+    },
+    {
+      "word": "for",
+      "start": 1.8,
+      "end": 1.94
+    },
+    {
+      "word": "the",
+      "start": 1.94,
+      "end": 2.05
+    },
+    {
+      "word": "bubbles",
+      "start": 2.05,
+      "end": 2.434
+    },
+    {
+      "word": "before",
+      "start": 2.434,
+      "end": 2.693
+    },
+    {
+      "word": "it",
+      "start": 2.693,
+      "end": 2.88
+    },
+    {
+      "word": "strikes",
+      "start": 2.88,
+      "end": 3.13
+    }
+  ]
+}

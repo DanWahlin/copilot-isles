@@ -1,0 +1,102 @@
+{
+  "id": "b3.wingman.taken",
+  "speaker": "Wingman",
+  "text": "Their captain was sure the sea was clear, and never checked the signs. A confident guess isn't proof, Captain.",
+  "words": [
+    {
+      "word": "Their",
+      "start": 0,
+      "end": 0.14
+    },
+    {
+      "word": "captain",
+      "start": 0.14,
+      "end": 0.62
+    },
+    {
+      "word": "was",
+      "start": 0.62,
+      "end": 0.864
+    },
+    {
+      "word": "sure",
+      "start": 0.864,
+      "end": 1.14
+    },
+    {
+      "word": "the",
+      "start": 1.14,
+      "end": 1.26
+    },
+    {
+      "word": "sea",
+      "start": 1.26,
+      "end": 1.5
+    },
+    {
+      "word": "was",
+      "start": 1.5,
+      "end": 1.747
+    },
+    {
+      "word": "clear",
+      "start": 1.747,
+      "end": 2.58
+    },
+    {
+      "word": "and",
+      "start": 2.58,
+      "end": 2.707
+    },
+    {
+      "word": "never",
+      "start": 2.707,
+      "end": 3.08
+    },
+    {
+      "word": "checked",
+      "start": 3.08,
+      "end": 3.38
+    },
+    {
+      "word": "the",
+      "start": 3.38,
+      "end": 3.547
+    },
+    {
+      "word": "signs",
+      "start": 3.547,
+      "end": 4.68
+    },
+    {
+      "word": "A",
+      "start": 4.68,
+      "end": 5.176
+    },
+    {
+      "word": "confident",
+      "start": 5.176,
+      "end": 5.733
+    },
+    {
+      "word": "guess",
+      "start": 5.733,
+      "end": 6.04
+    },
+    {
+      "word": "isn't",
+      "start": 6.04,
+      "end": 6.307
+    },
+    {
+      "word": "proof",
+      "start": 6.307,
+      "end": 6.91
+    },
+    {
+      "word": "Captain",
+      "start": 6.91,
+      "end": 7.16
+    }
+  ]
+}

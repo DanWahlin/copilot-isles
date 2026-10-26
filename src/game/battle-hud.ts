@@ -10,6 +10,8 @@ export interface BattleHudActions {
   calm(on: boolean): void;
   /** "Bring her round": hand the helm to your helmsman, or take it back. */
   assist(on: boolean): void;
+  /** Skips a mid-battle event (the kraken's beat) while it plays. */
+  skipEvent?(): void;
 }
 
 /** What the HUD asks the battle for readiness (no arrays built per update). */
@@ -128,6 +130,13 @@ export class BattleHud {
     skip.type = 'button';
     skip.textContent = 'Skip battle';
     skip.onclick = () => this.actions.skip();
+
+    // Skip a mid-battle event (shown only while one plays): E or the gamepad's A, too.
+    const skipEvent = noFocus(el('button', 'bh-skip-event', this.root));
+    skipEvent.type = 'button';
+    skipEvent.innerHTML = '<span>Skip</span><kbd>E</kbd>';
+    skipEvent.setAttribute('aria-label', 'Skip this scene');
+    skipEvent.onclick = () => this.actions.skipEvent?.();
 
     this.captionBox = el('div', 'bh-captions', this.root);
     this.captionBox.setAttribute('role', 'status');
@@ -351,8 +360,10 @@ export class BattleHud {
     this.waveText.textContent =
       s.phase === 'won'
         ? 'The passage is clear'
-        : s.phase === 'lull' || s.phase === 'question'
-          ? `Wave ${s.wave + 1} of ${s.waves} beaten`
+        : s.phase === 'event'
+          ? `Wave ${s.wave} of ${s.waves} beaten`
+          : s.phase === 'lull' || s.phase === 'question'
+            ? `Wave ${s.wave + 1} of ${s.waves} beaten`
           : `Wave ${s.wave + 1} of ${s.waves} · ${s.raidersLeft} ${s.raidersLeft === 1 ? 'raider' : 'raiders'} left`;
     const bits: string[] = [];
     if (s.doubleShot) bits.push('Double-shotted');

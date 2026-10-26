@@ -428,7 +428,10 @@ export class KrakenEncounter {
   private tellMark: MarkState | null = null;
   private readonly foamMarks: (MarkState | null)[] = [];
   private readonly foamAt: number[] = [];
-  private readonly brokeAt = { x: 0, z: 0, heading: 0, pitch: 0, roll: 0 };
+  private readonly brokeAt = { x: 0, z: 0, heading: 0, pitch: 0, roll: 0, scale: 1 };
+  /** The evidence on its own (`showEvidence`): its mark, where and when it showed, and its ring. */
+  private evidenceMark: MarkState | null = null;
+  private readonly evidenceAt = { x: 0, z: 0, radius: 0, ring: 0, from: 0, fadeFrom: NaN };
   private readonly sound = { x: 0, y: 0, z: 0 };
   private readonly anchor = new Vector3();
   private anchorHeading = 0;
@@ -577,25 +580,20 @@ export class KrakenEncounter {
     this.mode = 'idle';
     this.startAt = this.leaveAt = NaN;
     this.broke = false;
-    this.wreck = null;
     this.fired.fill(0);
     this.rand = mulberry32(0x6b72);
     this.marks.clear();
     this.tellMark = null;
+    this.evidenceMark = null;
     this.foamMarks.length = 0;
     this.foamAt.length = 0;
     this.hazards.reset();
     for (const w of this.wrecks) {
-      w.ship.group.visible = true;
-      w.pieces.group.visible = false;
-      let i = 0;
-      for (const p of w.pieces.pieces) {
-        p.root.visible = true;
-        p.pivot.rotation.set(0, 0, 0);
-        for (const m of p.lineMaterials) m.opacity = w.lineBase[i++]!;
-        for (const l of p.lines) l.visible = true;
-      }
+      // The ship it was taking is whole again; any other ship is its driver's to show or hide.
+      if (w === this.wreck) w.ship.group.visible = true;
+      this.restorePieces(w);
     }
+    this.wreck = null;
     this.splashes.clear();
     this.splinters.clear();
     for (const s of this.states) {
@@ -605,6 +603,18 @@ export class KrakenEncounter {
     }
     this.kraken.body.root.position.set(0, -16, 0);
     this.kraken.group.visible = false;
+  }
+
+  /** A wreck's pieces whole and hidden again (a hull the battle sails again can be taken again). */
+  private restorePieces(w: Wreck): void {
+    w.pieces.group.visible = false;
+    let i = 0;
+    for (const p of w.pieces.pieces) {
+      p.root.visible = true;
+      p.pivot.rotation.set(0, 0, 0);
+      for (const m of p.lineMaterials) m.opacity = w.lineBase[i++]!;
+      for (const l of p.lines) l.visible = true;
+    }
   }
 
   /** Surfaces at (x, z), facing `heading`, after its tell: its arms rise round it, one or two at a time. */
@@ -630,9 +640,12 @@ export class KrakenEncounter {
     this.finaleOn = !!o?.finale && !o?.quick;
     this.quick = !!o?.quick;
     this.beatsNow = wrapBeats(this.timing, this.activeArms(), this.finaleOn);
+    this.restorePieces(wreck);
     this.wreck = wreck;
     this.broke = false;
     this.trim = ship.dynamics.control.trim;
+    // Evidence shown ahead of it hands over to the wrap's own.
+    this.fadeEvidence();
     this.begin('wrap');
     this.anchorFor(ship);
     this.kraken.group.position.copy(this.anchor);
@@ -715,6 +728,91 @@ export class KrakenEncounter {
 
   hazard(x: number, z: number, kind: HazardKind, heading = 0): number {
     return this.hazards.start(kind, x, z, heading);
+  }
+
+  /**
+   * The evidence on its own, before the kraken acts (a battle shows it and lets a ship sail into it):
+   * bubbles, the shadow and the swirl under the water at (x, z), `radius` m across, with the danger
+   * ring at `ring` (0…1). It stays until a wrap starts (it hands over to the wrap's own), or until
+   * `fadeEvidence` or `reset`.
+   */
+  showEvidence(x: number, z: number, radius: number, ring = 0): void {
+    this.evidenceMark ??= this.marks.acquire();
+    const e = this.evidenceAt;
+    e.x = x;
+    e.z = z;
+    e.radius = radius;
+    e.ring = ring;
+    e.from = this.time;
+    e.fadeFrom = NaN;
+  }
+
+  /** The evidence fades out (over two seconds). */
+  fadeEvidence(): void {
+    if (this.evidenceMark && Number.isNaN(this.evidenceAt.fadeFrom)) this.evidenceAt.fadeFrom = this.time;
+  }
+
+  /** Whether the evidence shows now. */
+  get evidenceShown(): boolean {
+    return !!this.evidenceMark;
+  }
+
+  private updateEvidence(t: number): void {
+    const m = this.evidenceMark;
+    if (!m) return;
+    const e = this.evidenceAt;
+    const age = this.time - e.from;
+    const fade = Number.isNaN(e.fadeFrom) ? 1 : 1 - ease((this.time - e.fadeFrom) / 2);
+    if (fade <= 0) {
+      this.marks.release(m);
+      this.evidenceMark = null;
+      return;
+    }
+    const told = ease(age / 2);
+    m.x = e.x;
+    m.z = e.z;
+    m.radius = e.radius;
+    m.heading = 0;
+    m.arc = Math.PI * 2;
+    m.shadow = 0.95 * told * fade;
+    m.ring = e.ring * ease(age / 1.5) * fade;
+    m.foam = 0;
+    m.spin = age * (0.6 + 0.6 * told);
+    // Bubbles over the shadow.
+    if (fade > 0.5 && this.rand() < (this.reducedMotion ? 0.15 : 0.35)) {
+      const r = Math.sqrt(this.rand()) * e.radius * 0.6;
+      const a = this.rand() * Math.PI * 2;
+      const x = e.x + Math.cos(a) * r;
+      const z = e.z + Math.sin(a) * r;
+      this.splashes.spawn(x, this.waves.heightAt(x, z, t), z, t, 0.6 + this.rand() * 0.6, 0, this.rand());
+    }
+  }
+
+  /**
+   * Lets go of the ship it took, at once: her pieces hidden, its arms down and the kraken free and
+   * hidden (a battle skipping the beat, or a new wave reusing her hull). Her own ship stays as her
+   * driver left it (hidden while her pieces stood in).
+   */
+  release(): void {
+    if (this.mode !== 'wrap') return;
+    const w = this.wreck;
+    if (w) w.pieces.group.visible = false;
+    this.wreck = null;
+    this.broke = false;
+    this.mode = 'idle';
+    this.startAt = this.leaveAt = NaN;
+    this.quick = false;
+    if (this.tellMark) {
+      this.marks.release(this.tellMark);
+      this.tellMark = null;
+    }
+    for (const s of this.states) {
+      s.arm.weight = 0;
+      s.arm.sink = s.arm.length + 4;
+      s.shown = 0;
+    }
+    this.kraken.body.root.position.set(0, -16, 0);
+    this.kraken.group.visible = false;
   }
 
   /** The kraken goes back under: its arms let go and withdraw, its hazards sink, then its body. */
@@ -828,6 +926,8 @@ export class KrakenEncounter {
       if (showPieces) this.placePieces(wreck, w, t);
       if (w >= b.break && !this.broke) this.breakApart(wreck, t);
       if (w >= b.end && Number.isNaN(this.leaveAt)) this.leaveAt = this.time;
+      // Done with her: the wreck goes back to its driver, and the kraken is free (and hidden) again.
+      if (w >= b.end + WRAP_LINGER) this.release();
     }
     if (this.mode !== 'idle') {
       // It swims slowly to its place beside the ship (or stays where it rose).
@@ -848,6 +948,7 @@ export class KrakenEncounter {
       this.kraken.update(dt, t, camera, _look, anger);
     }
     this.updateTell(w, b);
+    this.updateEvidence(t);
     this.hazards.update(dt, t, camera);
     this.updateFoam();
     this.marks.update(t, this.waves);
@@ -1206,6 +1307,7 @@ export class KrakenEncounter {
         const p = list[k]!;
         p.root.position.copy(g.position);
         p.root.quaternion.copy(g.quaternion);
+        p.root.scale.copy(g.scale);
         const sign = k === 0 ? -1 : 1;
         p.pivot.rotation.set(sign * 0.025 * squeeze * gentle, 0, 0.16 * squeeze * gentle);
       }
@@ -1226,7 +1328,8 @@ export class KrakenEncounter {
       const sinkAge = w - b.under - (k === 1 ? 0 : 0.8);
       const swell = this.waves.heightAt(x, z, t) * Math.max(0, 1 - Math.max(0, sinkAge) / 3);
       const down = 0.8 * ease(age / 2) + 2 * ease(sinkAge / 3) + 11 * clamp01(sinkAge / tm.under) ** 2;
-      p.root.position.set(x, swell - down, z);
+      p.root.position.set(x, swell - down * this.brokeAt.scale, z);
+      p.root.scale.setScalar(this.brokeAt.scale);
       p.root.rotation.set(
         this.brokeAt.pitch * 0.5,
         this.brokeAt.heading + dir * 0.18 * pull,
@@ -1252,6 +1355,7 @@ export class KrakenEncounter {
     this.brokeAt.heading = pose.heading;
     this.brokeAt.pitch = g.rotation.x;
     this.brokeAt.roll = g.rotation.z;
+    this.brokeAt.scale = g.scale.x;
     const chips = this.reducedMotion ? 4 : 14;
     for (const z of CUTS) {
       for (let side = -1; side <= 1; side += 2) {
@@ -1464,6 +1568,8 @@ const CUE_UNDER = 8;
 const CUE_DONE = 12;
 const CUE_FINALE = 13;
 const HELD = { trim: 0, rudder: 0 };
+/** How long (s) after a wrap's end it keeps the wreck (its arms withdrawn) before it lets go. */
+const WRAP_LINGER = 8;
 
 /** How far `w` is from `a` to `z`, 0…1. */
 function span(w: number, a: number, z: number): number {

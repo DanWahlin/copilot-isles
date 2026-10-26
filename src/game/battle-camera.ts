@@ -15,6 +15,7 @@ const HOLD: Record<BattleBeat, number> = {
   clear: 4,
   won: 10,
   breakoff: 3,
+  kraken: 3,
 };
 const PRIORITY: Record<BattleBeat, number> = {
   incoming: 1,
@@ -24,6 +25,7 @@ const PRIORITY: Record<BattleBeat, number> = {
   breakoff: 3,
   strike: 4,
   won: 5,
+  kraken: 6,
 };
 /** Gun beats don't move the camera more often than this (s), so it doesn't hunt. */
 const GUN_COOLDOWN = 9;
@@ -93,6 +95,21 @@ export class BattleCamera {
     this.fz = z;
     this.cut = this.reducedMotion();
     this.sgn = 0;
+  }
+
+  /**
+   * Holds a shot on a moving focus (a mid-battle event: the kraken's beat), called each frame while it
+   * lasts: it starts like a beat, then follows (x, z) and stays until the calls stop.
+   */
+  hold(kind: BattleBeat, x: number, z: number): void {
+    if (!this.enabled) return;
+    if (this.shot === kind && this.now < this.shotUntil) {
+      this.fx = x;
+      this.fz = z;
+      this.shotUntil = this.now + HOLD[kind];
+      return;
+    }
+    this.beat(kind, x, z);
   }
 
   /** The raider to keep in frame this frame (`has` false: none, so the camera looks ahead). */
@@ -279,6 +296,14 @@ export class BattleCamera {
         const fz = Math.cos(heading);
         set(want, sx - fx * 34 + nx * 10, this.shot === 'clear' ? 24 : 30, sz - fz * 34 + nz * 10);
         set(aim, sx, 3, sz);
+        break;
+      }
+      case 'kraken': {
+        // High, astern of your ship on the line to it and off to one side: your ship in the corner,
+        // the evidence and what comes out of the sea beyond, nothing of your rigging in the way.
+        const back = Math.min(36, 20 + range * 0.15);
+        set(want, sx - ux * back + nx * 24, 16, sz - uz * back + nz * 24);
+        set(aim, this.fx, 4, this.fz);
         break;
       }
       case 'won': {

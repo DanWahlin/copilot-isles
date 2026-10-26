@@ -38,6 +38,8 @@ export interface PassageBattlesOptions {
   toast(text: string, seconds: number): void;
   /** A battle's first wave starts (after the briefing): its id, for its chart label. */
   onStart?(id: string): void;
+  /** Plays the course's voiced lines (the crew's calls in a battle with the kraken). */
+  say?(ids: readonly string[]): Promise<void>;
 }
 
 /** How often (s) the trigger and the zone are checked while you sail. */
@@ -113,6 +115,7 @@ export class PassageBattles {
           ground: this.o.cove.heightField,
           onEnd: (how) => this.end(b, how),
           onStart: () => this.o.onStart?.(b.id),
+          say: this.o.say,
         });
         return this.run.ready;
       })

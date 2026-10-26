@@ -1,0 +1,87 @@
+{
+  "id": "b3.wingman.stays",
+  "speaker": "Wingman",
+  "text": "It's still down there. When you see bubbles, steer clear, and lead the raiders over them.",
+  "words": [
+    {
+      "word": "It's",
+      "start": 0,
+      "end": 0.2
+    },
+    {
+      "word": "still",
+      "start": 0.2,
+      "end": 0.448
+    },
+    {
+      "word": "down",
+      "start": 0.448,
+      "end": 0.68
+    },
+    {
+      "word": "there",
+      "start": 0.68,
+      "end": 1.888
+    },
+    {
+      "word": "When",
+      "start": 1.888,
+      "end": 2.6
+    },
+    {
+      "word": "you",
+      "start": 2.6,
+      "end": 2.74
+    },
+    {
+      "word": "see",
+      "start": 2.74,
+      "end": 2.87
+    },
+    {
+      "word": "bubbles",
+      "start": 2.87,
+      "end": 3.653
+    },
+    {
+      "word": "steer",
+      "start": 3.653,
+      "end": 4
+    },
+    {
+      "word": "clear",
+      "start": 4,
+      "end": 4.84
+    },
+    {
+      "word": "and",
+      "start": 4.84,
+      "end": 5.008
+    },
+    {
+      "word": "lead",
+      "start": 5.008,
+      "end": 5.22
+    },
+    {
+      "word": "the",
+      "start": 5.22,
+      "end": 5.344
+    },
+    {
+      "word": "raiders",
+      "start": 5.344,
+      "end": 5.808
+    },
+    {
+      "word": "over",
+      "start": 5.808,
+      "end": 6.032
+    },
+    {
+      "word": "them",
+      "start": 6.032,
+      "end": 6.282
+    }
+  ]
+}

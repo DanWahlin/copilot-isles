@@ -23,7 +23,7 @@ import {
 import { Battery, bearing, gunStations, MAX_RANGE, PORT, STARBOARD, type Side } from './gunnery';
 import { RaiderBrain, emptyRaiderView, type RaiderHelm } from './raider-ai';
 import { clamp01, seededRandom } from '../../util/math';
-import { COURSE, onCourseSelected, type CourseMeta } from '../../course/catalog';
+import { COURSE, onCourseSelected, type CourseMeta, type KrakenHooks } from '../../course/catalog';
 
 /** A raider in a wave: its name board and its size (docs/specs/BATTLES.md §4.1). */
 export interface RaiderSpec {
@@ -41,9 +41,9 @@ export interface WaveSpec {
 }
 
 /**
- * Something that happens in a battle between its waves (a game mechanic, not course words): the hook a
- * later mid-battle event plugs into (the planned kraken, after this battle's branch). No battle has one
- * yet, and the battle doesn't act on them.
+ * Something that happens in a battle between its waves (a game mechanic, not course words): after the
+ * wave's question, the battle holds (phase `event`) while the event's driver plays it, until
+ * `Battle.endEvent`. Battle 3's kraken comes after its first wave (`kraken-act.ts`).
  */
 export interface BattleEvent {
   /** After which wave (1-based) it happens. */
@@ -54,8 +54,10 @@ export interface BattleEvent {
 /** A battle: where it's fought, its waves, and the line on the win card. */
 export interface BattlePlan {
   id: string;
-  /** Its mid-battle events (`BattleEvent`), in wave order; none yet. */
+  /** Its mid-battle events (`BattleEvent`), in wave order. */
   events: readonly BattleEvent[];
+  /** A battle with the kraken: its flagship's name and the crew's lines (the course's, by id). */
+  kraken: KrakenHooks | null;
   /** The course chapter it recaps. */
   chapter: '00' | '01' | '02';
   title: string;
@@ -82,6 +84,7 @@ function plan(
   return {
     id,
     events,
+    kraken: h.kraken ?? null,
     chapter: h.chapter as BattlePlan['chapter'],
     title,
     waves: kinds.map((wave, w) => ({
@@ -120,11 +123,18 @@ export let MERIDIAN_BATTLE: BattlePlan = meridianPassage(COURSE);
  * with the course's quiz (its `hooks.battles`; docs/specs/BATTLES.md §2.0c, §2.1).
  */
 const keelhavenPassage = (c: CourseMeta) =>
-  plan(c, 'passage-thousand-bough-keelhaven', 'Thousand-Bough Isle → Keelhaven', [
-    ['cutter', 'cutter'],
-    ['brigantine', 'cutter'],
-    ['brigantine', 'cutter'],
-  ]);
+  plan(
+    c,
+    'passage-thousand-bough-keelhaven',
+    'Thousand-Bough Isle → Keelhaven',
+    [
+      ['cutter', 'cutter'],
+      ['brigantine', 'cutter'],
+      ['brigantine', 'cutter'],
+    ],
+    // The kraken rises after the first wave and stays for the rest (docs/specs/BATTLES.md §2.0c).
+    [{ afterWave: 1, kind: 'kraken' }],
+  );
 export let KEELHAVEN_BATTLE: BattlePlan = keelhavenPassage(COURSE);
 
 export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE, KEELHAVEN_BATTLE];
@@ -152,11 +162,32 @@ export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 's
 /**
  * Staging beats (battle-plan.md §3) for the camera: `intro` (sails in the fog), `broadside` (your guns
  * fire at a raider), `incoming` (a raider fires on you), `strike` (a raider strikes), `clear` (a wave
- * is beaten), `won`, and `breakoff`. Each carries a world position.
+ * is beaten), `won`, `breakoff`, and `kraken` (the kraken's beat, held on its focus). Each carries a
+ * world position.
  */
-export type BattleBeat = 'intro' | 'broadside' | 'incoming' | 'strike' | 'clear' | 'won' | 'breakoff';
+export type BattleBeat =
+  | 'intro'
+  | 'broadside'
+  | 'incoming'
+  | 'strike'
+  | 'clear'
+  | 'won'
+  | 'breakoff'
+  | 'kraken';
 
-export type BattlePhase = 'idle' | 'intro' | 'fight' | 'lull' | 'question' | 'breakoff' | 'won' | 'skipped';
+export type BattlePhase =
+  | 'idle'
+  | 'intro'
+  | 'fight'
+  | 'lull'
+  | 'question'
+  | 'event'
+  | 'breakoff'
+  | 'won'
+  | 'skipped';
+
+/** A ship's part in the battle: `taken` is a raider the kraken has (out of the fight, still afloat). */
+export type ShipState = 'idle' | 'afloat' | 'struck' | 'taken' | 'gone';
 
 const PLAYER_HULL = 100;
 const BREAK_OFF_AT = 15;
@@ -193,7 +224,7 @@ interface Combatant {
   readonly aim: Int8Array;
   readonly brain: RaiderBrain | null;
   readonly helm: RaiderHelm;
-  state: 'idle' | 'afloat' | 'struck' | 'gone';
+  state: ShipState;
   struckAt: number;
   /** Warning arcs: 0…1 while a raider's side lays its guns on you, −1 when not. */
   readonly lay: Float32Array;
@@ -275,6 +306,13 @@ export interface BattleOptions {
   openWater?: (x: number, z: number) => boolean;
   /** The ground the raiders sail over (they run aground on islands like your ship); none at sea. */
   ground?: HeightField | null;
+  /** The plan's mid-battle events (`BattlePlan.events`). */
+  events?: readonly BattleEvent[];
+  /**
+   * An event's driver: called when its wave's question is answered. True means it plays it: the
+   * battle holds in phase `event` (no raiders, your guns held) until `endEvent`.
+   */
+  onEvent?: (e: BattleEvent, t: number) => boolean;
 }
 
 /** The lookout's call, by where the fog lies from your bow (prebuilt, picked per wave). */
@@ -316,6 +354,10 @@ const HINT_TURN: readonly (readonly string[])[] = [
   ],
 ];
 const HINT_FIRE = ['Your port guns bear: fire!', 'Your starboard guns bear: fire!', 'Both sides bear: fire!'];
+const CAPTION_BALL = 'Hit! Your hull takes a ball';
+const CAPTION_HIT = 'Hit!';
+const CAPTION_ARM = 'An arm strikes your hull!';
+const CAPTION_ARM_RAIDER = 'An arm strikes a raider!';
 
 /**
  * A sea battle (docs/specs/BATTLES.md): waves of raiders, your broadsides and theirs, damage, struck
@@ -357,6 +399,8 @@ export class Battle {
   private readonly beat: NonNullable<BattleOptions['onBeat']>;
   private readonly openWater: ((x: number, z: number) => boolean) | null;
   private readonly ground: HeightField | null;
+  private readonly events: readonly BattleEvent[];
+  private readonly onEvent: NonNullable<BattleOptions['onEvent']> | null;
   private title = '';
   private readonly view = emptyRaiderView();
   /** Only one raider lays its guns at a time, so warnings never stack (§7). */
@@ -391,6 +435,8 @@ export class Battle {
     this.beat = o.onBeat ?? (() => undefined);
     this.openWater = o.openWater ?? null;
     this.ground = o.ground ?? null;
+    this.events = o.events ?? [];
+    this.onEvent = o.onEvent ?? null;
     this.group.name = 'battle';
     const budget = fxBudget(o.tier);
     this.balls = new BallPool(budget.balls);
@@ -586,7 +632,25 @@ export class Battle {
       const p = this.player.ship.dynamics.pose;
       this.emit('cheer', p.x, 2, p.z);
       this.beat('won', p.x, p.z);
-    } else this.spawnWave(this.now);
+    } else if (!this.startEvent(this.now)) this.spawnWave(this.now);
+  }
+
+  /** The plan's event after the wave just beaten, if its driver plays it (the battle holds meanwhile). */
+  private startEvent(t: number): boolean {
+    if (!this.onEvent) return false;
+    for (const e of this.events) {
+      if (e.afterWave !== this.wave || !this.onEvent(e, t)) continue;
+      if (this.assist) this.setAssist(false);
+      this.setPhase('event', t);
+      return true;
+    }
+    return false;
+  }
+
+  /** The event's driver is done: the next wave comes out of the fog. */
+  endEvent(t: number): void {
+    if (this.phase !== 'event') return;
+    this.spawnWave(t);
   }
 
   private repair(points: number): void {
@@ -1008,7 +1072,7 @@ export class Battle {
     for (const c of this.combatants) {
       let n = 0;
       for (const o of this.combatants) {
-        if (o === c || (o.state !== 'afloat' && o.state !== 'struck')) continue;
+        if (o === c || (o.state !== 'afloat' && o.state !== 'struck' && o.state !== 'taken')) continue;
         const p = o.ship.dynamics.pose;
         for (let k = -1; k <= 1; k += 2) {
           let ob = c.obstacles[n];
@@ -1171,6 +1235,7 @@ export class Battle {
     z: number,
     localSide: number,
     t: number,
+    caption = c.player ? CAPTION_BALL : CAPTION_HIT,
   ): void {
     if (c.state !== 'afloat') {
       this.splinters.burst(x, y, z, 0, 0, 3, this.rand);
@@ -1193,11 +1258,11 @@ export class Battle {
     c.ship.dynamics.kick(localSide * (rm ? 0.03 : 0.07), (this.rand() - 0.5) * (rm ? 0.02 : 0.05));
     if (c.player) {
       c.ship.dynamics.pose.shake = Math.max(c.ship.dynamics.pose.shake, rm ? 0 : 0.3);
-      this.caption('Hit! Your hull takes a ball');
+      this.caption(caption);
       if (c.hull <= BREAK_OFF_AT && this.phase === 'fight') this.breakOff(t);
       return;
     }
-    this.caption('Hit!');
+    this.caption(caption);
     if (c.hull <= 0) this.strike(c, t);
   }
 
@@ -1235,13 +1300,19 @@ export class Battle {
     // The crew rows away from you, from the far side of the hull.
     const away = Math.atan2(p.x - pp.x, p.z - pp.z);
     this.boats.spawn(p.x + Math.sin(away) * 8, p.z + Math.cos(away) * 8, away + 1.1, t);
+    this.dropStores(c, p.x, p.z, t);
+  }
+
+  /** A beaten raider's stores (timber, powder) round her, and broken planks along her side. */
+  private dropStores(c: Combatant, x: number, z: number, t: number): void {
+    const heading = c.ship.dynamics.pose.heading;
     const count = 3 + Math.floor(this.rand() * 3);
     for (let k = 0; k < count; k++) {
       const a = this.rand() * Math.PI * 2;
       const r = 6 + this.rand() * 8;
       this.stores.spawn(
-        p.x + Math.sin(a) * r,
-        p.z + Math.cos(a) * r,
+        x + Math.sin(a) * r,
+        z + Math.cos(a) * r,
         this.rand() < 0.6 ? STORE_TIMBER : STORE_POWDER,
         t + STORE_LIFE,
       );
@@ -1252,8 +1323,8 @@ export class Battle {
       const along = (this.rand() - 0.5) * 20 * c.scale;
       const off = (this.rand() - 0.5) * 9;
       this.stores.spawn(
-        p.x + Math.sin(p.heading) * along + Math.cos(p.heading) * off,
-        p.z + Math.cos(p.heading) * along - Math.sin(p.heading) * off,
+        x + Math.sin(heading) * along + Math.cos(heading) * off,
+        z + Math.cos(heading) * along - Math.sin(heading) * off,
         STORE_WRECKAGE,
         t + STORE_LIFE * (0.5 + this.rand() * 0.4),
       );
@@ -1458,9 +1529,97 @@ export class Battle {
     if (c && c.state === 'afloat') c.hull = Math.max(1, Math.min(c.hull, hull));
   }
 
+  /** Tests and probes: every raider afloat strikes her colours now (the wave ends as if you'd beaten it). */
+  debugStrikeAll(): void {
+    for (let i = 1; i < this.combatants.length; i++) {
+      const c = this.combatants[i]!;
+      if (c.state !== 'afloat') continue;
+      c.hull = 0;
+      this.strike(c, this.now);
+    }
+  }
+
   /** Every ship (yours first) for draw-call accounting. */
   ships(): Brigantine[] {
     return this.combatants.map((c) => c.ship);
+  }
+
+  // ---- The kraken's seam (kraken-act.ts): ships by index, yours at 0 ------------------------------
+
+  /** How many ships the battle has (yours and every raider's hull). */
+  get shipCount(): number {
+    return this.combatants.length;
+  }
+
+  shipAt(i: number): Brigantine {
+    return this.combatants[i]!.ship;
+  }
+
+  shipState(i: number): ShipState {
+    return this.combatants[i]!.state;
+  }
+
+  shipName(i: number): string {
+    return this.combatants[i]!.name;
+  }
+
+  /** The raider's rig in wave `wave` (0-based) for raider slot `i` (1…), or null if she isn't in it. */
+  rigIn(wave: number, i: number): RaiderSpec['kind'] | null {
+    return this.plan[wave]?.raiders[i - 1]?.kind ?? null;
+  }
+
+  /**
+   * A strike from below (the kraken's arm) on ship `i` at (x, z): your hull takes `damage` (halved in
+   * calm seas) and may break off; a raider's may strike her colours. Nothing for a ship out of the fight.
+   */
+  strikeFromBelow(i: number, damage: number, x: number, z: number, t: number): void {
+    const c = this.combatants[i];
+    if (!c || c.state !== 'afloat') return;
+    const p = c.ship.dynamics.pose;
+    const y = this.waves.heightAt(x, z, t) + 1.2;
+    tmpLocal.set(x, y, z).applyMatrix4(c.inverse);
+    if (c.player && this.calm) damage *= 0.5;
+    this.hit(c, damage, x, y, z, tmpLocal.x >= 0 ? 1 : -1, t, c.player ? CAPTION_ARM : CAPTION_ARM_RAIDER);
+    // An arm across her deck stops her way more than a ball does.
+    c.ship.dynamics.kick(0, world.reducedMotion.value > 0.5 ? 0.02 : 0.08);
+    if (!c.player) return;
+    p.shake = Math.max(p.shake, world.reducedMotion.value > 0.5 ? 0 : 0.5);
+  }
+
+  /**
+   * The kraken has raider `i`: she's out of the fight (her guns fall silent, nobody steers her) but
+   * still afloat while its arms close; she leaves stores like a struck raider. False if she can't be.
+   */
+  take(i: number, t: number): boolean {
+    const c = this.combatants[i];
+    if (!c || c.player || c.state !== 'afloat') return false;
+    c.state = 'taken';
+    c.struckAt = t;
+    c.lay.fill(-1);
+    if (this.token === c.index) this.token = -1;
+    if (this.focusIdx === c.index) this.focusIdx = -1;
+    const p = c.ship.dynamics.pose;
+    this.dropStores(c, p.x, p.z, t);
+    this.beat('strike', p.x, p.z);
+    return true;
+  }
+
+  /** A fog bank `range` m out on `bearing` (radians, heading convention) from your ship: an event's ship comes out of it. */
+  formFog(bearing: number, range: number, width: number, t: number): void {
+    const p = this.player.ship.dynamics.pose;
+    this.fog.form(p.x, p.z, bearing, range, width, t, this.rand);
+  }
+
+  thinFog(t: number): void {
+    this.fog.thin(t);
+  }
+
+  /** The kraken is done with raider `i` (her pieces are under): she's gone. */
+  letGo(i: number): void {
+    const c = this.combatants[i];
+    if (!c || c.state !== 'taken') return;
+    c.state = 'gone';
+    c.ship.group.visible = false;
   }
 
   dispose(): void {

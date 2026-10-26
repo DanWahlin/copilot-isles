@@ -1377,6 +1377,26 @@
     }
   ],
   "voiced": {
+    "b3.juno.evidence": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "b3.wingman.taken": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "b3.wingman.stays": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "b3.juno.retreat": {
+      "chapter": "03-development-workflows",
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
     "kh.juno.arrive.02": {
       "chapter": "03-development-workflows",
       "anchor": "core-concept-trust-the-evidence",

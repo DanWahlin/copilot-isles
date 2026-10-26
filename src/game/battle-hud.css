@@ -203,6 +203,36 @@
   border-color: var(--gold);
 }
 
+/* Skip a mid-battle event (the kraken's beat): only while it plays. */
+.bh-skip-event {
+  position: absolute;
+  right: 1.4rem;
+  bottom: 9rem;
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.bh-skip-event:hover,
+.bh-skip-event:focus-visible {
+  border-color: var(--gold);
+}
+.bh[data-phase='event'] .bh-skip-event {
+  display: inline-flex;
+}
+/* Your guns are held while it plays. */
+.bh[data-phase='event'] .bh-guns {
+  opacity: 0.45;
+}
+
 /* ---- Captions ---- */
 .bh-captions {
   position: absolute;
@@ -322,7 +352,8 @@
 }
 .bh-key,
 .bh-fire kbd,
-.bh-assist kbd {
+.bh-assist kbd,
+.bh-skip-event kbd {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.66rem;
   letter-spacing: 0;
