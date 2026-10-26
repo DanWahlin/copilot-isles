@@ -29,6 +29,24 @@ export type SurfaceKind = 'sand' | 'grass' | 'rock' | 'stone' | 'wood' | 'water'
 export interface WalkSurface {
   heightAt(x: number, z: number, y?: number): number | null;
   kind: SurfaceKind | ((x: number, z: number) => SurfaceKind);
+  /**
+   * Where it can return a height (an island's surfaces: its bake). A query outside skips it without
+   * a call: the follow camera asks ~1000 a frame, mostly far from every island but the one you're at.
+   */
+  box?: WalkBox;
+}
+
+/** A rectangle on the ground (world x, z). */
+export interface WalkBox {
+  readonly minX: number;
+  readonly maxX: number;
+  readonly minZ: number;
+  readonly maxZ: number;
+}
+
+/** Whether (x, z) is outside a surface's box (a surface with none is everywhere). */
+export function outsideBox(box: WalkBox | undefined, x: number, z: number): boolean {
+  return !!box && (x < box.minX || x > box.maxX || z < box.minZ || z > box.maxZ);
 }
 
 /** Fresh water at a point (`CollisionWorldOptions.inland`). */
@@ -183,6 +201,7 @@ export class CollisionWorld {
   private surfaceOver(x: number, z: number, y: number | undefined, t: number): number | null {
     let best: number | null = null;
     for (const s of this.surfaces) {
+      if (outsideBox(s.box, x, z)) continue;
       const sh = s.heightAt(x, z, y);
       if (sh !== null && sh >= t - 0.05 && (best === null || sh > best)) best = sh;
     }
@@ -206,6 +225,7 @@ export class CollisionWorld {
     let low: number | null = null;
     let at: number | null = null;
     for (const s of this.surfaces) {
+      if (outsideBox(s.box, x, z)) continue;
       const a = s.heightAt(x, z);
       if (a !== null && a >= floor && (low === null || a > low)) low = a;
       const b = s.heightAt(x, z, y);
@@ -236,6 +256,7 @@ export class CollisionWorld {
   surfaceAt(x: number, z: number, t = 0, y?: number): SurfaceKind {
     const g = this.ground.heightAt(x, z);
     for (const s of this.surfaces) {
+      if (outsideBox(s.box, x, z)) continue;
       const sh = s.heightAt(x, z, y);
       if (sh !== null && sh >= g - 0.05) return typeof s.kind === 'function' ? s.kind(x, z) : s.kind;
     }
