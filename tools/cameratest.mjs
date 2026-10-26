@@ -10,8 +10,9 @@
 //   inside   the near plane's centre is inside closed drawn geometry (rays from it go out through a
 //            back face in at least five of the six axis directions)
 //   touch    the near-plane rectangle (or the frustum between the eye and it) crosses drawn geometry
-// Leaves (alpha-tested) only count as info, and so do frames where something hides the pivot and
-// the mean reach (camera distance over the zoom asked for, to see how far collision pulls it in).
+// Leaves (alpha-tested) and the moored ship's rig only count as info, and so do frames where something
+// hides the pivot and the mean reach (camera distance over the zoom asked for, to see how far
+// collision pulls it in).
 // Characters, birds, glow, water, and sky are skipped; terrain is tested through its height field.
 // Spots where the pivot is inside geometry, or where geometry comes within 0.45 m of it (the head
 // is already in it: a collider that's smaller than what's drawn), are skipped and counted.
@@ -218,7 +219,9 @@ const clusters = await page.evaluate(async (cfg) => {
       if (mats.every((m) => !m || m.transparent || m.visible === false)) return;
       const g = o.geometry;
       if (!g?.attributes?.position) return;
-      const owner = { path, foliage: mats.some((m) => m && m.alphaTest > 0) };
+      // The ship's rig (masts, yards, sails, rigging) counts like leaves: the camera passes through it
+      // as it does under sail (sail clusters leave the ship out); her hull counts.
+      const owner = { path, foliage: mats.some((m) => m && m.alphaTest > 0) || /brigantine rig/.test(path) };
       if (o.isInstancedMesh) {
         for (let i = 0; i < o.count; i++) {
           const a = o.instanceMatrix.array;

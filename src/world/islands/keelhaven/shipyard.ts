@@ -264,6 +264,16 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
           0.55 + 0.02 * k,
           YARD_PAINT.stone,
         );
+        // The camera keeps out of each step, from its face back to the wall.
+        const depth = 0.35 + (2 - k) * 0.55 + 0.3;
+        out.cameraBoxes.push({
+          ...xzOf((c.u0 + c.u1) / 2 + 0.6, (side < 0 ? c.v0 : c.v1) - (side * depth) / 2),
+          hx: (c.u1 - c.u0 - 1.2) / 2,
+          hz: depth / 2,
+          rot: YAW_U,
+          y0: c.floor - 0.3,
+          y1: y,
+        });
       }
 }
 
@@ -874,6 +884,22 @@ function sheerlegs(b: Buckets, out: ShipyardOut, y: number): void {
     rod(b, 'wood', f, head, 0.42, 8, YARD_PAINT.weathered, 0.3);
     box(b, 'stone', f.x, y + 0.3, f.z, 1.6, 0.6, 1.6, YAW_U, YARD_PAINT.stone);
     out.circles.push({ x: f.x, z: f.z, r: 0.9, y0: y - 0.5, y1: y + 4, height: 4 });
+    // The camera keeps out of the leg: a short box for each stretch of it, up to the head.
+    const n = 10;
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n;
+      const y0 = f.y + (head.y - f.y) * (k / n);
+      const y1 = f.y + (head.y - f.y) * ((k + 1) / n);
+      out.cameraBoxes.push({
+        x: f.x + (head.x - f.x) * t,
+        z: f.z + (head.z - f.z) * t,
+        hx: 0.45 + Math.hypot(head.x - f.x, head.z - f.z) / n / 2,
+        hz: 0.45 + Math.hypot(head.x - f.x, head.z - f.z) / n / 2,
+        rot: 0,
+        y0: y0 - 0.45,
+        y1: y1 + 0.45,
+      });
+    }
   }
   const anchor = at(186, ground(186, DOCKS.v[1]) + 0.4, DOCKS.v[1]);
   rope(b, { x: head.x, y: head.y + 0.3, z: head.z }, anchor, 0.8, 0.06, YARD_PAINT.rope, 8);
