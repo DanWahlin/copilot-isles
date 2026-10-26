@@ -441,7 +441,7 @@ export class KrakenSightings {
       const a = smooth(u / plan.duration);
       const body = k.body.root;
       body.rotation.set(1.2, 0, 0.12 * Math.sin(u * 0.6));
-      body.position.set(0, -8.6 + 7.4 * Math.sin(Math.PI * Math.min(1, u / plan.duration)), -8 + 16 * a);
+      body.position.set(0, -8.6 + 9 * Math.sin(Math.PI * Math.min(1, u / plan.duration)), -8 + 16 * a);
       // Spray where the back breaks the water, and again as it goes under.
       if (this.arcCue === 0 && u > plan.duration * 0.22) {
         this.arcCue = 1;

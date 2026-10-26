@@ -302,7 +302,8 @@ function placeHazard(kind: HazardKind, side: number): void {
   const spec = HAZARD_SPECS[kind];
   const v = Math.max(1.5, p.speed);
   const ahead = v * (spec.tell + 0.7) + (kind === 'sweep' ? 6 : 2);
-  const off = side * (spec.radius + halfBeamAt(0, 1) - 2.5);
+  // Just inside the area on her course; the sweep's arc edge needs a little less.
+  const off = side * (spec.radius + halfBeamAt(0, 1) - (kind === 'sweep' ? 1.6 : 2.5));
   const s = Math.sin(p.heading);
   const c = Math.cos(p.heading);
   const x = p.x + s * ahead + c * off;
@@ -444,6 +445,10 @@ async function warm(): Promise<void> {
 }
 // Both ships are drawn before the warm too (one shows only in some scenarios).
 mine.group.visible = flagship.group.visible = true;
+// The page's own first frames (sky, sea, ships, post) are its warm-up too.
+await engine.counters.excuse(new Promise((r) => setTimeout(r, 500)));
+/** Shader programs before the kraken's warm: the page without it (sky, sea, ships, post). */
+const programsBefore = engine.counters.last.programs;
 await engine.counters.excuse(warm());
 await new Promise((r) => setTimeout(r, 200));
 ready = true;
@@ -498,6 +503,10 @@ const KINDS = ['tip', 'group', 'arc'] as const;
 let kindAt = 0;
 const sight = (kind?: (typeof KINDS)[number], distance?: number) => {
   if (scenario !== 'sightings') restart('sightings');
+  // The deck camera first: a sighting is placed in the camera's view.
+  snapCamera = true;
+  frameCamera(1);
+  camera.updateMatrixWorld();
   sightings.force(kind ?? (tier.tier === 'lite' ? 'tip' : KINDS[kindAt++ % KINDS.length]), distance);
 };
 (document.getElementById('sight') as HTMLButtonElement).onclick = () => sight();
@@ -534,6 +543,7 @@ const stats = () => ({
   strike: { ...lastStrike },
   speed: mine.dynamics.pose.speed,
   sighting: sightings.current ? { ...sightings.current } : null,
+  programsBefore,
 });
 dev.__kraken = {
   ready: true,

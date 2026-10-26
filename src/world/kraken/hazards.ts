@@ -159,6 +159,9 @@ export class KrakenHazards {
     this.events = o.events;
     this.rand = o.rand;
     kraken.group.name = 'kraken hazards';
+    // Long enough to slam across a whole danger circle from its edge.
+    kraken.group.scale.setScalar(1.35);
+    kraken.measure();
     kraken.body.drawn.visible = false;
     for (let i = 0; i < kraken.arms.length; i++)
       this.hazards.push({
@@ -245,12 +248,14 @@ export class KrakenHazards {
       h.mark.arc = spec.arc;
     }
     const arm = this.kraken.arms[h.arm]!;
-    // Sweeping arms rise at the arc's edge and sweep across; slamming arms rise beside the circle.
-    const side = kind === 'sweep' ? 0 : 0.85;
+    // Sweeping arms rise at the arc's middle and sweep across; slamming arms rise in the circle's far
+    // side. Sockets are in the (scaled) kraken's frame, which sits at the world's origin.
+    const side = kind === 'sweep' ? 0 : 0.45;
+    const k = this.kraken.group.scale.x;
     arm.socket.set(
-      x - Math.sin(heading) * spec.radius * side,
-      -2,
-      z - Math.cos(heading) * spec.radius * side,
+      (x - Math.sin(heading) * spec.radius * side) / k,
+      -2 / k,
+      (z - Math.cos(heading) * spec.radius * side) / k,
     );
     arm.root.rotation.set(0, heading, 0);
     this.kraken.play(h.arm, 'Tentacle_Idle', 0, 1, true);
@@ -329,7 +334,7 @@ export class KrakenHazards {
     // Up fast out of the water, then the strike (a slam over and down, or a sweep low across).
     const up = smooth((age - tell) / (gentle ? 0.9 : 0.55));
     const goneDown = h.downAt < Infinity ? smooth((age - h.downAt) / 2.2) : 0;
-    const share = h.kind === 'sweep' ? 0.62 : 0.72;
+    const share = h.kind === 'sweep' ? 0.62 : 0.85;
     arm.sink = arm.length * (1 - share * up) + (arm.length * share + 4) * goneDown;
     const s = age - tell - LAND;
     if (!h.struck && s >= 0) {
@@ -367,15 +372,14 @@ export class KrakenHazards {
     const hs = Math.sin(a.heading);
     const hc = Math.cos(a.heading);
     if (h.kind === 'slam') {
-      // From beside the circle, up and over, down across its middle.
+      // Up out of the circle's far side, over, and down across its middle (raised high, then it falls).
       const bx = _p.x;
       const bz = _p.z;
       const fall = smooth((s + LAND) / LAND);
-      path.push(bx, 4, bz);
-      path.push(bx + hs * 4, 13 - 6 * fall, bz + hc * 4);
-      path.push(a.x - hs * 2, 9 - 8.5 * fall, a.z - hc * 2);
-      path.push(a.x + hs * spec.radius * 0.5, 0.6 + 6 * (1 - fall), a.z + hc * spec.radius * 0.5);
-      path.push(a.x + hs * spec.radius * 0.9, 0.3 + 4 * (1 - fall), a.z + hc * spec.radius * 0.9);
+      path.push(bx, 2, bz);
+      path.push(bx + hs * 3, 11 - 2 * fall, bz + hc * 3);
+      path.push(a.x + hs * 2 * fall, 0.5 + 9 * (1 - fall), a.z + hc * 2 * fall);
+      path.push(a.x + hs * (2 + 6 * fall), 0.2 + 7 * (1 - fall), a.z + hc * (2 + 6 * fall));
     } else {
       // Rises at the middle and sweeps low across the arc, from one side to the other.
       const u = smooth(s / spec.strike);
