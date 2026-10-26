@@ -701,6 +701,11 @@ function addHarbour(
   );
   addBox(buckets, 'paving', 684.2, extraBenchFloor - 0.09, -764.2, 5.4, 0.18, 3.6, 0, 0xf0d7aa);
   addBox(buckets, 'stone', 684.2, extraBenchFloor + 0.08, -762.4, 5.8, 0.28, 0.36, 0, LIMESTONE_LIGHT);
+  // The camera keeps out of the platform and its back (issue 312).
+  colliders.camera?.push(
+    { x: 684.2, z: -764.2, hx: 3.0, hz: 2.0, rot: 0, y0: deck - 0.1, y1: extraBenchFloor },
+    { x: 684.2, z: -762.4, hx: 2.9, hz: 0.18, rot: 0, y0: extraBenchFloor, y1: extraBenchFloor + 0.36 },
+  );
   const extraBenchY = addBenchSeat(buckets, 684.2, extraBenchFloor, -764.2, 0, 1.0);
   anchor('extraBench', {
     x: 684.2,
@@ -1449,6 +1454,8 @@ function addShipyard(
   void low;
   const y = MERIDIAN.harbor.quay.height;
   addBox(buckets, 'paving', 590.5, y - 0.08, -756, 42, 0.16, 34, 0, 0xe8cf9a);
+  // The yard's paving stands over the beach at its west edge: the camera keeps out from under it.
+  colliders.camera?.push({ x: 590.5, z: -756, hx: 21, hz: 17, rot: 0, y0: y - 1.4, y1: y });
   addBox(buckets, 'wood', 579.4, -1.0, -742.2, 9.0, 0.32, 22, -15 * DEG, 0x7d5735);
   addBox(buckets, 'wood', 579.4, 0.1, -746.2, 7.8, 0.25, 20, -15 * DEG, 0x8a6541);
   addHullUnderConstruction(buckets, colliders, perches, 579.5, y, -762.2, 8 * DEG);
