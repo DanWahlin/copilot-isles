@@ -4,6 +4,7 @@ import {
   CustomBlending,
   Group,
   Mesh,
+  OneFactor,
   OneMinusSrcColorFactor,
   ZeroFactor,
   type Material,
@@ -71,6 +72,9 @@ function shadowMaterial(): MeshBasicNodeMaterial {
   m.blending = CustomBlending;
   m.blendSrc = ZeroFactor;
   m.blendDst = OneMinusSrcColorFactor;
+  // The alpha under it stays as it was: zeroed, Lite's canvas showed the page through it (a black disc).
+  m.blendSrcAlpha = ZeroFactor;
+  m.blendDstAlpha = OneFactor;
   darken = m;
   return m;
 }
