@@ -1000,6 +1000,10 @@ export class KrakenEncounter {
         out = ease((w - b.end + 0.5 + tm.finale * 0.45) / (tm.finale * 0.4));
       }
     }
+    // Once her halves are under (the foam burst) its arms let go of them and stand free again,
+    // lower and curled, before they withdraw.
+    const letGo = this.broke && !finaleArm ? ease((w - b.foam) / 1.6) : 0;
+    if (this.broke && !finaleArm) height *= 0.65;
     // Always bent: its tip leads curled and unrolls as it rises, and it curls and bows as it goes.
     freeStance(_stance, height, rise, out);
     const h = _stance.len;
@@ -1063,7 +1067,7 @@ export class KrakenEncounter {
     const order = RISE_ORDER.indexOf(s.role) % 3;
     const grip = heavy((w - b.grip - order * 0.6) / (tm.grip * 0.7), a, o);
     const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
-    const release = 1 - out;
+    const release = (1 - out) * (1 - letGo);
     if (s.role === 'mast') {
       // The highest arm: a slow arc high over the deck, a hang, then down round the foremast.
       const arc = heavy((w - b.arc) / tm.arc, a, o);

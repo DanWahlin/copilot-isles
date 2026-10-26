@@ -463,9 +463,10 @@ export class KrakenSightings {
         this.risenAt(i, u, plan),
         this.goneAt(i, u, plan),
       );
-      // A lone tip curls tight; a group's others hook and poke.
-      if (plan.kind === 'tip') st.curl += 0.3;
-      else if (i > 0) st.bow += 0.25;
+      // Tall and far: a gentler J and hook than the battle's arms (at this length theirs would arch
+      // back into the sea). A lone tip hooks a little more; a group's others lean.
+      st.curl += plan.kind === 'tip' ? -0.1 : -0.25;
+      st.bow += i > 0 ? -0.15 : -0.3;
       arm.sink = share > 0.001 ? arm.length * 0.3 : arm.length + 4;
       const state = this.risen[i]!;
       if (state === 0 && share > 0.02) {

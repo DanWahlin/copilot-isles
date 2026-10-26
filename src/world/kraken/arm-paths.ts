@@ -173,7 +173,7 @@ export function deckArc(out: Points, rise: number, breathe: number): void {
  * (`freeArm`: always bent, never straight). An arm longer than that route tucks the rest into a
  * deeper loop under the surface, so `len` sets how much of it shows. `lean` (unit xz) is the way it
  * bends (toward its prey, or out from its body); `phase` moves a slow wave along it, `wave` sizes
- * it; `curl` (0…1.2) hooks its tip, `bow` (0…1) bends the whole arm over, and `back` (0…1) makes
+ * it; `curl` (−0.3…1.2) hooks its tip, `bow` (−0.3…1) bends the whole arm over, and `back` (0…1) makes
  * it an S: out away from `lean` low down, its tip hooked back over toward it. `slack` lengthens the
  * route by what the bones cut off its bends (a pose that ran off the end is posed again with it), so
  * the arm never runs off its end in a straight stub.
