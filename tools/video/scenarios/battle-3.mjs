@@ -35,7 +35,7 @@ async function krakenUntil(api, pred, ms) {
 }
 
 /** Wave 2's beats: a lure from 8 s (until a raider is taken), your own course held over a tell at 20 s. */
-const forced = { lure: -1e9, onYou: 0, marks: new Set() };
+const forced = { lure: -1e9, onYou: 0, helm: 0, marks: new Set() };
 
 const ends = (api) =>
   api.S(async () => {
@@ -77,12 +77,16 @@ export default battleScenario({
     if (l.taken === 0 && ms > 8_000 && ms - forced.lure > 9_000 && (await kraken(api, 'k.debugTell("lure")')))
       forced.lure = ms;
     if (!forced.onYou && ms > 20_000 && l.playerHits === 0) {
-      // Take the helm (a helm key) and hold her course over a tell on it.
-      await api.hold('KeyW', 200);
-      forced.onYou = Date.now();
-      if (!(await kraken(api, 'k.debugTell("onYou")'))) api.log('no tell on your course');
+      // Take the helm (a helm key) and hold her course over a tell on it (its arms may all be up:
+      // try again each poll for a while).
+      if (!forced.helm) {
+        await api.hold('KeyW', 200);
+        forced.helm = ms;
+      }
+      if (await kraken(api, 'k.debugTell("onYou")')) forced.onYou = Date.now();
+      else if (ms - forced.helm > 15_000) forced.onYou = Date.now();
     }
-    return forced.onYou > 0 && Date.now() - forced.onYou < 8_000;
+    return (forced.helm > 0 && !forced.onYou) || (forced.onYou > 0 && Date.now() - forced.onYou < 8_000);
   },
   async afterReward(page, api, wave) {
     if (wave !== 0) return;
@@ -119,6 +123,7 @@ export default battleScenario({
   async afterWin(page, api) {
     forced.lure = -1e9;
     forced.onYou = 0;
+    forced.helm = 0;
     forced.marks.clear();
     // The win card's hold, then the night at sea (its dawn veil) into Keelhaven's morning.
     const veil = await api.waitFor(() => !!document.querySelector('.hud-dawn.show'), null, 30_000);

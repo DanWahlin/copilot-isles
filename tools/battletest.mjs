@@ -281,6 +281,7 @@ async function krakenBeat(page, res) {
 function krakenWave(page, t0) {
   let lure = -1e9;
   let onYou = 0;
+  let tookHelm = 0;
   const seen = new Set();
   const once = async (key, l, ok, wait = 0) => {
     if (seen.has(key) || !ok) return;
@@ -303,12 +304,19 @@ function krakenWave(page, t0) {
       if (l.taken === 0 && age > 8_000 && age - lure > 9_000 && (await K(page, 'k.debugTell("lure")')))
         lure = age;
       // Take the helm (a helm key) and hold her course over a tell on it.
+      // (Its arms may all be up: try again each poll for a while.)
       if (!onYou && age > 20_000 && l.playerHits === 0) {
-        await tap(page, 'KeyW');
-        onYou = Date.now();
-        if (!(await K(page, 'k.debugTell("onYou")'))) fail('no tell could be placed on your course');
+        if (!tookHelm) {
+          await tap(page, 'KeyW');
+          tookHelm = age;
+        }
+        if (await K(page, 'k.debugTell("onYou")')) onYou = Date.now();
+        else if (age - tookHelm > 15_000) {
+          fail('no tell could be placed on your course');
+          onYou = Date.now();
+        }
       }
-      return onYou > 0 && Date.now() - onYou < 8_000;
+      return (tookHelm > 0 && !onYou) || (onYou > 0 && Date.now() - onYou < 8_000);
     },
   };
 }
