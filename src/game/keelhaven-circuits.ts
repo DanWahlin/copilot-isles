@@ -147,7 +147,7 @@ export function createKeelhavenCircuits(
     const side = 2.6;
     const e = toWorld(u + (du / d) * back - (dv / d) * side, v + (dv / d) * back + (du / d) * side);
     const t = toWorld(look.u, look.v);
-    return { x: e.x, y: y + 3.6, z: e.z, tx: t.x, ty: look.y, tz: t.z };
+    return { x: e.x, y: y + 4.2, z: e.z, tx: t.x, ty: look.y, tz: t.z };
   }
   /** Each place's spot per lap (the flight's lamps move with the lap), made once. */
   const spotCache = { ring: new Map<string, Spot[]>(), flight: new Map<string, Spot[]>() };
@@ -315,21 +315,36 @@ export function createKeelhavenCircuits(
     },
     async seal() {
       if (!world) return;
+      const r = reduced();
+      // The Gate Light from the air on its seaward side, then the lock flight from over the yard.
       const L = toWorld(GATE_LIGHT.u, GATE_LIGHT.v);
-      // From over the lock flight, looking up the North Head to the light.
-      const e = toWorld(40, -40);
-      const shot: CameraShot = { x: e.x, y: 22, z: e.z, tx: L.x, ty: GATE_LIGHT.y + 24, tz: L.z };
-      await host.showLighting(shot, () => {
-        world?.circuit.lamp('gateLight', 'kindled');
-        // The lamps answer, from the lowest lock up the flight to the basin (all at once, reduced).
-        for (let i = GATES.length - 1; i >= 0; i--) {
-          const k = `lock:${i}`;
-          if (reduced()) world?.circuit.lamp(k, 'ready');
-          else setTimeout(() => world?.circuit.lamp(k, 'ready'), (GATES.length - 1 - i) * 600);
-        }
-        for (const place of Object.keys(CIRCUIT_SPOTS.ring)) world?.circuit.lamp(`ring:${place}`, 'ready');
-      });
-      await wait(200);
+      const e = toWorld(GATE_LIGHT.u + 24, GATE_LIGHT.v + 22);
+      const lantern = GATE_LIGHT.y + 29;
+      const light: CameraShot = { x: e.x, y: lantern + 2, z: e.z, tx: L.x, ty: lantern - 3, tz: L.z };
+      const fe = toWorld(62, -36);
+      const ft = toWorld(36, -62);
+      const locks: CameraShot = { x: fe.x, y: yard + 13, z: fe.z, tx: ft.x, ty: 3, tz: ft.z };
+      await host.fade(true, 260);
+      host.cut(light);
+      await host.fade(false, 260);
+      await wait(r ? 400 : 1100);
+      world.circuit.lamp('gateLight', 'kindled');
+      host.audio?.sfx.oneShot('chime_solve', host.player, 1);
+      await wait(r ? 1200 : 2400);
+      await host.fade(true, 220);
+      host.cut(locks);
+      await host.fade(false, 220);
+      // The lamps answer, from the lowest lock up the flight to the basin (together, with reduced motion).
+      for (let i = GATES.length - 1; i >= 0; i--) {
+        world?.circuit.lamp(`lock:${i}`, 'ready');
+        if (!r) await wait(550);
+      }
+      for (const place of Object.keys(CIRCUIT_SPOTS.ring)) world?.circuit.lamp(`ring:${place}`, 'ready');
+      host.audio?.sfx.oneShot('stinger_triumph', host.player, 0.7);
+      await wait(r ? 1400 : 2200);
+      await host.fade(true, 260);
+      host.backToTalk();
+      await host.fade(false, 260);
     },
     debug: {
       hull: (id) => (world ? { ...hullAt[id] } : null),

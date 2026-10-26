@@ -128,9 +128,11 @@ function SeaChoice({ store }: { store: SeaChoiceStore }) {
           ))}
         </ol>
         <p className={`ci-sc-message is-${v.message?.tone ?? 'info'}`}>{v.message?.text ?? ''}</p>
-        <p className="ci-sc-help" aria-hidden="true">
-          Press <kbd>1</kbd>–<kbd>{v.options.length}</kbd> or tap a choice
-        </p>
+        {v.options.length ? (
+          <p className="ci-sc-help" aria-hidden="true">
+            Press <kbd>1</kbd>–<kbd>{v.options.length}</kbd> or tap a choice
+          </p>
+        ) : null}
         <div className="ci-sc-live" role="status" aria-live="polite">
           {v.message?.text ?? v.prompt}
         </div>

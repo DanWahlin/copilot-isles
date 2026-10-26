@@ -272,6 +272,16 @@ async function circuit(name, quest) {
       if (!(await answerChoice())) await page.waitForTimeout(300);
       else await page.waitForTimeout(500);
     }
+    // Your hull moving down the flight: Lock 1 filling and taking her in, then emptying, then the pound.
+    const moving = { gate1: 'lock1', lamps: 'lock1', seaGate: 'pound' }[st.at];
+    if (name === 'lock-flight' && quest === 'Q3.8' && moving) {
+      await kh('view', moving);
+      for (const t of [300, 1500, 1500]) {
+        await page.waitForTimeout(t);
+        await shot(`locks-moving-${st.at}`);
+      }
+      await kh('view', null);
+    }
   }
   await drive(`${name} close`, (st) => st.quests[quest] === 'done' && !st.dialogue && !st.quiz && !st.reveal);
   await page.waitForTimeout(1200);
@@ -388,8 +398,20 @@ await sealWatch;
 if ((await kh('lamp', 'gateLight')) !== 'kindled') fail('the Gate Light isn’t kindled after the Seal');
 for (let i = 0; i < 4; i++)
   if ((await kh('lamp', `lock:${i}`)) !== 'ready') fail(`lock lamp ${i} isn’t green after the Seal`);
-const seals = await S(() => window.__dev.learn.getState().seals ?? null);
-note(`seals ${JSON.stringify(seals)}`);
+
+// The optional quests, each from where it starts to done: the assignment (Ottoline) and Pick & Polish
+// (Barty, with the chalk spyglass).
+for (const [npc, id] of [
+  ['ottoline', 'Q3.A'],
+  ['barty', 'Q3.B'],
+]) {
+  for (let round = 0; round < 3 && (await learnState()).quests[id] !== 'done'; round++) {
+    await talk(npc);
+    await drive(`${npc} ${id}`, (st) => !st.dialogue && !st.quiz && !st.reveal, 120000);
+    await page.waitForTimeout(800);
+  }
+  if ((await learnState()).quests[id] !== 'done') fail(`${id} isn’t done after talking to ${npc}`);
+}
 
 // ---- Chests, bottles and starfish ----
 const chests = await S(() =>

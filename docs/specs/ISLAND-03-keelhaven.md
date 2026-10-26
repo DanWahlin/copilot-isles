@@ -1682,16 +1682,16 @@ below. Use the world package's positions (`src/world/islands/keelhaven/`): the w
 to the south of the river, the shipyard and the locks to the north, and the Gate Light to a lower bench of
 the North Head. The names and the order of the stops stay as in §3 and §4.
 
-| Id | Place (anchor) |
-|---|---|
-| `npc:lyra_keel`, `npc:hester`, `npc:dory`, `npc:cass`, `npc:barty`, `npc:stroud`, `npc:arlo`, `npc:ottoline` | the NPC's anchor |
-| `ring:post`, `ring:stack`, `ring:slate`, `ring:caisson`, `ring:lookout` | `ringPost`, `ringStack`, `ringSlate`, `ringCaisson`, `ringLookout` |
-| `flight:ledger` | `ledgers` |
-| `flight:bell` | the main slipway's bell (a new anchor at the slipway head) |
-| `flight:slate`, `flight:gate1`, `flight:petition` | `lock1Slate`, `gate1`, `petitionMast` |
-| `flight:lamps` | the lamp post of the lock that runs (Lock 1 in part 1, Lock 2 in part 2) |
-| `flight:note`, `flight:redLamp`, `flight:barge` | the two hulls in Lock 2, and `barge` |
-| `flight:gate2`, `flight:seaGate` | `gate2`, the Sea Gate |
+| Id | Place (anchor) | As built (cove frame u, v) |
+|---|---|---|
+| `npc:lyra_keel`, `npc:hester`, `npc:dory`, `npc:cass`, `npc:barty`, `npc:stroud`, `npc:arlo`, `npc:ottoline` | the NPC's anchor | `anchors.ts`: Lyra (16.6, 73) on the tavern porch, Hester (108, 19.7) by the Evidence Board, Dory (170, -76) and Cass (170, -58) at the dock heads, Barty (92, -21.5), Stroud (60, -46) by the ledgers, Arlo (26, -47.5) above Lock 2, Ottoline (-222, -151) at the Gate Light (y 44) |
+| `ring:post`, `ring:stack`, `ring:slate`, `ring:caisson`, `ring:lookout` | `ringPost`, `ringStack`, `ringSlate`, `ringCaisson`, `ringLookout` | `circuit.ts` `CIRCUIT_SPOTS.ring`: the post at Drydock 2's head (168.6, -62.4), the stack (150, -54) and the slate (134, -54) on the copings toward the basin, the caisson across the mouth (125, -61), the lookout on the far side (146, -68.2) |
+| `flight:ledger` | `ledgers` | (57.6, -48), at the Issues ledger |
+| `flight:bell` | the main slipway's bell (a new anchor at the slipway head) | (49.6, -31.2) |
+| `flight:slate`, `flight:gate1`, `flight:petition` | `lock1Slate`, `gate1`, `petitionMast` | (66, -50.8) and (55.6, -50.8) on the yard by Lock 1; the mast on the terrace by the pound (44, -48.2) |
+| `flight:lamps` | the lamp post of the lock that runs (Lock 1 in part 1, Lock 2 in part 2) | across from Lock 1's lamp (58.5, -50.8) in part 1, Lock 2's (21, -50.4) in part 2 |
+| `flight:note`, `flight:redLamp`, `flight:barge` | the two hulls in Lock 2, and `barge` | (30, -50.4) and (23, -50.4) above Lock 2; the barge's station on the cut's coping (7, -53.8) |
+| `flight:gate2`, `flight:seaGate` | `gate2`, the Sea Gate | (18.6, -50.4) by Lock 2's lower gate; the Sea Gate's station on the cut's coping (-18, -53.8), the gate at u -24 |
 
 `ring:*` and `flight:*` match by prefix. Only the station that waits for the player is usable, so the
 compass points to it.
@@ -1774,3 +1774,20 @@ filter", which both texts say. A trial sync to `f24b521` gives 45 Chapter 03 ent
 changed, no quote or objective that is not word for word, and no UI name that the chapter does not
 mention. The weekly refresh must update those hashes and unpin the six screenshots (they are retaken
 upstream without the old sidebar).
+
+### W.12 As wired (branch `danwahlin-keelhaven-wiring`)
+
+The wiring follows W.1–W.11 with these changes. The places are in W.5.
+
+| Part | As wired | Code |
+|---|---|---|
+| The `circuit` mechanic | The rules are pure (`LapRun`: `pass`, `choose`, `backTo`; `petitionReady`; `gateDark`). Each station waits at its place as an interaction (`ring:<place>`, `flight:<place>`) that is usable only while it is the station that waits, so the compass points to it. A station opens on the island's choice card. A wrong pick turns its lamp red, shows its reason and sends the hull back to the latest station at `backTo`. A `backTo` with no station before the pick (the repair barge) keeps the hull at the station. The save keeps the lap and the station. | `src/game/puzzles/circuit/` |
+| The stage | Each station has a lamp on a post (the island's `LampSet`: one glow mesh, colours set in place, no new shader). The next station's lamp blinks. Your hull moves down the flight with part 1 (to the basin's canal mouth, into Lock 1 as it fills, down with its water, then into the pound, where it waits). The two pull-request hulls stay in Lock 2. The Stats Check hull heels when its gauge is filed down. The three hulls are the dock hull at half size. | `src/game/keelhaven-circuits.ts`, `src/world/islands/keelhaven/circuit.ts`, `lamps.ts` |
+| W.2 `searchHullDown`, `prHullsDown` | Your hull waits in the pound (u 44), not in the basin; the pull-request hulls stay in Lock 2. Lock 2 is too narrow for a third hull, and the cut is the sea's. | `keelhaven-circuits.ts` `settle` |
+| The Sea Gate | New: shut mitre leaves across the cut's mouth at u -24, and steps between the cut's copings and Lock 2's. | `shipyard.ts` |
+| `kh-ring`, `kh-flight` | Frame the circuit's first station and say its `intro` (unvoiced). | `keelhaven-circuits.ts` |
+| `kh-seal` | The Gate Light kindles white-gold, every lock lamp turns green from Lock 2 up to the basin, and the ring's lamps light. There's no beam sweep yet, and the tavern's bell doesn't ring. | `keelhaven-circuits.ts` `seal` |
+| `kh-retake` | Plays the re-take on the choice card. There's no Songbook in the game: Salty Sway is the island's theme. | `keelhaven-session.ts` |
+| `kh-sounding` | Dory's planks: one tap each on the choice card, then the sluice. Drydock 1 doesn't flood visibly (its water is static). | `keelhaven-session.ts` |
+| The Gate Light's path | The stair up the North Head (`GATE_PATH`) in place of a rock cut: tread by tread, no step over 0.4 m (`gate-stair.ts`). | `gate-stair.ts`, `town-build.ts` |
+| Walk surfaces | Every chamber wall has a 1.4 m apron past its back (the ground's cut leaves a gutter deeper than a step). The gates' walkways have their fences a body's width out. | `shipyard.ts` |
