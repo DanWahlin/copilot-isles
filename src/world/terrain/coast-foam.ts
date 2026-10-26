@@ -32,6 +32,11 @@ export interface CoastFoamOptions {
    * where the open sea reaches the shore (`shoreExposure`) and the shore is steep.
    */
   exposure?: number;
+  /**
+   * Shore points that get no foam (an island's works: a lock's walls stand in sheltered water, not
+   * surf). Default none.
+   */
+  skip?: ((x: number, z: number) => boolean) | null;
 }
 
 const EXPOSURE_DIRECTIONS = 16;
@@ -148,6 +153,11 @@ export function createCoastFoam(
       if (i > 0) {
         const q = chain.points[i - 1];
         along += Math.hypot(p.x - q.x, p.z - q.z);
+      }
+      if (options.skip?.(p.x, p.z)) {
+        // A break in the ribbon: the next point starts a new run.
+        previousBase = -1;
+        continue;
       }
       heightField.normalAt(p.x, p.z, normal);
       let sx = normal[0];

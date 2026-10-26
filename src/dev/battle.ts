@@ -24,7 +24,7 @@ await activateCourse();
  * helmsman steers to the best broadside; any helm key takes it back), drag to look.
  * Flags: ?webgl, ?tier=, ?seed=, ?calm, ?shot (no stats panel), ?wait (don't start the battle),
  * ?nodirector (no camera director), ?nofollow (the camera doesn't follow the raiders),
- * ?brief / ?nobrief (always / never show the pre-battle briefing), ?battle=2 (the Chapter 01 battle).
+ * ?brief / ?nobrief (always / never show the pre-battle briefing), ?battle=2 (the Chapter 01 battle), ?battle=3 (Chapter 02).
  */
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -63,7 +63,7 @@ addEventListener('keydown', unlock);
 const director = new BattleCamera(() => world.reducedMotion.value > 0.5);
 if (q.has('nodirector')) director.enabled = false;
 if (q.has('nofollow')) director.follow = false;
-// ?battle=2 plays battle 2 (the Chapter 01 recap); battle 1 is the default.
+// ?battle=2 plays battle 2 (the Chapter 01 recap), ?battle=3 battle 3 (Chapter 02); battle 1 is the default.
 const plan = BATTLE_PLANS[Math.min(BATTLE_PLANS.length, Math.max(1, Number(q.get('battle') ?? 1))) - 1]!;
 const quizFor = (wave: number) =>
   (QUIZZES.get(plan.waves[wave]?.quiz ?? '') as ChoiceQuiz | undefined) ?? null;

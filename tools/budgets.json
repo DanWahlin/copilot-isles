@@ -1,5 +1,5 @@
 {
-  "$comment": "PLAN \u00a713.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186; 251.2 KB after the \u2264150-programs work (ce218a1) pulled in more of the node/shadow system, so the cap is 256 KB. A course pack loads in parts (docs/specs/COURSE-PACKS.md \u00a72, src/course/split.ts, issue 304). course-<id> = its core chunk, loaded with the voyage and never by the title (check-budgets fails if the entry imports it statically): the shared data (labels, boards, market and its puzzle, models, learning, the lock's section titles: 13.0 KB for copilot-app) and each chapter's index, images, chests, glossary, Trials, quest list and puzzle cores (about 3.2 KB a chapter). Measured 22.6 KB (copilot-app, 3 chapters) and 4.1 KB (copilot-cli, 1 chapter) on 2026-10-24; the cap of 48 KB holds eight chapters (13 + 8 \u00d7 3.2 = 39 KB) with room for learning.json to grow with them. course-<id>-<chapter> = a chapter's part (a JSON file, loaded when its island streams in or something asks for it): its quizzes, pages, voiced and cited lines, and its island's targets, beats, scripts, barks and puzzles. Measured 13.7 (00), 17.0 (01), 15.1 (02) and 6.1 KB (copilot-cli 00) on 2026-10-24; the cap of 28 KB is the largest chapter today plus 65 %, for a chapter like 03 (expected at 15-25 KB). Every part needs its own row: check-budgets and content:check fail on a part without one.",
+  "$comment": "PLAN §13.5 load budgets, enforced in CI on the production build (gzip -9 sizes). vendor-three = three/webgpu (WebGPURenderer + WebGL2 backend + node/TSL system), measured 234 KB gz at three 0.186; 251.2 KB after the ≤150-programs work (ce218a1) pulled in more of the node/shadow system, so the cap is 256 KB. A course pack loads in parts (docs/specs/COURSE-PACKS.md §2, src/course/split.ts, issue 304). course-<id> = its core chunk, loaded with the voyage and never by the title (check-budgets fails if the entry imports it statically): the shared data (labels, boards, market and its puzzle, models, learning, the lock's section titles: 13.0 KB for copilot-app) and each chapter's index, images, chests, glossary, Trials, quest list and puzzle cores (about 3.2 KB a chapter). Measured 22.6 KB (copilot-app, 3 chapters) and 4.1 KB (copilot-cli, 1 chapter) on 2026-10-24; the cap of 48 KB holds eight chapters (13 + 8 × 3.2 = 39 KB) with room for learning.json to grow with them. course-<id>-<chapter> = a chapter's part (a JSON file, loaded when its island streams in or something asks for it): its quizzes, pages, voiced and cited lines, and its island's targets, beats, scripts, barks and puzzles. Measured 13.7 (00), 17.0 (01), 15.1 (02) and 6.1 KB (copilot-cli 00) on 2026-10-24; the cap of 28 KB is the largest chapter today plus 65 %, for a chapter like 03 (expected at 15-25 KB). Every part needs its own row: check-budgets and content:check fail on a part without one.",
   "chunks": {
     "boot (entry)": {
       "entry": true,
@@ -45,31 +45,33 @@
   "titleWireMaxKB": 4096,
   "skyKeyMaxKB": 112,
   "memory": {
-    "$comment": "tools/memorytest.mjs (npm run check:memory): GPU memory three tracks (renderer.info, made honest by engine/memory-ledger.ts) and the JS heap after GC, at each stop of two Anchorage \u2192 Meridian \u2192 Thousand-Bough \u2192 Anchorage round trips. Ceilings are the measured peaks plus ~15 %.",
+    "$comment": "tools/memorytest.mjs (npm run check:memory): GPU memory three tracks (renderer.info, made honest by engine/memory-ledger.ts) and the JS heap after GC, at each stop of two Anchorage → Meridian → Thousand-Bough → Anchorage round trips. Ceilings are the measured peaks plus ~15 %.",
     "margin": {
       "trackedPct": 10,
       "heapPct": 15,
       "$heapFloorMB": "The heap may also grow this much (MB), whichever allows more: what a first voyage leaves behind for good doesn't scale with the heap. A heap-snapshot diff (first Anchorage vs a new voyage, High WebGPU) put ~7 MB of the ~10 MB in V8 compiled code for the island modules a voyage first loads (they never unload) and ~1 MB in kept CPU data (packs, caches); the same +10 MB at HEAD. A relative-only margin passed at 86 MB and failed once the grass freed its build data (69 MB).",
-      "heapFloorMB": 12
+      "heapFloorMB": 15,
+      "$heapFloorKeelhaven": "12 → 15 MB (2026-10-25, Keelhaven's wiring): a voyage that has been to Keelhaven keeps its island chunk's compiled code too; a new voyage read 91.5 MB against 77.3 MB at first (High WebGPU), +14.2 MB, and the tree before the wiring's last milestone read the same (91.0 against 76.9)."
     },
     "leak": {
-      "$trackedMB": "Growth allowed from one round trip's Anchorage to the next (MB). It's only a leak signal if the reading doesn't depend on timing: three counted a texture once, at its size when first seen, so an image still decoding (5.3 MB per 1024\u00b2 kit or terrain WebP) or TRAA's history target sized after its first use (11 MB at 1600 \u00d7 900) counted ~0 or in full by the luck of the frame, and the same stop read 453-484 MB on one tree (issue 261). The ledger now recounts a texture whose size changed (engine/memory-ledger.ts) and the test holds the render scale at the tier's (adaptive resolution would resize ~90 MB of screen targets on High). With issue 262 fixed (instanced meshes free the instance buffers three made for them), every round trip reads the same to 0.1 MB on High and Lite, WebGPU and WebGL2, and its resources match one for one; before it, High WebGPU grew 0.6 MB a round trip. 1 MB is ten times the jitter seen and still catches one leaked 512\u00b2 texture with mips (1.3 MB) or ~8 instanced meshes' matrices a trip (128 KB each).",
+      "$trackedMB": "Growth allowed from one round trip's Anchorage to the next (MB). It's only a leak signal if the reading doesn't depend on timing: three counted a texture once, at its size when first seen, so an image still decoding (5.3 MB per 1024² kit or terrain WebP) or TRAA's history target sized after its first use (11 MB at 1600 × 900) counted ~0 or in full by the luck of the frame, and the same stop read 453-484 MB on one tree (issue 261). The ledger now recounts a texture whose size changed (engine/memory-ledger.ts) and the test holds the render scale at the tier's (adaptive resolution would resize ~90 MB of screen targets on High). With issue 262 fixed (instanced meshes free the instance buffers three made for them), every round trip reads the same to 0.1 MB on High and Lite, WebGPU and WebGL2, and its resources match one for one; before it, High WebGPU grew 0.6 MB a round trip. 1 MB is ten times the jitter seen and still catches one leaked 512² texture with mips (1.3 MB) or ~8 instanced meshes' matrices a trip (128 KB each).",
       "trackedMB": 1,
       "heapMB": 6
     },
     "ceilings": {
+      "$keelhaven": "Raised 2026-10-25 when Keelhaven joined the round trips (its stops weren't measured when these were set): its peak plus ~15 %. High: 781.5 MB on WebGPU (its terrain's finest level is 1 m over a 1.3 × 1.8 km bake) → 900; Lite: 237.3 MB → 273. The tree before the wiring's last milestone read 776.4 / 234.9 (the works' apron and the lent ocean tiles add ~5 / ~2.4 MB).",
       "high": {
-        "trackedMB": 661,
+        "trackedMB": 900,
         "heapMB": 129
       },
       "lite": {
-        "trackedMB": 228,
+        "trackedMB": 273,
         "heapMB": 103
       }
     }
   },
   "perf": {
-    "$comment": "tools/perftest.mjs (npm run check:perf), the local perf gate, per tier: main-thread ms per frame (Engine.cpuMs, median of a settled view's frames) with Chrome's CPU throttle at `throttle` (docs/specs/PHASE-0-spike.md \u00a75: 3x on this M3 Max stands in for the UHD 620 floor), GPU ms per frame (WebGPU's pass-timestamp union, uncapped, at the tier's render scale and 1080p), and the Phase 0 flythrough's peak triangles in one frame. `target` is PLAN \u00a712.1 / the spec's budget; `gate` is what the gate fails on: the target where it's met, else the worst reading measured on 2026-10-22 plus ~10 %, so nothing regresses while the target stands (Dan accepted these gaps on 2026-10-22, PLAN \u00a712.1 and issues.md #29).",
+    "$comment": "tools/perftest.mjs (npm run check:perf), the local perf gate, per tier: main-thread ms per frame (Engine.cpuMs, median of a settled view's frames) with Chrome's CPU throttle at `throttle` (docs/specs/PHASE-0-spike.md §5: 3x on this M3 Max stands in for the UHD 620 floor), GPU ms per frame (WebGPU's pass-timestamp union, uncapped, at the tier's render scale and 1080p), and the Phase 0 flythrough's peak triangles in one frame. `target` is PLAN §12.1 / the spec's budget; `gate` is what the gate fails on: the target where it's met, else the worst reading measured on 2026-10-22 plus ~10 %, so nothing regresses while the target stands (Dan accepted these gaps on 2026-10-22, PLAN §12.1 and issues.md #29).",
     "tiers": {
       "low": {
         "throttle": 3,

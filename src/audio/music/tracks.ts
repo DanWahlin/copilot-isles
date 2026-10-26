@@ -45,8 +45,6 @@ export function trackFor(cue: MusicCue): MusicTrack {
 export const SPARE_TRACKS = {
   // "Reggae" by Pro Sensory (OpenGameArt, CC0): Anchorage's first track.
   reggae: { file: 'music_reggae', lufs: -12.5 },
-  // "Salty Sway", made for the game by Dan with Suno: maritime folk, kept for Keelhaven (Chapter 03).
-  saltySway: { file: 'music_salty_sway', lufs: -15.3 },
 } as const satisfies Record<string, MusicTrack>;
 
 /**

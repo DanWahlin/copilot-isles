@@ -55,6 +55,9 @@ export function battleScenario({
   rightFirst = false,
   firstWaveOnly = false,
   labelsSeen = false,
+  board = null,
+  toward = async () => ({ x: 747, z: -700 }),
+  afterWin = null,
   ...meta
 } = {}) {
   return {
@@ -71,6 +74,12 @@ export function battleScenario({
     titleFrame: 12,
 
     async setup(page, api) {
+      // Another passage's battle boards somewhere else (battle-3.mjs).
+      if (board) {
+        await board(page, api);
+        if (labelsSeen) await labelsShown(api);
+        return;
+      }
       await skipTalk(page, 15_000);
       // The Seal of Anchorage (Chapter 00 done), aboard, and out near the harbour mouth.
       await api.S(() => {
@@ -92,7 +101,8 @@ export function battleScenario({
       const captions = await api.watchText('.bh-caption', 'caption');
       // Under sail toward Port Meridian until the lookout calls sails.
       const started = () => api.S(() => !!window.__dev.session().debug.battleRun()?.started);
-      await api.cutWhile(() => sailToward(api, 747, -700, 120_000, started), { head: 9000, tail: 2500 });
+      const to = await toward(api);
+      await api.cutWhile(() => sailToward(api, to.x, to.z, 120_000, started), { head: 9000, tail: 2500 });
       if (!(await started())) throw new Error('no lookout call on the passage');
       await api.pause(900);
       if (await api.S(() => !!document.querySelector('.bh-brief'))) {
@@ -111,7 +121,8 @@ export function battleScenario({
           return q ? q.options.findIndex((o) => o.id === q.answer) : -1;
         }, wave);
 
-      for (let wave = 0; wave < 2; wave++) {
+      const waves = await api.S(() => window.__dev.session().debug.battleRun().plan.waves.length);
+      for (let wave = 0; wave < waves; wave++) {
         await waitPhase(api, ['fight']);
         await api.pause(600);
         await api.press('KeyR');
@@ -143,9 +154,10 @@ export function battleScenario({
         api.mark(`answer ${wave + 1}`);
         await api.click(`.bh-options .bh-choice:nth-child(${pick + 1})`);
         await api.pause(5500);
-        // Wave 1: "Make repairs and sail on" (or, answered right, the first reward). Wave 2: quick repairs.
+        // Wave 1: "Make repairs and sail on" (or, answered right, the first reward). Then quick
+        // repairs and the double-shotted volley in turn.
         api.mark(`reward ${wave + 1}`);
-        await api.click(wave === 0 ? '.bh-picks .bh-choice' : '.bh-picks .bh-choice:nth-of-type(2)');
+        await api.click(wave % 2 === 0 ? '.bh-picks .bh-choice' : '.bh-picks .bh-choice:nth-of-type(2)');
         await api.pause(1500);
         if (firstWaveOnly) {
           await api.pause(1500);
@@ -157,6 +169,7 @@ export function battleScenario({
       if (won?.phase !== 'won') api.log(`the battle ended ${won?.phase}`);
       api.mark('won');
       await api.pause(7000);
+      if (afterWin) await afterWin(page, api);
       await captions();
     },
     ...meta,

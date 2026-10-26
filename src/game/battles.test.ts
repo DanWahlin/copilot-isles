@@ -96,6 +96,28 @@ describe('passage battles', () => {
     expect(starts).toBeGreaterThan(0);
   });
 
+  it('starts battle 3 on the passage out of Thousand-Bough Isle toward Keelhaven, with its Seal', () => {
+    const seal2 = { ...SEAL_1, 'Q2.9': 'done' };
+    expect(pendingBattle('thousand-bough', SEAL_1, new Set(), ISLANDS)).toBeNull();
+    const b = pendingBattle('thousand-bough', seal2, new Set(), ISLANDS);
+    expect(b?.id).toBe('passage-thousand-bough-keelhaven');
+    expect(BATTLE_PLANS[b!.plan]!.waves.length).toBe(3);
+    const from = ISLANDS['thousand-bough'].mooring;
+    const to = ISLANDS.keelhaven.mooring;
+    expect(battleStarts(b, from.x, from.z, ISLANDS)).toBe(false);
+    expect(battleStarts(b, to.x, to.z, ISLANDS)).toBe(false);
+    // Straight across the passage: the lookout calls sails on open water between the two.
+    let starts = 0;
+    for (let k = 0; k <= 100; k++) {
+      const x = from.x + ((to.x - from.x) * k) / 100;
+      const z = from.z + ((to.z - from.z) * k) / 100;
+      if (!battleStarts(b, x, z, ISLANDS)) continue;
+      starts++;
+      expect(openWater(x, z, ISLANDS)).toBe(true);
+    }
+    expect(starts).toBeGreaterThan(0);
+  });
+
   it('keeps the raiders out of every harbour', () => {
     for (const i of Object.values(ISLANDS)) expect(nearHarbour(i.mooring.x, i.mooring.z, ISLANDS)).toBe(true);
     // Where battle 1 starts is well clear of both harbours.

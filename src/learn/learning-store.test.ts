@@ -285,7 +285,7 @@ describe('the reflection before a Seal, the Seal card and the certificate', () =
   it('opens the certificate with the last charted Seal', () => {
     const l = store();
     const seals = chartedIslands().flatMap((i) => (i.seal ? [i.seal] : []));
-    expect(seals).toHaveLength(3);
+    expect(seals).toHaveLength(4);
     for (const s of seals.slice(0, -1)) l.progress.add('seals', s);
     expect(l.courseComplete()).toBe(false);
     l.progress.add('seals', seals.at(-1)!);

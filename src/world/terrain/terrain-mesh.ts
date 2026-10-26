@@ -116,6 +116,17 @@ export interface CreateTerrainOptions {
    * keeps the point (the walked ground). Default off: other islands' levels stay as they are.
    */
   prefilter?: boolean;
+  /**
+   * Heights an island fixes on every level of detail (`TerrainPin`): a vertex it pins takes that height
+   * as it is (no prefilter, no water cap), and the gameplay height field takes it too. Default none:
+   * other islands' levels stay as they are.
+   */
+  pin?: TerrainPin | null;
+  /**
+   * Flat skins of ground in the terrain's own look (`TerrainSkin`): drawn over the levels, whatever
+   * they do there (an island's works apron, over the ramp a pinned lock floor makes). Default none.
+   */
+  skin?: TerrainSkin | null;
   /** A merged far block's triangle cap (Lite and Low; default `MAX_MERGED_TRIANGLES`). */
   maxMergedTriangles?: number;
   /**
@@ -124,6 +135,24 @@ export interface CreateTerrainOptions {
    * vertex heights only (a buffer update, no new geometry or shader). Default 0: levels swap at once.
    */
   morphFrames?: number;
+}
+
+/**
+ * A height a terrain vertex at world (x, z) on a level whose vertices are `step` m apart must take, or
+ * null to keep the baked ground (an island's works: a lock's floor and the level pad round it).
+ */
+export type TerrainPin = (x: number, z: number, step: number) => number | null;
+
+/**
+ * Flat quads of ground drawn in the terrain's material with its vertex data (one mesh, the same
+ * shader): each quad's four corners (world x, z, in order round it) at height `y`, cut in cells about
+ * `cell` m. `look` moves the point a vertex reads its baked light and masks from (off a wall's foot,
+ * where the bake has the ground's ramp); the normal is straight up.
+ */
+export interface TerrainSkin {
+  quads: readonly { corners: readonly (readonly [number, number])[]; y: number }[];
+  cell: number;
+  look?: (x: number, z: number, out: { x: number; z: number }) => void;
 }
 
 /**
@@ -592,6 +621,8 @@ class BakedTerrainHeightField implements HeightField {
     readonly recess: FinestRecess | null = null,
     /** The ground before the recess (meshes that cover the steep faces are traced from it). */
     readonly shapeField?: BakedTerrainHeightField,
+    /** Heights the island fixes (`TerrainPin`), as the mesh takes them. */
+    private readonly pin: TerrainPin | null = null,
   ) {}
 
   heightAt(x: number, z: number): number {
@@ -691,7 +722,8 @@ class BakedTerrainHeightField implements HeightField {
 
   /** A finest-level vertex's height, built like the mesh builds it. */
   private vertexHeight(x: number, z: number): number {
-    return meshVertexHeight(this.data, x, z, this.step, null, this.recess);
+    const pinned = this.pin ? this.pin(x, z, this.step) : null;
+    return pinned ?? meshVertexHeight(this.data, x, z, this.step, null, this.recess);
   }
 
   private contains(x: number, z: number): boolean {
@@ -704,10 +736,17 @@ function finestHeightField(
   data: TerrainBakeData,
   step: number,
   recessSteep: RecessBox | null,
+  pin: TerrainPin | null = null,
 ): BakedTerrainHeightField {
-  const shape = new BakedTerrainHeightField(data, step);
+  const shape = new BakedTerrainHeightField(data, step, null, undefined, pin);
   if (!recessSteep) return shape;
-  return new BakedTerrainHeightField(data, step, new FinestRecess(data, step, recessSteep, shape), shape);
+  return new BakedTerrainHeightField(
+    data,
+    step,
+    new FinestRecess(data, step, recessSteep, shape),
+    shape,
+    pin,
+  );
 }
 
 /**
@@ -718,8 +757,9 @@ export function createTerrainHeightField(
   data: TerrainBakeData,
   tier: Tier | TierSettings,
   recessSteep: RecessBox | null = null,
+  pin: TerrainPin | null = null,
 ): HeightField {
-  return finestHeightField(data, stepsForTier(resolveTier(tier))[0]!, recessSteep);
+  return finestHeightField(data, stepsForTier(resolveTier(tier))[0]!, recessSteep, pin);
 }
 
 /** Tent-filter taps (offset in footprints, weight) for a coarse level's vertex. */
@@ -795,13 +835,18 @@ function pushVertex(
   footprint: number,
   caps: TerrainWaterCaps | null,
   prefilter = false,
+  pin: TerrainPin | null = null,
 ): number {
   const vertex = sampleVertex(data, x, z, footprint);
-  const h =
-    prefilter && footprint > data.cell
-      ? filteredHeight(data, x, z, footprint)
-      : meshVertexHeight(data, x, z, step, recessBox, finest);
-  positions.push(x, caps ? caps.heightAt(x, z, step, h) : h, z);
+  const pinned = pin ? pin(x, z, step) : null;
+  if (pinned !== null) positions.push(x, pinned, z);
+  else {
+    const h =
+      prefilter && footprint > data.cell
+        ? filteredHeight(data, x, z, footprint)
+        : meshVertexHeight(data, x, z, step, recessBox, finest);
+    positions.push(x, caps ? caps.heightAt(x, z, step, h) : h, z);
+  }
   normals.push(vertex.normal[0], vertex.normal[1], vertex.normal[2]);
   masks.push(vertex.mask[0], vertex.mask[1], vertex.mask[2], vertex.mask[3]);
   lights.push(vertex.light[0], vertex.light[1], vertex.light[2], vertex.light[3]);
@@ -823,6 +868,7 @@ function* buildChunkGeometry(
   finest: FinestRecess | null = null,
   caps: TerrainWaterCaps | null = null,
   prefilter = false,
+  pin: TerrainPin | null = null,
 ): Generator<void, ChunkGeometrySet, void> {
   const vertexRecess = levelRecess(step, finestStep, recessBox);
   // The finest level (the walked one) keeps the bake; coarser ones keep under the fresh water.
@@ -860,6 +906,7 @@ function* buildChunkGeometry(
           step > finestStep ? step : 0,
           levelCaps,
           prefilter,
+          pin,
         ),
       );
     }
@@ -954,6 +1001,72 @@ function* buildChunkGeometry(
   return { step, geometry, triangles: indices.length / 3, cols, rows };
 }
 
+/** A terrain skin's geometry (`TerrainSkin`), a few quads a step. */
+export function* buildTerrainSkin(
+  data: TerrainBakeData,
+  skin: TerrainSkin,
+): Generator<void, BufferGeometry | null, void> {
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const masks: number[] = [];
+  const lights: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  const at = { x: 0, z: 0 };
+  let n = 0;
+  for (const q of skin.quads) {
+    const [c0, c1, c2, c3] = q.corners as [
+      readonly [number, number],
+      readonly [number, number],
+      readonly [number, number],
+      readonly [number, number],
+    ];
+    const na = Math.max(1, Math.ceil(Math.hypot(c1[0] - c0[0], c1[1] - c0[1]) / skin.cell));
+    const nb = Math.max(1, Math.ceil(Math.hypot(c3[0] - c0[0], c3[1] - c0[1]) / skin.cell));
+    const base = positions.length / 3;
+    for (let j = 0; j <= nb; j++) {
+      const t = j / nb;
+      for (let i = 0; i <= na; i++) {
+        const s = i / na;
+        const x = (1 - t) * ((1 - s) * c0[0] + s * c1[0]) + t * ((1 - s) * c3[0] + s * c2[0]);
+        const z = (1 - t) * ((1 - s) * c0[1] + s * c1[1]) + t * ((1 - s) * c3[1] + s * c2[1]);
+        at.x = x;
+        at.z = z;
+        skin.look?.(x, z, at);
+        const v = sampleVertex(data, at.x, at.z, 0);
+        positions.push(x, q.y, z);
+        normals.push(0, 1, 0);
+        masks.push(v.mask[0], v.mask[1], v.mask[2], v.mask[3]);
+        lights.push(v.light[0], v.light[1], v.light[2], v.light[3]);
+        uvs.push((x - data.minX) / 32, (z - data.minZ) / 32);
+      }
+    }
+    // Wound to face up, whichever way round the corners go.
+    const up = (c1[0] - c0[0]) * (c3[1] - c0[1]) - (c1[1] - c0[1]) * (c3[0] - c0[0]) > 0;
+    for (let j = 0; j < nb; j++)
+      for (let i = 0; i < na; i++) {
+        const a = base + j * (na + 1) + i;
+        const b = a + 1;
+        const c = a + na + 1;
+        const d = c + 1;
+        if (up) indices.push(a, c, b, b, c, d);
+        else indices.push(a, b, c, b, d, c);
+      }
+    if ((++n & 7) === 0) yield;
+  }
+  if (!indices.length) return null;
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
+  geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
+  geometry.setAttribute('terrainMask', new BufferAttribute(new Float32Array(masks), 4));
+  geometry.setAttribute('terrainLight', new BufferAttribute(new Float32Array(lights), 4));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+  geometry.setIndex(indices);
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
 /** Every chunk's geometry for one level of detail, built at once (tests and tools; the caller disposes). */
 export function buildTerrainLodGeometries(
   data: TerrainBakeData,
@@ -1036,7 +1149,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
   const steps = stepsForTier(tier);
   const thresholds = terrainLodThresholds(tier);
   const coarsest = steps[steps.length - 1]!;
-  const heightField = finestHeightField(data, steps[0]!, options.recessSteep ?? null);
+  const heightField = finestHeightField(data, steps[0]!, options.recessSteep ?? null, options.pin ?? null);
   yield;
   const caps = options.freshWater ? new TerrainWaterCaps(data, options.freshWater) : null;
   if (caps) yield* caps.build();
@@ -1061,6 +1174,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
             heightField.recess,
             caps,
             options.prefilter ?? false,
+            options.pin ?? null,
           ),
         );
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
@@ -1281,6 +1395,13 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     ? options.createRocks(heightField, data, tier.tier)
     : yield* buildTerrainRocks(heightField, tier.tier);
   if (rocks) group.add(rocks);
+  const skin = options.skin ? yield* buildTerrainSkin(data, options.skin) : null;
+  const skinMesh = skin ? new Mesh(skin, material) : null;
+  if (skinMesh) {
+    skinMesh.name = `${group.name}-skin`;
+    skinMesh.receiveShadow = true;
+    group.add(skinMesh);
+  }
 
   return {
     group,
@@ -1317,6 +1438,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
         }
       }
       for (const block of blocks) for (const mesh of block.meshes) mesh?.geometry.dispose();
+      skin?.dispose();
       rocks?.traverse((object) => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();

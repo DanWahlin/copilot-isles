@@ -12,6 +12,11 @@ export interface BoxCollider {
   /** World heights it spans; a walker whose feet are outside [y0, y1] passes it (see CircleObstacle). */
   y0?: number;
   y1?: number;
+  /**
+   * The drawn top (world y) the camera keeps its pad over, where the walker's span reaches higher (a
+   * hand rail that a hop mustn't clear, but that the camera may pass over).
+   */
+  eyeTop?: number;
 }
 
 export type SurfaceKind = 'sand' | 'grass' | 'rock' | 'stone' | 'wood' | 'water';
@@ -403,7 +408,7 @@ export class CollisionWorld {
       ez = Math.abs(lz) - box.hz;
     // NaN (no pivot) fails this test, so a missing point is never inside.
     if (!(ex <= pad && ez <= pad)) return false;
-    if (box.y1 !== undefined) return y >= (box.y0 ?? -Infinity) - pad && y <= box.y1 + pad;
+    if (box.y1 !== undefined) return y >= (box.y0 ?? -Infinity) - pad && y <= (box.eyeTop ?? box.y1) + pad;
     const h = box.height ?? 9;
     // A roof rises ROOF_PITCH m per metre in from the eaves (which overhang the walls by `pad`).
     const roof = h >= ROOF_MIN ? Math.max(0, pad - Math.max(ex, ez)) * ROOF_PITCH : 0;

@@ -108,7 +108,8 @@ export function QuestTracker({
                 {t.status === 'active' && t.detail && <span className="detail">{fill(t.detail)}</span>}
                 {t.link && (
                   <a className="link" href={t.link.url} target="_blank" rel="noopener noreferrer">
-                    {t.link.label} ↗
+                    {/* A pack's label may carry its own arrow. */}
+                    {t.link.label.replace(/\s*↗$/, '')} ↗
                   </a>
                 )}
               </span>

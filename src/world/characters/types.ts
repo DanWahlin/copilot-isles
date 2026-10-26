@@ -52,6 +52,21 @@ const NPC_IDS = [
   'tb_operator',
   'tb_fisher',
   'tb_lookout',
+  // Keelhaven (Chapter 03): the cast, Bram's market body, and the islanders.
+  'hester',
+  'dory',
+  'cass',
+  'barty',
+  'stroud',
+  'arlo',
+  'ottoline',
+  'kh_market',
+  'kh_nip',
+  'kh_tuck',
+  'kh_moll',
+  'kh_salter',
+  'kh_kit',
+  'kh_skipper',
 ] as const;
 export const CHARACTER_BODIES = [...PLAYER_BODIES, ...NPC_IDS] as const;
 export const CHARACTER_CLIPS = [

@@ -616,7 +616,7 @@
       "steps": [
         "Open **Make search case-insensitive** in **Issues**. Its **New session** starts from `main`, so select **Create from**, then **Branches**, then `practice-search-case-bug`, and type `#1`.",
         "In **Plan** mode, ask for a plan that names the files and the checks. Select **Exit plan mode and I will prompt myself** (if **Review plan** stays open, select **Continue**), check the mode is **Interactive**, and ask for the fix with a focused regression test.",
-        "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with `Ctrl+C`.",
+        "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with {key:ctrl+C}.",
         "Ask for a pull request summary that claims only checks you saw, select **Create PR**, and don’t merge it."
       ],
       "why": "Main already has the fix, so this pull request is practice: it stays open.",
@@ -975,7 +975,7 @@
       },
       "covers": {
         "quests": ["Q2.2", "Q2.3"],
-        "quizzes": ["K2.2", "M2.1", "T2.2", "K2.1", "T2.1"]
+        "quizzes": ["K2.2", "M2.1", "T2.2", "K2.1", "T2.1", "N2.3"]
       }
     },
     {
@@ -989,7 +989,7 @@
       },
       "covers": {
         "quests": ["Q2.6"],
-        "quizzes": ["K2.3"]
+        "quizzes": ["K2.3", "N2.2"]
       }
     },
     {
@@ -1018,7 +1018,7 @@
       "covers": {
         "quests": ["Q2.4"],
         "puzzles": ["channel-routing"],
-        "quizzes": ["H2.1", "K2.4", "T2.3", "T2.4", "T2.10"],
+        "quizzes": ["H2.1", "K2.4", "T2.3", "T2.4", "T2.10", "N2.1"],
         "appTasks": ["A2.1"]
       }
     },

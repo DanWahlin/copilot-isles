@@ -71,11 +71,11 @@ The win card says Thousand-Bough Isle lies ahead. It runs after the Seal of Meri
 from Port Meridian toward Thousand-Bough Isle, once that island is in the `ISLANDS` registry (§13);
 the dev page plays it with `?battle=2`.
 
-### 2.0c The third passage: Thousand-Bough Isle → Keelhaven (Chapter 02, planned)
+### 2.0c The third passage: Thousand-Bough Isle → Keelhaven (Chapter 02)
 
-Planned with the learning-journey review (Chapter 02 audit R10, 2026-10-23); built when the passage to
-Keelhaven is. Today Chapter 02 is recapped only by its Trial, while Chapters 00 and 01 each get a battle.
-Same loop and rewards as §2.0b, one Chapter 02 habit per wave, every sentence verbatim from the snapshot:
+Planned with the learning-journey review (Chapter 02 audit R10, 2026-10-23) and built with the passage to
+Keelhaven (`KEELHAVEN_BATTLE`, `BATTLE_PLANS` index 2; the dev page plays it with `?battle=3`). Its end
+brings the passage's "next morning" (ISLAND-03 W.12). Same loop and rewards as §2.0b, one Chapter 02 habit per wave, every sentence verbatim from the snapshot:
 
 | Wave | Raiders | Habit (verbatim course sentence) | Question (new, in `chapters/02-sessions-worktrees-context.json`) |
 |---|---|---|---|

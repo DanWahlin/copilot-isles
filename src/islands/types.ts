@@ -161,6 +161,12 @@ export interface IslandEntry extends IslandBerth {
    * (`passageSky`). The home island's light is the open sea's, so it has none.
    */
   skyReach?: { reach: number; full: number };
+  /**
+   * Its light comes the morning after another island's (spec ISLAND-03 O3): on the passage from
+   * `after`, that island's evening holds (the sky never runs back through the afternoon) until a
+   * "next morning" cut, then this island's morning holds until you're in its waters.
+   */
+  nextMorningAfter?: IslandId;
   /** When it opens; null: always (the home island). */
   open: IslandGate | null;
   ranges: IslandRanges;

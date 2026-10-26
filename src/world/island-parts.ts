@@ -103,9 +103,11 @@ export function addIslandBirds(
   center: Vector3,
   radius: number,
   seed: number,
+  /** Where gulls may land (a wreck's mast tops). */
+  perches: readonly Vector3[] = [],
 ): BirdsSystem | null {
   if (!ctx.birds || ctx.tier.birds <= 0) return null;
-  const birds = createBirds({ tier: ctx.tier, perches: [], center, radius, seed });
+  const birds = createBirds({ tier: ctx.tier, perches: [...perches], center, radius, seed });
   birds.group.visible = false;
   ctx.scene.add(birds.group);
   return birds;

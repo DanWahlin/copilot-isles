@@ -26,6 +26,8 @@ export class FootstepPuffs {
   private readonly positionAttr: BufferAttribute;
   private readonly colorAttr: BufferAttribute;
   private t = 0;
+  /** Whether any puff shows (visibility changes only when that does: a warm may have it shown). */
+  private shown = false;
 
   constructor() {
     const geometry = createPuffGeometry(this.positions, this.colors);
@@ -36,6 +38,10 @@ export class FootstepPuffs {
     this.mesh = new Mesh(geometry, createSparkleMaterial());
     this.mesh.name = 'player-footstep-puffs';
     this.mesh.frustumCulled = false;
+    // Hidden until the first puff: the world's warm draws it once, so its first puff uploads nothing
+    // (a captain who first walks after the warm-up, ashore on a streamed island, hitched on it).
+    this.mesh.visible = false;
+    this.mesh.userData.prewarm = true;
     // Not in the harbour mirror: the ground under them isn't reflected (PLAN §15.4).
     unreflected.add(this.mesh);
   }
@@ -76,7 +82,10 @@ export class FootstepPuffs {
       writePuff(this.positions, this.colors, visible, p, age);
       visible += 1;
     }
-    this.mesh.visible = visible > 0;
+    if (visible > 0 !== this.shown) {
+      this.shown = visible > 0;
+      this.mesh.visible = this.shown;
+    }
     this.positionAttr.needsUpdate = true;
     this.colorAttr.needsUpdate = true;
   }
