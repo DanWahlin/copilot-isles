@@ -84,8 +84,13 @@
         <button id="backend" title="WebGPU or WebGL2 (B)">WebGL2</button>
       </div>
       <div class="row">
-        <button id="mode" aria-pressed="false" title="Distant sightings (S)">Sightings</button>
-        <button id="sight" title="A sighting now (K)">Sighting</button>
+        <button data-scenario="wreck" title="Wrap and break a raider at rest (W)">Wreck</button>
+        <button data-scenario="fight" title="Flagship wrap during a moving fight (F)">Flagship fight</button>
+        <button data-scenario="dodge" title="Hazard dodge: tell, strike, near miss (D)">Hazard dodge</button>
+      </div>
+      <div class="row">
+        <button data-scenario="sightings" title="Distant sightings (S)">Sightings</button>
+        <button id="sight" title="A sighting now (K)">Sighting now</button>
       </div>
     </div>
     <script type="module" src="/src/dev/kraken.ts"></script>

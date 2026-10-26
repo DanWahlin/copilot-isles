@@ -43,7 +43,7 @@ export interface KrakenArm {
   readonly path: CurvePath;
   /** 0 the clip's pose, 1 the path's. */
   weight: number;
-  /** Metres the arm is drawn down into the water (0 at its socket). */
+  /** World metres the arm is drawn down into the water (0 at its socket). */
   sink: number;
   readonly scale: number;
   /** The arm's length (m) at its scale. */
@@ -234,7 +234,8 @@ export class Kraken {
   place(): void {
     for (const arm of this.arms) {
       arm.root.position.copy(arm.socket);
-      arm.root.position.y -= arm.sink;
+      // `sink` is in world metres; the arm's root is in the (scaled) kraken's frame.
+      arm.root.position.y -= arm.sink / this.group.scale.y;
     }
   }
 
