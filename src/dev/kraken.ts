@@ -10,7 +10,8 @@ import { skipSunShadows, skipSunShadowsWhereOff } from '../world/sky/cached-sun-
 import { createSky } from '../world/sky/sky-system';
 import { world } from '../world/uniforms';
 import { wrapAngle } from '../util/math';
-import type { HazardArea, HazardKind } from '../world/kraken/hazards';
+import type { HazardArea, HazardHit, HazardKind, KrakenHull, TellPlan } from '../world/kraken/hazards';
+import type { Kraken } from '../world/kraken/kraken';
 import { compileAndStart, createDevHarness, engineStats, seaOrbitControls } from './harness';
 
 /**
@@ -19,6 +20,8 @@ import { compileAndStart, createDevHarness, engineStats, seaOrbitControls } from
  *   foremast, squeezes until she creaks and breaks, pulls her apart, and goes back under;
  * - `fight`: the same on the raiders' flagship under sail, with your ship sailing alongside;
  * - `dodge`: your ship on a course; a slam and a sweep tell, you turn away, they strike (near misses);
+ *   then a raider chasing you sails straight over a tell on her course: the strike catches her and
+ *   the kraken takes her (the quick wrap);
  * - `sightings`: distant sightings (ambient), from your deck.
  * Keys: Space play/pause, . step, R restart, M reduced motion, 1/2/3 Lite/Medium/High, B backend,
  * W/F/D the scenarios, S sightings, K a sighting now. Flags: ?webgl, ?tier=, ?rm, ?shot, ?wait,
@@ -62,13 +65,24 @@ const flagship = createBrigantine({
 flagship.setName('Grey Gull');
 const mine = createBrigantine({ tier: tier.tier });
 mine.setName('Wanderer');
-scene.add(flagship.group, mine.group);
-// The raider draws like the battle's: no sun-shadow shaders of its own.
-if (tier.shadowCascades > 0) skipSunShadows(flagship.group);
-await Promise.all([flagship.figurehead, mine.figurehead]);
+// A raider that chases you in the dodge (and is lured over a tell).
+const raider = createBrigantine({
+  tier: tier.tier === 'ultra' || tier.tier === 'high' ? 'medium' : tier.tier,
+  oceanInteraction: false,
+  raider: true,
+});
+raider.setName('Black Gannet');
+scene.add(flagship.group, mine.group, raider.group);
+// The raiders draw like the battle's: no sun-shadow shaders of their own.
+if (tier.shadowCascades > 0) {
+  skipSunShadows(flagship.group);
+  skipSunShadows(raider.group);
+}
+await Promise.all([flagship.figurehead, mine.figurehead, raider.figurehead]);
 const envOf = (): BrigantineEnv => ({ waves: ocean.field, ground: null, obstacles: [], t: 0 });
 const flagEnv = envOf();
 const myEnv = envOf();
+const raiderEnv = envOf();
 
 // The kraken loads with this page only (dynamic imports: never in the game's chunks).
 const [{ KrakenEncounter }, { KrakenSightings }] = await Promise.all([
@@ -77,7 +91,26 @@ const [{ KrakenEncounter }, { KrakenSightings }] = await Promise.all([
 ]);
 const kraken = await KrakenEncounter.create({ tier, waves: ocean.field, onSound });
 kraken.reducedMotion = q.has('rm');
-kraken.prepare(flagship);
+kraken.prepare(flagship, 'flagship');
+kraken.prepare(raider, 'raider');
+/** The ships its strikes can hit (the battle fills these each frame): yours and the raiders. */
+const hull = (id: string, catchable: boolean): KrakenHull => ({
+  id,
+  bowX: 0,
+  bowZ: 0,
+  sternX: 0,
+  sternZ: 0,
+  halfBeam: halfBeamAt(0, 1),
+  catchable,
+});
+const hulls: Record<string, KrakenHull> = {
+  mine: hull('mine', false),
+  flagship: hull('flagship', true),
+  raider: hull('raider', true),
+};
+const shipOf: Record<string, Brigantine> = { mine, flagship, raider };
+const NAMES: Record<string, string> = { mine: 'Wanderer', flagship: 'Grey Gull', raider: 'Black Gannet' };
+const hullList: KrakenHull[] = [];
 scene.add(kraken.group);
 const player = { x: 0, z: 0, heading: 0, speed: 0 };
 const sightings = await KrakenSightings.create({
@@ -125,6 +158,10 @@ let dodgeAway = 0;
 let turnAt = Infinity;
 /** The last hazard told (the dodge camera leans toward it). */
 const hazardSeen = { x: 0, z: 0, w: 0 };
+/** Every ship hit, in order (the HUD and the probes read it). */
+const hitLog: { t: number; shipId: string; kind: string; strike: boolean; damage: number }[] = [];
+/** The lure: when the tell on the raider's course was placed, and when the kraken caught her. */
+const lure = { placedAt: NaN, caughtAt: NaN, heading: 0 };
 kraken.on((e) => {
   const t = clock.sim;
   if (e.type === 'telling' && e.act !== 'retreat')
@@ -135,7 +172,12 @@ kraken.on((e) => {
       t,
     );
   // Your helmsman reads the evidence and turns away at the call.
-  if (e.type === 'telling' && (e.act === 'slam' || e.act === 'sweep') && scenario === 'dodge') {
+  if (
+    e.type === 'telling' &&
+    (e.act === 'slam' || e.act === 'sweep') &&
+    scenario === 'dodge' &&
+    Number.isNaN(lure.placedAt)
+  ) {
     // The helm goes over as the evidence builds, about when the arm breaks the water.
     turnAt = st + HAZARD_SPECS[e.act].tell * 0.9;
     hazardSeen.x = e.x;
@@ -147,7 +189,15 @@ kraken.on((e) => {
     lastStrike.clearance = Infinity;
     lastStrike.hit = false;
   }
-  if (e.type === 'striking' && e.act === 'wrap' && kraken.phase() === 'grip') say('It has the Grey Gull!', t);
+  if (e.type === 'striking' && e.act === 'wrap' && kraken.phase() === 'grip' && scenario !== 'dodge')
+    say('It has the Grey Gull!', t);
+  if (e.type === 'struck')
+    for (const h of e.hits as readonly HazardHit[])
+      hitLog.push({ t: st, shipId: h.shipId, kind: h.kind, strike: h.strike, damage: h.damage });
+  if (e.type === 'caught') {
+    lure.caughtAt = st;
+    say(`It has the ${NAMES[e.shipId] ?? 'raider'}! It's taking her down!`, t);
+  }
 });
 
 const controls = seaOrbitControls(camera, canvas);
@@ -269,6 +319,8 @@ function setup(): void {
   deckCam = false;
   hazardSeen.w = 0;
   lastStrike.act = '';
+  hitLog.length = 0;
+  lure.placedAt = lure.caughtAt = NaN;
   kraken.reset();
   sightings.clear();
   director = true;
@@ -276,6 +328,13 @@ function setup(): void {
   caption.style.opacity = '0';
   mine.group.visible = scenario !== 'wreck';
   flagship.group.visible = scenario === 'wreck' || scenario === 'fight';
+  raider.group.visible = scenario === 'dodge';
+  // The ships the kraken's strikes can hit in this scenario.
+  hullList.length = 0;
+  if (mine.group.visible) hullList.push(hulls.mine!);
+  if (flagship.group.visible) hullList.push(hulls.flagship!);
+  if (raider.group.visible) hullList.push(hulls.raider!);
+  kraken.setHulls(hullList);
   if (scenario === 'wreck') flagship.restartMotion(0, 0, 0);
   if (scenario === 'fight') {
     // Yours sails abeam of the flagship, on the far side from where the kraken rises, a little astern.
@@ -283,7 +342,13 @@ function setup(): void {
     flagship.restartMotion(0, 0, h);
     mine.restartMotion(-38 * Math.cos(h) - 22 * Math.sin(h), 38 * Math.sin(h) - 22 * Math.cos(h), h);
   }
-  if (scenario === 'dodge') mine.restartMotion(0, 0, COURSE);
+  if (scenario === 'dodge') {
+    mine.restartMotion(0, 0, COURSE);
+    // Astern of you and off your port quarter, chasing.
+    const s = Math.sin(COURSE);
+    const c = Math.cos(COURSE);
+    raider.restartMotion(-s * 70 + c * 34, -c * 70 - s * 34, COURSE);
+  }
   if (scenario === 'sightings' || scenario === 'surface') mine.restartMotion(0, 0, 0);
 }
 
@@ -291,7 +356,7 @@ function setup(): void {
 function advance(dt: number, t: number): void {
   st += dt;
   if (scenario === 'wreck') {
-    if (once('wrap', 1)) kraken.wrapAndBreak(flagship);
+    if (once('wrap', 1)) kraken.wrapAndBreak(flagship, { finale: true });
     flagship.dynamics.setInput({ trim: 0, rudder: 0 });
   } else if (scenario === 'fight') {
     // Both under sail on a broad reach; the kraken takes the flagship mid-fight.
@@ -307,22 +372,49 @@ function advance(dt: number, t: number): void {
     }
     steer(mine, COURSE + dodgeTurn * 0.8, 0.8);
     if (once('slam', 2)) placeHazard('slam', 1);
-    if (once('calm', 13)) dodgeTurn = 0;
-    if (once('sweep', 16)) placeHazard('sweep', -1);
-    if (once('calm2', 27)) dodgeTurn = 0;
+    if (once('calm', 12)) dodgeTurn = 0;
+    if (once('sweep', 14)) placeHazard('sweep', -1);
+    if (once('calm2', 24)) dodgeTurn = 0;
     if (q.has('nododge')) dodgeTurn = 0;
-    if (once('leave', 31)) kraken.retreat();
+    // The raider chases you (toward where you'll be) until the tell on her course: she doesn't
+    // read the evidence, and sails straight on into it.
+    const p = mine.dynamics.pose;
+    const r = raider.dynamics.pose;
+    if (Number.isNaN(lure.placedAt))
+      lure.heading = Math.atan2(p.x + Math.sin(p.heading) * 40 - r.x, p.z + Math.cos(p.heading) * 40 - r.z);
+    if (Number.isNaN(lure.caughtAt)) steer(raider, lure.heading, 0.95);
+    if (once('lure', LURE_AT)) {
+      lure.placedAt = st;
+      lure.heading = r.heading;
+      kraken.planTell(tellPlan, r, 'slam', 'intercept');
+      kraken.hazardAt(tellPlan);
+      hazardSeen.x = tellPlan.x;
+      hazardSeen.z = tellPlan.z;
+      say(`Bubbles and a shadow on the ${NAMES.raider}'s course! Lead her over it!`, t);
+    }
+    if (once('leave', LURE_AT + 24)) kraken.retreat();
   } else if (scenario === 'surface') {
     // The kraken surfaces off your starboard side (the battle's `rise`), then goes back under.
     if (once('rise', 1)) kraken.rise(40, 12, -Math.PI / 2);
     if (once('leave', 26)) kraken.retreat();
   }
   if (scenario !== 'wreck' && dt > 0) mine.update(dt, t, myEnv);
+  if (scenario === 'dodge' && dt > 0) raider.update(dt, t, raiderEnv);
+  // Each ship's hull where the kraken's strikes test it.
+  for (const h of hullList) {
+    const ship = shipOf[h.id]!;
+    ship.bowWorld(bow);
+    ship.sternWorld(stern);
+    h.bowX = bow[0]!;
+    h.bowZ = bow[1]!;
+    h.sternX = stern[0]!;
+    h.sternZ = stern[1]!;
+  }
   if ((scenario === 'wreck' || scenario === 'fight') && dt > 0) flagship.update(dt, t, flagEnv);
-  myEnv.t = flagEnv.t = t;
+  myEnv.t = flagEnv.t = raiderEnv.t = t;
   kraken.update(dt, t, camera);
-  // Your hull against the hazards' danger areas.
-  if (scenario === 'dodge' && lastStrike.act) {
+  // Your hull against the hazards' danger areas (until the lure: then the camera's on the raider).
+  if (scenario === 'dodge' && lastStrike.act && Number.isNaN(lure.placedAt)) {
     mine.bowWorld(bow);
     mine.sternWorld(stern);
     const beam = halfBeamAt(0, 1);
@@ -340,6 +432,9 @@ function advance(dt: number, t: number): void {
   if (scenario === 'sightings') sightings.update(dt, t, camera, renderer.domElement.height);
 }
 const COURSE = 0.9;
+/** When the tell goes down on the raider's course (s into the dodge). */
+const LURE_AT = 24;
+const tellPlan = { x: 0, z: 0, heading: 0, kind: 'slam', radius: 0, tell: 0, eta: 0 } as TellPlan;
 /**
  * A hazard where your ship would be when it strikes, just inside its danger area on her present
  * course (`side` +1 to starboard of it): held on, she'd be hit; turning away at the call, she clears
@@ -399,6 +494,23 @@ function frameCamera(dt: number): void {
     const d = Math.hypot(dx, dz) || 1;
     camGoal.set(m.x - (dx / d) * 26 + (dz / d) * 24, 17, m.z - (dz / d) * 26 - (dx / d) * 24);
     lookGoal.set(at.x, 4, at.z);
+  } else if (scenario === 'dodge' && !Number.isNaN(lure.placedAt)) {
+    // The lure: from beside your ship, high, looking back at the raider and the tell on her course,
+    // then at her wreck.
+    if (Number.isNaN(lure.caughtAt))
+      at.set((raider.group.position.x + hazardSeen.x) / 2, 0, (raider.group.position.z + hazardSeen.z) / 2);
+    else kraken.wreckPosition(at);
+    const m = mine.group.position;
+    const dx = at.x - m.x;
+    const dz = at.z - m.z;
+    const d = Math.hypot(dx, dz) || 1;
+    const back = Math.min(1, (st - lure.placedAt) / 6);
+    camGoal.set(
+      at.x - (dx / d) * (52 - 14 * back) + (dz / d) * 18,
+      22 - 6 * back,
+      at.z - (dz / d) * (52 - 14 * back) - (dx / d) * 18,
+    );
+    lookGoal.set(at.x, 3, at.z);
   } else if (scenario === 'dodge') {
     // Astern and above your ship, looking ahead along her course.
     const g = mine.group;
@@ -472,6 +584,10 @@ engine.add({
         line = `sightings · ${c ? `${c.kind} ×${c.arms} at ${Math.round(Math.hypot(c.x - camera.position.x, c.z - camera.position.z))} m` : `next in ${Math.max(0, sightings.planner.nextAt - t).toFixed(0)} s`}`;
       if (scenario === 'dodge' && lastStrike.act)
         line += `\n${lastStrike.act}: ${lastStrike.hit ? 'HIT' : 'miss'}, clearance ${Number.isFinite(lastStrike.clearance) ? lastStrike.clearance.toFixed(1) : '–'} m`;
+      const last = hitLog[hitLog.length - 1];
+      if (last)
+        line += `\nstruck: ${last.shipId} −${last.damage} (${last.kind}${last.strike ? '' : ', standing arm'})`;
+      if (!Number.isNaN(lure.caughtAt)) line += ` · caught: ${NAMES.raider}`;
       hud.textContent = `${a}\n${b}\n${line}${kraken.reducedMotion ? ' · reduced motion' : ''}${playing ? '' : ' · paused'}`;
     }
   },
@@ -511,7 +627,7 @@ async function warm(): Promise<void> {
   }
 }
 // Both ships are drawn before the warm too (one shows only in some scenarios).
-mine.group.visible = flagship.group.visible = true;
+mine.group.visible = flagship.group.visible = raider.group.visible = true;
 // The page's own first frames (sky, sea, ships, post) are its warm-up too.
 await engine.counters.excuse(new Promise((r) => setTimeout(r, 500)));
 /** Shader programs before the kraken's warm: the page without it (sky, sea, ships, post). */
@@ -599,6 +715,70 @@ addEventListener('keydown', (e) => {
 restart(scenario);
 if (q.has('wait')) setPlaying(false);
 
+/**
+ * How bent each arm over the water is (a probe for "no spikes"): the most a joint stands off the line
+ * from where the arm leaves the water to its tip, as a share of that part's length. Arms with less
+ * than its two tip bones over the water are left out (one bone can't bend).
+ */
+const _j = new Vector3();
+const bendsOf = (k: Kraken, who: string) => {
+  const out: { who: string; arm: number; bend: number; shown: number }[] = [];
+  if (!k.group.visible) return out;
+  for (const arm of k.arms) {
+    if (!arm.root.visible) continue;
+    const pts: number[] = [];
+    for (const b of arm.poser.bones) {
+      b.getWorldPosition(_j);
+      pts.push(_j.x, _j.y, _j.z);
+    }
+    // The tip: the last bone's end joint.
+    const n = pts.length / 3;
+    const L = arm.poser.lengths;
+    arm.root.getObjectByName('Tentacle15_end')!.getWorldPosition(_j);
+    pts.push(_j.x, _j.y, _j.z);
+    const m = n + 1;
+    const sea = (i: number) => ocean.field.heightAt(pts[i * 3]!, pts[i * 3 + 2]!, clock.sim);
+    let first = -1;
+    // Where it first leaves the water (a hooked tip may dip back in and out again).
+    for (let i = 1; i < m && first < 0; i++)
+      if (pts[i * 3 + 1]! > sea(i) && pts[(i - 1) * 3 + 1]! <= sea(i - 1)) first = i;
+    if (first < 0) continue;
+    const y0 = pts[(first - 1) * 3 + 1]! - sea(first - 1);
+    const y1 = pts[first * 3 + 1]! - sea(first);
+    const c = -y0 / (y1 - y0);
+    const a = [0, 1, 2].map(
+      (q) => pts[(first - 1) * 3 + q]! + (pts[first * 3 + q]! - pts[(first - 1) * 3 + q]!) * c,
+    );
+    const e = [0, 1, 2].map((q) => pts[(m - 1) * 3 + q]! - a[q]!);
+    const ll = e[0]! ** 2 + e[1]! ** 2 + e[2]! ** 2;
+    let worst = 0;
+    let len = 0;
+    let px = a[0]!,
+      py = a[1]!,
+      pz = a[2]!;
+    for (let i = first; i < m; i++) {
+      const x = pts[i * 3]!,
+        y = pts[i * 3 + 1]!,
+        z = pts[i * 3 + 2]!;
+      len += Math.hypot(x - px, y - py, z - pz);
+      px = x;
+      py = y;
+      pz = z;
+      const v = [x - a[0]!, y - a[1]!, z - a[2]!];
+      const u = ll > 0 ? Math.min(1, Math.max(0, (v[0]! * e[0]! + v[1]! * e[1]! + v[2]! * e[2]!) / ll)) : 0;
+      worst = Math.max(worst, Math.hypot(v[0]! - e[0]! * u, v[1]! - e[1]! * u, v[2]! - e[2]! * u));
+    }
+    if (len < L[n - 1]! + L[n - 2]!) continue;
+    out.push({ who, arm: arm.index, bend: worst / len, shown: len });
+  }
+  return out;
+};
+const bends = () => [
+  ...bendsOf(kraken.kraken, 'wrap'),
+  ...bendsOf(kraken.hazards.kraken, 'hazard'),
+  ...bendsOf(sightings.kraken, 'sighting'),
+];
+
 const dev = window as unknown as Record<string, unknown>;
 const stats = () => ({
   ...engine.counters.last,
@@ -609,6 +789,8 @@ const stats = () => ({
   phase: kraken.phase(),
   time: st,
   strike: { ...lastStrike },
+  hits: hitLog.slice(),
+  lure: { ...lure },
   speed: mine.dynamics.pose.speed,
   sighting: sightings.current ? { ...sightings.current } : null,
   programsBefore,
@@ -617,7 +799,7 @@ dev.__kraken = {
   ready: true,
   kraken,
   sightings,
-  ships: { flagship, mine },
+  ships: { flagship, mine, raider },
   stats,
   play: () => setPlaying(true),
   pause: () => setPlaying(false),
@@ -668,6 +850,7 @@ dev.__kraken = {
     director = true;
   },
   hitches: () => engine.counters.hitches.slice(),
+  bends,
   unlockAudio: unlock,
   halfLength: BRIGANTINE_HALF_LENGTH,
 };

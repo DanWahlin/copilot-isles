@@ -40,7 +40,8 @@ describe('kraken palette', () => {
       KRAKEN_COLORS.sucker,
       KRAKEN_COLORS.suckerRim,
       KRAKEN_COLORS.under,
-      KRAKEN_COLORS.glint,
+      KRAKEN_COLORS.scar,
+      KRAKEN_COLORS.barnacle,
     ])
       expect(lin(hex)[0]!).toBeLessThan(KRAKEN_GLOW_RED - 0.03);
     expect(srgbToLinear(255)).toBeCloseTo(1, 6);

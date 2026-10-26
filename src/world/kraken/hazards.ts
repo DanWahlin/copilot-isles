@@ -2,9 +2,9 @@ import { Vector3, type Camera } from 'three/webgpu';
 import { world } from '../uniforms';
 import type { SplashPool } from '../battle/fx';
 import type { Tier, WaveSampler } from '../contracts';
-import { Kraken } from './kraken';
+import { Kraken, poseFreeArm, type KrakenArm } from './kraken';
 import type { MarkState, TellMarks } from './tell-marks';
-import { heavy } from './arm-paths';
+import { freeStance, heavy, type FreeStance } from './arm-paths';
 
 /**
  * Tentacle hazards (a kraken battle's twist, docs: the battle 3 plan): a tentacle that slams down on
@@ -32,6 +32,11 @@ export interface HazardSpec {
   follow: number;
   /** The standing arm's danger radius (m) after the strike. */
   standing: number;
+  /** Damage to a ship the strike lands on (once per strike), and to one touching the standing arm. */
+  damage: number;
+  standingDamage: number;
+  /** A ship touching the standing arm is hurt again after this long (s). */
+  standingEvery: number;
 }
 
 /** The hazards' sizes and timings, as data (the battle reads these, tests check them). */
@@ -45,9 +50,119 @@ export const HAZARD_SPECS: Readonly<Record<HazardKind, HazardSpec>> = {
     danger: 0.9,
     follow: 1.8,
     standing: 5,
+    damage: 34,
+    standingDamage: 6,
+    standingEvery: 2,
   },
-  sweep: { radius: 24, arc: 1.7, tell: 2.8, windUp: 2.2, fall: 1.1, danger: 1.3, follow: 1.6, standing: 5 },
+  sweep: {
+    radius: 24,
+    arc: 1.7,
+    tell: 2.8,
+    windUp: 2.2,
+    fall: 1.1,
+    danger: 1.3,
+    follow: 1.6,
+    standing: 5,
+    damage: 22,
+    standingDamage: 6,
+    standingEvery: 2,
+  },
 };
+
+/** A ship the hazards test against: the battle fills these in place each frame (bow, stern, beam). */
+export interface KrakenHull {
+  readonly id: string;
+  bowX: number;
+  bowZ: number;
+  sternX: number;
+  sternZ: number;
+  halfBeam: number;
+  /** A raider the kraken may take when a strike lands on her (`wrapAndBreak`); never the player. */
+  catchable?: boolean;
+}
+
+/** One ship hit by a strike or a standing arm. */
+export interface HazardHit {
+  shipId: string;
+  /** The hazard's id (from `hazard()`), its kind, and whether it was the strike or the standing arm. */
+  hazardId: number;
+  kind: HazardKind;
+  strike: boolean;
+  damage: number;
+  /** Where on the ship it hit (the hull point nearest the hazard). */
+  x: number;
+  z: number;
+}
+
+/** A ship (or a spot on the sea) a tell is placed for: where it is, which way it heads, how fast. */
+export interface TellTarget {
+  x: number;
+  z: number;
+  /** Radians, clockwise from +z (a ship's heading). */
+  heading: number;
+  /** m/s. */
+  speed: number;
+}
+
+/** Where the next tell appears. */
+export type TellAim = 'dodge' | 'intercept';
+
+/** Where a tell goes for each aim, as data (the battle can tune it). */
+export const TELL_PLACEMENT = {
+  /** Dodge: ahead of the player by this share of the way she'll sail before it lands … */
+  dodgeAhead: 0.8,
+  /** … and off her line by this share of its radius, so a turn away clears it. */
+  dodgeAside: 0.5,
+  /** The closest a dodge's centre comes to her (m), however slow she sails. */
+  dodgeMin: 22,
+  /** Intercept: where the raider will be when it lands (this share of her way), so a lured raider sails in. */
+  interceptAhead: 1.0,
+} as const;
+
+/** A tell placed by `planTell`: its spot, heading (a sweep's middle faces back along her way), size and timing. */
+export interface TellPlan {
+  x: number;
+  z: number;
+  heading: number;
+  kind: HazardKind;
+  radius: number;
+  /** How long the evidence shows before the arm rises (s), and until the strike lands (s). */
+  tell: number;
+  eta: number;
+}
+
+/**
+ * Where the next tell goes (pure): `dodge` near the player (ahead and off her line, so reading it and
+ * turning away clears it), or `intercept` on a raider's course (where she'll be when it lands, so a
+ * raider lured over it is taken). `side` (−1 or 1) is which side of her line a dodge goes.
+ */
+export function planTell(
+  out: TellPlan,
+  target: Readonly<TellTarget>,
+  kind: HazardKind,
+  aim: TellAim,
+  side = 1,
+): TellPlan {
+  const spec = HAZARD_SPECS[kind];
+  const eta = hazardImpactAt(spec);
+  const hs = Math.sin(target.heading);
+  const hc = Math.cos(target.heading);
+  let ahead: number;
+  let aside = 0;
+  if (aim === 'dodge') {
+    ahead = Math.max(TELL_PLACEMENT.dodgeMin, target.speed * eta * TELL_PLACEMENT.dodgeAhead);
+    aside = side * spec.radius * TELL_PLACEMENT.dodgeAside;
+  } else ahead = target.speed * eta * TELL_PLACEMENT.interceptAhead;
+  out.x = target.x + hs * ahead + hc * aside;
+  out.z = target.z + hc * ahead - hs * aside;
+  // A sweep's middle faces back along her way: its arc lies across her course.
+  out.heading = target.heading + Math.PI;
+  out.kind = kind;
+  out.radius = spec.radius;
+  out.tell = spec.tell;
+  out.eta = eta;
+  return out;
+}
 
 /** Seconds from a hazard's start to its strike landing (the tell, the wind-up and the strike). */
 export function hazardImpactAt(spec: HazardSpec): number {
@@ -134,9 +249,15 @@ interface Hazard {
   mark: MarkState | null;
   arm: number;
   struck: boolean;
+  /** Its arm's free pose (under any strike path): up slowly, curled, and down again. */
+  stance: FreeStance;
+  /** When each ship it hit was last hurt (its age then): the strike hits each once. */
+  hurt: Map<string, number>;
 }
 
 export interface HazardEvents {
+  /** Ships hit this frame (the list is reused: copy what you keep). */
+  struck(hits: readonly HazardHit[]): void;
   telling(h: Readonly<HazardArea>, kind: HazardKind, strikeIn: number): void;
   striking(h: Readonly<HazardArea>, kind: HazardKind): void;
   /** Its arm breaks the water (at `at`) to wind up. */
@@ -164,6 +285,10 @@ export class KrakenHazards {
   private rand: () => number;
   private nextId = 1;
   private bubbleAt = 0;
+  private t = 0;
+  private hulls: readonly KrakenHull[] = [];
+  private readonly hitPool: HazardHit[] = [];
+  private readonly hits: HazardHit[] = [];
 
   private constructor(
     kraken: Kraken,
@@ -197,7 +322,12 @@ export class KrakenHazards {
         mark: null,
         arm: i,
         struck: false,
+        stance: { len: 0, curl: 0, bow: 0 },
+        hurt: new Map(),
       });
+    for (let i = 0; i < 16; i++)
+      this.hitPool.push({ shipId: '', hazardId: 0, kind: 'slam', strike: true, damage: 0, x: 0, z: 0 });
+    kraken.onPose = (arm, k) => this.poseArm(arm, k);
     this.reset();
   }
 
@@ -229,6 +359,7 @@ export class KrakenHazards {
       const arm = this.kraken.arms[h.arm]!;
       arm.sink = arm.length + 4;
       arm.weight = 0;
+      h.stance.len = 0;
     }
   }
 
@@ -269,6 +400,7 @@ export class KrakenHazards {
     h.age = 0;
     h.downAt = Infinity;
     h.struck = false;
+    h.hurt.clear();
     h.mark = this.marks.acquire();
     if (h.mark) {
       h.mark.x = x;
@@ -293,6 +425,20 @@ export class KrakenHazards {
     return h.id;
   }
 
+  /**
+   * The ships a strike can hit: the battle's list, its hulls updated in place each frame. Every ship in
+   * a strike's area takes its damage (`struck`), the player's or a raider's.
+   */
+  setHulls(hulls: readonly KrakenHull[]): void {
+    this.hulls = hulls;
+  }
+
+  /** True when ship `id` is a raider the kraken may take. */
+  catchable(id: string): boolean {
+    for (const h of this.hulls) if (h.id === id) return !!h.catchable;
+    return false;
+  }
+
   /** Sends every hazard down. */
   retreat(): void {
     for (const h of this.hazards) if (h.stage !== 'off' && h.downAt === Infinity) h.downAt = h.age;
@@ -305,11 +451,15 @@ export class KrakenHazards {
 
   update(dt: number, t: number, camera: Camera | null): void {
     const gentle = world.reducedMotion.value > 0.5;
+    this.t = t;
+    this.hits.length = 0;
     for (const h of this.hazards) {
       if (h.stage === 'off') continue;
       h.age += dt;
       this.animate(h, t, gentle);
+      if (dt > 0 && this.dangerous(h)) this.testHulls(h);
     }
+    if (this.hits.length) this.events.struck(this.hits);
     this.kraken.place();
     this.kraken.update(dt, t, camera, null, 0);
   }
@@ -358,6 +508,7 @@ export class KrakenHazards {
     }
     if (age < tell) {
       arm.sink = arm.length + 4;
+      h.stance.len = 0;
       return;
     }
     if (h.stage === 'tell') {
@@ -369,7 +520,10 @@ export class KrakenHazards {
     const up = heavy((age - tell) / (spec.windUp * 0.8), gentle ? 0 : 0.05, gentle ? 0 : 0.06);
     const goneDown = h.downAt < Infinity ? smooth((age - h.downAt) / 3) : 0;
     const share = h.kind === 'sweep' ? 0.62 : 0.85;
-    arm.sink = arm.length * (1 - share * Math.max(0, up)) + (arm.length * share + 4) * goneDown;
+    // Its root stays put under the water; the free pose brings it up (its tip first, curled) and
+    // takes it down again (curling, in an arc). The strike path is blended over it.
+    arm.sink = arm.length * (1 - share);
+    freeStance(h.stance, STAND_LENGTH[h.kind], up, goneDown);
     if (!h.struck && s >= 0) {
       h.struck = true;
       this.events.striking(a, h.kind);
@@ -386,6 +540,8 @@ export class KrakenHazards {
       h.mark = null;
       h.stage = 'off';
       arm.weight = 0;
+      arm.sink = arm.length + 4;
+      h.stance.len = 0;
       this.events.done(h.kind);
     }
   }
@@ -437,6 +593,48 @@ export class KrakenHazards {
     path.build();
   }
 
+  /** Every ship in hazard `h`'s area now: the strike hurts each once, the standing arm now and then. */
+  private testHulls(h: Hazard): void {
+    const spec = HAZARD_SPECS[h.kind];
+    const strike = h.stage === 'strike';
+    for (const s of this.hulls) {
+      if (!hazardHitsHull(h.area, s.bowX, s.bowZ, s.sternX, s.sternZ, s.halfBeam)) continue;
+      const last = h.hurt.get(s.id);
+      if (last !== undefined && (strike || h.age - last < spec.standingEvery)) continue;
+      h.hurt.set(s.id, h.age);
+      const hit = this.hitPool[this.hits.length];
+      if (!hit) return;
+      hit.shipId = s.id;
+      hit.hazardId = h.id;
+      hit.kind = h.kind;
+      hit.strike = strike;
+      hit.damage = strike ? spec.damage : spec.standingDamage;
+      // The hull's point nearest the hazard's centre.
+      const dx = s.sternX - s.bowX;
+      const dz = s.sternZ - s.bowZ;
+      const ll = dx * dx + dz * dz;
+      const u =
+        ll > 0 ? Math.min(1, Math.max(0, ((h.area.x - s.bowX) * dx + (h.area.z - s.bowZ) * dz) / ll)) : 0;
+      hit.x = s.bowX + dx * u;
+      hit.z = s.bowZ + dz * u;
+      this.hits.push(hit);
+    }
+  }
+
+  /** Arm `k`'s pose each frame: free (always bent), then its strike path by its weight. */
+  private poseArm(arm: KrakenArm, k: number): void {
+    const h = this.hazards[k];
+    if (!h || h.stage === 'off' || h.stance.len <= 0.05) return;
+    arm.poser.base(_p);
+    const hs = Math.sin(h.area.heading);
+    const hc = Math.cos(h.area.heading);
+    const ex = _p.x + hs * 2.5;
+    const ez = _p.z + hc * 2.5;
+    const phase = (this.t / 7) * Math.PI * 2 + k * 1.7;
+    poseFreeArm(arm, ex, ez, this.waves.heightAt(ex, ez, this.t), h.stance, phase, 0.9, hs, hc);
+    if (arm.weight > 0) arm.poser.pose(arm.path, arm.weight);
+  }
+
   /** The slam lands (or the sweep starts): a ring of spray, and a plume where it hits. */
   private impact(h: Hazard, t: number, gentle: boolean): void {
     const a = h.area;
@@ -481,6 +679,9 @@ export class KrakenHazards {
     this.kraken.dispose();
   }
 }
+
+/** How much of a hazard's arm stands over the water (m along it) when it isn't striking. */
+const STAND_LENGTH: Readonly<Record<HazardKind, number>> = { slam: 15, sweep: 12 };
 
 /** The hazards' arms: about 30 m long at the hazards' kraken's scale. */
 const HAZARD_ARM_SCALES: readonly number[] = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1];

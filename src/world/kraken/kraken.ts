@@ -24,6 +24,7 @@ import { shareSkinning } from '../characters/shared-skinning';
 import { createKrakenBody, type KrakenBody } from './kraken-body';
 import { KRAKEN_GLOW_RED, recolourTentacle } from './kraken-palette';
 import { ChainPoser, CurvePath } from './tentacle-pose';
+import { standPath, type FreeStance } from './arm-paths';
 
 export type TentacleClip = 'Tentacle_Idle' | 'Tentacle_Attack' | 'Tentacle_Attack2' | 'Tentacle_Poke';
 const CLIPS: readonly TentacleClip[] = [
@@ -43,6 +44,8 @@ export interface KrakenArm {
   readonly poser: ChainPoser;
   /** The path the procedural pose follows (world space), filled by the scene each frame. */
   readonly path: CurvePath;
+  /** Its free pose's path (`poseFreeArm`): every arm over the water is bent along one. */
+  readonly free: CurvePath;
   /** 0 the clip's pose, 1 the path's. */
   weight: number;
   /** World metres the arm is drawn down into the water (0 at its socket). */
@@ -80,6 +83,72 @@ export interface KrakenOptions {
 export const KRAKEN_ARM_SCALES: readonly number[] = [1.75, 2.2, 2.0, 2.1, 1.9, 2.1, 2.0, 2.2];
 
 /** The sockets with arms per tier: Lite's four are the ones that face the prey, and one behind. */
+const _base = new Vector3();
+
+/**
+ * Poses `arm` as a free arm (never straight): from its root under the water to where it breaks the
+ * surface at (`ex`, `ez`), then bent as `stance` says (`freeStance`), a slow wave along it (`phase`,
+ * `wave`), leaning toward (`leanX`, `leanZ`), an S with `back`. Blend a path pose over it after.
+ */
+export function poseFreeArm(
+  arm: KrakenArm,
+  ex: number,
+  ez: number,
+  sea: number,
+  stance: Readonly<FreeStance>,
+  phase: number,
+  wave: number,
+  leanX: number,
+  leanZ: number,
+  back = 0,
+): void {
+  arm.poser.base(_base);
+  let ox = ex - _base.x;
+  let oz = ez - _base.z;
+  const d = Math.hypot(ox, oz);
+  if (d > 1e-3) {
+    ox /= d;
+    oz /= d;
+  } else {
+    ox = leanX;
+    oz = leanZ;
+  }
+  const path = arm.free;
+  let slack = 0;
+  // Bones cut across the route's bends and use up more of it than their length: if the arm ran off
+  // its end (a straight stub), lengthen the route by that much and pose it again.
+  for (let tries = 0; tries < 3; tries++) {
+    path.clear();
+    standPath(
+      path,
+      _base.x,
+      _base.y,
+      _base.z,
+      ox,
+      oz,
+      ex,
+      ez,
+      sea,
+      stance.len,
+      arm.length,
+      phase,
+      wave,
+      leanX,
+      leanZ,
+      stance.curl,
+      stance.bow,
+      back,
+      slack,
+    );
+    path.build();
+    arm.poser.pose(path, 1);
+    const fit = arm.poser.overflow;
+    // Ran off its end (a straight stub), or ended well short of it (its hooked tip missed): refit.
+    if (fit > -0.4 && fit < 0.05) break;
+    slack += fit > 0 ? fit + 0.1 : fit + 0.15;
+  }
+}
+
 export function krakenSockets(tier: Tier): readonly number[] {
   return tier === 'lite' ? [0, 1, 7, 6] : [0, 1, 2, 3, 4, 5, 6, 7];
 }
@@ -204,6 +273,7 @@ export class Kraken {
         actions,
         poser,
         path: new CurvePath(48, 6),
+        free: new CurvePath(24, 5),
         weight: 0,
         sink: 0,
         scale,

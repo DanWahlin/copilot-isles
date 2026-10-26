@@ -14,10 +14,25 @@ import {
   heavy,
   hullCoil,
   mastCoil,
+  mirrorX,
+  pullArc,
   railGrip,
   standPath,
+  reachOver,
+  freeStance,
+  type FreeStance,
 } from './arm-paths';
-import { KrakenHazards, type HazardArea, type HazardKind } from './hazards';
+import {
+  KrakenHazards,
+  planTell,
+  type HazardArea,
+  type HazardHit,
+  type HazardKind,
+  type KrakenHull,
+  type TellAim,
+  type TellPlan,
+  type TellTarget,
+} from './hazards';
 import { Kraken, type KrakenArm } from './kraken';
 import { cutShip, type ShipPieces } from './ship-break';
 import { CurvePath } from './tentacle-pose';
@@ -39,7 +54,7 @@ import { TellMarks, type MarkState } from './tell-marks';
  * its arms grip), hides her when her pieces stand in, and never updates her. Cut her ahead of time
  * with `prepare(ship)` (in the battle's warm-up): her pieces must be drawn once before she breaks.
  */
-export type KrakenEventType = 'telling' | 'striking' | 'done';
+export type KrakenEventType = 'telling' | 'striking' | 'struck' | 'caught' | 'done';
 export type KrakenAct = 'rise' | 'wrap' | 'retreat' | HazardKind;
 
 export interface KrakenEvent {
@@ -49,8 +64,12 @@ export interface KrakenEvent {
   z: number;
   /** The danger radius (m) for a hazard; the shadow's for a rise or a wrap. */
   radius: number;
-  /** Seconds until it acts (telling only). */
+  /** Seconds until it acts (telling only): the eta. */
   strikeIn: number;
+  /** `struck`: every ship hit this frame (reused: copy what you keep). */
+  hits: readonly HazardHit[];
+  /** `caught`: the raider it takes (her id from `prepare`). */
+  shipId: string;
 }
 
 /** How long each part of a wrap takes (s). The battle can pass its own. */
@@ -74,7 +93,10 @@ export interface KrakenTiming {
   under: number;
   /** The arms withdrawing, one after another. */
   withdraw: number;
-  /** The body and its eyes surfacing behind the wreck, then sinking (0: no finale). */
+  /**
+   * The body and its eyes surfacing behind the wreck, then sinking, when a wrap asks for it
+   * (`wrapAndBreak(ship, { finale: true })`; a battle leaves it off). 0: never.
+   */
   finale: number;
   /** The arms' slow sway: its period (s) and size (m). */
   swayPeriod: number;
@@ -91,11 +113,11 @@ export const KRAKEN_TIMING: KrakenTiming = {
   arc: 4,
   hang: 2.5,
   grip: 6,
-  squeeze: 6,
-  apart: 4,
-  under: 6,
-  withdraw: 7,
-  finale: 9,
+  squeeze: 4,
+  apart: 3,
+  under: 3.5,
+  withdraw: 4,
+  finale: 5,
   swayPeriod: 7,
   swayAmp: 0.9,
   anticipate: 0.05,
@@ -111,11 +133,38 @@ export const KRAKEN_TIMING_GENTLE: KrakenTiming = {
   arc: 3,
   hang: 1.5,
   grip: 4.5,
-  squeeze: 4,
-  apart: 3,
-  under: 4.5,
-  withdraw: 5,
-  finale: 6,
+  squeeze: 3,
+  apart: 2.5,
+  under: 3,
+  withdraw: 3.5,
+  finale: 4,
+  swayAmp: 0.5,
+  anticipate: 0,
+  overshoot: 0,
+};
+
+/**
+ * A raider taken mid-fight (a strike landed on her): smaller and faster, about 14 s from her being
+ * caught to her pieces under; fewer arms (`QUICK_ROLES`), no arc over her deck, no finale.
+ */
+export const KRAKEN_TIMING_QUICK: KrakenTiming = {
+  ...KRAKEN_TIMING,
+  tell: 0.6,
+  riseEach: 2.0,
+  riseGap: 0.35,
+  arc: 1.2,
+  hang: 0.3,
+  grip: 2.2,
+  squeeze: 2,
+  apart: 1.8,
+  under: 2.4,
+  withdraw: 2.2,
+  finale: 0,
+};
+
+/** Reduced motion's quick wrap: as long, gentler. */
+export const KRAKEN_TIMING_QUICK_GENTLE: KrakenTiming = {
+  ...KRAKEN_TIMING_QUICK,
   swayAmp: 0.5,
   anticipate: 0,
   overshoot: 0,
@@ -134,11 +183,15 @@ export interface WrapBeats {
   under: number;
   foam: number;
   withdraw: number;
+  /** The gap between one arm starting to withdraw and the next. */
+  withdrawStep: number;
+  /** When the finale starts (with none, when the last arm is down). */
   finale: number;
+  hasFinale: boolean;
   end: number;
 }
 
-export function wrapBeats(t: KrakenTiming, arms: number): WrapBeats {
+export function wrapBeats(t: KrakenTiming, arms: number, finale = false): WrapBeats {
   const tips = t.tell;
   const lastRise = tips + t.riseGap * Math.max(0, arms - 1);
   const arc = lastRise + t.riseEach * 0.55;
@@ -147,9 +200,14 @@ export function wrapBeats(t: KrakenTiming, arms: number): WrapBeats {
   const squeeze = grip + t.grip;
   const brk = squeeze + t.squeeze;
   const under = brk + t.apart * 0.5;
-  const foam = brk + t.apart + 1;
-  const withdraw = brk + t.apart + t.under * 0.6;
-  const finale = withdraw + t.withdraw * 0.6;
+  const foam = under + t.under * 0.4;
+  const withdraw = brk + t.apart + t.under * 0.5;
+  // Each arm takes a little over half the withdraw; the rest is the stagger between them.
+  const withdrawStep = arms > 1 ? (0.45 * t.withdraw) / (arms - 1) : 0;
+  const gone = withdraw + t.withdraw;
+  const hasFinale = finale && t.finale > 0;
+  // The finale's arms are the first three down: it starts once they are.
+  const fin = hasFinale ? withdraw + 2 * withdrawStep + WITHDRAW_EACH * t.withdraw + 0.3 : gone;
   return {
     tips,
     lastRise,
@@ -161,8 +219,10 @@ export function wrapBeats(t: KrakenTiming, arms: number): WrapBeats {
     under,
     foam,
     withdraw,
-    finale,
-    end: finale + t.finale + 1,
+    withdrawStep,
+    finale: fin,
+    hasFinale,
+    end: (hasFinale ? Math.max(gone, fin + t.finale) : gone) + 0.5,
   };
 }
 
@@ -182,27 +242,49 @@ export type WrapPhase =
   | 'surfaced'
   | 'retreat';
 
-/** What each arm does in a wrap (by its socket: 0 and 7 face the ship). */
-type Role = 'mast' | 'bow' | 'stern' | 'gripFore' | 'gripAft' | 'standFar' | 'standFarFore' | 'standNear';
+/**
+ * What each arm does in a wrap (by its socket: 0 and 7 face the ship). It commits every arm: six
+ * grip her (both sides of the hull, over the deck, round the foremast), and two rise high behind her
+ * and arc in over her rails for the final pull. Lite's four (sockets 0, 1, 7, 6) all grip.
+ */
+type Role = 'mast' | 'bow' | 'stern' | 'gripFore' | 'gripAft' | 'farGrip' | 'pullFar' | 'pullNear';
 const ROLE_OF: Readonly<Record<number, Role>> = {
   0: 'mast',
   7: 'bow',
   1: 'stern',
   6: 'gripFore',
   2: 'gripAft',
-  3: 'standFar',
-  5: 'standFarFore',
-  4: 'standNear',
+  3: 'farGrip',
+  5: 'pullFar',
+  4: 'pullNear',
 };
+/** The arms that rise round the body in the finale. */
+const FINALE_ROLES: readonly Role[] = ['pullNear', 'pullFar', 'farGrip'];
+/** The order they let go in: the finale's arms first, the highest (round the foremast) last. */
+const WITHDRAW_ORDER: readonly Role[] = [
+  'pullNear',
+  'pullFar',
+  'farGrip',
+  'gripAft',
+  'gripFore',
+  'stern',
+  'bow',
+  'mast',
+];
+/** The arms a quick wrap (a raider caught mid-fight) uses: its grips and the foremast coil. */
+const QUICK_ROLES: readonly Role[] = ['gripFore', 'farGrip', 'stern', 'bow', 'mast'];
+const NO_HITS: readonly HazardHit[] = [];
+/** One arm's withdraw, as a share of the whole (`KrakenTiming.withdraw`). */
+const WITHDRAW_EACH = 0.55;
 /** The order they rise in: tips beside the hull first, the highest (the arc over the deck) last. */
 const RISE_ORDER: readonly Role[] = [
   'gripFore',
   'gripAft',
-  'standFar',
-  'standFarFore',
+  'farGrip',
   'stern',
   'bow',
-  'standNear',
+  'pullFar',
+  'pullNear',
   'mast',
 ];
 /** Which half each arm holds after she tears in two (0 the stern half, 1 the bow). */
@@ -212,26 +294,34 @@ const PIECE_OF: Readonly<Record<Role, number>> = {
   gripFore: 1,
   stern: 0,
   gripAft: 0,
-  standFar: 0,
-  standFarFore: 1,
-  standNear: 0,
+  farGrip: 0,
+  pullFar: 1,
+  pullNear: 0,
 };
-/** Where each arm breaks the water beside the ship (her frame: x to the kraken's side, z to her bow) and how tall it stands (m). */
+/**
+ * Where each arm breaks the water beside the ship (her frame: x to the kraken's side, z to her bow)
+ * and how much of it stands over the water while it's free (m along it; it bends, so it stands
+ * lower than that).
+ */
 const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
-  mast: [6.5, 7.5, 10],
-  bow: [5.6, 9.5, 11],
-  stern: [6, -4.6, 11],
-  gripFore: [5.4, 1.8, 10],
-  gripAft: [5.6, -11.5, 10],
-  standFar: [-9, -5, 15],
-  standFarFore: [-8.5, 6.5, 13],
-  standNear: [13, -15, 14],
+  mast: [6.5, 7.5, 13],
+  bow: [5.6, 9.5, 14],
+  stern: [6, -4.6, 14],
+  gripFore: [5.4, 1.8, 12],
+  gripAft: [5.6, -11.5, 12],
+  farGrip: [-7.5, -5.5, 12],
+  pullFar: [-11, 10.5, 19],
+  pullNear: [11, -17.5, 19],
 };
-/** How far round the surfaced body its arms rise (m), and how tall they stand there. */
+/** How far round the surfaced body its arms rise (m), and how much of each stands there. */
 const RING = 11.5;
-const RING_HEIGHT = 7.5;
-/** Where the kraken lies beside a ship it wraps (her frame), and how deep its body is. */
-const ANCHOR = { x: 15, z: -1.5, depth: -11 } as const;
+const RING_HEIGHT = 10;
+/**
+ * Where the kraken lies beside a ship it wraps (her frame), and how deep its body is. It lies
+ * pitched toward her (`pitch`), its mantle trailing away under the water as an octopus's does when
+ * it reaches: its ring of arms is higher and nearer her, so they reach her, and its head stays under.
+ */
+const ANCHOR = { x: 13, z: -1.5, depth: -8.5, pitch: -1.15 } as const;
 /** The ship's one cut: she tears in two between the fore and main masts. */
 const CUTS = [1.8] as const;
 
@@ -241,6 +331,9 @@ interface ArmState {
   role: Role;
   /** When it starts to rise (s after the wrap or rise starts). */
   riseAt: number;
+  /** In this wrap (a quick one uses fewer arms), and its withdraw's start after the wrap's. */
+  active: boolean;
+  outAt: number;
   sway: number;
   stand: CurvePath;
   target: CurvePath;
@@ -254,7 +347,9 @@ const _p = new Vector3();
 const _a = new Vector3();
 const _o = new Vector3();
 const _look = new Vector3();
+const _b = new Vector3();
 const _pts = new Points(64);
+const _stance: FreeStance = { len: 0, curl: 0, bow: 0 };
 
 export interface KrakenEncounterOptions {
   tier: TierSettings;
@@ -264,10 +359,14 @@ export interface KrakenEncounterOptions {
   base?: string;
   /** Timings to use instead of `KRAKEN_TIMING` (and its gentle one with reduced motion). */
   timing?: Partial<KrakenTiming>;
+  /** The quick wrap's timings (a raider caught mid-fight) instead of `KRAKEN_TIMING_QUICK`. */
+  quickTiming?: Partial<KrakenTiming>;
 }
 
 interface Wreck {
   ship: Brigantine;
+  /** Her id in the battle's hulls (`setHulls`), so a strike that lands on her can catch her. */
+  id: string;
   pieces: ShipPieces;
   /** Each rigging line's own opacity (they fade as their half goes under). */
   lineBase: number[];
@@ -285,6 +384,12 @@ export class KrakenEncounter {
   /** Seconds since the encounter started (its own clock). */
   time = 0;
   private gentle = false;
+  private finaleOn = false;
+  private quick = false;
+  private readonly timingQuick: KrakenTiming;
+  private readonly timingQuickGentle: KrakenTiming;
+  /** A raider a landed strike catches is taken at once (a battle can turn it off and call `wrapAndBreak`). */
+  autoCatch = true;
   private beatsNow: WrapBeats;
   /** Camera shake for this frame (m), 0 with reduced motion. */
   shake = 0;
@@ -293,7 +398,16 @@ export class KrakenEncounter {
   private readonly waves: WaveSampler;
   private readonly onSound: KrakenEncounterOptions['onSound'];
   private readonly listeners: ((e: Readonly<KrakenEvent>) => void)[] = [];
-  private readonly event: KrakenEvent = { type: 'telling', act: 'rise', x: 0, z: 0, radius: 0, strikeIn: 0 };
+  private readonly event: KrakenEvent = {
+    type: 'telling',
+    act: 'rise',
+    x: 0,
+    z: 0,
+    radius: 0,
+    strikeIn: 0,
+    hits: NO_HITS,
+    shipId: '',
+  };
   private readonly states: ArmState[] = [];
   private readonly fired = new Uint8Array(48);
   private readonly wrecks: Wreck[] = [];
@@ -325,6 +439,8 @@ export class KrakenEncounter {
     this.onSound = o.onSound;
     this.timingFull = { ...KRAKEN_TIMING, ...o.timing };
     this.timingGentle = { ...KRAKEN_TIMING_GENTLE, ...o.timing };
+    this.timingQuick = { ...KRAKEN_TIMING_QUICK, ...o.quickTiming };
+    this.timingQuickGentle = { ...KRAKEN_TIMING_QUICK_GENTLE, ...o.quickTiming };
     this.beatsNow = wrapBeats(this.timingFull, kraken.arms.length);
     this.kraken = kraken;
     this.hazards = hazards;
@@ -339,8 +455,10 @@ export class KrakenEncounter {
       this.states.push({
         arm,
         k,
-        role: ROLE_OF[arm.index] ?? 'standNear',
+        role: ROLE_OF[arm.index] ?? 'pullNear',
         riseAt: 0,
+        active: true,
+        outAt: 0,
         sway: arm.index * 1.7,
         stand: new CurvePath(24, 5),
         target: new CurvePath(48, 4),
@@ -385,6 +503,7 @@ export class KrakenEncounter {
         },
         emerging: (at) => enc?.breakWater(at.x, at.z, 0.8),
         done: (kind) => enc?.emitEvent('done', kind, 0, 0, 0, 0),
+        struck: (hits) => enc?.onStruck(hits),
       },
     });
     enc = new KrakenEncounter(o, kraken, hazards, marks, splashes);
@@ -398,11 +517,18 @@ export class KrakenEncounter {
 
   set reducedMotion(on: boolean) {
     this.gentle = on;
-    this.beatsNow = wrapBeats(this.timing, this.states.length);
+    this.beatsNow = wrapBeats(this.timing, this.activeArms(), this.finaleOn);
+  }
+
+  private activeArms(): number {
+    let n = 0;
+    for (const s of this.states) if (!this.quick || QUICK_ROLES.includes(s.role)) n++;
+    return n;
   }
 
   /** The timing in use (the gentle one with reduced motion). */
   get timing(): KrakenTiming {
+    if (this.quick) return this.gentle ? this.timingQuickGentle : this.timingQuick;
     return this.gentle ? this.timingGentle : this.timingFull;
   }
 
@@ -423,7 +549,7 @@ export class KrakenEncounter {
    * Cuts `ship` into her two halves ahead of time (in the warm-up, with her rig and figurehead as
    * they'll be). They join the encounter's group, hidden; its warm (`stageWarm`) draws them.
    */
-  prepare(ship: Brigantine): void {
+  prepare(ship: Brigantine, id = ''): void {
     const old = this.wrecks.findIndex((w) => w.ship === ship);
     if (old >= 0) {
       this.group.remove(this.wrecks[old]!.pieces.group);
@@ -435,7 +561,7 @@ export class KrakenEncounter {
     this.group.add(pieces.group);
     const lineBase: number[] = [];
     for (const p of pieces.pieces) for (const m of p.lineMaterials) lineBase.push(m.opacity);
-    this.wrecks.push({ ship, pieces, lineBase });
+    this.wrecks.push({ ship, id, pieces, lineBase });
   }
 
   /** Back to calm: the kraken deep and hidden, no hazards, any wrecked ship whole again (shown). */
@@ -491,9 +617,12 @@ export class KrakenEncounter {
    * grip, the squeeze, the tear, the halves dragged under, the arms withdrawing, and (with a finale)
    * its body and eyes surfacing behind the wreck. It follows her if she's under way.
    */
-  wrapAndBreak(ship: Brigantine): boolean {
+  wrapAndBreak(ship: Brigantine, o?: { finale?: boolean; quick?: boolean }): boolean {
     const wreck = this.wrecks.find((w) => w.ship === ship);
-    if (!wreck || this.wreck) return false;
+    if (!wreck || wreck === this.wreck || !this.free()) return false;
+    this.finaleOn = !!o?.finale && !o?.quick;
+    this.quick = !!o?.quick;
+    this.beatsNow = wrapBeats(this.timing, this.activeArms(), this.finaleOn);
     this.wreck = wreck;
     this.broke = false;
     this.trim = ship.dynamics.control.trim;
@@ -505,6 +634,48 @@ export class KrakenEncounter {
     return true;
   }
 
+  /** True when it can take a ship now: not wrapping one, or its last wrap is over. */
+  free(): boolean {
+    if (this.mode === 'idle') return true;
+    if (this.mode === 'wrap') return this.time - this.startAt >= this.beatsNow.end;
+    return !Number.isNaN(this.leaveAt) && this.time - this.leaveAt > this.timing.withdraw + 4;
+  }
+
+  /**
+   * The ships its strikes can hit (the player's and the raiders'), their hulls updated in place by
+   * the battle each frame. A strike landing on a `catchable` raider prepared with her id is `caught`.
+   */
+  setHulls(hulls: readonly KrakenHull[]): void {
+    this.hazards.setHulls(hulls);
+  }
+
+  /** Where the next tell goes, near the player (`dodge`) or on a raider's course (`intercept`). */
+  planTell(out: TellPlan, target: Readonly<TellTarget>, kind: HazardKind, aim: TellAim, side = 1): TellPlan {
+    return planTell(out, target, kind, aim, side);
+  }
+
+  /** Starts a hazard where `planTell` put it; returns its id (0 if every arm is busy). */
+  hazardAt(plan: Readonly<TellPlan>): number {
+    return this.hazards.start(plan.kind, plan.x, plan.z, plan.heading);
+  }
+
+  /** Ships hit this frame: the event, then a raider caught (if it can take her). */
+  private onStruck(hits: readonly HazardHit[]): void {
+    const e = this.event;
+    e.hits = hits;
+    this.emitEvent('struck', hits[0]!.kind, hits[0]!.x, hits[0]!.z, 0, 0);
+    e.hits = NO_HITS;
+    for (const h of hits) {
+      if (!h.strike || !this.autoCatch || !this.hazards.catchable(h.shipId)) continue;
+      const wreck = this.wrecks.find((w) => w.id === h.shipId);
+      if (!wreck || !this.wrapAndBreak(wreck.ship, { quick: true })) continue;
+      e.shipId = h.shipId;
+      this.emitEvent('caught', 'wrap', h.x, h.z, 0, 0);
+      e.shipId = '';
+      return;
+    }
+  }
+
   private begin(mode: Mode): void {
     this.mode = mode;
     this.startAt = this.time;
@@ -512,15 +683,22 @@ export class KrakenEncounter {
     this.fired.fill(0);
     this.kraken.group.visible = true;
     this.kraken.body.root.position.set(0, mode === 'wrap' ? ANCHOR.depth - 4 : -16, 0);
+    if (mode !== 'wrap') this.quick = false;
     // Each arm's rise: one or two at a time, a varied gap between them.
     let at = this.timing.tell;
     for (const s of this.states) {
-      s.riseAt = at;
+      s.active = mode !== 'wrap' || !this.quick || QUICK_ROLES.includes(s.role);
+      s.riseAt = s.active ? at : Infinity;
       s.shown = 0;
       s.arm.sink = 0;
       s.arm.weight = 1;
-      at += this.timing.riseGap * (0.55 + 0.9 * this.rand());
+      if (s.active) at += this.timing.riseGap * (0.55 + 0.9 * this.rand());
     }
+    // Their withdraw, in order (the finale's arms first), over the arms in this wrap.
+    let rank = 0;
+    for (const role of WITHDRAW_ORDER)
+      for (const s of this.states)
+        if (s.role === role && s.active) s.outAt = rank++ * this.beatsNow.withdrawStep;
     this.tellMark ??= this.marks.acquire();
     if (this.tellMark) {
       this.tellMark.radius = 12;
@@ -681,13 +859,15 @@ export class KrakenEncounter {
     const tm = this.timing;
     let y: number;
     if (this.mode === 'wrap') {
-      const fin =
-        tm.finale > 0
-          ? heavy((w - b.finale) / 4, tm.anticipate, tm.overshoot) * (1 - ease((w - b.end + 4.5) / 4))
-          : 0;
+      const fin = b.hasFinale
+        ? heavy((w - b.finale) / (tm.finale * 0.4), tm.anticipate, tm.overshoot) *
+          (1 - ease((w - b.end + 0.5 + tm.finale * 0.5) / (tm.finale * 0.45)))
+        : 0;
       const down = ease((w - b.tips + 2) / 4);
       y = ANCHOR.depth - 4 * (1 - down) + (body.surfaced - ANCHOR.depth) * fin;
+      body.root.rotation.x = ANCHOR.pitch * (1 - fin);
     } else {
+      body.root.rotation.x = 0;
       const up = heavy((w - tm.tell - 1.5) / (tm.riseEach * 1.1), tm.anticipate, tm.overshoot);
       y = -16 + (16 + body.surfaced) * up;
     }
@@ -697,7 +877,7 @@ export class KrakenEncounter {
   }
 
   private armHidden(s: ArmState, w: number, b: WrapBeats): boolean {
-    if (w < s.riseAt - 1) return true;
+    if (!s.active || w < s.riseAt - 1) return true;
     if (this.mode === 'wrap' && w > b.end) return true;
     if (!Number.isNaN(this.leaveAt) && this.time - this.leaveAt > this.timing.withdraw + 4) return true;
     return false;
@@ -786,23 +966,19 @@ export class KrakenEncounter {
     const w = this.time - this.startAt;
     const a = tm.anticipate;
     const o = tm.overshoot;
-    // How tall it stands: up slowly (tips first), down slowly when it withdraws.
-    const rise = heavy((w - s.riseAt) / tm.riseEach, a, o);
+    // How far up it is: slowly, tips first; and how far it has withdrawn.
+    let rise = heavy((w - s.riseAt) / tm.riseEach, a, o);
     let out = 0;
-    if (this.mode === 'wrap') {
-      const order = RISE_ORDER.indexOf(s.role);
-      out = ease((w - b.withdraw - order * 0.55) / (tm.withdraw * 0.6));
-    }
+    if (this.mode === 'wrap') out = ease((w - b.withdraw - s.outAt) / (WITHDRAW_EACH * tm.withdraw));
     if (!Number.isNaN(this.leaveAt))
       out = Math.max(
         out,
         ease((this.time - this.leaveAt - (s.riseAt - tm.tell) * 0.5) / (tm.withdraw * 0.6)),
       );
-    // Where it breaks the water: beside the ship it's after, or round its own surfaced body.
+    // Where it breaks the water: beside the ship it's after, or round its own surfaced body. A
+    // finale arm moves to the body only once it's down.
     const finaleArm =
-      this.mode === 'wrap' &&
-      w > b.finale &&
-      (s.role === 'standFar' || s.role === 'standNear' || s.role === 'standFarFore');
+      this.mode === 'wrap' && b.hasFinale && out >= 1 && w > b.finale && FINALE_ROLES.includes(s.role);
     let height: number;
     const frame = this.mode === 'wrap' ? this.frameFor(s.role, w) : null;
     if (this.mode === 'wrap' && !finaleArm) {
@@ -820,22 +996,26 @@ export class KrakenEncounter {
       _a.addScaledVector(_o.setY(0).normalize(), RING);
       height = RING_HEIGHT;
       if (finaleArm) {
-        const fin = heavy((w - b.finale - 1.5) / tm.riseEach, a, o) * (1 - ease((w - b.end + 4) / 3.5));
-        out = 1 - fin;
+        rise = heavy((w - b.finale - 0.6) / (tm.finale * 0.5), a, o);
+        out = ease((w - b.end + 0.5 + tm.finale * 0.45) / (tm.finale * 0.4));
       }
     }
-    const h = height * Math.max(0, rise) * (1 - out);
+    // Always bent: its tip leads curled and unrolls as it rises, and it curls and bows as it goes.
+    freeStance(_stance, height, rise, out);
+    const h = _stance.len;
     // Foam where it breaks the water, coming up or going down.
     if (s.shown < 0.5 !== h < 0.5 && h + s.shown > 0) this.breakWater(_a.x, _a.z, h > s.shown ? 1 : 0.7);
     s.shown = h;
     const sea = this.waves.heightAt(_a.x, _a.z, this.t);
     arm.poser.base(_p);
     _o.copy(arm.outward).transformDirection(this.kraken.body.root.matrixWorld);
-    // It leans toward the ship it's after (or out from its body), its tip hooked over.
+    // It bends toward the ship it's after (an S: out from her, then its tip hooks over toward her),
+    // or out from its body (a J).
     let lx: number;
     let lz: number;
-    if (this.wreck && !finaleArm) {
-      const sp = this.wreck.ship.group.position;
+    const nearShip = !!this.wreck && !finaleArm;
+    if (nearShip) {
+      const sp = this.wreck!.ship.group.position;
       lx = sp.x - _a.x;
       lz = sp.z - _a.z;
     } else {
@@ -846,32 +1026,42 @@ export class KrakenEncounter {
     lx /= ll;
     lz /= ll;
     const sway = (this.t / tm.swayPeriod) * Math.PI * 2 + s.sway;
-    s.stand.clear();
-    // Round its own body they curl outward a little; beside a ship their tips hook over toward her.
-    const curl = this.wreck && !finaleArm ? 0.8 : 0.3;
-    standPath(
-      s.stand,
-      _p.x,
-      _p.y,
-      _p.z,
-      _o.x,
-      _o.z,
-      _a.x,
-      _a.z,
-      sea,
-      h,
-      arm.length,
-      sway,
-      tm.swayAmp,
-      lx,
-      lz,
-      curl,
-    );
-    s.stand.build();
-    arm.poser.pose(s.stand, 1);
+    let slack = 0;
+    // Posed again with a longer route if its bones ran off the end (they cut across its bends).
+    for (let tries = 0; tries < 3; tries++) {
+      s.stand.clear();
+      standPath(
+        s.stand,
+        _p.x,
+        _p.y,
+        _p.z,
+        _o.x,
+        _o.z,
+        _a.x,
+        _a.z,
+        sea,
+        h,
+        arm.length,
+        sway,
+        tm.swayAmp,
+        lx,
+        lz,
+        _stance.curl,
+        _stance.bow,
+        nearShip ? 0.8 : 0,
+        slack,
+      );
+      s.stand.build();
+      arm.poser.pose(s.stand, 1);
+      const fit = arm.poser.overflow;
+      // Ran off its end (a straight stub), or ended well short of it (its hooked tip missed): refit.
+      if (fit > -0.4 && fit < 0.05) break;
+      slack += fit > 0 ? fit + 0.1 : fit + 0.15;
+    }
     if (this.mode !== 'wrap' || finaleArm || !frame) return;
     // Its role's shape over the ship, blended in slowly (and out as it withdraws).
-    const grip = heavy((w - b.grip - (RISE_ORDER.indexOf(s.role) % 3) * 0.6) / (tm.grip * 0.7), a, o);
+    const order = RISE_ORDER.indexOf(s.role) % 3;
+    const grip = heavy((w - b.grip - order * 0.6) / (tm.grip * 0.7), a, o);
     const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
     const release = 1 - out;
     if (s.role === 'mast') {
@@ -898,14 +1088,33 @@ export class KrakenEncounter {
       }
       return;
     }
-    const wGrip = ease((w - b.grip - (RISE_ORDER.indexOf(s.role) % 3) * 0.6) / (tm.grip * 0.45)) * release;
+    if (s.role === 'pullFar' || s.role === 'pullNear') {
+      // High behind her until the squeeze, then over her rail for the final pull.
+      const start = b.squeeze - 1.5 + (s.role === 'pullNear' ? 0.7 : 0);
+      const over = heavy((w - start) / (tm.squeeze * 0.6 + 1), a, o);
+      const wPull = ease((w - start) / 1.6) * release;
+      if (wPull <= 0) return;
+      this.shipPath(
+        s,
+        s.target,
+        frame,
+        _a,
+        sea,
+        s.role === 'pullFar' ? SHAPE_PULL_FAR : SHAPE_PULL_NEAR,
+        Math.min(1, Math.max(0.05, over)),
+        squeeze,
+      );
+      arm.poser.pose(s.target, wPull);
+      return;
+    }
+    const wGrip = ease((w - b.grip - order * 0.6) / (tm.grip * 0.45)) * release;
     if (wGrip <= 0) return;
     const loose = 1 - Math.min(1, Math.max(0, grip));
     if (s.role === 'bow') this.shipPath(s, s.target, frame, _a, sea, SHAPE_BOW, loose, squeeze);
     else if (s.role === 'stern') this.shipPath(s, s.target, frame, _a, sea, SHAPE_STERN, loose, squeeze);
     else if (s.role === 'gripFore') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FORE, squeeze, 0);
     else if (s.role === 'gripAft') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_AFT, squeeze, 0);
-    else return;
+    else this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FAR, squeeze, 0);
     arm.poser.pose(s.target, wGrip);
   }
 
@@ -923,31 +1132,26 @@ export class KrakenEncounter {
     u: number,
     v: number,
   ): void {
-    _pts.clear();
-    if (shape === SHAPE_ARC) deckArc(_pts, u, v);
-    else if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
-    else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
-    else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
-    else railGrip(_pts, shape === SHAPE_GRIP_FORE ? WRAP_SPOTS.gripFore : WRAP_SPOTS.gripAft, u);
     frame.updateWorldMatrix(true, false);
     _m.copy(frame.matrixWorld);
-    // The shape's own length above the water, so the loop under it takes up only the rest.
-    let above = 0;
-    let lx = e.x;
-    let ly = sea;
-    let lz = e.z;
-    for (let i = 0; i < _pts.n; i++) {
-      _p.set(_pts.xyz[i * 3]!, _pts.xyz[i * 3 + 1]!, _pts.xyz[i * 3 + 2]!).applyMatrix4(_m);
-      above += Math.hypot(_p.x - lx, _p.y - ly, _p.z - lz);
-      lx = _p.x;
-      ly = _p.y;
-      lz = _p.z;
-    }
     const arm = s.arm;
-    arm.poser.base(_p);
+    arm.poser.base(_b);
+    shapePoints(shape, u, v);
+    // The shape's own length above the water, so the loop under it takes up only the rest.
+    let above = shapeLength(e, sea);
+    // An arc that's more than the arm can reach comes over less far (it still curves, all of it on
+    // the arm), never a straight reach toward a shape it can't get to.
+    if (shape === SHAPE_ARC || shape === SHAPE_PULL_NEAR || shape === SHAPE_PULL_FAR) {
+      const avail = reachOver(_b.x, _b.y, _b.z, _o.x, _o.z, e.x, e.z, sea, arm.length) * 0.95;
+      for (let k = 0; k < 3 && above > avail && u > 0.06; k++) {
+        u = Math.max(0.05, (u * avail) / above);
+        shapePoints(shape, u, v);
+        above = shapeLength(e, sea);
+      }
+    }
     path.clear();
-    standPath(path, _p.x, _p.y, _p.z, _o.x, _o.z, e.x, e.z, sea, above, arm.length, 0, 0, 0, 1, 0);
-    // standPath stops at the surface when it has no standing part: drop its last (rising) points.
+    standPath(path, _b.x, _b.y, _b.z, _o.x, _o.z, e.x, e.z, sea, above, arm.length, 0, 0, 0, 1, 0, 0, 0);
+    // Under the water only: then the shape.
     path.ctrlCount = Math.min(path.ctrlCount, 4);
     for (let i = 0; i < _pts.n; i++) {
       _p.set(_pts.xyz[i * 3]!, _pts.xyz[i * 3 + 1]!, _pts.xyz[i * 3 + 2]!).applyMatrix4(_m);
@@ -1144,10 +1348,10 @@ export class KrakenEncounter {
           }
           this.emit('sink', _p, 1.2);
         }
-      if (this.once(CUE_DONE, b.foam + 4))
+      if (this.once(CUE_DONE, b.foam + 3))
         this.emitEvent('done', 'wrap', this.brokeAt.x, this.brokeAt.z, 0, 0);
     }
-    if (tm.finale > 0 && this.once(CUE_FINALE, b.finale + 1.2)) {
+    if (b.hasFinale && this.once(CUE_FINALE, b.finale + tm.finale * 0.25)) {
       this.kraken.group.getWorldPosition(_p);
       this.foam(_p.x, _p.z, 5, 15, 6);
       this.emit('sink', _p, 0.7);
@@ -1243,8 +1447,44 @@ const SHAPE_BOW = 2;
 const SHAPE_STERN = 3;
 const SHAPE_GRIP_FORE = 4;
 const SHAPE_GRIP_AFT = 5;
+const SHAPE_GRIP_FAR = 6;
+const SHAPE_PULL_NEAR = 7;
+const SHAPE_PULL_FAR = 8;
 
 /** The ship's hull material (the caps are its planking). */
+/** A wrap shape's points (ship-local) into `_pts`. */
+function shapePoints(shape: number, u: number, v: number): void {
+  _pts.clear();
+  if (shape === SHAPE_ARC) deckArc(_pts, u, v);
+  else if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
+  else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
+  else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
+  else if (shape === SHAPE_PULL_NEAR) pullArc(_pts, WRAP_SPOTS.pullAft, u, v);
+  else if (shape === SHAPE_PULL_FAR) {
+    pullArc(_pts, WRAP_SPOTS.pullFore, u, v);
+    mirrorX(_pts);
+  } else if (shape === SHAPE_GRIP_FAR) {
+    railGrip(_pts, WRAP_SPOTS.gripFar, u);
+    mirrorX(_pts);
+  } else railGrip(_pts, shape === SHAPE_GRIP_FORE ? WRAP_SPOTS.gripFore : WRAP_SPOTS.gripAft, u);
+}
+
+/** The length (m) of `_pts` through `_m` (the ship's frame), from where the arm breaks the water. */
+function shapeLength(e: Vector3, sea: number): number {
+  let len = 0;
+  let lx = e.x;
+  let ly = sea;
+  let lz = e.z;
+  for (let i = 0; i < _pts.n; i++) {
+    _p.set(_pts.xyz[i * 3]!, _pts.xyz[i * 3 + 1]!, _pts.xyz[i * 3 + 2]!).applyMatrix4(_m);
+    len += Math.hypot(_p.x - lx, _p.y - ly, _p.z - lz);
+    lx = _p.x;
+    ly = _p.y;
+    lz = _p.z;
+  }
+  return len;
+}
+
 function shipMaterialOf(ship: Object3D): Material {
   const hull =
     ship.getObjectByName('rounded planked hull') ?? ship.getObjectByName('hull deck trim and stern (merged)');

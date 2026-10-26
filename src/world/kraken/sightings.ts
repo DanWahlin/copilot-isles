@@ -6,7 +6,8 @@ import type { HeightField, WaveSampler } from '../contracts';
 import type { QuietSea } from '../life/quiet-sea';
 import { leapPixels } from '../life/leaps/director';
 import { world } from '../uniforms';
-import { Kraken } from './kraken';
+import { Kraken, poseFreeArm, type KrakenArm } from './kraken';
+import { freeStance, type FreeStance } from './arm-paths';
 
 /**
  * Distant kraken sightings: ambient sea life, like the leaping dolphins and flying fish. Now and
@@ -231,6 +232,8 @@ const SPOTS = [
 const SIGHTING_ARM_SCALES: readonly number[] = [1.8, 1.7, 1.15, 1.05, 1.2, 1.0, 1.25, 1.8];
 /** A single tip's height (m over the sea). */
 const TIP_HEIGHT = 26;
+/** A free arm bends, so it needs more of itself over the water than its tip's height. */
+const BENT = 1.3;
 
 /**
  * The sightings in the scene: one small kraken (Lite: one arm; else three and the body for an arc)
@@ -244,7 +247,7 @@ export class KrakenSightings {
   gates: SightingsGates;
   /** The sighting showing now, or null. */
   current: SightingPlan | null = null;
-  private readonly kraken: Kraken;
+  readonly kraken: Kraken;
   private readonly waves: WaveSampler;
   private readonly lite: boolean;
   private readonly onSound: KrakenSightingsOptions['onSound'];
@@ -264,8 +267,11 @@ export class KrakenSightings {
   /** Each arm's state for the sighting: 0 under, 1 rising, 2 up, 3 going down. */
   private readonly risen: Uint8Array;
   private gentle = false;
-  /** How far down (m) each arm sits when fully up: tuned each frame so its tip stands at its height. */
-  private readonly rest: Float32Array;
+  /** Each arm's free pose (always bent: up tip first, curled; down curling, in an arc). */
+  private readonly stances: FreeStance[] = [];
+  /** Which way each arm leans (radians); it turns as the arm goes down (a swirl). */
+  private readonly lean: Float32Array;
+  private t = 0;
   /** An arc's spray: 0 not yet, 1 up, 2 under again. */
   private arcCue = 0;
   /** The sighting ends early (its gate closed): seconds into it when it started going down. */
@@ -288,7 +294,9 @@ export class KrakenSightings {
     this.splashes = new SplashPool(this.lite ? 10 : 20);
     this.group.add(this.splashes.mesh);
     this.risen = new Uint8Array(kraken.arms.length);
-    this.rest = new Float32Array(kraken.arms.length);
+    this.lean = new Float32Array(kraken.arms.length);
+    for (let k = 0; k < kraken.arms.length; k++) this.stances.push({ len: 0, curl: 0, bow: 0 });
+    kraken.onPose = (arm, k) => this.poseArm(arm, k);
     this.reset();
   }
 
@@ -321,7 +329,7 @@ export class KrakenSightings {
       arm.sink = arm.length + 4;
       arm.root.rotation.set(0, 0, 0);
       this.risen[k] = 0;
-      this.rest[k] = arm.length * 0.45;
+      this.stances[k]!.len = 0;
     }
   }
 
@@ -398,20 +406,45 @@ export class KrakenSightings {
       // A group spreads its arms round the spot.
       arm.socket.set(spot[0] / scale, -2, spot[1] / scale);
       arm.root.rotation.set(0.1 * (this.rand() - 0.5), this.rand() * Math.PI * 2, 0.1 * (this.rand() - 0.5));
+      this.lean[i] = this.rand() * Math.PI * 2;
       k.play(i, 'Tentacle_Idle', 0, 0.4 + this.rand() * 0.15, true);
     }
   }
 
   /** How far up arm `i` is at `u` s into the sighting (0 under, 1 fully up). */
   private shown(i: number, u: number, plan: SightingPlan): number {
+    return this.risenAt(i, u, plan) * (1 - this.goneAt(i, u, plan));
+  }
+
+  private risenAt(i: number, u: number, plan: SightingPlan): number {
     if (i >= plan.arms) return 0;
-    const delay = i * 1.1;
     // Slow, as a creature this size moves: a long rise, a long slide back under.
-    const rise = this.gentle ? 5 : 4;
+    return smooth((u - i * 1.1) / (this.gentle ? 5 : 4));
+  }
+
+  private goneAt(i: number, u: number, plan: SightingPlan): number {
+    if (i >= plan.arms) return 1;
     const fall = this.gentle ? 5 : 4.5;
     const end = Math.min(plan.duration, this.leaveAt) - 0.3 * (plan.arms - 1 - i);
-    const up = smooth((u - delay) / rise) * (1 - smooth((u - (end - fall)) / fall));
-    return up;
+    return smooth((u - (end - fall)) / fall);
+  }
+
+  /** How much of arm `i` stands over the water (m along it). */
+  private heightOf(i: number, plan: SightingPlan): number {
+    return (plan.kind === 'tip' ? TIP_HEIGHT : (SPOTS[i] ?? SPOTS[0])[2]) * BENT;
+  }
+
+  /** Arm `k` each frame: a free arm (always bent) where it breaks the water, leaning its way. */
+  private poseArm(arm: KrakenArm, k: number): void {
+    const st = this.stances[k]!;
+    if (st.len <= 0.05) return;
+    arm.root.getWorldPosition(_p);
+    const lx = Math.sin(this.lean[k]!);
+    const lz = Math.cos(this.lean[k]!);
+    const ex = _p.x + lx * 3;
+    const ez = _p.z + lz * 3;
+    const phase = (this.t / (this.gentle ? 9 : 7)) * Math.PI * 2 + k * 2.1;
+    poseFreeArm(arm, ex, ez, this.waves.heightAt(ex, ez, this.t), st, phase, this.gentle ? 0.5 : 0.9, lx, lz);
   }
 
   private animate(dt: number, t: number, camera: PerspectiveCamera): void {
@@ -424,8 +457,16 @@ export class KrakenSightings {
     for (let i = 0; i < k.arms.length; i++) {
       const arm = k.arms[i]!;
       const share = this.shown(i, u, plan);
-      const deep = arm.length + 4;
-      arm.sink = deep - (deep - this.rest[i]!) * share;
+      const st = freeStance(
+        this.stances[i]!,
+        this.heightOf(i, plan),
+        this.risenAt(i, u, plan),
+        this.goneAt(i, u, plan),
+      );
+      // A lone tip curls tight; a group's others hook and poke.
+      if (plan.kind === 'tip') st.curl += 0.3;
+      else if (i > 0) st.bow += 0.25;
+      arm.sink = share > 0.001 ? arm.length * 0.3 : arm.length + 4;
       const state = this.risen[i]!;
       if (state === 0 && share > 0.02) {
         this.risen[i] = 1;
@@ -443,7 +484,7 @@ export class KrakenSightings {
         if (i === 0) this.emit('sink', 0.35);
       }
       // Going down, it turns: a swirl as it slides under.
-      if (state === 3) arm.root.rotation.y += dt * 0.7;
+      if (state === 3) this.lean[i] = this.lean[i]! + dt * 0.7;
     }
     if (plan.kind === 'arc') {
       // The mantle's back rolls up out of the sea and under again, travelling mantle first as a squid swims.
@@ -463,16 +504,8 @@ export class KrakenSightings {
       }
     }
     k.place();
+    this.t = t;
     k.update(dt, t, camera, null, 0);
-    // Each tip stands at its height whatever its clip's curl: nudge how deep the arm sits.
-    for (let i = 0; i < plan.arms && i < k.arms.length; i++) {
-      const arm = k.arms[i]!;
-      if (this.shown(i, u, plan) < 0.6) continue;
-      const bones = arm.poser.bones;
-      bones[bones.length - 1]!.getWorldPosition(_p);
-      const want = plan.kind === 'tip' ? TIP_HEIGHT : (SPOTS[i] ?? SPOTS[0])[2];
-      this.rest[i] = Math.min(arm.length, Math.max(0, this.rest[i]! + (_p.y - want) * 0.25));
-    }
     if (u > plan.duration + 0.5) {
       this.reset();
       this.planner.scheduleAfter(t);

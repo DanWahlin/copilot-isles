@@ -24,10 +24,16 @@ export const KRAKEN_COLORS = {
   /** The suckers, and their lighter rims. */
   sucker: 0xd9a441,
   suckerRim: 0xe8be68,
-  /** The eyes: a glowing amber (the only colour bright enough in red to glow), a dark slit, a glint. */
+  /** The oldest, darkest mottles on the top of the mantle. */
+  deep: 0x163b39,
+  /** Old scars: pale streaks across the mantle. */
+  scar: 0x7da696,
+  /** Barnacles, and the dark horn of the beak under the head. */
+  barnacle: 0xa39f8c,
+  beak: 0x1d1a15,
+  /** The eyes: a glowing amber (the only colour bright enough in red to glow) and a dark slit. */
   eye: 0xffb347,
   pupil: 0x120c06,
-  glint: 0xf2efe6,
 } as const;
 
 /** The tentacle atlas's swatches, by what they are on the arm. */

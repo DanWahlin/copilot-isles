@@ -131,9 +131,10 @@ function barryGoldman(a: number, t: number, t1: number, t2: number, t3: number):
  * Places a chain's joints along `path`: joint 0 at the path's start, and each next joint at chord
  * distance `lengths[i]` from the one before, on the polyline (so every joint lies on the path,
  * whatever its bends). Past the path's end the chain runs on straight along its last direction.
- * Writes `lengths.length + 1` joints (xyz) into `out`.
+ * Writes `lengths.length + 1` joints (xyz) into `out`. Returns how much of the chain ran off the
+ * path's end (m), or, when it all lies on it, minus how much path is left past its tip.
  */
-export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Float32Array): void {
+export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Float32Array): number {
   const p = path.pts;
   const n = path.count;
   let px = p[0]!,
@@ -144,6 +145,7 @@ export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Flo
   out[2] = pz;
   let seg = 1;
   let s0 = 0;
+  let off = 0;
   for (let i = 0; i < lengths.length; i++) {
     const L = lengths[i]!;
     let found = false;
@@ -165,6 +167,7 @@ export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Flo
       s0 = 0;
     }
     if (!found) {
+      off += L;
       // Off the end: straight on along the last segment's direction.
       let dx = 1,
         dy = 0,
@@ -196,6 +199,17 @@ export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Flo
     out[(i + 1) * 3 + 1] = py;
     out[(i + 1) * 3 + 2] = pz;
   }
+  if (off > 0) return off;
+  // The path left past the tip.
+  let left = 0;
+  for (let k = seg; k < n; k++) {
+    const j = k * 3;
+    left +=
+      k === seg
+        ? Math.hypot(p[j]! - px, p[j + 1]! - py, p[j + 2]! - pz)
+        : Math.hypot(p[j]! - p[j - 3]!, p[j + 1]! - p[j - 2]!, p[j + 2]! - p[j - 1]!);
+  }
+  return -left;
 }
 
 /**
@@ -239,6 +253,8 @@ export class ChainPoser {
   readonly lengths: Float32Array;
   /** The joints along the path (xyz), from the last `pose`. */
   readonly joints: Float32Array;
+  /** How much of the chain ran off its path's end in the last `pose` (m), or minus the path left past its tip. */
+  overflow = 0;
 
   /** `tip` is the end's offset in the last bone's frame (its `_end` joint). */
   constructor(bones: readonly Bone[], tip: Vector3) {
@@ -277,7 +293,7 @@ export class ChainPoser {
   pose(path: CurvePath, weight: number): void {
     if (weight <= 0 || path.count < 1) return;
     const w = Math.min(1, weight);
-    followPath(path, this.lengths, this.joints);
+    this.overflow = followPath(path, this.lengths, this.joints);
     const bones = this.bones;
     const first = bones[0]!;
     const parent = first.parent!;

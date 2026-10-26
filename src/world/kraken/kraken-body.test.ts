@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Box3, MeshStandardNodeMaterial, Vector3, type SkinnedMesh } from 'three/webgpu';
-import { createKrakenBody } from './kraken-body';
+import { KRAKEN_EYE, KRAKEN_HEAD_INDEX_COUNT, createKrakenBody } from './kraken-body';
 
 describe('kraken body anatomy', () => {
   const body = createKrakenBody(new MeshStandardNodeMaterial(), 8);
@@ -19,8 +19,9 @@ describe('kraken body anatomy', () => {
     }
   });
 
-  it('surfaces with its eyes over the water and its sockets under it', () => {
+  it('surfaces low: its eyes just over the water, its sockets well under it', () => {
     expect(body.eyeHeight + body.surfaced).toBeGreaterThan(1);
+    expect(body.eyeHeight + body.surfaced - KRAKEN_EYE.radius).toBeLessThan(0.6);
     for (const s of body.sockets) expect(s.position.y + body.surfaced).toBeLessThan(-1.5);
   });
 });
@@ -41,7 +42,7 @@ describe('kraken body faces', () => {
     const c = new Vector3();
     const n = new Vector3();
     const mid = new Vector3();
-    const eye = new Vector3(1.95, body.eyeHeight, 2.4);
+    const eye = new Vector3(KRAKEN_EYE.x, KRAKEN_EYE.y, KRAKEN_EYE.z);
     let eyeOut = 0;
     let eyeIn = 0;
     let headOut = 0;
@@ -65,7 +66,7 @@ describe('kraken body faces', () => {
         else eyeIn++;
       }
       // The head's own rings (the first triangles), away from its axis.
-      if (t < 22 * 15 * 6) {
+      if (t < KRAKEN_HEAD_INDEX_COUNT) {
         if (n.x * mid.x + n.z * mid.z > 0) headOut++;
         else headIn++;
       }
@@ -73,5 +74,17 @@ describe('kraken body faces', () => {
     expect(eyeOut).toBeGreaterThan(0);
     expect(eyeIn).toBe(0);
     expect(headOut / (headOut + headIn)).toBeGreaterThan(0.9);
+  });
+});
+
+describe('kraken head: ancient, not a toy', () => {
+  it('has small eyes for its head, under a brow, and a tall mantle', () => {
+    const body = createKrakenBody(new MeshStandardNodeMaterial(), 8);
+    const box = new Box3().setFromObject(body.drawn);
+    const height = box.max.y - box.min.y;
+    const width = box.max.x - box.min.x;
+    expect(height).toBeGreaterThan(15);
+    expect(height / width).toBeGreaterThan(1.5);
+    expect((2 * KRAKEN_EYE.radius) / width).toBeLessThan(0.2);
   });
 });

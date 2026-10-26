@@ -76,9 +76,13 @@ export const WRAP_SPOTS = {
   stern: { z0: BRIGANTINE_MASTS.mizzen.z + 1.75, z1: BRIGANTINE_MASTS.main.z - 1.75 },
   /** Round the bow, forward of the foremast. */
   bow: { z0: FORE.z + 1.6, z1: FORE.z + 3.7 },
-  /** Over the rail by the forecastle, and over the quarterdeck. */
+  /** Over the rail by the forecastle, and over the quarterdeck; over her far rail aft of the main. */
   gripFore: 2.0,
   gripAft: -11.0,
+  gripFar: -5.0,
+  /** Where the two arms that stood high behind her come over her rails for the final pull. */
+  pullAft: -12.5,
+  pullFore: 9.0,
   /** The arc's plane over the forecastle (forward of the fore yards and sails). */
   arc: FORE.z + 2.7,
 } as const;
@@ -165,10 +169,14 @@ export function deckArc(out: Points, rise: number, breathe: number): void {
 
 /**
  * An arm standing up out of the sea, from its base `b` (under the water) along the bottom to beneath
- * where it breaks the surface (`ex`, `ez`), then up `h` metres in a slow undulation (`sway` the
- * phase in radians, `amp` its size). An arm longer than that route tucks the rest into a deeper loop
- * under the surface, so `h` sets how much of it shows. `lean` (unit xz) is the way its top bends
- * (toward its prey), `curl` (0…1) how far its tip hooks over.
+ * where it breaks the surface (`ex`, `ez`), then `len` metres of it over the water as a free arm
+ * (`freeArm`: always bent, never straight). An arm longer than that route tucks the rest into a
+ * deeper loop under the surface, so `len` sets how much of it shows. `lean` (unit xz) is the way it
+ * bends (toward its prey, or out from its body); `phase` moves a slow wave along it, `wave` sizes
+ * it; `curl` (0…1.2) hooks its tip, `bow` (0…1) bends the whole arm over, and `back` (0…1) makes
+ * it an S: out away from `lean` low down, its tip hooked back over toward it. `slack` lengthens the
+ * route by what the bones cut off its bends (a pose that ran off the end is posed again with it), so
+ * the arm never runs off its end in a straight stub.
  */
 export function standPath(
   out: PointSink,
@@ -180,13 +188,16 @@ export function standPath(
   ex: number,
   ez: number,
   sea: number,
-  h: number,
+  len: number,
   armLength: number,
-  sway: number,
-  amp: number,
+  phase: number,
+  wave: number,
   leanX: number,
   leanZ: number,
   curl: number,
+  bow = 0,
+  back = 0,
+  slack = 0,
 ): void {
   out.push(bx, by, bz);
   // Out and down from its socket, then along under the water to below where it rises.
@@ -195,33 +206,184 @@ export function standPath(
   const p1y = by - 1.2;
   out.push(p1x, p1y, p1z);
   const reach = Math.hypot(ex - p1x, ez - p1z);
-  const above = Math.max(0, h);
-  // How deep the loop under the surface goes to take up the arm's spare length.
-  const first = Math.hypot(3, 1.2);
-  let depth = Math.max(2.5, sea - p1y);
-  for (let k = 0; k < 6; k++) {
-    const used = first + Math.hypot(reach, sea - depth - p1y) + depth + above;
-    depth = Math.max(2.5, depth + (armLength - used) * 0.5);
+  // The loop under the surface is a wide U past where it rises (a hairpin would have its bones cut
+  // across it): `W` beyond the rise, along the way it came.
+  let dx = ox;
+  let dz = oz;
+  if (reach > 0.1) {
+    dx = (ex - p1x) / reach;
+    dz = (ez - p1z) / reach;
   }
-  out.push(ex, sea - depth, ez);
-  out.push(ex, sea - Math.min(depth, 1.5), ez);
+  const dl = Math.hypot(dx, dz) || 1;
+  dx /= dl;
+  dz /= dl;
+  const W = LOOP_WIDTH;
+  const first = Math.hypot(p1x - bx, 1.2, p1z - bz);
+  // How much of the arm can show: what's left after the shortest way up (a shallow loop). An arm
+  // that can't reach its whole curve shows less of it, still curled at its tip, never a straight stub.
+  // `slack`: what the bones use up cutting across the route's bends.
+  const want = armLength + slack;
+  const above = Math.max(0, Math.min(len, want - loopRoute(first, reach, sea - p1y, 2.5)));
+  // How deep the loop goes to take up the arm's spare length (the route grows with its depth).
+  let lo = 2.5;
+  let hi = 2.5;
+  if (loopRoute(first, reach, sea - p1y, lo) + above < want) {
+    hi = 8;
+    while (loopRoute(first, reach, sea - p1y, hi) + above < want && hi < 200) hi *= 2;
+    for (let k = 0; k < 24; k++) {
+      const mid = (lo + hi) / 2;
+      if (loopRoute(first, reach, sea - p1y, mid) + above < want) lo = mid;
+      else hi = mid;
+    }
+  }
+  const depth = (lo + hi) / 2;
+  out.push(ex + dx * W, sea - depth, ez + dz * W);
+  out.push(ex, sea - 1.5, ez);
   if (above <= 0.05) return;
-  const steps = 7;
-  // Across the arm's way: the sway's sideways direction.
+  // A short arm is all tip: a hook, not an S.
+  const s = back * Math.min(1, above / 14);
+  freeArm(out, ex, ez, sea, above, armLength, phase, wave, leanX, leanZ, curl, bow, s);
+}
+
+/** How far past where it rises an arm's loop under the water reaches (m): a U, not a hairpin. */
+const LOOP_WIDTH = 2.5;
+
+/** The route under the water (m) with its loop `depth` deep; `drop` is the sea over its first bend. */
+function loopRoute(first: number, reach: number, drop: number, depth: number): number {
+  return first + Math.hypot(reach + LOOP_WIDTH, drop - depth) + Math.hypot(LOOP_WIDTH, depth - 1.5) + 1.5;
+}
+
+/**
+ * How much of an arm (m) can stand over the water at (`ex`, `ez`) from its base: what the shortest
+ * route under the water leaves (`standPath`'s own sum).
+ */
+export function reachOver(
+  bx: number,
+  by: number,
+  bz: number,
+  ox: number,
+  oz: number,
+  ex: number,
+  ez: number,
+  sea: number,
+  armLength: number,
+): number {
+  const p1x = bx + ox * 3;
+  const p1z = bz + oz * 3;
+  const first = Math.hypot(p1x - bx, 1.2, p1z - bz);
+  return armLength - loopRoute(first, Math.hypot(ex - p1x, ez - p1z), sea - (by - 1.2), 2.5);
+}
+
+/** How many points a free arm's part over the water takes. */
+export const FREE_ARM_STEPS = 12;
+
+/**
+ * A free arm's part over the water, from where it breaks the surface (`ex`, `sea`, `ez`), `len`
+ * metres along it. It's drawn by its bend, not its points: the angle from upright grows along it (a
+ * J toward `lean`, `bow` more), its tip hooks (`curl`), and a slow wave travels from its root to its
+ * tip (`phase`, `wave`) with a smaller one across; `back` bends it away first (an S). Its curvature is capped by the arm's bone length
+ * near its tip (`armLength`), so the curve-follow can lay the bones along it. It is never straight.
+ */
+export function freeArm(
+  out: PointSink,
+  ex: number,
+  ez: number,
+  sea: number,
+  len: number,
+  armLength: number,
+  phase: number,
+  wave: number,
+  leanX: number,
+  leanZ: number,
+  curl: number,
+  bow: number,
+  back = 0,
+): void {
+  const steps = FREE_ARM_STEPS;
+  const ds = len / steps;
+  // The tentacle's tip bones are about 4.6 % of its length: no bend tighter than a radius a bone
+  // can still lie along (the curve-follow needs a bone shorter than the bend's diameter).
+  const turnMax = ds / (armLength * 0.038);
+  // The J is stronger than the wave, so the wave never straightens it.
+  const bend = 0.95 + 1.1 * bow;
+  const hook = 1.4 + 2.6 * curl;
+  const sway = 0.15 + 0.13 * wave;
+  // A short arm (a tip breaking the water, or one going down) is mostly hook.
+  const hookFrom = 0.3 * Math.min(1, len / 14);
   const sx = -leanZ;
   const sz = leanX;
+  let x = ex;
+  let y = sea;
+  let z = ez;
+  let th = 0;
   for (let s = 1; s <= steps; s++) {
-    const f = s / steps;
-    const wave = amp * f * Math.sin(Math.PI * 1.1 * f - sway);
-    const bow = amp * 0.6 * f * Math.cos(Math.PI * 0.9 * f - sway * 0.8);
-    const lean = 0.18 * above * f * f;
-    const hook = curl * f ** 4 * above * 0.35;
-    out.push(
-      ex + sx * wave + leanX * (lean + bow + hook),
-      sea + above * f - hook * 0.6,
-      ez + sz * wave + leanZ * (lean + bow + hook),
-    );
+    const u = (s - 0.5) / steps;
+    const tip = u > hookFrom ? ((u - hookFrom) / (1 - hookFrom)) ** 1.6 : 0;
+    const want =
+      bend * u +
+      hook * tip -
+      back * 0.8 * Math.sin(Math.PI * Math.min(1, u / 0.8)) +
+      sway * u * Math.sin(Math.PI * 1.7 * u - phase);
+    th += Math.min(turnMax, Math.max(-turnMax, want - th));
+    const across = 0.55 * sway * u * Math.sin(Math.PI * 1.3 * u - phase * 0.8 + 1.3);
+    const c = Math.cos(across);
+    const h = Math.sin(th) * c;
+    x += (leanX * h + sx * Math.sin(across)) * ds;
+    y += Math.cos(th) * c * ds;
+    z += (leanZ * h + sz * Math.sin(across)) * ds;
+    out.push(x, y, z);
   }
+}
+
+/** A free arm's stance: how much of it shows (m), its tip's curl and its bow (`freeStance`). */
+export interface FreeStance {
+  len: number;
+  curl: number;
+  bow: number;
+}
+
+/**
+ * How a free arm stands at `height` (its full length over the water): `rise` 0 → 1 as it comes up
+ * (its tip leads, curled, and unrolls as it lifts), `withdraw` 0 → 1 as it goes (it curls up and
+ * bows over, and slides back under in an arc).
+ */
+export function freeStance(out: FreeStance, height: number, rise: number, withdraw: number): FreeStance {
+  const r = Math.min(1, Math.max(0, rise));
+  const w = Math.min(1, Math.max(0, withdraw));
+  // A hooked tip breaks the water at once (a stub would read as a spike), and is the last to go.
+  out.len = height * Math.max(0, rise) ** 0.7 * (1 - w) ** 0.7;
+  out.curl = 0.3 + 0.7 * (1 - r) ** 1.5 + 0.5 * w;
+  out.bow = 0.1 + 0.9 * ease(w);
+  return out;
+}
+
+/** Ship-local x mirrored for the far side (an arm that comes up on her other beam). */
+export function mirrorX(out: Points): void {
+  for (let i = 0; i < out.n; i++) out.xyz[i * 3] = -out.xyz[i * 3]!;
+}
+
+/**
+ * The final pull: an arm that has stood high behind her arcs in over her rail at `z` (on its own
+ * side, never over her centre line or her rig) and grips her deck. `rise` 0…1 how far over it has
+ * come, `press` 0…1 how hard it pulls down.
+ */
+export function pullArc(out: Points, z: number, rise: number, press: number): void {
+  const beam = halfBeamAt(z, 1.5);
+  const sheer = sheerHeightAt(z);
+  const deck = deckHeightAt(z);
+  // From well out over the water to just inside her rail (her stern is narrow: never her centre line).
+  const inner = Math.max(1.2, beam - 1.8);
+  const cx = (beam + 5.4 + inner) / 2;
+  const r = (beam + 5.4 - inner) / 2;
+  const steps = 8;
+  for (let s = 0; s <= steps; s++) {
+    const a = (Math.PI * s * rise) / steps;
+    out.push(cx + r * Math.cos(a), sheer + 1 + 7 * Math.sin(a) * (0.7 + 0.3 * rise) - press * (s / steps), z);
+  }
+  if (rise < 0.98) return;
+  // On the deck inside the rail, never toward her centre line (her stern is narrow).
+  out.push(Math.max(1.2, beam - 1.7), deck + 0.6 - 0.2 * press, z - 0.7);
+  out.push(Math.max(1.0, beam - 1.9), deck + 0.35, z - 1.5);
 }
 
 /** True when `out`'s points over the deck keep clear of every mast (tests). */
