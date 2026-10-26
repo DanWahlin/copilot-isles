@@ -6,92 +6,92 @@
     {
       "word": "The",
       "start": 0,
-      "end": 0.231
+      "end": 0.204
     },
     {
       "word": "terminal",
-      "start": 0.231,
-      "end": 0.907
+      "start": 0.204,
+      "end": 0.64
     },
     {
       "word": "reuses",
-      "start": 0.907,
-      "end": 1.58
+      "start": 0.64,
+      "end": 1.16
     },
     {
       "word": "its",
-      "start": 1.58,
-      "end": 1.813
+      "start": 1.16,
+      "end": 1.333
     },
     {
       "word": "shell",
-      "start": 1.813,
-      "end": 2.112
+      "start": 1.333,
+      "end": 1.632
     },
     {
       "word": "when",
-      "start": 2.112,
-      "end": 2.293
+      "start": 1.632,
+      "end": 1.787
     },
     {
       "word": "it",
-      "start": 2.293,
-      "end": 2.52
+      "start": 1.787,
+      "end": 1.92
     },
     {
       "word": "can",
-      "start": 2.52,
-      "end": 3.68
+      "start": 1.92,
+      "end": 2.773
     },
     {
       "word": "so",
-      "start": 3.68,
-      "end": 3.88
+      "start": 2.773,
+      "end": 2.92
     },
     {
       "word": "where",
-      "start": 3.88,
-      "end": 4.14
+      "start": 2.92,
+      "end": 3.18
     },
     {
       "word": "you",
-      "start": 4.14,
-      "end": 4.416
+      "start": 3.18,
+      "end": 3.408
     },
     {
       "word": "were",
-      "start": 4.416,
-      "end": 4.86
+      "start": 3.408,
+      "end": 3.68
     },
     {
       "word": "and",
-      "start": 4.86,
-      "end": 5.088
+      "start": 3.68,
+      "end": 3.968
     },
     {
       "word": "what",
-      "start": 5.088,
-      "end": 5.32
+      "start": 3.968,
+      "end": 4.18
     },
     {
       "word": "you",
-      "start": 5.32,
-      "end": 5.6
+      "start": 4.18,
+      "end": 4.34
     },
     {
       "word": "set",
-      "start": 5.6,
-      "end": 6.173
+      "start": 4.34,
+      "end": 4.707
     },
     {
       "word": "carry",
-      "start": 6.173,
-      "end": 6.736
+      "start": 4.707,
+      "end": 5.12
     },
     {
       "word": "over",
-      "start": 6.736,
-      "end": 6.986
+      "start": 5.12,
+      "end": 5.37
     }
   ]
 }

@@ -6,10 +6,10 @@
 // played with the keyboard), and the Admiral's Exam that lights the lighthouse. Screenshots at each
 // beat. First, on the way up from the quay, Gilda's counter before the lesson: she sends you to Oren and
 // the work order stays shut. Oren's practice (Q1.6 at market) with an empty purse: Gilda stakes the
-// starfish; a quick look right-sized with Auto, one overspent (High effort) and one right-sized with a
+// starfish; a quick look right-sized with Copilot Fusion at Standard, one overspent (High effort) and one right-sized with a
 // Powerful model on Default (your model on its default effort), a hard job that falls short and its
 // Retry (a different model, which you choose: Q1.6 moves on), then a hard job retried with more effort,
-// and one with Auto (right-sized, with a Retry offered), all with real keys; then Meridian is freed and
+// and one with Copilot Fusion (Standard falls short, its Retry at High right-sized, with a Retry offered), all with real keys; then Meridian is freed and
 // rebuilt to check the market reads the save. At a helm order and at Pell's desk it also types in the
 // fork form over the overlay, to check the overlay leaves those keys (and J) alone.
 // Oren asks which model the player kept and Pell which computer they're on (Your setup): `--setup=skip`
@@ -542,12 +542,12 @@ async function marketEarly() {
 /**
  * Oren's practice at the Model Market (docs/specs/MODEL-MARKET.md §5, §7), with real key presses and an
  * empty purse: walk across the plaza (Gilda calls out), E at the counter (she stakes the starfish), then
- * 1 (tour) 1 (Auto) E → right-sized; 2 (explain) 4 (Powerful) → (High) E → overspent; 2 4 E (Powerful on
+ * 1 (tour) 1 (Copilot Fusion at Standard) E → right-sized; 2 (explain) 4 (Powerful) → (High) E → overspent; 2 4 E (Powerful on
  * Default) → right-sized; 3 (bug) 2 (Lightweight) → → (High) E → fell short, R (Retry with a different
  * model: nothing picked, Lightweight's own model left out) 2 4 (Powerful) E → right-sized, and the practice
  * is done (Q1.6 practiced); with more starfish, 4 (files) 3 (Versatile) E → fell short, E (Retry with
- * more effort) → (High) E → right-sized; 3 (bug) 1 (Auto) E → right-sized with a Retry offered, R → the
- * Retry's notice. The fork form's typing mustn't reach it. Then Meridian is freed and streamed in again:
+ * more effort) → (High) E → right-sized; 3 (bug) 1 (Copilot Fusion) E → fell short, E (Retry with more
+ * effort, Fusion stays on) → (High) E → right-sized with a Retry offered, R → Fusion off for the Retry. The fork form's typing mustn't reach it. Then Meridian is freed and streamed in again:
  * the jobs, the purse and the quest come back from the save.
  */
 async function marketRun() {
@@ -613,18 +613,18 @@ async function marketRun() {
       return st.open && JSON.stringify(st.view.screen) === before && st.view.job === null;
     });
   }
-  // 1 · The tour with Auto: right-sized at the fair price; the stake keeps the purse at 4.
+  // 1 · The tour with Copilot Fusion at Standard: right-sized at the fair price; the stake keeps the purse at 4.
   let st = await press('Digit1');
   if (st.view.screen !== 'hire' || st.view.job !== 'tour')
     logs.push(`[meridiantest] market: 1 → ${st.view.screen} ${st.view.job}`);
   await shot('market-hire');
   st = await press('Digit1', 'KeyE');
-  expectOutcome(st, 'right', 'tour + Auto');
+  expectOutcome(st, 'right', 'tour + Fusion Standard');
   const live = await M(() => document.querySelector('.ci-mm-live')?.textContent ?? '');
   if (!live.startsWith('Right-sized')) logs.push(`[meridiantest] market: live region "${live}"`);
   await page.waitForTimeout(600);
   await shot('market-right');
-  if (st.purse !== 4) logs.push(`[meridiantest] market: purse ${st.purse} after Auto (staked to 4)`);
+  if (st.purse !== 4) logs.push(`[meridiantest] market: purse ${st.purse} after Fusion (staked to 4)`);
   if (!st.view.practice?.quick) logs.push(`[meridiantest] market: quick look not ticked`);
   // 2 · Explain filterBooks with Powerful on High: overspent (High effort for a quick look).
   st = await press('KeyE');
@@ -689,18 +689,32 @@ async function marketRun() {
     logs.push(`[meridiantest] market: Retry (effort) → ${JSON.stringify(st.view.draft)} after →`);
   st = await press('KeyE');
   expectOutcome(st, 'right', 'files Retry + Versatile High');
-  // 3 · The bug with Auto: right-sized (Auto chooses a model), with a Retry offered to compare.
+  // 3 · The bug with Copilot Fusion at Standard: it falls short (a hard job wants a higher Fusion level).
   st = await press('KeyE', 'Digit3', 'Digit1', 'KeyE');
-  expectOutcome(st, 'right', 'bug + Auto');
-  if (st.view.result?.feedback.retry !== 'again')
-    logs.push(`[meridiantest] market: Auto on a hard job offers ${st.view.result?.feedback.retry}`);
+  expectOutcome(st, 'short', 'bug + Fusion Standard');
+  await page.waitForTimeout(600);
+  await shot('market-fusion-short');
+  // E: Retry with more effort keeps Fusion on, its level open; → High, then E: right-sized, a Retry offered.
+  st = await press('KeyE');
+  if (!st.view.draft.auto || st.view.draft.pending !== 'effort')
+    logs.push(`[meridiantest] market: Retry (effort) after Fusion → ${JSON.stringify(st.view.draft)}`);
+  st = await press('ArrowRight');
+  if (st.view.draft.pending || st.view.draft.level !== 'high')
+    logs.push(`[meridiantest] market: Fusion level after → ${JSON.stringify(st.view.draft)}`);
+  await shot('market-fusion-level');
+  st = await press('KeyE');
+  expectOutcome(st, 'right', 'bug + Fusion High');
+  if (st.view.result?.feedback.key !== 'hardAuto' || st.view.result?.feedback.retry !== 'again')
+    logs.push(
+      `[meridiantest] market: Fusion High on a hard job → ${JSON.stringify(st.view.result?.feedback)}`,
+    );
   const retryButton = await M(() => !!document.querySelector('.ci-mm-actions [data-retry="model"]'));
-  if (!retryButton) logs.push('[meridiantest] market: no Retry button after Auto on a hard job');
+  if (!retryButton) logs.push('[meridiantest] market: no Retry button after Fusion on a hard job');
   await page.waitForTimeout(600);
   await shot('market-hard-auto');
   st = await press('KeyR');
   if (st.view.retry?.live !== 'model' || st.view.draft.auto)
-    logs.push(`[meridiantest] market: Retry after Auto → ${JSON.stringify(st.view.draft)}`);
+    logs.push(`[meridiantest] market: Retry after Fusion → ${JSON.stringify(st.view.draft)}`);
   st = await press('Escape');
   const doneBefore = st.done.slice().sort();
   const purseBefore = st.purse;

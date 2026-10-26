@@ -5,93 +5,93 @@
   "words": [
     {
       "word": "I’m",
-      "start": 0.052625,
-      "end": 0.276333
+      "start": 0,
+      "end": 0.107
     },
     {
       "word": "still",
-      "start": 0.276333,
-      "end": 0.60525
+      "start": 0.107,
+      "end": 0.286
     },
     {
       "word": "tuning",
-      "start": 0.60525,
-      "end": 1.092125
+      "start": 0.286,
+      "end": 0.64
     },
     {
       "word": "up",
-      "start": 1.092125,
-      "end": 2.328958
+      "start": 0.64,
+      "end": 1.627
     },
     {
       "word": "Go",
-      "start": 2.328958,
-      "end": 2.60525
+      "start": 1.627,
+      "end": 2.02
     },
     {
       "word": "and",
-      "start": 2.60525,
-      "end": 2.736833
+      "start": 2.02,
+      "end": 2.12
     },
     {
       "word": "see",
-      "start": 2.736833,
-      "end": 2.973666
+      "start": 2.12,
+      "end": 2.32
     },
     {
       "word": "Tamsin",
-      "start": 2.973666,
-      "end": 3.552625
+      "start": 2.32,
+      "end": 2.667
     },
     {
       "word": "at",
-      "start": 3.552625,
-      "end": 3.671041
+      "start": 2.667,
+      "end": 2.74
     },
     {
       "word": "the",
-      "start": 3.671041,
-      "end": 3.789458
+      "start": 2.74,
+      "end": 2.853
     },
     {
       "word": "wharf",
-      "start": 3.789458,
-      "end": 4.131583
+      "start": 2.853,
+      "end": 3.187
     },
     {
       "word": "first",
-      "start": 4.131583,
-      "end": 5.052625
+      "start": 3.187,
+      "end": 3.76
     },
     {
       "word": "then",
-      "start": 5.052625,
-      "end": 5.342125
+      "start": 3.76,
+      "end": 3.952
     },
     {
       "word": "come",
-      "start": 5.342125,
-      "end": 5.631583
+      "start": 3.952,
+      "end": 4.112
     },
     {
       "word": "back",
-      "start": 5.631583,
-      "end": 5.934208
+      "start": 4.112,
+      "end": 4.28
     },
     {
       "word": "for",
-      "start": 5.934208,
-      "end": 6.052625
+      "start": 4.28,
+      "end": 4.453
     },
     {
       "word": "my",
-      "start": 6.052625,
-      "end": 6.263166
+      "start": 4.453,
+      "end": 4.64
     },
     {
       "word": "song",
-      "start": 6.263166,
-      "end": 6.513166
+      "start": 4.64,
+      "end": 4.89
     }
   ]
 }

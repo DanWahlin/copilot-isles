@@ -5,78 +5,78 @@
   "words": [
     {
       "word": "Saffi",
-      "start": 0.052625,
-      "end": 0.526333
+      "start": 0,
+      "end": 0.36
     },
     {
       "word": "keeps",
-      "start": 0.526333,
-      "end": 0.85525
+      "start": 0.36,
+      "end": 0.58
     },
     {
       "word": "the",
-      "start": 0.85525,
-      "end": 0.986833
+      "start": 0.58,
+      "end": 0.688
     },
     {
       "word": "Root",
-      "start": 0.986833,
-      "end": 1.25
+      "start": 0.688,
+      "end": 0.944
     },
     {
       "word": "Hall",
-      "start": 1.25,
-      "end": 1.881583
+      "start": 0.944,
+      "end": 1.333
     },
     {
       "word": "at",
-      "start": 1.881583,
-      "end": 2.092125
+      "start": 1.333,
+      "end": 1.46
     },
     {
       "word": "the",
-      "start": 2.092125,
-      "end": 2.210541
+      "start": 1.46,
+      "end": 1.568
     },
     {
       "word": "foot",
-      "start": 2.210541,
-      "end": 2.460541
+      "start": 1.568,
+      "end": 1.787
     },
     {
       "word": "of",
-      "start": 2.460541,
-      "end": 2.552625
+      "start": 1.787,
+      "end": 1.86
     },
     {
       "word": "the",
-      "start": 2.552625,
-      "end": 2.671041
+      "start": 1.86,
+      "end": 1.96
     },
     {
       "word": "great",
-      "start": 2.671041,
-      "end": 2.986833
+      "start": 1.96,
+      "end": 2.256
     },
     {
       "word": "tree",
-      "start": 2.986833,
-      "end": 4.35525
+      "start": 2.256,
+      "end": 2.914
     },
     {
       "word": "Follow",
-      "start": 4.35525,
-      "end": 4.789458
+      "start": 2.914,
+      "end": 3.62
     },
     {
       "word": "the",
-      "start": 4.789458,
-      "end": 4.89475
+      "start": 3.62,
+      "end": 3.75
     },
     {
       "word": "lanterns",
-      "start": 4.89475,
-      "end": 5.14475
+      "start": 3.75,
+      "end": 4
     }
   ]
 }

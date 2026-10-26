@@ -5,48 +5,48 @@
   "words": [
     {
       "word": "Quick",
-      "start": 0.052625,
-      "end": 0.342125
+      "start": 0,
+      "end": 0.204
     },
     {
       "word": "question",
-      "start": 0.342125,
-      "end": 1.973666
+      "start": 0.204,
+      "end": 0.733
     },
     {
       "word": "Start",
-      "start": 1.973666,
-      "end": 2.421041
+      "start": 0.733,
+      "end": 1.28
     },
     {
       "word": "a",
-      "start": 2.421041,
-      "end": 2.5
+      "start": 1.28,
+      "end": 1.424
     },
     {
       "word": "chat",
-      "start": 2.5,
-      "end": 3.973666
+      "start": 1.424,
+      "end": 2.544
     },
     {
       "word": "That’s",
-      "start": 3.973666,
-      "end": 4.276333
+      "start": 2.544,
+      "end": 3.22
     },
     {
       "word": "the",
-      "start": 4.276333,
-      "end": 4.407875
+      "start": 3.22,
+      "end": 3.307
     },
     {
       "word": "whole",
-      "start": 4.407875,
-      "end": 4.75
+      "start": 3.307,
+      "end": 3.504
     },
     {
       "word": "song",
-      "start": 4.75,
-      "end": 5
+      "start": 3.504,
+      "end": 3.754
     }
   ]
 }

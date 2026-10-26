@@ -1,7 +1,7 @@
 import { onCourse } from '../../course/active';
 import { AUTO_HIRE } from '../../learn/progress';
 import { CATEGORIES, boardFor, type ModelCategory, type ModelEntry, type ModelsFile } from './catalog';
-import { marketText as T } from './jobs';
+import { HOUSE_LEVEL_LABEL, marketText as T } from './jobs';
 
 /**
  * The models on Gilda's boards: the course pack's models.json (written by the weekly sync,
@@ -49,8 +49,11 @@ const isCategory = (v: string): v is ModelCategory => (CATEGORIES as readonly st
  * How a saved hire reads now: its model's name if it's still sold, or the category it was hired from
  * (a model that's left the docs' table since; old saves keep loading).
  */
-export function savedHireName(h: { category: string; model: string | null }): string {
-  if (h.category === AUTO_HIRE || !h.model) return T('auto');
+export function savedHireName(h: { category: string; model: string | null; level?: string | null }): string {
+  if (h.category === AUTO_HIRE || !h.model) {
+    const level = h.level ? HOUSE_LEVEL_LABEL[h.level] : undefined;
+    return level ? T('autoName', { level }) : T('auto');
+  }
   if (findModel(h.model)) return h.model;
   return isCategory(h.category) ? T('savedCategory', { category: h.category }) : T('savedModel');
 }

@@ -5,13 +5,16 @@ import {
   CATEGORY_OF,
   EFFORTS,
   GILDA,
+  HOUSE_LEVELS,
   GILDA_TEXT,
   JOBS,
   JOB_DOUBLOONS,
   MAX_PRICE,
+  baseLevel,
   effortLastTime,
   feedback,
   jobById,
+  levelLastTime,
   marketText as T,
   price,
   refundFor,
@@ -83,9 +86,13 @@ export interface MarketPractice {
   retry: boolean;
 }
 
-/** A new work order: Auto, with the smallest category (and `model`) ready behind it. */
+/**
+ * A new work order: the house special at its base level, with the smallest category (and `model`)
+ * ready behind it.
+ */
 const draft = (model = ''): MarketDraft => ({
   auto: true,
+  level: baseLevel(),
   category: CATEGORY_OF.small,
   model,
   effort: 'default',
@@ -95,8 +102,8 @@ const draft = (model = ''): MarketDraft => ({
 /**
  * The Model Market (docs/specs/MODEL-MARKET.md; Chapter 01 · Models and Reasoning Effort): an
  * optional stall on every island (`stall`, src/game/market/stalls.ts), all sharing one jobs board, one
- * purse and one save. Press E at the counter, pick a job from the board, hire Auto or a model (bigger
- * models cost more starfish) and set the effort dial, then sign and pay. The work order comes back
+ * purse and one save. Press E at the counter, pick a job from the board, hire the house special or a
+ * model (bigger models cost more starfish) and set the effort dial (the house special's own levels), then sign and pay. The work order comes back
  * stamped right-sized (a fair price, or a starfish or two back), overspent, or fell short (Retry it:
  * the same job, and you choose a different model or more effort yourself). What you've hired lives in
  * the save (`market`), so every stall, and a rebuilt island, shows the same jobs done. Each keeper says
@@ -334,7 +341,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     const plan = view.get().retry;
     return modelsIn(c).find((m) => !plan || !usedLastTime(plan, c, m.name))?.name ?? null;
   };
-  /** The picks a Retry will take, in order (Auto, then the categories). */
+  /** The picks a Retry will take, in order (the house special, then the categories). */
   const picksAllowed = (): ('auto' | ModelCategory)[] => {
     const plan = view.get().retry;
     return (['auto', ...CATEGORIES] as const).filter((p) =>
@@ -349,7 +356,9 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     if (p === 'auto') {
       if (v.retry && usedLastTime(v.retry, 'auto')) return lastTime();
       if (!d.auto) say('auto');
-      view.set({ draft: { ...d, auto: true, pending: null }, notice: null });
+      // A Retry about the effort still waits for a level to be chosen.
+      const pending = d.pending === 'model' ? null : d.pending;
+      view.set({ draft: { ...d, auto: true, level: d.level || baseLevel(), pending }, notice: null });
       return;
     }
     const keep = d.category === p && !d.auto && d.pending !== 'model' && d.model;
@@ -381,29 +390,33 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     view.set({ draft: { ...d, model: names[(i + step + names.length) % names.length]! } });
   }
 
-  function effort(step: number | Effort): void {
+  /** Sets or steps the effort dial: the model's effort, or the house special's own levels. */
+  function effort(step: number | string): void {
     const v = view.get();
     const d = v.draft;
-    if (d.auto) return;
     const plan = v.retry;
-    const taken = (e: Effort) => !!plan && effortLastTime(plan, d.model, e);
-    let next: Effort | undefined;
+    const levels: readonly string[] = d.auto ? HOUSE_LEVELS : EFFORTS;
+    const taken = (e: string) =>
+      !!plan && (d.auto ? levelLastTime(plan, e) : effortLastTime(plan, d.model, e as Effort));
+    let next: string | undefined;
     if (typeof step === 'string') {
+      if (!levels.includes(step)) return;
       if (taken(step)) return view.set({ notice: T('retryEffortUsed') });
       next = step;
     } else {
       // From nothing chosen (a Retry), an arrow starts beside last time's effort.
-      const from = EFFORTS.indexOf(d.effort);
-      for (let i = from + step; i >= 0 && i < EFFORTS.length; i += step)
-        if (!taken(EFFORTS[i]!)) {
-          next = EFFORTS[i];
+      const from = levels.indexOf(d.auto ? d.level : d.effort);
+      for (let i = from + step; i >= 0 && i < levels.length; i += step)
+        if (!taken(levels[i]!)) {
+          next = levels[i];
           break;
         }
       if (!next && d.pending !== 'effort') return;
       if (!next) return view.set({ notice: T('retryEffortUsed') });
     }
+    const pending = d.pending === 'effort' ? null : d.pending;
     view.set({
-      draft: { ...d, effort: next, pending: d.pending === 'effort' ? null : d.pending },
+      draft: d.auto ? { ...d, level: next, pending } : { ...d, effort: next as Effort, pending },
       notice: null,
     });
   }
@@ -413,7 +426,9 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   }
 
   const hireOf = (d: MarketDraft): Hire =>
-    d.auto ? { auto: true } : { auto: false, category: d.category, model: d.model, effort: d.effort };
+    d.auto
+      ? { auto: true, level: d.level }
+      : { auto: false, category: d.category, model: d.model, effort: d.effort };
 
   function pay(): void {
     const v = view.get();
@@ -445,6 +460,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       category: hire.auto ? AUTO_HIRE : hire.category,
       model: hire.auto ? null : hire.model,
       effort: hire.auto ? null : hire.effort,
+      level: hire.auto ? hire.level : null,
       paid: cost,
     });
     last = hire;
@@ -487,11 +503,15 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
     const plan = retryPlan(last ?? v.result.hire, kind);
     const h = plan.last;
     // The same job, nothing chosen in the picker it's about: you choose the different model (or effort).
+    // After the house special, a different model turns it off; more effort keeps it, its level open.
+    const level = h.auto ? h.level : baseLevel();
     const next: MarketDraft = h.auto
-      ? { auto: false, category: CATEGORY_OF.small, model: '', effort: 'default', pending: 'model' }
+      ? plan.live === 'model'
+        ? { auto: false, level, category: CATEGORY_OF.small, model: '', effort: 'default', pending: 'model' }
+        : { auto: true, level, category: CATEGORY_OF.small, model: '', effort: 'default', pending: 'effort' }
       : plan.live === 'model'
-        ? { auto: false, category: h.category, model: '', effort: h.effort, pending: 'model' }
-        : { auto: false, category: h.category, model: h.model, effort: h.effort, pending: 'effort' };
+        ? { auto: false, level, category: h.category, model: '', effort: h.effort, pending: 'model' }
+        : { auto: false, level, category: h.category, model: h.model, effort: h.effort, pending: 'effort' };
     view.set({
       screen: 'hire',
       draft: next,
@@ -504,7 +524,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
           ? T(h.auto ? 'retryAutoNotice' : again ? 'retryAgainNotice' : 'retryModelNotice', {
               model: h.auto ? T('auto') : h.model,
             })
-          : T('retryEffortNotice', { model: h.auto ? '' : h.model }),
+          : T(h.auto ? 'retryAutoEffortNotice' : 'retryEffortNotice', { model: h.auto ? '' : h.model }),
     });
   }
 
@@ -562,11 +582,16 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
   const dist = () => Math.hypot(host.player.x - site.counter.x, host.player.z - site.counter.z);
   const near = story ? NEAR : SHOP_NEAR;
 
-  /** The pick (and effort) that fits the open job: Wingman's second hint. */
-  const fits = (id: JobId): { pick: 'auto' | ModelCategory; effort: Effort | null } =>
+  /**
+   * The pick (and effort) that fits the open job: Wingman's second hint. The house special at its base
+   * level for a quick look, and at the next level up for a hard job (the cheapest right-sized hires).
+   */
+  const fits = (id: JobId): { pick: 'auto' | ModelCategory; effort: string | null } =>
     jobById(id)?.size === 'quick'
-      ? { pick: 'auto', effort: null }
-      : { pick: CATEGORY_OF.large, effort: 'default' };
+      ? { pick: 'auto', effort: baseLevel() }
+      : HOUSE_LEVELS[1]
+        ? { pick: 'auto', effort: HOUSE_LEVELS[1] }
+        : { pick: CATEGORY_OF.large, effort: 'default' };
 
   function pollPad(): void {
     const p = standardPad();
@@ -653,7 +678,7 @@ export function createModelMarket(host: MarketHost, site: ModelMarketSite, stall
       pickJob: (id: JobId) => pickJob(id),
       pick: (p: 'auto' | ModelCategory) => pick(p),
       model: (m: string) => model(m),
-      effort: (e: Effort) => effort(e),
+      effort: (e: string) => effort(e),
       pay: () => pay(),
       retry: (kind: 'model' | 'effort') => retry(kind),
       back: () => back(),

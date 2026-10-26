@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T22:52:44.360Z",
+  "generatedAt": "2026-10-25T22:26:56.230Z",
   "set": "testcove",
   "lines": [
     {
@@ -6169,113 +6169,108 @@
     {
       "id": "bo.gear.brief.01",
       "speaker": "Bo",
-      "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal.",
-      "duration": 8.708,
+      "text": "Next, your tools. Open View, then Toggle Panel, and pick the Terminal tab. No tab? Select + and then Terminal.",
+      "duration": 8.308,
       "files": {
         "webm": "bo.gear.brief.01.webm",
         "m4a": "bo.gear.brief.01.m4a"
       },
-      "hash": "a24615bf65debaa9",
+      "hash": "770679abf358c9d8",
       "words": [
         {
           "word": "Next",
           "start": 0.07,
-          "end": 0.39
+          "end": 0.43
         },
         {
           "word": "your",
-          "start": 0.39,
-          "end": 0.59
+          "start": 0.43,
+          "end": 0.67
         },
         {
           "word": "tools",
-          "start": 0.59,
-          "end": 0.87
+          "start": 0.67,
+          "end": 0.91
         },
         {
           "word": "Open",
-          "start": 0.87,
-          "end": 1.59
+          "start": 0.91,
+          "end": 1.47
         },
         {
           "word": "View",
-          "start": 1.59,
-          "end": 1.75
+          "start": 1.47,
+          "end": 1.63
         },
         {
           "word": "then",
-          "start": 1.75,
+          "start": 1.63,
           "end": 1.99
         },
         {
           "word": "Toggle",
           "start": 1.99,
-          "end": 2.429
-        },
-        {
-          "word": "Review",
-          "start": 2.429,
-          "end": 2.75
+          "end": 2.909
         },
         {
           "word": "Panel",
-          "start": 2.75,
-          "end": 2.949
+          "start": 2.909,
+          "end": 3.389
         },
         {
           "word": "and",
-          "start": 2.949,
-          "end": 3.07
+          "start": 3.389,
+          "end": 3.63
         },
         {
           "word": "pick",
-          "start": 3.07,
-          "end": 3.309
+          "start": 3.63,
+          "end": 3.829
         },
         {
           "word": "the",
-          "start": 3.309,
-          "end": 3.429
+          "start": 3.829,
+          "end": 3.949
         },
         {
           "word": "Terminal",
-          "start": 3.429,
-          "end": 4.07
+          "start": 3.949,
+          "end": 4.43
         },
         {
           "word": "tab",
-          "start": 4.07,
-          "end": 5.47
+          "start": 4.43,
+          "end": 5.19
         },
         {
           "word": "No",
-          "start": 5.47,
-          "end": 5.75
+          "start": 5.19,
+          "end": 5.51
         },
         {
           "word": "tab",
-          "start": 5.75,
-          "end": 6.55
+          "start": 5.51,
+          "end": 6.11
         },
         {
           "word": "Select",
-          "start": 6.55,
-          "end": 7.63
+          "start": 6.11,
+          "end": 7.23
         },
         {
           "word": "and",
-          "start": 7.63,
-          "end": 7.79
+          "start": 7.23,
+          "end": 7.39
         },
         {
           "word": "then",
-          "start": 7.79,
-          "end": 8.029
+          "start": 7.39,
+          "end": 7.63
         },
         {
           "word": "Terminal",
-          "start": 8.029,
-          "end": 8.279
+          "start": 7.63,
+          "end": 7.88
         }
       ],
       "voice": "en-GB-Ryan:DragonHDLatestNeural"
@@ -9570,660 +9565,660 @@
       "id": "lyra.idle.01",
       "speaker": "Lyra",
       "text": "Every island has a song, Captain. Come back once your crew’s answered you, and I’ll play you this one.",
-      "duration": 8.107,
+      "duration": 5.908,
       "files": {
         "webm": "lyra.idle.01.webm",
         "m4a": "lyra.idle.01.m4a"
       },
-      "hash": "ba62e8671f8fd2a3",
+      "hash": "6757a2266bae4ddf",
       "words": [
         {
           "word": "Every",
-          "start": 0.052625,
-          "end": 0.39475
+          "start": 0,
+          "end": 0.366
         },
         {
           "word": "island",
-          "start": 0.39475,
-          "end": 0.868416
+          "start": 0.366,
+          "end": 0.66
         },
         {
           "word": "has",
-          "start": 0.868416,
-          "end": 1.039458
+          "start": 0.66,
+          "end": 0.76
         },
         {
           "word": "a",
-          "start": 1.039458,
-          "end": 1.131583
+          "start": 0.76,
+          "end": 0.864
         },
         {
           "word": "song",
-          "start": 1.131583,
-          "end": 1.736833
+          "start": 0.864,
+          "end": 1.39
         },
         {
           "word": "Captain",
-          "start": 1.736833,
-          "end": 3.315791
+          "start": 1.39,
+          "end": 1.888
         },
         {
           "word": "Come",
-          "start": 3.315791,
-          "end": 3.565791
+          "start": 1.888,
+          "end": 2.784
         },
         {
           "word": "back",
-          "start": 3.565791,
-          "end": 3.907875
+          "start": 2.784,
+          "end": 3.072
         },
         {
           "word": "once",
-          "start": 3.907875,
-          "end": 4.210541
+          "start": 3.072,
+          "end": 3.232
         },
         {
           "word": "your",
-          "start": 4.210541,
-          "end": 4.381583
+          "start": 3.232,
+          "end": 3.408
         },
         {
           "word": "crew’s",
-          "start": 4.381583,
-          "end": 4.736833
+          "start": 3.408,
+          "end": 3.716
         },
         {
           "word": "answered",
-          "start": 4.736833,
-          "end": 5.223666
+          "start": 3.716,
+          "end": 4.04
         },
         {
           "word": "you",
-          "start": 5.223666,
-          "end": 5.697375
+          "start": 4.04,
+          "end": 4.46
         },
         {
           "word": "and",
-          "start": 5.697375,
-          "end": 5.973666
+          "start": 4.46,
+          "end": 4.92
         },
         {
           "word": "I’ll",
-          "start": 5.973666,
-          "end": 6.118416
+          "start": 4.92,
+          "end": 5.072
         },
         {
           "word": "play",
-          "start": 6.118416,
-          "end": 6.421041
+          "start": 5.072,
+          "end": 5.22
         },
         {
           "word": "you",
-          "start": 6.421041,
-          "end": 6.552625
+          "start": 5.22,
+          "end": 5.328
         },
         {
           "word": "this",
-          "start": 6.552625,
-          "end": 6.736833
+          "start": 5.328,
+          "end": 5.56
         },
         {
           "word": "one",
-          "start": 6.736833,
-          "end": 6.986833
+          "start": 5.56,
+          "end": 5.81
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "lyra.soundcheck.01",
       "speaker": "Lyra",
       "text": "Ah, the new captain. Sit a moment. The course you’re sailing has a song running through it: a recording studio.",
-      "duration": 9.907,
+      "duration": 7.508,
       "files": {
         "webm": "lyra.soundcheck.01.webm",
         "m4a": "lyra.soundcheck.01.m4a"
       },
-      "hash": "70fe0d1431154439",
+      "hash": "6d6ec7c2b48a445d",
       "words": [
         {
           "word": "Ah",
-          "start": 0.052625,
-          "end": 0.407875
+          "start": 0,
+          "end": 0.28
         },
         {
           "word": "the",
-          "start": 0.407875,
-          "end": 0.578958
+          "start": 0.28,
+          "end": 0.44
         },
         {
           "word": "new",
-          "start": 0.578958,
-          "end": 0.868416
+          "start": 0.44,
+          "end": 0.63
         },
         {
           "word": "captain",
-          "start": 0.868416,
-          "end": 2.447375
+          "start": 0.63,
+          "end": 1.47
         },
         {
           "word": "Sit",
-          "start": 2.447375,
-          "end": 2.710541
+          "start": 1.47,
+          "end": 1.72
         },
         {
           "word": "a",
-          "start": 2.710541,
-          "end": 2.802625
+          "start": 1.72,
+          "end": 1.806
         },
         {
           "word": "moment",
-          "start": 2.802625,
-          "end": 4.39475
+          "start": 1.806,
+          "end": 2.56
         },
         {
           "word": "The",
-          "start": 4.39475,
-          "end": 4.486833
+          "start": 2.56,
+          "end": 3.566
         },
         {
           "word": "course",
-          "start": 4.486833,
-          "end": 4.842125
+          "start": 3.566,
+          "end": 3.86
         },
         {
           "word": "you’re",
-          "start": 4.842125,
-          "end": 5.078958
+          "start": 3.86,
+          "end": 4.13
         },
         {
           "word": "sailing",
-          "start": 5.078958,
-          "end": 5.618416
+          "start": 4.13,
+          "end": 4.52
         },
         {
           "word": "has",
-          "start": 5.618416,
-          "end": 5.828958
+          "start": 4.52,
+          "end": 4.72
         },
         {
           "word": "a",
-          "start": 5.828958,
-          "end": 5.934208
+          "start": 4.72,
+          "end": 4.864
         },
         {
           "word": "song",
-          "start": 5.934208,
-          "end": 6.25
+          "start": 4.864,
+          "end": 5.15
         },
         {
           "word": "running",
-          "start": 6.25,
-          "end": 6.618416
+          "start": 5.15,
+          "end": 5.39
         },
         {
           "word": "through",
-          "start": 6.618416,
-          "end": 6.907875
+          "start": 5.39,
+          "end": 5.653
         },
         {
           "word": "it",
-          "start": 6.907875,
-          "end": 7.657875
+          "start": 5.653,
+          "end": 6.36
         },
         {
           "word": "a",
-          "start": 7.657875,
-          "end": 7.85525
+          "start": 6.36,
+          "end": 6.504
         },
         {
           "word": "recording",
-          "start": 7.85525,
-          "end": 8.368416
+          "start": 6.504,
+          "end": 6.8
         },
         {
           "word": "studio",
-          "start": 8.368416,
-          "end": 8.618416
+          "start": 6.8,
+          "end": 7.05
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "lyra.soundcheck.02",
       "speaker": "Lyra",
       "text": "Before you record anything, you get the studio ready. You sign in, plug in your gear, load the song, and run a quick soundcheck.",
-      "duration": 10.207,
+      "duration": 8.508,
       "files": {
         "webm": "lyra.soundcheck.02.webm",
         "m4a": "lyra.soundcheck.02.m4a"
       },
-      "hash": "7c14a720c8876e71",
+      "hash": "b5831f5064e022d3",
       "words": [
         {
           "word": "Before",
-          "start": 0.052625,
-          "end": 0.447375
+          "start": 0,
+          "end": 0.28
         },
         {
           "word": "you",
-          "start": 0.447375,
-          "end": 0.618416
+          "start": 0.28,
+          "end": 0.469
         },
         {
           "word": "record",
-          "start": 0.618416,
-          "end": 1
+          "start": 0.469,
+          "end": 0.933
         },
         {
           "word": "anything",
-          "start": 1,
-          "end": 1.776333
+          "start": 0.933,
+          "end": 1.62
         },
         {
           "word": "you",
-          "start": 1.776333,
-          "end": 2.10525
+          "start": 1.62,
+          "end": 1.72
         },
         {
           "word": "get",
-          "start": 2.10525,
-          "end": 2.289458
+          "start": 1.72,
+          "end": 1.86
         },
         {
           "word": "the",
-          "start": 2.289458,
-          "end": 2.407875
+          "start": 1.86,
+          "end": 1.989
         },
         {
           "word": "studio",
-          "start": 2.407875,
-          "end": 2.986833
+          "start": 1.989,
+          "end": 2.453
         },
         {
           "word": "ready",
-          "start": 2.986833,
-          "end": 4.263166
+          "start": 2.453,
+          "end": 3.22
         },
         {
           "word": "You",
-          "start": 4.263166,
-          "end": 4.460541
+          "start": 3.22,
+          "end": 3.824
         },
         {
           "word": "sign",
-          "start": 4.460541,
-          "end": 4.776333
+          "start": 3.824,
+          "end": 4.16
         },
         {
           "word": "in",
-          "start": 4.776333,
-          "end": 5.157875
+          "start": 4.16,
+          "end": 4.688
         },
         {
           "word": "plug",
-          "start": 5.157875,
-          "end": 5.618416
+          "start": 4.688,
+          "end": 4.933
         },
         {
           "word": "in",
-          "start": 5.618416,
-          "end": 5.723666
+          "start": 4.933,
+          "end": 5.056
         },
         {
           "word": "your",
-          "start": 5.723666,
-          "end": 5.881583
+          "start": 5.056,
+          "end": 5.2
         },
         {
           "word": "gear",
-          "start": 5.881583,
-          "end": 6.64475
+          "start": 5.2,
+          "end": 5.968
         },
         {
           "word": "load",
-          "start": 6.64475,
-          "end": 6.934208
+          "start": 5.968,
+          "end": 6.18
         },
         {
           "word": "the",
-          "start": 6.934208,
-          "end": 7.052625
+          "start": 6.18,
+          "end": 6.32
         },
         {
           "word": "song",
-          "start": 7.052625,
-          "end": 7.60525
+          "start": 6.32,
+          "end": 7.08
         },
         {
           "word": "and",
-          "start": 7.60525,
-          "end": 7.934208
+          "start": 7.08,
+          "end": 7.24
         },
         {
           "word": "run",
-          "start": 7.934208,
-          "end": 8.223666
+          "start": 7.24,
+          "end": 7.4
         },
         {
           "word": "a",
-          "start": 8.223666,
-          "end": 8.276333
+          "start": 7.4,
+          "end": 7.467
         },
         {
           "word": "quick",
-          "start": 8.276333,
-          "end": 8.592125
+          "start": 7.467,
+          "end": 7.667
         },
         {
           "word": "soundcheck",
-          "start": 8.592125,
-          "end": 8.842125
+          "start": 7.667,
+          "end": 7.917
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "lyra.soundcheck.03",
       "speaker": "Lyra",
       "text": "You’ve just done the sailor’s version: papers signed, the chart forked, your gear checked, and the practice items loaded.",
-      "duration": 8.307,
+      "duration": 6.908,
       "files": {
         "webm": "lyra.soundcheck.03.webm",
         "m4a": "lyra.soundcheck.03.m4a"
       },
-      "hash": "fb343d45af72990f",
+      "hash": "099b0beffe817a77",
       "words": [
         {
           "word": "You’ve",
-          "start": 0.052625,
-          "end": 0.302625
+          "start": 0,
+          "end": 0.112
         },
         {
           "word": "just",
-          "start": 0.302625,
-          "end": 0.578958
+          "start": 0.112,
+          "end": 0.272
         },
         {
           "word": "done",
-          "start": 0.578958,
-          "end": 0.789458
+          "start": 0.272,
+          "end": 0.42
         },
         {
           "word": "the",
-          "start": 0.789458,
-          "end": 0.921041
+          "start": 0.42,
+          "end": 0.537
         },
         {
           "word": "sailor’s",
-          "start": 0.921041,
-          "end": 1.315791
+          "start": 0.537,
+          "end": 1.105
         },
         {
           "word": "version",
-          "start": 1.315791,
-          "end": 2.10525
+          "start": 1.105,
+          "end": 1.554
         },
         {
           "word": "papers",
-          "start": 2.10525,
-          "end": 2.60525
+          "start": 1.554,
+          "end": 2.297
         },
         {
           "word": "signed",
-          "start": 2.60525,
-          "end": 3.302625
+          "start": 2.297,
+          "end": 2.84
         },
         {
           "word": "the",
-          "start": 3.302625,
-          "end": 3.421041
+          "start": 2.84,
+          "end": 3.027
         },
         {
           "word": "chart",
-          "start": 3.421041,
-          "end": 3.815791
+          "start": 3.027,
+          "end": 3.44
         },
         {
           "word": "forked",
-          "start": 3.815791,
-          "end": 4.460541
+          "start": 3.44,
+          "end": 4.08
         },
         {
           "word": "your",
-          "start": 4.460541,
-          "end": 4.736833
+          "start": 4.08,
+          "end": 4.304
         },
         {
           "word": "gear",
-          "start": 4.736833,
-          "end": 4.973666
+          "start": 4.304,
+          "end": 4.61
         },
         {
           "word": "checked",
-          "start": 4.973666,
-          "end": 5.723666
+          "start": 4.61,
+          "end": 5.26
         },
         {
           "word": "and",
-          "start": 5.723666,
-          "end": 5.881583
+          "start": 5.26,
+          "end": 5.46
         },
         {
           "word": "the",
-          "start": 5.881583,
-          "end": 5.973666
+          "start": 5.46,
+          "end": 5.564
         },
         {
           "word": "practice",
-          "start": 5.973666,
-          "end": 6.473666
+          "start": 5.564,
+          "end": 5.987
         },
         {
           "word": "items",
-          "start": 6.473666,
-          "end": 6.947375
+          "start": 5.987,
+          "end": 6.389
         },
         {
           "word": "loaded",
-          "start": 6.947375,
-          "end": 7.197375
+          "start": 6.389,
+          "end": 6.639
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "lyra.soundcheck.04",
       "speaker": "Lyra",
       "text": "Port Meridian’s next on the chart. There you’ll learn why the app matters and tour its rooms. I’ll see you there.",
-      "duration": 9.507,
+      "duration": 7.508,
       "files": {
         "webm": "lyra.soundcheck.04.webm",
         "m4a": "lyra.soundcheck.04.m4a"
       },
-      "hash": "c2ecbe62188646cd",
+      "hash": "c97143a523d90ce4",
       "words": [
         {
           "word": "Port",
-          "start": 0.052625,
-          "end": 0.35525
+          "start": 0,
+          "end": 0.22
         },
         {
           "word": "Meridian’s",
-          "start": 0.35525,
-          "end": 1.078958
+          "start": 0.22,
+          "end": 0.864
         },
         {
           "word": "next",
-          "start": 1.078958,
-          "end": 1.5
+          "start": 0.864,
+          "end": 1.147
         },
         {
           "word": "on",
-          "start": 1.5,
-          "end": 1.64475
+          "start": 1.147,
+          "end": 1.22
         },
         {
           "word": "the",
-          "start": 1.64475,
-          "end": 1.75
+          "start": 1.22,
+          "end": 1.347
         },
         {
           "word": "chart",
-          "start": 1.75,
-          "end": 3.276333
+          "start": 1.347,
+          "end": 1.973
         },
         {
           "word": "There",
-          "start": 3.276333,
-          "end": 3.421041
+          "start": 1.973,
+          "end": 2.66
         },
         {
           "word": "you’ll",
-          "start": 3.421041,
-          "end": 3.684208
+          "start": 2.66,
+          "end": 2.853
         },
         {
           "word": "learn",
-          "start": 3.684208,
-          "end": 4.026333
+          "start": 2.853,
+          "end": 3.16
         },
         {
           "word": "why",
-          "start": 4.026333,
-          "end": 4.315791
+          "start": 3.16,
+          "end": 3.32
         },
         {
           "word": "the",
-          "start": 4.315791,
-          "end": 4.473666
+          "start": 3.32,
+          "end": 3.52
         },
         {
           "word": "app",
-          "start": 4.473666,
-          "end": 4.64475
+          "start": 3.52,
+          "end": 3.84
         },
         {
           "word": "matters",
-          "start": 4.64475,
-          "end": 5.197375
+          "start": 3.84,
+          "end": 4.46
         },
         {
           "word": "and",
-          "start": 5.197375,
-          "end": 5.447375
+          "start": 4.46,
+          "end": 4.704
         },
         {
           "word": "tour",
-          "start": 5.447375,
-          "end": 5.776333
+          "start": 4.704,
+          "end": 5.02
         },
         {
           "word": "its",
-          "start": 5.776333,
-          "end": 5.934208
+          "start": 5.02,
+          "end": 5.28
         },
         {
           "word": "rooms",
-          "start": 5.934208,
-          "end": 7.526333
+          "start": 5.28,
+          "end": 6.24
         },
         {
           "word": "I’ll",
-          "start": 7.526333,
-          "end": 7.75
+          "start": 6.24,
+          "end": 6.76
         },
         {
           "word": "see",
-          "start": 7.75,
-          "end": 8.013166
+          "start": 6.76,
+          "end": 6.9
         },
         {
           "word": "you",
-          "start": 8.013166,
-          "end": 8.184208
+          "start": 6.9,
+          "end": 7.013
         },
         {
           "word": "there",
-          "start": 8.184208,
-          "end": 8.434208
+          "start": 7.013,
+          "end": 7.263
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "lyra.done.01",
       "speaker": "Lyra",
       "text": "Fair winds, Captain. Meridian’s plaza has the best acoustics in the isles.",
-      "duration": 7.207,
+      "duration": 4.708,
       "files": {
         "webm": "lyra.done.01.webm",
         "m4a": "lyra.done.01.m4a"
       },
-      "hash": "a8fe161b23cd1910",
+      "hash": "7f4143498a2ec0cf",
       "words": [
         {
           "word": "Fair",
-          "start": 0.052625,
-          "end": 0.381583
+          "start": 0,
+          "end": 0.213
         },
         {
           "word": "winds",
-          "start": 0.381583,
-          "end": 1.065791
+          "start": 0.213,
+          "end": 0.705
         },
         {
           "word": "Captain",
-          "start": 1.065791,
-          "end": 2.64475
+          "start": 0.705,
+          "end": 1.22
         },
         {
           "word": "Meridian’s",
-          "start": 2.64475,
-          "end": 3.263166
+          "start": 1.22,
+          "end": 2.387
         },
         {
           "word": "plaza",
-          "start": 3.263166,
-          "end": 3.85525
+          "start": 2.387,
+          "end": 2.76
         },
         {
           "word": "has",
-          "start": 3.85525,
-          "end": 4.210541
+          "start": 2.76,
+          "end": 2.94
         },
         {
           "word": "the",
-          "start": 4.210541,
-          "end": 4.328958
+          "start": 2.94,
+          "end": 3.168
         },
         {
           "word": "best",
-          "start": 4.328958,
-          "end": 4.64475
+          "start": 3.168,
+          "end": 3.413
         },
         {
           "word": "acoustics",
-          "start": 4.64475,
-          "end": 5.328958
+          "start": 3.413,
+          "end": 3.947
         },
         {
           "word": "in",
-          "start": 5.328958,
-          "end": 5.513166
+          "start": 3.947,
+          "end": 4.02
         },
         {
           "word": "the",
-          "start": 5.513166,
-          "end": 5.684208
+          "start": 4.02,
+          "end": 4.16
         },
         {
           "word": "isles",
-          "start": 5.684208,
-          "end": 5.934208
+          "start": 4.16,
+          "end": 4.41
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "wingman.meridian.01",
@@ -12444,13 +12439,13 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!",
-      "duration": 9.307,
+      "text": "New, Pull requests, Issues, Dashboards, Automations, Customize, and Sessions for your projects and chats. You know your way around now!",
+      "duration": 10.207,
       "files": {
         "webm": "mer.mina.done.webm",
         "m4a": "mer.mina.done.m4a"
       },
-      "hash": "a45942e2d6a24192",
+      "hash": "70e3874ee1fcc9c8",
       "words": [
         {
           "word": "New",
@@ -12465,87 +12460,92 @@
         {
           "word": "requests",
           "start": 0.860833,
-          "end": 1.592
+          "end": 1.615583
         },
         {
           "word": "Issues",
-          "start": 1.592,
-          "end": 2.193416
+          "start": 1.615583,
+          "end": 2.275958
+        },
+        {
+          "word": "Dashboards",
+          "start": 2.275958,
+          "end": 3.030666
         },
         {
           "word": "Automations",
-          "start": 2.193416,
-          "end": 3.160375
+          "start": 3.030666,
+          "end": 4.044791
         },
         {
           "word": "Customize",
-          "start": 3.160375,
-          "end": 4.092
+          "start": 4.044791,
+          "end": 5
         },
         {
           "word": "and",
-          "start": 4.092,
-          "end": 4.245291
+          "start": 5,
+          "end": 5.153291
         },
         {
           "word": "Sessions",
-          "start": 4.245291,
-          "end": 4.740583
+          "start": 5.153291,
+          "end": 5.636791
         },
         {
           "word": "for",
-          "start": 4.740583,
-          "end": 4.834916
+          "start": 5.636791,
+          "end": 5.731125
         },
         {
           "word": "your",
-          "start": 4.834916,
-          "end": 4.976416
+          "start": 5.731125,
+          "end": 5.872625
         },
         {
           "word": "projects",
-          "start": 4.976416,
-          "end": 5.471708
+          "start": 5.872625,
+          "end": 6.356125
         },
         {
           "word": "and",
-          "start": 5.471708,
-          "end": 5.577833
+          "start": 6.356125,
+          "end": 6.46225
         },
         {
           "word": "chats",
-          "start": 5.577833,
-          "end": 6.922166
+          "start": 6.46225,
+          "end": 7.806625
         },
         {
           "word": "You",
-          "start": 6.922166,
-          "end": 7.075458
+          "start": 7.806625,
+          "end": 7.959916
         },
         {
           "word": "know",
-          "start": 7.075458,
-          "end": 7.311333
+          "start": 7.959916,
+          "end": 8.19575
         },
         {
           "word": "your",
-          "start": 7.311333,
-          "end": 7.464625
+          "start": 8.19575,
+          "end": 8.349041
         },
         {
           "word": "way",
-          "start": 7.464625,
-          "end": 7.700458
+          "start": 8.349041,
+          "end": 8.584916
         },
         {
           "word": "around",
-          "start": 7.700458,
-          "end": 8.101416
+          "start": 8.584916,
+          "end": 8.985833
         },
         {
           "word": "now",
-          "start": 8.101416,
-          "end": 8.351416
+          "start": 8.985833,
+          "end": 9.235833
         }
       ],
       "voice": "en-GB-HollieNeural"
@@ -12554,757 +12554,757 @@
       "id": "mer.lyra.wait",
       "speaker": "Lyra",
       "text": "I’m still tuning up, Captain. Come back once Mina’s shown you round.",
-      "duration": 6.407,
+      "duration": 3.408,
       "files": {
         "webm": "mer.lyra.wait.webm",
         "m4a": "mer.lyra.wait.m4a"
       },
-      "hash": "27de534aa627dee2",
+      "hash": "2bf127e24cc02d9d",
       "words": [
         {
           "word": "I’m",
-          "start": 0.052625,
-          "end": 0.263166
+          "start": 0,
+          "end": 0.107
         },
         {
           "word": "still",
-          "start": 0.263166,
-          "end": 0.578958
+          "start": 0.107,
+          "end": 0.286
         },
         {
           "word": "tuning",
-          "start": 0.578958,
-          "end": 1.052625
+          "start": 0.286,
+          "end": 0.613
         },
         {
           "word": "up",
-          "start": 1.052625,
-          "end": 1.473666
+          "start": 0.613,
+          "end": 0.945
         },
         {
           "word": "Captain",
-          "start": 1.473666,
-          "end": 3.039458
+          "start": 0.945,
+          "end": 1.328
         },
         {
           "word": "Come",
-          "start": 3.039458,
-          "end": 3.289458
+          "start": 1.328,
+          "end": 1.888
         },
         {
           "word": "back",
-          "start": 3.289458,
-          "end": 3.64475
+          "start": 1.888,
+          "end": 2.128
         },
         {
           "word": "once",
-          "start": 3.64475,
-          "end": 4.013166
+          "start": 2.128,
+          "end": 2.36
         },
         {
           "word": "Mina’s",
-          "start": 4.013166,
-          "end": 4.5
+          "start": 2.36,
+          "end": 2.667
         },
         {
           "word": "shown",
-          "start": 4.5,
-          "end": 4.842125
+          "start": 2.667,
+          "end": 2.82
         },
         {
           "word": "you",
-          "start": 4.842125,
-          "end": 4.973666
+          "start": 2.82,
+          "end": 2.947
         },
         {
           "word": "round",
-          "start": 4.973666,
-          "end": 5.223666
+          "start": 2.947,
+          "end": 3.197
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.01",
       "speaker": "Lyra",
       "text": "Captain! I told you this plaza had the best acoustics.",
-      "duration": 5.507,
+      "duration": 3.408,
       "files": {
         "webm": "mer.lyra.01.webm",
         "m4a": "mer.lyra.01.m4a"
       },
-      "hash": "dec3af7957adfdff",
+      "hash": "32ed0afcc4b21e6b",
       "words": [
         {
           "word": "Captain",
-          "start": 0.052625,
-          "end": 1.631583
+          "start": 0,
+          "end": 0.8
         },
         {
           "word": "I",
-          "start": 1.631583,
-          "end": 1.763166
+          "start": 0.8,
+          "end": 1.104
         },
         {
           "word": "told",
-          "start": 1.763166,
-          "end": 2.092125
+          "start": 1.104,
+          "end": 1.38
         },
         {
           "word": "you",
-          "start": 2.092125,
-          "end": 2.236833
+          "start": 1.38,
+          "end": 1.472
         },
         {
           "word": "this",
-          "start": 2.236833,
-          "end": 2.381583
+          "start": 1.472,
+          "end": 1.667
         },
         {
           "word": "plaza",
-          "start": 2.381583,
-          "end": 2.947375
+          "start": 1.667,
+          "end": 2.04
         },
         {
           "word": "had",
-          "start": 2.947375,
-          "end": 3.263166
+          "start": 2.04,
+          "end": 2.18
         },
         {
           "word": "the",
-          "start": 3.263166,
-          "end": 3.39475
+          "start": 2.18,
+          "end": 2.288
         },
         {
           "word": "best",
-          "start": 3.39475,
-          "end": 3.710541
+          "start": 2.288,
+          "end": 2.533
         },
         {
           "word": "acoustics",
-          "start": 3.710541,
-          "end": 3.960541
+          "start": 2.533,
+          "end": 2.783
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.02",
       "speaker": "Lyra",
       "text": "A producer doesn’t run every take the same way. Some need close direction. Some need the arrangement charted first.",
-      "duration": 10.607,
+      "duration": 7.308,
       "files": {
         "webm": "mer.lyra.02.webm",
         "m4a": "mer.lyra.02.m4a"
       },
-      "hash": "8d1bd33a4a90b963",
+      "hash": "ee55160e24ac5ae4",
       "words": [
         {
           "word": "A",
-          "start": 0.052625,
-          "end": 0.131583
+          "start": 0,
+          "end": 0.124
         },
         {
           "word": "producer",
-          "start": 0.131583,
-          "end": 0.75
+          "start": 0.124,
+          "end": 0.507
         },
         {
           "word": "doesn’t",
-          "start": 0.75,
-          "end": 1.131583
+          "start": 0.507,
+          "end": 0.78
         },
         {
           "word": "run",
-          "start": 1.131583,
-          "end": 1.64475
+          "start": 0.78,
+          "end": 1.027
         },
         {
           "word": "every",
-          "start": 1.64475,
-          "end": 1.986833
+          "start": 1.027,
+          "end": 1.424
         },
         {
           "word": "take",
-          "start": 1.986833,
-          "end": 2.25
+          "start": 1.424,
+          "end": 1.72
         },
         {
           "word": "the",
-          "start": 2.25,
-          "end": 2.368416
+          "start": 1.72,
+          "end": 1.888
         },
         {
           "word": "same",
-          "start": 2.368416,
-          "end": 2.697375
+          "start": 1.888,
+          "end": 2.14
         },
         {
           "word": "way",
-          "start": 2.697375,
-          "end": 4.131583
+          "start": 2.14,
+          "end": 2.704
         },
         {
           "word": "Some",
-          "start": 4.131583,
-          "end": 4.473666
+          "start": 2.704,
+          "end": 3.648
         },
         {
           "word": "need",
-          "start": 4.473666,
-          "end": 4.802625
+          "start": 3.648,
+          "end": 3.907
         },
         {
           "word": "close",
-          "start": 4.802625,
-          "end": 5.197375
+          "start": 3.907,
+          "end": 4.288
         },
         {
           "word": "direction",
-          "start": 5.197375,
-          "end": 6.960541
+          "start": 4.288,
+          "end": 4.848
         },
         {
           "word": "Some",
-          "start": 6.960541,
-          "end": 7.328958
+          "start": 4.848,
+          "end": 5.392
         },
         {
           "word": "need",
-          "start": 7.328958,
-          "end": 7.618416
+          "start": 5.392,
+          "end": 5.54
         },
         {
           "word": "the",
-          "start": 7.618416,
-          "end": 7.789458
+          "start": 5.54,
+          "end": 5.653
         },
         {
           "word": "arrangement",
-          "start": 7.789458,
-          "end": 8.434208
+          "start": 5.653,
+          "end": 6.293
         },
         {
           "word": "charted",
-          "start": 8.434208,
-          "end": 8.973666
+          "start": 6.293,
+          "end": 6.707
         },
         {
           "word": "first",
-          "start": 8.973666,
-          "end": 9.223666
+          "start": 6.707,
+          "end": 6.957
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.03",
       "speaker": "Lyra",
       "text": "And some quick questions just need a fast answer. That’s a chat.",
-      "duration": 6.207,
+      "duration": 4.008,
       "files": {
         "webm": "mer.lyra.03.webm",
         "m4a": "mer.lyra.03.m4a"
       },
-      "hash": "db0b1557effeebf8",
+      "hash": "90f6ea581b671d6f",
       "words": [
         {
           "word": "And",
-          "start": 0.052625,
-          "end": 0.263166
+          "start": 0,
+          "end": 0.128
         },
         {
           "word": "some",
-          "start": 0.263166,
-          "end": 0.539458
+          "start": 0.128,
+          "end": 0.36
         },
         {
           "word": "quick",
-          "start": 0.539458,
-          "end": 0.842125
+          "start": 0.36,
+          "end": 0.616
         },
         {
           "word": "questions",
-          "start": 0.842125,
-          "end": 1.684208
+          "start": 0.616,
+          "end": 1.152
         },
         {
           "word": "just",
-          "start": 1.684208,
-          "end": 2.078958
+          "start": 1.152,
+          "end": 1.328
         },
         {
           "word": "need",
-          "start": 2.078958,
-          "end": 2.302625
+          "start": 1.328,
+          "end": 1.56
         },
         {
           "word": "a",
-          "start": 2.302625,
-          "end": 2.381583
+          "start": 1.56,
+          "end": 1.664
         },
         {
           "word": "fast",
-          "start": 2.381583,
-          "end": 2.842125
+          "start": 1.664,
+          "end": 1.977
         },
         {
           "word": "answer",
-          "start": 2.842125,
-          "end": 4.302625
+          "start": 1.977,
+          "end": 2.64
         },
         {
           "word": "That’s",
-          "start": 4.302625,
-          "end": 4.60525
+          "start": 2.64,
+          "end": 3.4
         },
         {
           "word": "a",
-          "start": 4.60525,
-          "end": 4.684208
+          "start": 3.4,
+          "end": 3.52
         },
         {
           "word": "chat",
-          "start": 4.684208,
-          "end": 4.934208
+          "start": 3.52,
+          "end": 3.77
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.04",
       "speaker": "Lyra",
       "text": "To start one, select the + next to Sessions, then Chat.",
-      "duration": 5.107,
+      "duration": 3.708,
       "files": {
         "webm": "mer.lyra.04.webm",
         "m4a": "mer.lyra.04.m4a"
       },
-      "hash": "0ff777bd8e841c03",
+      "hash": "03ba6c36b87a0532",
       "words": [
         {
           "word": "To",
-          "start": 0.052625,
-          "end": 0.157875
+          "start": 0,
+          "end": 0.12
         },
         {
           "word": "start",
-          "start": 0.157875,
-          "end": 0.565791
+          "start": 0.12,
+          "end": 0.4
         },
         {
           "word": "one",
-          "start": 0.565791,
-          "end": 1.092125
+          "start": 0.4,
+          "end": 0.937
         },
         {
           "word": "select",
-          "start": 1.092125,
-          "end": 1.657875
+          "start": 0.937,
+          "end": 1.3
         },
         {
           "word": "the",
-          "start": 1.657875,
-          "end": 2.157875
+          "start": 1.3,
+          "end": 1.888
         },
         {
           "word": "next",
-          "start": 2.157875,
-          "end": 2.513166
+          "start": 1.888,
+          "end": 2.107
         },
         {
           "word": "to",
-          "start": 2.513166,
-          "end": 2.631583
+          "start": 2.107,
+          "end": 2.222
         },
         {
           "word": "Sessions",
-          "start": 2.631583,
-          "end": 3.381583
+          "start": 2.222,
+          "end": 2.992
         },
         {
           "word": "then",
-          "start": 3.381583,
-          "end": 3.64475
+          "start": 2.992,
+          "end": 3.216
         },
         {
           "word": "Chat",
-          "start": 3.64475,
-          "end": 3.89475
+          "start": 3.216,
+          "end": 3.466
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.05",
       "speaker": "Lyra",
       "text": "There. The picker says Chat, so there’s no branch, no worktree, and no files change.",
-      "duration": 8.107,
+      "duration": 6.008,
       "files": {
         "webm": "mer.lyra.05.webm",
         "m4a": "mer.lyra.05.m4a"
       },
-      "hash": "5e3b142e9ac4efff",
+      "hash": "66139df5d0183c06",
       "words": [
         {
           "word": "There",
-          "start": 0.052625,
-          "end": 1.35525
+          "start": 0,
+          "end": 0.67
         },
         {
           "word": "The",
-          "start": 1.35525,
-          "end": 1.434208
+          "start": 0.67,
+          "end": 0.926
         },
         {
           "word": "picker",
-          "start": 1.434208,
-          "end": 1.763166
+          "start": 0.926,
+          "end": 1.248
         },
         {
           "word": "says",
-          "start": 1.763166,
-          "end": 2.039458
+          "start": 1.248,
+          "end": 1.52
         },
         {
           "word": "Chat",
-          "start": 2.039458,
-          "end": 2.802625
+          "start": 1.52,
+          "end": 2.293
         },
         {
           "word": "so",
-          "start": 2.802625,
-          "end": 3.263166
+          "start": 2.293,
+          "end": 2.413
         },
         {
           "word": "there’s",
-          "start": 3.263166,
-          "end": 3.421041
+          "start": 2.413,
+          "end": 2.613
         },
         {
           "word": "no",
-          "start": 3.421041,
-          "end": 3.684208
+          "start": 2.613,
+          "end": 2.789
         },
         {
           "word": "branch",
-          "start": 3.684208,
-          "end": 4.381583
+          "start": 2.789,
+          "end": 3.493
         },
         {
           "word": "no",
-          "start": 4.381583,
-          "end": 4.697375
+          "start": 3.493,
+          "end": 3.68
         },
         {
           "word": "worktree",
-          "start": 4.697375,
-          "end": 5.618416
+          "start": 3.68,
+          "end": 4.5
         },
         {
           "word": "and",
-          "start": 5.618416,
-          "end": 5.802625
+          "start": 4.5,
+          "end": 4.667
         },
         {
           "word": "no",
-          "start": 5.802625,
-          "end": 6.078958
+          "start": 4.667,
+          "end": 4.96
         },
         {
           "word": "files",
-          "start": 6.078958,
-          "end": 6.513166
+          "start": 4.96,
+          "end": 5.417
         },
         {
           "word": "change",
-          "start": 6.513166,
-          "end": 6.763166
+          "start": 5.417,
+          "end": 5.667
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.06",
       "speaker": "Lyra",
       "text": "Try the prompt on that page in the app. It asks when to use a chat and when to use a project session.",
-      "duration": 8.107,
+      "duration": 6.408,
       "files": {
         "webm": "mer.lyra.06.webm",
         "m4a": "mer.lyra.06.m4a"
       },
-      "hash": "abcd90c787d40bdf",
+      "hash": "8ebde02063be9b1c",
       "words": [
         {
           "word": "Try",
-          "start": 0.052625,
-          "end": 0.381583
+          "start": 0,
+          "end": 0.18
         },
         {
           "word": "the",
-          "start": 0.381583,
-          "end": 0.473666
+          "start": 0.18,
+          "end": 0.286
         },
         {
           "word": "prompt",
-          "start": 0.473666,
-          "end": 0.881583
+          "start": 0.286,
+          "end": 0.613
         },
         {
           "word": "on",
-          "start": 0.881583,
-          "end": 1.026333
+          "start": 0.613,
+          "end": 0.736
         },
         {
           "word": "that",
-          "start": 1.026333,
-          "end": 1.236833
+          "start": 0.736,
+          "end": 0.88
         },
         {
           "word": "page",
-          "start": 1.236833,
-          "end": 1.657875
+          "start": 0.88,
+          "end": 1.227
         },
         {
           "word": "in",
-          "start": 1.657875,
-          "end": 1.776333
+          "start": 1.227,
+          "end": 1.3
         },
         {
           "word": "the",
-          "start": 1.776333,
-          "end": 1.947375
+          "start": 1.3,
+          "end": 1.44
         },
         {
-          "word": "app.",
-          "start": 1.947375,
-          "end": 3.210541
+          "word": "app",
+          "start": 1.44,
+          "end": 2.028
         },
         {
           "word": "It",
-          "start": 3.210541,
-          "end": 3.342125
+          "start": 2.028,
+          "end": 2.817
         },
         {
           "word": "asks",
-          "start": 3.342125,
-          "end": 3.828958
+          "start": 2.817,
+          "end": 3.265
         },
         {
           "word": "when",
-          "start": 3.828958,
-          "end": 4.026333
+          "start": 3.265,
+          "end": 3.574
         },
         {
           "word": "to",
-          "start": 4.026333,
-          "end": 4.157875
+          "start": 3.574,
+          "end": 3.741
         },
         {
           "word": "use",
-          "start": 4.157875,
-          "end": 4.421041
+          "start": 3.741,
+          "end": 4.021
         },
         {
           "word": "a",
-          "start": 4.421041,
-          "end": 4.513166
+          "start": 4.021,
+          "end": 4.161
         },
         {
           "word": "chat",
-          "start": 4.513166,
-          "end": 5.14475
+          "start": 4.161,
+          "end": 4.401
         },
         {
           "word": "and",
-          "start": 5.14475,
-          "end": 5.513166
+          "start": 4.401,
+          "end": 4.689
         },
         {
           "word": "when",
-          "start": 5.513166,
-          "end": 5.697375
+          "start": 4.689,
+          "end": 4.908
         },
         {
           "word": "to",
-          "start": 5.697375,
-          "end": 5.842125
+          "start": 4.908,
+          "end": 5.021
         },
         {
           "word": "use",
-          "start": 5.842125,
-          "end": 6.118416
+          "start": 5.021,
+          "end": 5.321
         },
         {
           "word": "a",
-          "start": 6.118416,
-          "end": 6.197375
+          "start": 5.321,
+          "end": 5.471
         },
         {
           "word": "project",
-          "start": 6.197375,
-          "end": 6.684208
+          "start": 5.471,
+          "end": 5.731
         },
         {
           "word": "session",
-          "start": 6.684208,
-          "end": 6.934208
+          "start": 5.731,
+          "end": 5.981
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.next",
       "speaker": "Lyra",
       "text": "Project sessions are Anders’s trade. He’s at the shipyard, at the west end of the quay.",
-      "duration": 7.107,
+      "duration": 4.808,
       "files": {
         "webm": "mer.lyra.next.webm",
         "m4a": "mer.lyra.next.m4a"
       },
-      "hash": "dbec0cd79dae1b7b",
+      "hash": "7503d2c35de1e943",
       "words": [
         {
           "word": "Project",
-          "start": 0.052625,
-          "end": 0.539458
+          "start": 0,
+          "end": 0.444
         },
         {
           "word": "sessions",
-          "start": 0.539458,
-          "end": 1.10525
+          "start": 0.444,
+          "end": 0.84
         },
         {
           "word": "are",
-          "start": 1.10525,
-          "end": 1.342125
+          "start": 0.84,
+          "end": 1.006
         },
         {
           "word": "Anders’s",
-          "start": 1.342125,
-          "end": 1.921041
+          "start": 1.006,
+          "end": 1.427
         },
         {
           "word": "trade",
-          "start": 1.921041,
-          "end": 3.434208
+          "start": 1.427,
+          "end": 2.107
         },
         {
           "word": "He’s",
-          "start": 3.434208,
-          "end": 3.592125
+          "start": 2.107,
+          "end": 2.587
         },
         {
           "word": "at",
-          "start": 3.592125,
-          "end": 3.723666
+          "start": 2.587,
+          "end": 2.66
         },
         {
           "word": "the",
-          "start": 3.723666,
-          "end": 3.85525
+          "start": 2.66,
+          "end": 2.768
         },
         {
           "word": "shipyard",
-          "start": 3.85525,
-          "end": 4.671041
+          "start": 2.768,
+          "end": 3.44
         },
         {
           "word": "at",
-          "start": 4.671041,
-          "end": 4.842125
+          "start": 3.44,
+          "end": 3.54
         },
         {
           "word": "the",
-          "start": 4.842125,
-          "end": 4.960541
+          "start": 3.54,
+          "end": 3.648
         },
         {
           "word": "west",
-          "start": 4.960541,
-          "end": 5.289458
+          "start": 3.648,
+          "end": 3.9
         },
         {
           "word": "end",
-          "start": 5.289458,
-          "end": 5.565791
+          "start": 3.9,
+          "end": 4.107
         },
         {
           "word": "of",
-          "start": 5.565791,
-          "end": 5.618416
+          "start": 4.107,
+          "end": 4.18
         },
         {
           "word": "the",
-          "start": 5.618416,
-          "end": 5.736833
+          "start": 4.18,
+          "end": 4.304
         },
         {
           "word": "quay",
-          "start": 5.736833,
-          "end": 5.986833
+          "start": 4.304,
+          "end": 4.554
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.lyra.done",
       "speaker": "Lyra",
       "text": "Quick question? Start a chat. That’s the whole song.",
-      "duration": 6.207,
+      "duration": 4.008,
       "files": {
         "webm": "mer.lyra.done.webm",
         "m4a": "mer.lyra.done.m4a"
       },
-      "hash": "a71baa01af49be07",
+      "hash": "c29e06398c58b8de",
       "words": [
         {
           "word": "Quick",
-          "start": 0.052625,
-          "end": 0.342125
+          "start": 0,
+          "end": 0.204
         },
         {
           "word": "question",
-          "start": 0.342125,
-          "end": 1.973666
+          "start": 0.204,
+          "end": 0.733
         },
         {
           "word": "Start",
-          "start": 1.973666,
-          "end": 2.421041
+          "start": 0.733,
+          "end": 1.28
         },
         {
           "word": "a",
-          "start": 2.421041,
-          "end": 2.5
+          "start": 1.28,
+          "end": 1.424
         },
         {
           "word": "chat",
-          "start": 2.5,
-          "end": 3.973666
+          "start": 1.424,
+          "end": 2.544
         },
         {
           "word": "That’s",
-          "start": 3.973666,
-          "end": 4.276333
+          "start": 2.544,
+          "end": 3.22
         },
         {
           "word": "the",
-          "start": 4.276333,
-          "end": 4.407875
+          "start": 3.22,
+          "end": 3.307
         },
         {
           "word": "whole",
-          "start": 4.407875,
-          "end": 4.75
+          "start": 3.307,
+          "end": 3.504
         },
         {
           "word": "song",
-          "start": 4.75,
-          "end": 5
+          "start": 3.504,
+          "end": 3.754
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "mer.anders.wait",
@@ -15659,13 +15659,13 @@
     {
       "id": "mer.oren.03",
       "speaker": "Oren",
-      "text": "Open it to find Model, Effort, and Context window. If the Auto switch is on, they’re hidden. Turn it off to see them.",
-      "duration": 9.807,
+      "text": "Open it to see what you can change. With a model, that's Model, Effort, and Context window. With Copilot Fusion, it's an Effort level instead.",
+      "duration": 11.207,
       "files": {
         "webm": "mer.oren.03.webm",
         "m4a": "mer.oren.03.m4a"
       },
-      "hash": "3cd5842ba7e6f167",
+      "hash": "60ad894bf67491fc",
       "words": [
         {
           "word": "Open",
@@ -15675,112 +15675,122 @@
         {
           "word": "it",
           "start": 0.388875,
-          "end": 0.513875
+          "end": 0.5
         },
         {
           "word": "to",
-          "start": 0.513875,
-          "end": 0.611125
-        },
-        {
-          "word": "find",
-          "start": 0.611125,
-          "end": 1
-        },
-        {
-          "word": "Model",
-          "start": 1,
-          "end": 1.569458
-        },
-        {
-          "word": "Effort",
-          "start": 1.569458,
-          "end": 2
-        },
-        {
-          "word": "and",
-          "start": 2,
-          "end": 2.125
-        },
-        {
-          "word": "Context",
-          "start": 2.125,
-          "end": 2.708333
-        },
-        {
-          "word": "window",
-          "start": 2.708333,
-          "end": 4.152791
-        },
-        {
-          "word": "If",
-          "start": 4.152791,
-          "end": 4.347208
-        },
-        {
-          "word": "the",
-          "start": 4.347208,
-          "end": 4.486125
-        },
-        {
-          "word": "Auto",
-          "start": 4.486125,
-          "end": 4.888875
-        },
-        {
-          "word": "switch",
-          "start": 4.888875,
-          "end": 5.236125
-        },
-        {
-          "word": "is",
-          "start": 5.236125,
-          "end": 5.375
-        },
-        {
-          "word": "on",
-          "start": 5.375,
-          "end": 5.916666
-        },
-        {
-          "word": "they’re",
-          "start": 5.916666,
-          "end": 6.166666
-        },
-        {
-          "word": "hidden",
-          "start": 6.166666,
-          "end": 7.597208
-        },
-        {
-          "word": "Turn",
-          "start": 7.597208,
-          "end": 7.902791
-        },
-        {
-          "word": "it",
-          "start": 7.902791,
-          "end": 8.027791
-        },
-        {
-          "word": "off",
-          "start": 8.027791,
-          "end": 8.222208
-        },
-        {
-          "word": "to",
-          "start": 8.222208,
-          "end": 8.333333
+          "start": 0.5,
+          "end": 0.597208
         },
         {
           "word": "see",
-          "start": 8.333333,
-          "end": 8.597208
+          "start": 0.597208,
+          "end": 0.819458
         },
         {
-          "word": "them",
-          "start": 8.597208,
-          "end": 8.847208
+          "word": "what",
+          "start": 0.819458,
+          "end": 1.027791
+        },
+        {
+          "word": "you",
+          "start": 1.027791,
+          "end": 1.166666
+        },
+        {
+          "word": "can",
+          "start": 1.166666,
+          "end": 1.361125
+        },
+        {
+          "word": "change",
+          "start": 1.361125,
+          "end": 2.958333
+        },
+        {
+          "word": "With",
+          "start": 2.958333,
+          "end": 3.166666
+        },
+        {
+          "word": "a",
+          "start": 3.166666,
+          "end": 3.236125
+        },
+        {
+          "word": "model",
+          "start": 3.236125,
+          "end": 3.847208
+        },
+        {
+          "word": "that's",
+          "start": 3.847208,
+          "end": 4.111125
+        },
+        {
+          "word": "Model",
+          "start": 4.111125,
+          "end": 4.708333
+        },
+        {
+          "word": "Effort",
+          "start": 4.708333,
+          "end": 5.166666
+        },
+        {
+          "word": "and",
+          "start": 5.166666,
+          "end": 5.277791
+        },
+        {
+          "word": "Context",
+          "start": 5.277791,
+          "end": 5.861125
+        },
+        {
+          "word": "window",
+          "start": 5.861125,
+          "end": 7.319458
+        },
+        {
+          "word": "With",
+          "start": 7.319458,
+          "end": 7.513875
+        },
+        {
+          "word": "Copilot",
+          "start": 7.513875,
+          "end": 8.097208
+        },
+        {
+          "word": "Fusion",
+          "start": 8.097208,
+          "end": 8.777791
+        },
+        {
+          "word": "it's",
+          "start": 8.777791,
+          "end": 8.930541
+        },
+        {
+          "word": "an",
+          "start": 8.930541,
+          "end": 9.041666
+        },
+        {
+          "word": "Effort",
+          "start": 9.041666,
+          "end": 9.333333
+        },
+        {
+          "word": "level",
+          "start": 9.333333,
+          "end": 9.694458
+        },
+        {
+          "word": "instead",
+          "start": 9.694458,
+          "end": 9.944458
         }
       ],
       "voice": "en-GB-OliverNeural"
@@ -15788,73 +15798,108 @@
     {
       "id": "mer.oren.auto",
       "speaker": "Oren",
-      "text": "When it says Auto, the app picks a model for your task.",
-      "duration": 4.607,
+      "text": "Copilot Fusion isn't one model. It picks models and a workflow for each request, then gives you one response.",
+      "duration": 8.727,
       "files": {
         "webm": "mer.oren.auto.webm",
         "m4a": "mer.oren.auto.m4a"
       },
-      "hash": "b0ffed343c22cbad",
+      "hash": "f6498f34de9168b1",
       "words": [
         {
-          "word": "When",
+          "word": "Copilot",
           "start": 0.055541,
-          "end": 0.291666
+          "end": 0.680541
         },
         {
-          "word": "it",
-          "start": 0.291666,
-          "end": 0.430541
+          "word": "Fusion",
+          "start": 0.680541,
+          "end": 1.180541
         },
         {
-          "word": "says",
-          "start": 0.430541,
-          "end": 0.708333
+          "word": "isn't",
+          "start": 1.180541,
+          "end": 1.486125
         },
         {
-          "word": "Auto",
-          "start": 0.708333,
-          "end": 1.5
-        },
-        {
-          "word": "the",
-          "start": 1.5,
-          "end": 1.666666
-        },
-        {
-          "word": "app",
-          "start": 1.666666,
-          "end": 1.888875
-        },
-        {
-          "word": "picks",
-          "start": 1.888875,
-          "end": 2.166666
-        },
-        {
-          "word": "a",
-          "start": 2.166666,
-          "end": 2.236125
+          "word": "one",
+          "start": 1.486125,
+          "end": 1.805541
         },
         {
           "word": "model",
-          "start": 2.236125,
-          "end": 2.597208
+          "start": 1.805541,
+          "end": 3.208333
+        },
+        {
+          "word": "It",
+          "start": 3.208333,
+          "end": 3.416666
+        },
+        {
+          "word": "picks",
+          "start": 3.416666,
+          "end": 3.708333
+        },
+        {
+          "word": "models",
+          "start": 3.708333,
+          "end": 4.166666
+        },
+        {
+          "word": "and",
+          "start": 4.166666,
+          "end": 4.263875
+        },
+        {
+          "word": "a",
+          "start": 4.263875,
+          "end": 4.319458
+        },
+        {
+          "word": "workflow",
+          "start": 4.319458,
+          "end": 4.916666
         },
         {
           "word": "for",
-          "start": 2.597208,
-          "end": 2.736125
+          "start": 4.916666,
+          "end": 5.083333
         },
         {
-          "word": "your",
-          "start": 2.736125,
-          "end": 2.986125
+          "word": "each",
+          "start": 5.083333,
+          "end": 5.333333
         },
         {
-          "word": "task",
-          "start": 2.986125,
-          "end": 3.236125
+          "word": "request",
+          "start": 5.333333,
+          "end": 6.194458
+        },
+        {
+          "word": "then",
+          "start": 6.194458,
+          "end": 6.361125
+        },
+        {
+          "word": "gives",
+          "start": 6.361125,
+          "end": 6.666666
+        },
+        {
+          "word": "you",
+          "start": 6.666666,
+          "end": 6.791666
+        },
+        {
+          "word": "one",
+          "start": 6.791666,
+          "end": 7.097208
+        },
+        {
+          "word": "response",
+          "start": 7.097208,
+          "end": 7.347208
         }
       ],
       "voice": "en-GB-OliverNeural"
@@ -15862,13 +15907,13 @@
     {
       "id": "mer.oren.04",
       "speaker": "Oren",
-      "text": "Careful, though. Auto isn’t Autopilot. Autopilot is a mode. Auto is about the model.",
-      "duration": 9.707,
+      "text": "Careful, though. Fusion isn't Autopilot. Autopilot is a mode. Fusion is about how the models handle your request.",
+      "duration": 11.407,
       "files": {
         "webm": "mer.oren.04.webm",
         "m4a": "mer.oren.04.m4a"
       },
-      "hash": "9814558ca825e215",
+      "hash": "754ea17cb5676e6d",
       "words": [
         {
           "word": "Careful",
@@ -15881,64 +15926,84 @@
           "end": 2.111125
         },
         {
-          "word": "Auto",
+          "word": "Fusion",
           "start": 2.111125,
-          "end": 2.569458
+          "end": 2.680541
         },
         {
-          "word": "isn’t",
-          "start": 2.569458,
-          "end": 2.916666
-        },
-        {
-          "word": "Autopilot",
-          "start": 2.916666,
-          "end": 4.791666
+          "word": "isn't",
+          "start": 2.680541,
+          "end": 2.986125
         },
         {
           "word": "Autopilot",
-          "start": 4.791666,
-          "end": 5.569458
+          "start": 2.986125,
+          "end": 4.847208
+        },
+        {
+          "word": "Autopilot",
+          "start": 4.847208,
+          "end": 5.625
         },
         {
           "word": "is",
-          "start": 5.569458,
-          "end": 5.708333
+          "start": 5.625,
+          "end": 5.763875
         },
         {
           "word": "a",
-          "start": 5.708333,
-          "end": 5.791666
+          "start": 5.763875,
+          "end": 5.847208
         },
         {
           "word": "mode",
-          "start": 5.791666,
-          "end": 7.263875
+          "start": 5.847208,
+          "end": 7.319458
         },
         {
-          "word": "Auto",
-          "start": 7.263875,
-          "end": 7.722208
+          "word": "Fusion",
+          "start": 7.319458,
+          "end": 7.847208
         },
         {
           "word": "is",
-          "start": 7.722208,
-          "end": 7.888875
+          "start": 7.847208,
+          "end": 8
         },
         {
           "word": "about",
-          "start": 7.888875,
-          "end": 8.166666
+          "start": 8,
+          "end": 8.319458
+        },
+        {
+          "word": "how",
+          "start": 8.319458,
+          "end": 8.527791
         },
         {
           "word": "the",
-          "start": 8.166666,
-          "end": 8.263875
+          "start": 8.527791,
+          "end": 8.652791
         },
         {
-          "word": "model",
-          "start": 8.263875,
-          "end": 8.513875
+          "word": "models",
+          "start": 8.652791,
+          "end": 9.097208
+        },
+        {
+          "word": "handle",
+          "start": 9.097208,
+          "end": 9.513875
+        },
+        {
+          "word": "your",
+          "start": 9.513875,
+          "end": 9.708333
+        },
+        {
+          "word": "request",
+          "start": 9.708333,
+          "end": 9.958333
         }
       ],
       "voice": "en-GB-OliverNeural"
@@ -15946,13 +16011,13 @@
     {
       "id": "mer.oren.05",
       "speaker": "Oren",
-      "text": "For a tour or a quick explanation, keep Auto or your current model, on its default effort. For a hard bug across several files, consider a model suited to complex coding, and more effort.",
-      "duration": 13.308,
+      "text": "For a tour or a quick explanation, use Copilot Fusion at Standard, or your current model on its default effort. For a hard bug across several files, consider a higher Fusion level, or a model suited to complex coding.",
+      "duration": 15.307,
       "files": {
         "webm": "mer.oren.05.webm",
         "m4a": "mer.oren.05.m4a"
       },
-      "hash": "e8c4d4c81402494c",
+      "hash": "4fbc18ec268a282f",
       "words": [
         {
           "word": "For",
@@ -15987,142 +16052,167 @@
         {
           "word": "explanation",
           "start": 1.180541,
-          "end": 2.125
+          "end": 2.152791
         },
         {
-          "word": "keep",
-          "start": 2.125,
+          "word": "use",
+          "start": 2.152791,
           "end": 2.402791
         },
         {
-          "word": "Auto",
+          "word": "Copilot",
           "start": 2.402791,
-          "end": 2.930541
+          "end": 3.013875
+        },
+        {
+          "word": "Fusion",
+          "start": 3.013875,
+          "end": 3.472208
+        },
+        {
+          "word": "at",
+          "start": 3.472208,
+          "end": 3.638875
+        },
+        {
+          "word": "Standard",
+          "start": 3.638875,
+          "end": 4.402791
         },
         {
           "word": "or",
-          "start": 2.930541,
-          "end": 3.111125
+          "start": 4.402791,
+          "end": 4.583333
         },
         {
           "word": "your",
-          "start": 3.111125,
-          "end": 3.375
+          "start": 4.583333,
+          "end": 4.819458
         },
         {
           "word": "current",
-          "start": 3.375,
-          "end": 3.763875
+          "start": 4.819458,
+          "end": 5.208333
         },
         {
           "word": "model",
-          "start": 3.763875,
-          "end": 4.236125
+          "start": 5.208333,
+          "end": 5.597208
         },
         {
           "word": "on",
-          "start": 4.236125,
-          "end": 4.347208
+          "start": 5.597208,
+          "end": 5.722208
         },
         {
           "word": "its",
-          "start": 4.347208,
-          "end": 4.513875
+          "start": 5.722208,
+          "end": 5.888875
         },
         {
           "word": "default",
-          "start": 4.513875,
-          "end": 4.986125
+          "start": 5.888875,
+          "end": 6.375
         },
         {
           "word": "effort",
-          "start": 4.986125,
-          "end": 6.388875
+          "start": 6.375,
+          "end": 7.75
         },
         {
           "word": "For",
-          "start": 6.388875,
-          "end": 6.569458
+          "start": 7.75,
+          "end": 7.930541
         },
         {
           "word": "a",
-          "start": 6.569458,
-          "end": 6.625
+          "start": 7.930541,
+          "end": 7.986125
         },
         {
           "word": "hard",
-          "start": 6.625,
-          "end": 7.027791
+          "start": 7.986125,
+          "end": 8.402791
         },
         {
           "word": "bug",
-          "start": 7.027791,
-          "end": 7.291666
+          "start": 8.402791,
+          "end": 8.666666
         },
         {
           "word": "across",
-          "start": 7.291666,
-          "end": 7.722208
+          "start": 8.666666,
+          "end": 9.083333
         },
         {
           "word": "several",
-          "start": 7.722208,
-          "end": 8.152791
+          "start": 9.083333,
+          "end": 9.513875
         },
         {
           "word": "files",
-          "start": 8.152791,
-          "end": 8.875
-        },
-        {
-          "word": "consider",
-          "start": 8.875,
-          "end": 9.375
-        },
-        {
-          "word": "a",
-          "start": 9.375,
-          "end": 9.444458
-        },
-        {
-          "word": "model",
-          "start": 9.444458,
-          "end": 9.805541
-        },
-        {
-          "word": "suited",
-          "start": 9.805541,
+          "start": 9.513875,
           "end": 10.222208
         },
         {
-          "word": "to",
+          "word": "consider",
           "start": 10.222208,
-          "end": 10.305541
+          "end": 10.75
+        },
+        {
+          "word": "a",
+          "start": 10.75,
+          "end": 10.819458
+        },
+        {
+          "word": "higher",
+          "start": 10.819458,
+          "end": 11.208333
+        },
+        {
+          "word": "Fusion",
+          "start": 11.208333,
+          "end": 11.666666
+        },
+        {
+          "word": "level",
+          "start": 11.666666,
+          "end": 12.277791
+        },
+        {
+          "word": "or",
+          "start": 12.277791,
+          "end": 12.416666
+        },
+        {
+          "word": "a",
+          "start": 12.416666,
+          "end": 12.486125
+        },
+        {
+          "word": "model",
+          "start": 12.486125,
+          "end": 12.847208
+        },
+        {
+          "word": "suited",
+          "start": 12.847208,
+          "end": 13.236125
+        },
+        {
+          "word": "to",
+          "start": 13.236125,
+          "end": 13.319458
         },
         {
           "word": "complex",
-          "start": 10.305541,
-          "end": 10.805541
+          "start": 13.319458,
+          "end": 13.833333
         },
         {
           "word": "coding",
-          "start": 10.805541,
-          "end": 11.472208
-        },
-        {
-          "word": "and",
-          "start": 11.472208,
-          "end": 11.597208
-        },
-        {
-          "word": "more",
-          "start": 11.597208,
-          "end": 11.875
-        },
-        {
-          "word": "effort",
-          "start": 11.875,
-          "end": 12.125
+          "start": 13.833333,
+          "end": 14.083333
         }
       ],
       "voice": "en-GB-OliverNeural"
@@ -18566,13 +18656,13 @@
     {
       "id": "mer.pell.letters.debrief",
       "speaker": "Pell",
-      "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Projects is at the foot, with each project’s own settings.",
-      "duration": 8.507,
+      "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Repositories is at the foot, with each repository’s own settings.",
+      "duration": 9.007,
       "files": {
         "webm": "mer.pell.letters.debrief.webm",
         "m4a": "mer.pell.letters.debrief.m4a"
       },
-      "hash": "4440281cdeb02904",
+      "hash": "313290c78f67d7e9",
       "words": [
         {
           "word": "Select",
@@ -18650,54 +18740,54 @@
           "end": 4.651458
         },
         {
-          "word": "Projects",
+          "word": "Repositories",
           "start": 4.651458,
-          "end": 5.14425
+          "end": 5.432708
         },
         {
           "word": "is",
-          "start": 5.14425,
-          "end": 5.276458
+          "start": 5.432708,
+          "end": 5.576916
         },
         {
           "word": "at",
-          "start": 5.276458,
-          "end": 5.384625
+          "start": 5.576916,
+          "end": 5.673083
         },
         {
           "word": "the",
-          "start": 5.384625,
-          "end": 5.48075
+          "start": 5.673083,
+          "end": 5.78125
         },
         {
           "word": "foot",
-          "start": 5.48075,
-          "end": 5.973541
+          "start": 5.78125,
+          "end": 6.310083
         },
         {
           "word": "with",
-          "start": 5.973541,
-          "end": 6.141833
+          "start": 6.310083,
+          "end": 6.454333
         },
         {
           "word": "each",
-          "start": 6.141833,
-          "end": 6.358166
+          "start": 6.454333,
+          "end": 6.658666
         },
         {
-          "word": "project’s",
-          "start": 6.358166,
-          "end": 6.826916
+          "word": "repository’s",
+          "start": 6.658666,
+          "end": 7.319708
         },
         {
           "word": "own",
-          "start": 6.826916,
-          "end": 7.04325
+          "start": 7.319708,
+          "end": 7.524041
         },
         {
           "word": "settings",
-          "start": 7.04325,
-          "end": 7.29325
+          "start": 7.524041,
+          "end": 7.774041
         }
       ],
       "voice": "en-GB-ElliotNeural"
@@ -21686,123 +21776,128 @@
     {
       "id": "mer.market.auto",
       "speaker": "Gilda",
-      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
-      "duration": 7.608,
+      "text": "Copilot Fusion's the house special. It isn't one model: it picks models and a workflow for each job. And it isn't Autopilot, mind.",
+      "duration": 9.808,
       "files": {
         "webm": "mer.market.auto.webm",
         "m4a": "mer.market.auto.m4a"
       },
-      "hash": "23560762edc69e71",
+      "hash": "a6f271f6f637b620",
       "words": [
         {
-          "word": "Auto's",
+          "word": "Copilot",
           "start": 0,
-          "end": 0.5
+          "end": 0.629
+        },
+        {
+          "word": "Fusion's",
+          "start": 0.629,
+          "end": 1.14
         },
         {
           "word": "the",
-          "start": 0.5,
-          "end": 0.6
+          "start": 1.14,
+          "end": 1.24
         },
         {
           "word": "house",
-          "start": 0.6,
-          "end": 0.86
+          "start": 1.24,
+          "end": 1.5
         },
         {
           "word": "special",
-          "start": 0.86,
-          "end": 1.63
-        },
-        {
-          "word": "The",
-          "start": 1.63,
-          "end": 1.9
-        },
-        {
-          "word": "app",
-          "start": 1.9,
-          "end": 2.13
-        },
-        {
-          "word": "chooses",
-          "start": 2.13,
-          "end": 2.52
-        },
-        {
-          "word": "a",
-          "start": 2.52,
-          "end": 2.6
-        },
-        {
-          "word": "model",
-          "start": 2.6,
-          "end": 2.88
-        },
-        {
-          "word": "for",
-          "start": 2.88,
-          "end": 3.18
-        },
-        {
-          "word": "you",
-          "start": 3.18,
-          "end": 3.504
-        },
-        {
-          "word": "then",
-          "start": 3.504,
-          "end": 3.653
-        },
-        {
-          "word": "tells",
-          "start": 3.653,
-          "end": 3.94
-        },
-        {
-          "word": "you",
-          "start": 3.94,
-          "end": 4.053
-        },
-        {
-          "word": "which",
-          "start": 4.053,
-          "end": 4.4
-        },
-        {
-          "word": "one",
-          "start": 4.4,
-          "end": 4.7
-        },
-        {
-          "word": "and",
-          "start": 4.7,
-          "end": 4.98
-        },
-        {
-          "word": "why",
-          "start": 4.98,
-          "end": 5.6
+          "start": 1.5,
+          "end": 2.24
         },
         {
           "word": "It",
-          "start": 5.6,
-          "end": 5.98
+          "start": 2.24,
+          "end": 2.76
         },
         {
           "word": "isn't",
-          "start": 5.98,
-          "end": 6.3
+          "start": 2.76,
+          "end": 3.1
+        },
+        {
+          "word": "one",
+          "start": 3.1,
+          "end": 3.36
+        },
+        {
+          "word": "model",
+          "start": 3.36,
+          "end": 4
+        },
+        {
+          "word": "it",
+          "start": 4,
+          "end": 4.227
+        },
+        {
+          "word": "picks",
+          "start": 4.227,
+          "end": 4.64
+        },
+        {
+          "word": "models",
+          "start": 4.64,
+          "end": 5.2
+        },
+        {
+          "word": "and",
+          "start": 5.2,
+          "end": 5.48
+        },
+        {
+          "word": "a",
+          "start": 5.48,
+          "end": 5.591
+        },
+        {
+          "word": "workflow",
+          "start": 5.591,
+          "end": 6.2
+        },
+        {
+          "word": "for",
+          "start": 6.2,
+          "end": 6.368
+        },
+        {
+          "word": "each",
+          "start": 6.368,
+          "end": 6.68
+        },
+        {
+          "word": "job",
+          "start": 6.68,
+          "end": 7.32
+        },
+        {
+          "word": "And",
+          "start": 7.32,
+          "end": 7.973
+        },
+        {
+          "word": "it",
+          "start": 7.973,
+          "end": 8.12
+        },
+        {
+          "word": "isn't",
+          "start": 8.12,
+          "end": 8.38
         },
         {
           "word": "Autopilot",
-          "start": 6.3,
-          "end": 7.248
+          "start": 8.38,
+          "end": 9.36
         },
         {
           "word": "mind",
-          "start": 7.248,
-          "end": 7.498
+          "start": 9.36,
+          "end": 9.61
         }
       ],
       "voice": "aAsWcN5jdLdiYG7Hq0YL"
@@ -22190,148 +22285,88 @@
     {
       "id": "mer.market.hard.auto",
       "speaker": "Gilda",
-      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort.",
-      "duration": 9.108,
+      "text": "Right-sized! A hard job suits a higher Fusion level: more capable models, and deeper reasoning.",
+      "duration": 6.908,
       "files": {
         "webm": "mer.market.hard.auto.webm",
         "m4a": "mer.market.hard.auto.m4a"
       },
-      "hash": "62da75b19683465d",
+      "hash": "c84bf150926c59f5",
       "words": [
         {
-          "word": "Auto",
+          "word": "Right-sized",
           "start": 0,
-          "end": 0.373
+          "end": 1.24
         },
         {
-          "word": "chose",
-          "start": 0.373,
-          "end": 0.68
-        },
-        {
-          "word": "a",
-          "start": 0.68,
-          "end": 0.787
-        },
-        {
-          "word": "model",
-          "start": 0.787,
-          "end": 1.27
-        },
-        {
-          "word": "and",
-          "start": 1.27,
-          "end": 1.38
-        },
-        {
-          "word": "the",
-          "start": 1.38,
-          "end": 1.48
-        },
-        {
-          "word": "job's",
-          "start": 1.48,
-          "end": 1.84
-        },
-        {
-          "word": "done",
-          "start": 1.84,
-          "end": 2.907
-        },
-        {
-          "word": "On",
-          "start": 2.907,
-          "end": 3.32
-        },
-        {
-          "word": "a",
-          "start": 3.32,
-          "end": 3.42
-        },
-        {
-          "word": "job",
-          "start": 3.42,
-          "end": 3.632
-        },
-        {
-          "word": "this",
-          "start": 3.632,
-          "end": 3.84
+          "word": "A",
+          "start": 1.24,
+          "end": 1.584
         },
         {
           "word": "hard",
-          "start": 3.84,
-          "end": 4.51
+          "start": 1.584,
+          "end": 1.92
         },
         {
-          "word": "you",
-          "start": 4.51,
-          "end": 4.74
+          "word": "job",
+          "start": 1.92,
+          "end": 2.253
         },
         {
-          "word": "can",
-          "start": 4.74,
-          "end": 4.864
-        },
-        {
-          "word": "also",
-          "start": 4.864,
-          "end": 5.184
-        },
-        {
-          "word": "turn",
-          "start": 5.184,
-          "end": 5.52
-        },
-        {
-          "word": "Auto",
-          "start": 5.52,
-          "end": 5.94
-        },
-        {
-          "word": "off",
-          "start": 5.94,
-          "end": 6.624
-        },
-        {
-          "word": "then",
-          "start": 6.624,
-          "end": 6.928
-        },
-        {
-          "word": "pick",
-          "start": 6.928,
-          "end": 7.16
+          "word": "suits",
+          "start": 2.253,
+          "end": 2.76
         },
         {
           "word": "a",
-          "start": 7.16,
-          "end": 7.307
-        },
-        {
-          "word": "model",
-          "start": 7.307,
-          "end": 7.88
-        },
-        {
-          "word": "and",
-          "start": 7.88,
-          "end": 8.04
-        },
-        {
-          "word": "a",
-          "start": 8.04,
-          "end": 8.137
+          "start": 2.76,
+          "end": 2.846
         },
         {
           "word": "higher",
-          "start": 8.137,
-          "end": 8.537
+          "start": 2.846,
+          "end": 3.166
         },
         {
-          "word": "effort",
-          "start": 8.537,
-          "end": 8.787
+          "word": "Fusion",
+          "start": 3.166,
+          "end": 3.493
+        },
+        {
+          "word": "level",
+          "start": 3.493,
+          "end": 4.096
+        },
+        {
+          "word": "more",
+          "start": 4.096,
+          "end": 4.38
+        },
+        {
+          "word": "capable",
+          "start": 4.38,
+          "end": 4.88
+        },
+        {
+          "word": "models",
+          "start": 4.88,
+          "end": 5.46
+        },
+        {
+          "word": "and",
+          "start": 5.46,
+          "end": 5.829
+        },
+        {
+          "word": "deeper",
+          "start": 5.829,
+          "end": 6.296
+        },
+        {
+          "word": "reasoning",
+          "start": 6.296,
+          "end": 6.546
         }
       ],
       "voice": "aAsWcN5jdLdiYG7Hq0YL"
@@ -22908,133 +22943,128 @@
     {
       "id": "desmond.market.auto",
       "speaker": "Desmond",
-      "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
-      "duration": 8.808,
+      "text": "Copilot Fusion's the house special. It's not one model: it picks the models and the workflow for each job. Mind, it isn't Autopilot.",
+      "duration": 11.208,
       "files": {
         "webm": "desmond.market.auto.webm",
         "m4a": "desmond.market.auto.m4a"
       },
-      "hash": "96bd915159e32e26",
+      "hash": "ab6d6474fa790780",
       "words": [
         {
-          "word": "Auto's",
+          "word": "Copilot",
           "start": 0,
-          "end": 0.44
+          "end": 0.629
+        },
+        {
+          "word": "Fusion's",
+          "start": 0.629,
+          "end": 1.24
         },
         {
           "word": "the",
-          "start": 0.44,
-          "end": 0.613
+          "start": 1.24,
+          "end": 1.413
         },
         {
           "word": "house",
-          "start": 0.613,
-          "end": 0.94
+          "start": 1.413,
+          "end": 1.75
         },
         {
           "word": "special",
-          "start": 0.94,
-          "end": 1.58
+          "start": 1.75,
+          "end": 2.72
         },
         {
-          "word": "The",
-          "start": 1.58,
-          "end": 2.06
+          "word": "It's",
+          "start": 2.72,
+          "end": 3.34
         },
         {
-          "word": "app",
-          "start": 2.06,
-          "end": 2.293
-        },
-        {
-          "word": "picks",
-          "start": 2.293,
-          "end": 2.6
-        },
-        {
-          "word": "a",
-          "start": 2.6,
-          "end": 2.693
-        },
-        {
-          "word": "model",
-          "start": 2.693,
-          "end": 3
-        },
-        {
-          "word": "for",
-          "start": 3,
-          "end": 3.16
-        },
-        {
-          "word": "you",
-          "start": 3.16,
-          "end": 3.712
-        },
-        {
-          "word": "then",
-          "start": 3.712,
-          "end": 3.907
-        },
-        {
-          "word": "tells",
-          "start": 3.907,
-          "end": 4.28
-        },
-        {
-          "word": "you",
-          "start": 4.28,
-          "end": 4.453
-        },
-        {
-          "word": "which",
-          "start": 4.453,
-          "end": 4.78
+          "word": "not",
+          "start": 3.34,
+          "end": 3.58
         },
         {
           "word": "one",
-          "start": 4.78,
-          "end": 5.04
+          "start": 3.58,
+          "end": 3.827
+        },
+        {
+          "word": "model",
+          "start": 3.827,
+          "end": 4.693
         },
         {
           "word": "it",
-          "start": 5.04,
-          "end": 5.253
+          "start": 4.693,
+          "end": 4.853
         },
         {
-          "word": "chose",
-          "start": 5.253,
-          "end": 5.56
+          "word": "picks",
+          "start": 4.853,
+          "end": 5.16
+        },
+        {
+          "word": "the",
+          "start": 5.16,
+          "end": 5.36
+        },
+        {
+          "word": "models",
+          "start": 5.36,
+          "end": 5.92
         },
         {
           "word": "and",
-          "start": 5.56,
-          "end": 5.76
+          "start": 5.92,
+          "end": 6.2
         },
         {
-          "word": "why",
-          "start": 5.76,
-          "end": 6.304
+          "word": "the",
+          "start": 6.2,
+          "end": 6.391
+        },
+        {
+          "word": "workflow",
+          "start": 6.391,
+          "end": 7.02
+        },
+        {
+          "word": "for",
+          "start": 7.02,
+          "end": 7.264
+        },
+        {
+          "word": "each",
+          "start": 7.264,
+          "end": 7.64
+        },
+        {
+          "word": "job",
+          "start": 7.64,
+          "end": 8.368
         },
         {
           "word": "Mind",
-          "start": 6.304,
-          "end": 7.413
+          "start": 8.368,
+          "end": 9.413
         },
         {
           "word": "it",
-          "start": 7.413,
-          "end": 7.58
+          "start": 9.413,
+          "end": 9.76
         },
         {
           "word": "isn't",
-          "start": 7.58,
-          "end": 7.9
+          "start": 9.76,
+          "end": 10.16
         },
         {
           "word": "Autopilot",
-          "start": 7.9,
-          "end": 8.15
+          "start": 10.16,
+          "end": 10.41
         }
       ],
       "voice": "GLpuYaUYNnusyOVvP3PM"
@@ -23437,148 +23467,93 @@
     {
       "id": "desmond.market.hard.auto",
       "speaker": "Desmond",
-      "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort.",
-      "duration": 10.508,
+      "text": "Right-sized, Captain! For a hard job, a higher Fusion level fits: more capable models, deeper reasoning.",
+      "duration": 8.708,
       "files": {
         "webm": "desmond.market.hard.auto.webm",
         "m4a": "desmond.market.hard.auto.m4a"
       },
-      "hash": "f929f4bae2e05523",
+      "hash": "034569117734ee3e",
       "words": [
         {
-          "word": "Auto",
+          "word": "Right-sized",
           "start": 0,
-          "end": 0.366
+          "end": 0.86
         },
         {
-          "word": "picked",
-          "start": 0.366,
-          "end": 0.68
-        },
-        {
-          "word": "a",
-          "start": 0.68,
-          "end": 0.8
-        },
-        {
-          "word": "model",
-          "start": 0.8,
-          "end": 1.26
-        },
-        {
-          "word": "and",
-          "start": 1.26,
-          "end": 1.5
-        },
-        {
-          "word": "got",
-          "start": 1.5,
-          "end": 1.707
-        },
-        {
-          "word": "it",
-          "start": 1.707,
-          "end": 1.84
-        },
-        {
-          "word": "done",
-          "start": 1.84,
-          "end": 2.76
+          "word": "Captain",
+          "start": 0.86,
+          "end": 1.52
         },
         {
           "word": "For",
-          "start": 2.76,
-          "end": 3.64
+          "start": 1.52,
+          "end": 2.08
         },
         {
           "word": "a",
-          "start": 3.64,
-          "end": 3.76
-        },
-        {
-          "word": "job",
-          "start": 3.76,
-          "end": 4.048
-        },
-        {
-          "word": "this",
-          "start": 4.048,
-          "end": 4.336
+          "start": 2.08,
+          "end": 2.24
         },
         {
           "word": "hard",
-          "start": 4.336,
-          "end": 4.92
+          "start": 2.24,
+          "end": 2.64
         },
         {
-          "word": "you",
-          "start": 4.92,
-          "end": 5.08
-        },
-        {
-          "word": "can",
-          "start": 5.08,
-          "end": 5.264
-        },
-        {
-          "word": "also",
-          "start": 5.264,
-          "end": 5.577
-        },
-        {
-          "word": "switch",
-          "start": 5.577,
-          "end": 6.016
-        },
-        {
-          "word": "Auto",
-          "start": 6.016,
-          "end": 6.5
-        },
-        {
-          "word": "off",
-          "start": 6.5,
-          "end": 7.568
-        },
-        {
-          "word": "then",
-          "start": 7.568,
-          "end": 7.806
-        },
-        {
-          "word": "choose",
-          "start": 7.806,
-          "end": 8.12
+          "word": "job",
+          "start": 2.64,
+          "end": 3.2
         },
         {
           "word": "a",
-          "start": 8.12,
-          "end": 8.253
-        },
-        {
-          "word": "model",
-          "start": 8.253,
-          "end": 8.84
-        },
-        {
-          "word": "and",
-          "start": 8.84,
-          "end": 9.28
-        },
-        {
-          "word": "a",
-          "start": 9.28,
-          "end": 9.417
+          "start": 3.2,
+          "end": 3.337
         },
         {
           "word": "higher",
-          "start": 9.417,
-          "end": 9.84
+          "start": 3.337,
+          "end": 3.749
         },
         {
-          "word": "effort",
-          "start": 9.84,
-          "end": 10.09
+          "word": "Fusion",
+          "start": 3.749,
+          "end": 4.227
+        },
+        {
+          "word": "level",
+          "start": 4.227,
+          "end": 4.656
+        },
+        {
+          "word": "fits",
+          "start": 4.656,
+          "end": 5.648
+        },
+        {
+          "word": "more",
+          "start": 5.648,
+          "end": 5.91
+        },
+        {
+          "word": "capable",
+          "start": 5.91,
+          "end": 6.48
+        },
+        {
+          "word": "models",
+          "start": 6.48,
+          "end": 7.143
+        },
+        {
+          "word": "deeper",
+          "start": 7.143,
+          "end": 7.832
+        },
+        {
+          "word": "reasoning",
+          "start": 7.832,
+          "end": 8.082
         }
       ],
       "voice": "GLpuYaUYNnusyOVvP3PM"
@@ -24160,133 +24135,138 @@
     {
       "id": "tb.lani.market.auto",
       "speaker": "Lani",
-      "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
-      "duration": 10.008,
+      "text": "Copilot Fusion's our house special. It isn't a single model: it chooses models and a workflow for each job. It's not the same as Autopilot.",
+      "duration": 11.208,
       "files": {
         "webm": "tb.lani.market.auto.webm",
         "m4a": "tb.lani.market.auto.m4a"
       },
-      "hash": "668da63b9a6036fa",
+      "hash": "cefd90e192490e34",
       "words": [
         {
-          "word": "Auto's",
+          "word": "Copilot",
           "start": 0,
-          "end": 0.62
+          "end": 0.629
+        },
+        {
+          "word": "Fusion's",
+          "start": 0.629,
+          "end": 1.28
         },
         {
           "word": "our",
-          "start": 0.62,
-          "end": 0.867
+          "start": 1.28,
+          "end": 1.573
         },
         {
           "word": "house",
-          "start": 0.867,
-          "end": 1.27
+          "start": 1.573,
+          "end": 1.91
         },
         {
           "word": "special",
-          "start": 1.27,
-          "end": 1.96
+          "start": 1.91,
+          "end": 2.747
         },
         {
-          "word": "The",
-          "start": 1.96,
-          "end": 2.42
+          "word": "It",
+          "start": 2.747,
+          "end": 3.18
         },
         {
-          "word": "app",
-          "start": 2.42,
-          "end": 2.78
-        },
-        {
-          "word": "chooses",
-          "start": 2.78,
-          "end": 3.24
+          "word": "isn't",
+          "start": 3.18,
+          "end": 3.6
         },
         {
           "word": "a",
-          "start": 3.24,
-          "end": 3.333
+          "start": 3.6,
+          "end": 3.726
+        },
+        {
+          "word": "single",
+          "start": 3.726,
+          "end": 4.08
         },
         {
           "word": "model",
-          "start": 3.333,
-          "end": 3.68
+          "start": 4.08,
+          "end": 4.853
         },
         {
-          "word": "for",
-          "start": 3.68,
-          "end": 4
+          "word": "it",
+          "start": 4.853,
+          "end": 5.02
         },
         {
-          "word": "you",
-          "start": 4,
-          "end": 4.4
+          "word": "chooses",
+          "start": 5.02,
+          "end": 5.531
         },
         {
-          "word": "and",
-          "start": 4.4,
-          "end": 4.693
-        },
-        {
-          "word": "tells",
-          "start": 4.693,
-          "end": 5
-        },
-        {
-          "word": "you",
-          "start": 5,
-          "end": 5.173
-        },
-        {
-          "word": "which",
-          "start": 5.173,
-          "end": 5.54
-        },
-        {
-          "word": "one",
-          "start": 5.54,
-          "end": 5.94
+          "word": "models",
+          "start": 5.531,
+          "end": 6.14
         },
         {
           "word": "and",
-          "start": 5.94,
+          "start": 6.14,
           "end": 6.36
         },
         {
-          "word": "why",
+          "word": "a",
           "start": 6.36,
-          "end": 7.093
+          "end": 6.471
+        },
+        {
+          "word": "workflow",
+          "start": 6.471,
+          "end": 7.1
+        },
+        {
+          "word": "for",
+          "start": 7.1,
+          "end": 7.328
+        },
+        {
+          "word": "each",
+          "start": 7.328,
+          "end": 7.64
+        },
+        {
+          "word": "job",
+          "start": 7.64,
+          "end": 8.4
         },
         {
           "word": "It's",
-          "start": 7.093,
-          "end": 7.68
+          "start": 8.4,
+          "end": 9.02
         },
         {
           "word": "not",
-          "start": 7.68,
-          "end": 7.94
+          "start": 9.02,
+          "end": 9.24
         },
         {
           "word": "the",
-          "start": 7.94,
-          "end": 8.112
+          "start": 9.24,
+          "end": 9.44
         },
         {
           "word": "same",
-          "start": 8.112,
-          "end": 8.64
+          "start": 9.44,
+          "end": 9.867
         },
         {
           "word": "as",
-          "start": 8.64,
-          "end": 8.88
+          "start": 9.867,
+          "end": 10.16
         },
         {
           "word": "Autopilot",
-          "start": 8.88,
-          "end": 9.13
+          "start": 10.16,
+          "end": 10.41
         }
       ],
       "voice": "sxEoZ67pB0EMoWOZZ37G"
@@ -24684,148 +24664,98 @@
     {
       "id": "tb.lani.market.hard.auto",
       "speaker": "Lani",
-      "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort.",
-      "duration": 9.608,
+      "text": "Right-sized! A higher Fusion level suits a hard one like this: more capable models and deeper reasoning.",
+      "duration": 9.308,
       "files": {
         "webm": "tb.lani.market.hard.auto.webm",
         "m4a": "tb.lani.market.hard.auto.m4a"
       },
-      "hash": "f6d64d861aa2b6ba",
+      "hash": "cc5d006c5b49650d",
       "words": [
         {
-          "word": "Auto",
+          "word": "Right-sized",
           "start": 0,
-          "end": 0.387
+          "end": 1.34
         },
         {
-          "word": "chose",
-          "start": 0.387,
-          "end": 0.76
+          "word": "A",
+          "start": 1.34,
+          "end": 1.497
         },
         {
-          "word": "a",
-          "start": 0.76,
-          "end": 0.867
+          "word": "higher",
+          "start": 1.497,
+          "end": 1.92
         },
         {
-          "word": "model",
-          "start": 0.867,
-          "end": 1.28
+          "word": "Fusion",
+          "start": 1.92,
+          "end": 2.48
         },
         {
-          "word": "and",
-          "start": 1.28,
-          "end": 1.564
+          "word": "level",
+          "start": 2.48,
+          "end": 3
         },
         {
-          "word": "finished",
-          "start": 1.564,
-          "end": 1.94
-        },
-        {
-          "word": "the",
-          "start": 1.94,
-          "end": 2.1
-        },
-        {
-          "word": "job",
-          "start": 2.1,
-          "end": 2.933
-        },
-        {
-          "word": "On",
-          "start": 2.933,
+          "word": "suits",
+          "start": 3,
           "end": 3.72
         },
         {
           "word": "a",
           "start": 3.72,
-          "end": 3.824
+          "end": 3.936
         },
         {
           "word": "hard",
-          "start": 3.824,
-          "end": 4.12
+          "start": 3.936,
+          "end": 4.38
         },
         {
           "word": "one",
-          "start": 4.12,
-          "end": 4.288
+          "start": 4.38,
+          "end": 4.624
         },
         {
           "word": "like",
-          "start": 4.288,
-          "end": 4.56
+          "start": 4.624,
+          "end": 4.992
         },
         {
           "word": "this",
-          "start": 4.56,
-          "end": 4.98
-        },
-        {
-          "word": "you",
-          "start": 4.98,
-          "end": 5.08
-        },
-        {
-          "word": "could",
-          "start": 5.08,
-          "end": 5.36
-        },
-        {
-          "word": "also",
-          "start": 5.36,
-          "end": 5.76
-        },
-        {
-          "word": "turn",
-          "start": 5.76,
-          "end": 6.176
-        },
-        {
-          "word": "Auto",
-          "start": 6.176,
-          "end": 6.72
-        },
-        {
-          "word": "off",
-          "start": 6.72,
-          "end": 7.26
-        },
-        {
-          "word": "and",
-          "start": 7.26,
-          "end": 7.486
-        },
-        {
-          "word": "choose",
-          "start": 7.486,
-          "end": 7.8
-        },
-        {
-          "word": "a",
-          "start": 7.8,
-          "end": 7.907
-        },
-        {
-          "word": "model",
-          "start": 7.907,
-          "end": 8.34
-        },
-        {
-          "word": "and",
-          "start": 8.34,
-          "end": 8.688
+          "start": 4.992,
+          "end": 5.968
         },
         {
           "word": "more",
-          "start": 8.688,
-          "end": 8.96
+          "start": 5.968,
+          "end": 6.23
         },
         {
-          "word": "effort",
-          "start": 8.96,
-          "end": 9.21
+          "word": "capable",
+          "start": 6.23,
+          "end": 6.811
+        },
+        {
+          "word": "models",
+          "start": 6.811,
+          "end": 7.46
+        },
+        {
+          "word": "and",
+          "start": 7.46,
+          "end": 7.851
+        },
+        {
+          "word": "deeper",
+          "start": 7.851,
+          "end": 8.48
+        },
+        {
+          "word": "reasoning",
+          "start": 8.48,
+          "end": 8.73
         }
       ],
       "voice": "sxEoZ67pB0EMoWOZZ37G"
@@ -26519,649 +26449,649 @@
       "id": "tb.lyra.wait",
       "speaker": "Lyra",
       "text": "I’m still tuning up. Go and see Tamsin at the wharf first, then come back for my song.",
-      "duration": 7.627,
+      "duration": 5.108,
       "files": {
         "webm": "tb.lyra.wait.webm",
         "m4a": "tb.lyra.wait.m4a"
       },
-      "hash": "7c4de7e7170e36f8",
+      "hash": "8f3c5d5604a32b7c",
       "words": [
         {
           "word": "I’m",
-          "start": 0.052625,
-          "end": 0.276333
+          "start": 0,
+          "end": 0.107
         },
         {
           "word": "still",
-          "start": 0.276333,
-          "end": 0.60525
+          "start": 0.107,
+          "end": 0.286
         },
         {
           "word": "tuning",
-          "start": 0.60525,
-          "end": 1.092125
+          "start": 0.286,
+          "end": 0.64
         },
         {
           "word": "up",
-          "start": 1.092125,
-          "end": 2.328958
+          "start": 0.64,
+          "end": 1.627
         },
         {
           "word": "Go",
-          "start": 2.328958,
-          "end": 2.60525
+          "start": 1.627,
+          "end": 2.02
         },
         {
           "word": "and",
-          "start": 2.60525,
-          "end": 2.736833
+          "start": 2.02,
+          "end": 2.12
         },
         {
           "word": "see",
-          "start": 2.736833,
-          "end": 2.973666
+          "start": 2.12,
+          "end": 2.32
         },
         {
           "word": "Tamsin",
-          "start": 2.973666,
-          "end": 3.552625
+          "start": 2.32,
+          "end": 2.667
         },
         {
           "word": "at",
-          "start": 3.552625,
-          "end": 3.671041
+          "start": 2.667,
+          "end": 2.74
         },
         {
           "word": "the",
-          "start": 3.671041,
-          "end": 3.789458
+          "start": 2.74,
+          "end": 2.853
         },
         {
           "word": "wharf",
-          "start": 3.789458,
-          "end": 4.131583
+          "start": 2.853,
+          "end": 3.187
         },
         {
           "word": "first",
-          "start": 4.131583,
-          "end": 5.052625
+          "start": 3.187,
+          "end": 3.76
         },
         {
           "word": "then",
-          "start": 5.052625,
-          "end": 5.342125
+          "start": 3.76,
+          "end": 3.952
         },
         {
           "word": "come",
-          "start": 5.342125,
-          "end": 5.631583
+          "start": 3.952,
+          "end": 4.112
         },
         {
           "word": "back",
-          "start": 5.631583,
-          "end": 5.934208
+          "start": 4.112,
+          "end": 4.28
         },
         {
           "word": "for",
-          "start": 5.934208,
-          "end": 6.052625
+          "start": 4.28,
+          "end": 4.453
         },
         {
           "word": "my",
-          "start": 6.052625,
-          "end": 6.263166
+          "start": 4.453,
+          "end": 4.64
         },
         {
           "word": "song",
-          "start": 6.263166,
-          "end": 6.513166
+          "start": 4.64,
+          "end": 4.89
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.01",
       "speaker": "Lyra",
       "text": "Captain! Three musicians, one song. You wouldn't crowd them round one microphone, would you?",
-      "duration": 8.707,
+      "duration": 5.208,
       "files": {
         "webm": "tb.lyra.01.webm",
         "m4a": "tb.lyra.01.m4a"
       },
-      "hash": "108ce2c136059524",
+      "hash": "002c67e68a8fe225",
       "words": [
         {
           "word": "Captain",
-          "start": 0.052625,
-          "end": 1.631583
+          "start": 0,
+          "end": 0.653
         },
         {
           "word": "Three",
-          "start": 1.631583,
-          "end": 1.960541
+          "start": 0.653,
+          "end": 1.176
         },
         {
           "word": "musicians",
-          "start": 1.960541,
-          "end": 2.868416
+          "start": 1.176,
+          "end": 1.8
         },
         {
           "word": "one",
-          "start": 2.868416,
-          "end": 3.25
+          "start": 1.8,
+          "end": 2
         },
         {
           "word": "song",
-          "start": 3.25,
-          "end": 4.657875
+          "start": 2,
+          "end": 2.54
         },
         {
           "word": "You",
-          "start": 4.657875,
-          "end": 4.815791
+          "start": 2.54,
+          "end": 2.983
         },
         {
           "word": "wouldn't",
-          "start": 4.815791,
-          "end": 5.131583
+          "start": 2.983,
+          "end": 3.24
         },
         {
           "word": "crowd",
-          "start": 5.131583,
-          "end": 5.513166
+          "start": 3.24,
+          "end": 3.472
         },
         {
           "word": "them",
-          "start": 5.513166,
-          "end": 5.697375
+          "start": 3.472,
+          "end": 3.653
         },
         {
           "word": "round",
-          "start": 5.697375,
-          "end": 6.065791
+          "start": 3.653,
+          "end": 3.98
         },
         {
           "word": "one",
-          "start": 6.065791,
-          "end": 6.35525
+          "start": 3.98,
+          "end": 4.211
         },
         {
           "word": "microphone",
-          "start": 6.35525,
-          "end": 7.236833
+          "start": 4.211,
+          "end": 4.86
         },
         {
           "word": "would",
-          "start": 7.236833,
-          "end": 7.473666
+          "start": 4.86,
+          "end": 4.98
         },
         {
           "word": "you",
-          "start": 7.473666,
-          "end": 7.723666
+          "start": 4.98,
+          "end": 5.208
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.02",
       "speaker": "Lyra",
       "text": "Each gets a soundproof booth. They record apart, or all at once, and the takes are mixed later.",
-      "duration": 8.127,
+      "duration": 5.608,
       "files": {
         "webm": "tb.lyra.02.webm",
         "m4a": "tb.lyra.02.m4a"
       },
-      "hash": "fe8c2a07f9822227",
+      "hash": "02c1535b07b1ee10",
       "words": [
         {
           "word": "Each",
-          "start": 0.052625,
-          "end": 0.381583
+          "start": 0,
+          "end": 0.192
         },
         {
           "word": "gets",
-          "start": 0.381583,
-          "end": 0.684208
+          "start": 0.192,
+          "end": 0.36
         },
         {
           "word": "a",
-          "start": 0.684208,
-          "end": 0.776333
+          "start": 0.36,
+          "end": 0.453
         },
         {
           "word": "soundproof",
-          "start": 0.776333,
-          "end": 1.473666
+          "start": 0.453,
+          "end": 0.947
         },
         {
           "word": "booth",
-          "start": 1.473666,
-          "end": 2.85525
+          "start": 0.947,
+          "end": 1.76
         },
         {
           "word": "They",
-          "start": 2.85525,
-          "end": 3.052625
+          "start": 1.76,
+          "end": 2.126
         },
         {
           "word": "record",
-          "start": 3.052625,
-          "end": 3.407875
+          "start": 2.126,
+          "end": 2.48
         },
         {
           "word": "apart",
-          "start": 3.407875,
-          "end": 4.171041
+          "start": 2.48,
+          "end": 3.093
         },
         {
           "word": "or",
-          "start": 4.171041,
-          "end": 4.552625
+          "start": 3.093,
+          "end": 3.26
         },
         {
           "word": "all",
-          "start": 4.552625,
-          "end": 4.85525
+          "start": 3.26,
+          "end": 3.493
         },
         {
           "word": "at",
-          "start": 4.85525,
-          "end": 5.013166
+          "start": 3.493,
+          "end": 3.664
         },
         {
           "word": "once",
-          "start": 5.013166,
-          "end": 5.64475
+          "start": 3.664,
+          "end": 4.26
         },
         {
           "word": "and",
-          "start": 5.64475,
-          "end": 5.89475
+          "start": 4.26,
+          "end": 4.34
         },
         {
           "word": "the",
-          "start": 5.89475,
-          "end": 6
+          "start": 4.34,
+          "end": 4.453
         },
         {
           "word": "takes",
-          "start": 6,
-          "end": 6.328958
+          "start": 4.453,
+          "end": 4.74
         },
         {
           "word": "are",
-          "start": 6.328958,
-          "end": 6.447375
+          "start": 4.74,
+          "end": 4.853
         },
         {
           "word": "mixed",
-          "start": 6.447375,
-          "end": 6.776333
+          "start": 4.853,
+          "end": 5.187
         },
         {
           "word": "later",
-          "start": 6.776333,
-          "end": 7.026333
+          "start": 5.187,
+          "end": 5.437
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.03",
       "speaker": "Lyra",
       "text": "A worktree's a booth: the same song, but its own folder and branch, so parallel work doesn't collide.",
-      "duration": 7.907,
+      "duration": 6.508,
       "files": {
         "webm": "tb.lyra.03.webm",
         "m4a": "tb.lyra.03.m4a"
       },
-      "hash": "5e778c5256e2af64",
+      "hash": "b373c1ff41b0a52f",
       "words": [
         {
           "word": "A",
-          "start": 0.052625,
-          "end": 0.131583
+          "start": 0,
+          "end": 0.144
         },
         {
           "word": "worktree's",
-          "start": 0.131583,
-          "end": 0.697375
+          "start": 0.144,
+          "end": 0.76
         },
         {
           "word": "a",
-          "start": 0.697375,
-          "end": 0.776333
+          "start": 0.76,
+          "end": 0.88
         },
         {
           "word": "booth",
-          "start": 0.776333,
-          "end": 1.421041
+          "start": 0.88,
+          "end": 1.88
         },
         {
           "word": "the",
-          "start": 1.421041,
-          "end": 1.565791
+          "start": 1.88,
+          "end": 2.032
         },
         {
           "word": "same",
-          "start": 1.565791,
-          "end": 1.89475
+          "start": 2.032,
+          "end": 2.256
         },
         {
           "word": "song",
-          "start": 1.89475,
-          "end": 2.460541
+          "start": 2.256,
+          "end": 2.74
         },
         {
           "word": "but",
-          "start": 2.460541,
-          "end": 2.802625
+          "start": 2.74,
+          "end": 2.84
         },
         {
           "word": "its",
-          "start": 2.802625,
-          "end": 2.986833
+          "start": 2.84,
+          "end": 3
         },
         {
           "word": "own",
-          "start": 2.986833,
-          "end": 3.276333
+          "start": 3,
+          "end": 3.189
         },
         {
           "word": "folder",
-          "start": 3.276333,
-          "end": 3.736833
+          "start": 3.189,
+          "end": 3.64
         },
         {
           "word": "and",
-          "start": 3.736833,
-          "end": 3.947375
+          "start": 3.64,
+          "end": 3.829
         },
         {
           "word": "branch",
-          "start": 3.947375,
-          "end": 4.684208
+          "start": 3.829,
+          "end": 4.64
         },
         {
           "word": "so",
-          "start": 4.684208,
-          "end": 5.10525
+          "start": 4.64,
+          "end": 4.853
         },
         {
           "word": "parallel",
-          "start": 5.10525,
-          "end": 5.631583
+          "start": 4.853,
+          "end": 5.344
         },
         {
           "word": "work",
-          "start": 5.631583,
-          "end": 6.052625
+          "start": 5.344,
+          "end": 5.64
         },
         {
           "word": "doesn't",
-          "start": 6.052625,
-          "end": 6.407875
+          "start": 5.64,
+          "end": 5.98
         },
         {
           "word": "collide",
-          "start": 6.407875,
-          "end": 6.657875
+          "start": 5.98,
+          "end": 6.23
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.chest",
       "speaker": "Lyra",
       "text": "My notes are in the chest by the last booth. Take them, they're yours.",
-      "duration": 6.107,
+      "duration": 3.608,
       "files": {
         "webm": "tb.lyra.chest.webm",
         "m4a": "tb.lyra.chest.m4a"
       },
-      "hash": "8b211965c394ab2b",
+      "hash": "a194f9f165ed353a",
       "words": [
         {
           "word": "My",
-          "start": 0.052625,
-          "end": 0.263166
+          "start": 0,
+          "end": 0.12
         },
         {
           "word": "notes",
-          "start": 0.263166,
-          "end": 0.592125
+          "start": 0.12,
+          "end": 0.34
         },
         {
           "word": "are",
-          "start": 0.592125,
-          "end": 0.828958
+          "start": 0.34,
+          "end": 0.427
         },
         {
           "word": "in",
-          "start": 0.828958,
-          "end": 0.921041
+          "start": 0.427,
+          "end": 0.5
         },
         {
           "word": "the",
-          "start": 0.921041,
-          "end": 1.039458
+          "start": 0.5,
+          "end": 0.613
         },
         {
           "word": "chest",
-          "start": 1.039458,
-          "end": 1.592125
+          "start": 0.613,
+          "end": 0.933
         },
         {
           "word": "by",
-          "start": 1.592125,
-          "end": 1.776333
+          "start": 0.933,
+          "end": 1.06
         },
         {
           "word": "the",
-          "start": 1.776333,
-          "end": 1.881583
+          "start": 1.06,
+          "end": 1.168
         },
         {
           "word": "last",
-          "start": 1.881583,
-          "end": 2.315791
+          "start": 1.168,
+          "end": 1.427
         },
         {
           "word": "booth",
-          "start": 2.315791,
-          "end": 3.657875
+          "start": 1.427,
+          "end": 2.24
         },
         {
           "word": "Take",
-          "start": 3.657875,
-          "end": 3.934208
+          "start": 2.24,
+          "end": 2.592
         },
         {
           "word": "them",
-          "start": 3.934208,
-          "end": 4.342125
+          "start": 2.592,
+          "end": 2.976
         },
         {
           "word": "they're",
-          "start": 4.342125,
-          "end": 4.618416
+          "start": 2.976,
+          "end": 3.173
         },
         {
           "word": "yours",
-          "start": 4.618416,
-          "end": 4.868416
+          "start": 3.173,
+          "end": 3.423
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.next",
       "speaker": "Lyra",
       "text": "Saffi keeps the Root Hall, at the foot of the great tree. Follow the lanterns.",
-      "duration": 6.627,
+      "duration": 4.808,
       "files": {
         "webm": "tb.lyra.next.webm",
         "m4a": "tb.lyra.next.m4a"
       },
-      "hash": "f091a23dc6b91e0f",
+      "hash": "f1a90b2247a50d82",
       "words": [
         {
           "word": "Saffi",
-          "start": 0.052625,
-          "end": 0.526333
+          "start": 0,
+          "end": 0.36
         },
         {
           "word": "keeps",
-          "start": 0.526333,
-          "end": 0.85525
+          "start": 0.36,
+          "end": 0.58
         },
         {
           "word": "the",
-          "start": 0.85525,
-          "end": 0.986833
+          "start": 0.58,
+          "end": 0.688
         },
         {
           "word": "Root",
-          "start": 0.986833,
-          "end": 1.25
+          "start": 0.688,
+          "end": 0.944
         },
         {
           "word": "Hall",
-          "start": 1.25,
-          "end": 1.881583
+          "start": 0.944,
+          "end": 1.333
         },
         {
           "word": "at",
-          "start": 1.881583,
-          "end": 2.092125
+          "start": 1.333,
+          "end": 1.46
         },
         {
           "word": "the",
-          "start": 2.092125,
-          "end": 2.210541
+          "start": 1.46,
+          "end": 1.568
         },
         {
           "word": "foot",
-          "start": 2.210541,
-          "end": 2.460541
+          "start": 1.568,
+          "end": 1.787
         },
         {
           "word": "of",
-          "start": 2.460541,
-          "end": 2.552625
+          "start": 1.787,
+          "end": 1.86
         },
         {
           "word": "the",
-          "start": 2.552625,
-          "end": 2.671041
+          "start": 1.86,
+          "end": 1.96
         },
         {
           "word": "great",
-          "start": 2.671041,
-          "end": 2.986833
+          "start": 1.96,
+          "end": 2.256
         },
         {
           "word": "tree",
-          "start": 2.986833,
-          "end": 4.35525
+          "start": 2.256,
+          "end": 2.914
         },
         {
           "word": "Follow",
-          "start": 4.35525,
-          "end": 4.789458
+          "start": 2.914,
+          "end": 3.62
         },
         {
           "word": "the",
-          "start": 4.789458,
-          "end": 4.89475
+          "start": 3.62,
+          "end": 3.75
         },
         {
           "word": "lanterns",
-          "start": 4.89475,
-          "end": 5.14475
+          "start": 3.75,
+          "end": 4
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.lyra.done",
       "speaker": "Lyra",
       "text": "Step into any booth and hear how each part sounds on its own.",
-      "duration": 5.107,
+      "duration": 3.708,
       "files": {
         "webm": "tb.lyra.done.webm",
         "m4a": "tb.lyra.done.m4a"
       },
-      "hash": "54282f39734e83d8",
+      "hash": "583a2c36708bc87a",
       "words": [
         {
           "word": "Step",
-          "start": 0.052625,
-          "end": 0.434208
+          "start": 0,
+          "end": 0.288
         },
         {
           "word": "into",
-          "start": 0.434208,
-          "end": 0.802625
+          "start": 0.288,
+          "end": 0.54
         },
         {
           "word": "any",
-          "start": 0.802625,
-          "end": 1.052625
+          "start": 0.54,
+          "end": 0.787
         },
         {
           "word": "booth",
-          "start": 1.052625,
-          "end": 1.421041
+          "start": 0.787,
+          "end": 1.16
         },
         {
           "word": "and",
-          "start": 1.421041,
-          "end": 1.618416
+          "start": 1.16,
+          "end": 1.328
         },
         {
           "word": "hear",
-          "start": 1.618416,
-          "end": 1.907875
+          "start": 1.328,
+          "end": 1.56
         },
         {
           "word": "how",
-          "start": 1.907875,
-          "end": 2.236833
+          "start": 1.56,
+          "end": 1.744
         },
         {
           "word": "each",
-          "start": 2.236833,
-          "end": 2.552625
+          "start": 1.744,
+          "end": 2.08
         },
         {
           "word": "part",
-          "start": 2.552625,
-          "end": 2.960541
+          "start": 2.08,
+          "end": 2.457
         },
         {
           "word": "sounds",
-          "start": 2.960541,
-          "end": 3.35525
+          "start": 2.457,
+          "end": 2.827
         },
         {
           "word": "on",
-          "start": 3.35525,
-          "end": 3.539458
+          "start": 2.827,
+          "end": 2.92
         },
         {
           "word": "its",
-          "start": 3.539458,
-          "end": 3.697375
+          "start": 2.92,
+          "end": 3.12
         },
         {
           "word": "own",
-          "start": 3.697375,
-          "end": 3.947375
+          "start": 3.12,
+          "end": 3.37
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "tb.saffi.wait",
@@ -35325,75 +35255,75 @@
       "id": "kh.lyra.01",
       "speaker": "Lyra",
       "text": "Captain! A musician doesn't keep the first take just because it's finished.",
-      "duration": 6.407,
+      "duration": 4.308,
       "files": {
         "webm": "kh.lyra.01.webm",
         "m4a": "kh.lyra.01.m4a"
       },
-      "hash": "e3b0677f198a7338",
+      "hash": "707296af6d89b2fd",
       "words": [
         {
           "word": "Captain",
-          "start": 0.052625,
-          "end": 1.631583
+          "start": 0,
+          "end": 0.8
         },
         {
           "word": "A",
-          "start": 1.631583,
-          "end": 1.710541
+          "start": 0.8,
+          "end": 1.004
         },
         {
           "word": "musician",
-          "start": 1.710541,
-          "end": 2.35525
+          "start": 1.004,
+          "end": 1.4
         },
         {
           "word": "doesn't",
-          "start": 2.35525,
-          "end": 2.75
+          "start": 1.4,
+          "end": 1.712
         },
         {
           "word": "keep",
-          "start": 2.75,
-          "end": 3.052625
+          "start": 1.712,
+          "end": 1.86
         },
         {
           "word": "the",
-          "start": 3.052625,
-          "end": 3.171041
+          "start": 1.86,
+          "end": 1.987
         },
         {
           "word": "first",
-          "start": 3.171041,
-          "end": 3.578958
+          "start": 1.987,
+          "end": 2.368
         },
         {
           "word": "take",
-          "start": 3.578958,
-          "end": 3.960541
+          "start": 2.368,
+          "end": 2.592
         },
         {
           "word": "just",
-          "start": 3.960541,
-          "end": 4.460541
+          "start": 2.592,
+          "end": 2.75
         },
         {
           "word": "because",
-          "start": 4.460541,
-          "end": 4.723666
+          "start": 2.75,
+          "end": 2.987
         },
         {
           "word": "it's",
-          "start": 4.723666,
-          "end": 4.89475
+          "start": 2.987,
+          "end": 3.262
         },
         {
           "word": "finished",
-          "start": 4.89475,
-          "end": 5.14475
+          "start": 3.262,
+          "end": 3.512
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.hester.02",
@@ -36002,550 +35932,550 @@
       "id": "kh.lyra.02",
       "speaker": "Lyra",
       "text": "They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence.",
-      "duration": 9.107,
+      "duration": 8.308,
       "files": {
         "webm": "kh.lyra.02.webm",
         "m4a": "kh.lyra.02.m4a"
       },
-      "hash": "f28d517b636169cd",
+      "hash": "eba441607d783d20",
       "words": [
         {
           "word": "They",
-          "start": 0.052625,
-          "end": 0.25
+          "start": 0,
+          "end": 0.16
         },
         {
           "word": "record",
-          "start": 0.25,
-          "end": 1.078958
+          "start": 0.16,
+          "end": 0.937
         },
         {
           "word": "listen",
-          "start": 1.078958,
-          "end": 1.64475
+          "start": 0.937,
+          "end": 1.6
         },
         {
           "word": "adjust",
-          "start": 1.64475,
-          "end": 2.223666
+          "start": 1.6,
+          "end": 2.14
         },
         {
           "word": "and",
-          "start": 2.223666,
-          "end": 2.328958
+          "start": 2.14,
+          "end": 2.377
         },
         {
           "word": "record",
-          "start": 2.328958,
-          "end": 2.723666
+          "start": 2.377,
+          "end": 2.787
         },
         {
           "word": "again",
-          "start": 2.723666,
-          "end": 4.118416
+          "start": 2.787,
+          "end": 3.488
         },
         {
           "word": "That's",
-          "start": 4.118416,
-          "end": 4.421041
+          "start": 3.488,
+          "end": 4.44
         },
         {
           "word": "the",
-          "start": 4.421041,
-          "end": 4.618416
+          "start": 4.44,
+          "end": 4.6
         },
         {
           "word": "inner",
-          "start": 4.618416,
-          "end": 4.828958
+          "start": 4.6,
+          "end": 4.88
         },
         {
           "word": "loop",
-          "start": 4.828958,
-          "end": 5.434208
+          "start": 4.88,
+          "end": 5.728
         },
         {
           "word": "make",
-          "start": 5.434208,
-          "end": 5.723666
+          "start": 5.728,
+          "end": 5.96
         },
         {
           "word": "a",
-          "start": 5.723666,
-          "end": 5.776333
+          "start": 5.96,
+          "end": 6.08
         },
         {
           "word": "change",
-          "start": 5.776333,
-          "end": 6.631583
+          "start": 6.08,
+          "end": 6.768
         },
         {
           "word": "then",
-          "start": 6.631583,
-          "end": 6.842125
+          "start": 6.768,
+          "end": 7.02
         },
         {
           "word": "inspect",
-          "start": 6.842125,
-          "end": 7.328958
+          "start": 7.02,
+          "end": 7.48
         },
         {
           "word": "the",
-          "start": 7.328958,
-          "end": 7.486833
+          "start": 7.48,
+          "end": 7.662
         },
         {
           "word": "evidence",
-          "start": 7.486833,
-          "end": 7.736833
+          "start": 7.662,
+          "end": 7.912
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.lyra.retake",
       "speaker": "Lyra",
       "text": "Listen to my take. One note rings wrong. Find the bar, and I'll play it again.",
-      "duration": 8.107,
+      "duration": 5.208,
       "files": {
         "webm": "kh.lyra.retake.webm",
         "m4a": "kh.lyra.retake.m4a"
       },
-      "hash": "b84e734a0115fd70",
+      "hash": "b027b063cf1b851a",
       "words": [
         {
           "word": "Listen",
-          "start": 0.052625,
-          "end": 0.421041
+          "start": 0,
+          "end": 0.187
         },
         {
           "word": "to",
-          "start": 0.421041,
-          "end": 0.565791
+          "start": 0.187,
+          "end": 0.293
         },
         {
           "word": "my",
-          "start": 0.565791,
-          "end": 0.815791
+          "start": 0.293,
+          "end": 0.48
         },
         {
           "word": "take",
-          "start": 0.815791,
-          "end": 2.276333
+          "start": 0.48,
+          "end": 1.45
         },
         {
           "word": "One",
-          "start": 2.276333,
-          "end": 2.578958
+          "start": 1.45,
+          "end": 1.888
         },
         {
           "word": "note",
-          "start": 2.578958,
-          "end": 2.934208
+          "start": 1.888,
+          "end": 2.12
         },
         {
           "word": "rings",
-          "start": 2.934208,
-          "end": 3.328958
+          "start": 2.12,
+          "end": 2.373
         },
         {
           "word": "wrong",
-          "start": 3.328958,
-          "end": 4.802625
+          "start": 2.373,
+          "end": 2.912
         },
         {
           "word": "Find",
-          "start": 4.802625,
-          "end": 5.184208
+          "start": 2.912,
+          "end": 3.4
         },
         {
           "word": "the",
-          "start": 5.184208,
-          "end": 5.289458
+          "start": 3.4,
+          "end": 3.58
         },
         {
           "word": "bar",
-          "start": 5.289458,
-          "end": 5.789458
+          "start": 3.58,
+          "end": 3.86
         },
         {
           "word": "and",
-          "start": 5.789458,
-          "end": 6.14475
+          "start": 3.86,
+          "end": 3.96
         },
         {
           "word": "I'll",
-          "start": 6.14475,
-          "end": 6.315791
+          "start": 3.96,
+          "end": 4.112
         },
         {
           "word": "play",
-          "start": 6.315791,
-          "end": 6.631583
+          "start": 4.112,
+          "end": 4.293
         },
         {
           "word": "it",
-          "start": 6.631583,
-          "end": 6.697375
+          "start": 4.293,
+          "end": 4.453
         },
         {
           "word": "again",
-          "start": 6.697375,
-          "end": 6.947375
+          "start": 4.453,
+          "end": 4.703
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.lyra.03",
       "speaker": "Lyra",
       "text": "Then a finished take moves through production. The producer tracks the brief, the feedback, the quality checks and the final approval.",
-      "duration": 9.407,
+      "duration": 7.808,
       "files": {
         "webm": "kh.lyra.03.webm",
         "m4a": "kh.lyra.03.m4a"
       },
-      "hash": "391f9b2fb5ec2bf3",
+      "hash": "22e3362b825f1eb3",
       "words": [
         {
           "word": "Then",
-          "start": 0.052625,
-          "end": 0.276333
+          "start": 0,
+          "end": 0.36
         },
         {
           "word": "a",
-          "start": 0.276333,
-          "end": 0.35525
+          "start": 0.36,
+          "end": 0.444
         },
         {
           "word": "finished",
-          "start": 0.35525,
-          "end": 0.723666
+          "start": 0.444,
+          "end": 0.864
         },
         {
           "word": "take",
-          "start": 0.723666,
-          "end": 1.052625
+          "start": 0.864,
+          "end": 1.16
         },
         {
           "word": "moves",
-          "start": 1.052625,
-          "end": 1.434208
+          "start": 1.16,
+          "end": 1.39
         },
         {
           "word": "through",
-          "start": 1.434208,
-          "end": 1.671041
+          "start": 1.39,
+          "end": 1.651
         },
         {
           "word": "production",
-          "start": 1.671041,
-          "end": 3.315791
+          "start": 1.651,
+          "end": 2.54
         },
         {
           "word": "The",
-          "start": 3.315791,
-          "end": 3.39475
+          "start": 2.54,
+          "end": 3.013
         },
         {
           "word": "producer",
-          "start": 3.39475,
-          "end": 3.907875
+          "start": 3.013,
+          "end": 3.486
         },
         {
           "word": "tracks",
-          "start": 3.907875,
-          "end": 4.289458
+          "start": 3.486,
+          "end": 3.78
         },
         {
           "word": "the",
-          "start": 4.289458,
-          "end": 4.407875
+          "start": 3.78,
+          "end": 3.907
         },
         {
           "word": "brief",
-          "start": 4.407875,
-          "end": 5.026333
+          "start": 3.907,
+          "end": 4.42
         },
         {
           "word": "the",
-          "start": 5.026333,
-          "end": 5.184208
+          "start": 4.42,
+          "end": 4.542
         },
         {
           "word": "feedback",
-          "start": 5.184208,
-          "end": 6.065791
+          "start": 4.542,
+          "end": 5.3
         },
         {
           "word": "the",
-          "start": 6.065791,
-          "end": 6.210541
+          "start": 5.3,
+          "end": 5.4
         },
         {
           "word": "quality",
-          "start": 6.210541,
-          "end": 6.75
+          "start": 5.4,
+          "end": 5.737
         },
         {
           "word": "checks",
-          "start": 6.75,
-          "end": 7.14475
+          "start": 5.737,
+          "end": 6.18
         },
         {
           "word": "and",
-          "start": 7.14475,
-          "end": 7.342125
+          "start": 6.18,
+          "end": 6.5
         },
         {
           "word": "the",
-          "start": 7.342125,
-          "end": 7.460541
+          "start": 6.5,
+          "end": 6.627
         },
         {
           "word": "final",
-          "start": 7.460541,
-          "end": 7.89475
+          "start": 6.627,
+          "end": 7.013
         },
         {
           "word": "approval",
-          "start": 7.89475,
-          "end": 8.14475
+          "start": 7.013,
+          "end": 7.263
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.lyra.04",
       "speaker": "Lyra",
       "text": "That's the outer loop: issues and pull requests move validated work through GitHub.",
-      "duration": 6.107,
+      "duration": 5.608,
       "files": {
         "webm": "kh.lyra.04.webm",
         "m4a": "kh.lyra.04.m4a"
       },
-      "hash": "3b0ff56f53b318aa",
+      "hash": "ac7e94e73d220438",
       "words": [
         {
           "word": "That's",
-          "start": 0.052625,
-          "end": 0.328958
+          "start": 0,
+          "end": 0.36
         },
         {
           "word": "the",
-          "start": 0.328958,
-          "end": 0.5
+          "start": 0.36,
+          "end": 0.533
         },
         {
           "word": "outer",
-          "start": 0.5,
-          "end": 0.828958
+          "start": 0.533,
+          "end": 0.864
         },
         {
           "word": "loop",
-          "start": 0.828958,
-          "end": 1.342125
+          "start": 0.864,
+          "end": 1.817
         },
         {
           "word": "issues",
-          "start": 1.342125,
-          "end": 2
+          "start": 1.817,
+          "end": 2.2
         },
         {
           "word": "and",
-          "start": 2,
-          "end": 2.171041
+          "start": 2.2,
+          "end": 2.368
         },
         {
           "word": "pull",
-          "start": 2.171041,
-          "end": 2.434208
+          "start": 2.368,
+          "end": 2.631
         },
         {
           "word": "requests",
-          "start": 2.434208,
-          "end": 3.10525
+          "start": 2.631,
+          "end": 3.264
         },
         {
           "word": "move",
-          "start": 3.10525,
-          "end": 3.368416
+          "start": 3.264,
+          "end": 3.592
         },
         {
           "word": "validated",
-          "start": 3.368416,
-          "end": 4.065791
+          "start": 3.592,
+          "end": 4.304
         },
         {
           "word": "work",
-          "start": 4.065791,
-          "end": 4.460541
+          "start": 4.304,
+          "end": 4.58
         },
         {
           "word": "through",
-          "start": 4.460541,
-          "end": 4.671041
+          "start": 4.58,
+          "end": 4.8
         },
         {
           "word": "GitHub",
-          "start": 4.671041,
-          "end": 4.921041
+          "start": 4.8,
+          "end": 5.05
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.lyra.05",
       "speaker": "Lyra",
       "text": "Hester's board is by the river bridge. She'll show you what counts as evidence.",
-      "duration": 6.507,
+      "duration": 3.908,
       "files": {
         "webm": "kh.lyra.05.webm",
         "m4a": "kh.lyra.05.m4a"
       },
-      "hash": "e4e40099f830e2df",
+      "hash": "b6b58107947fec28",
       "words": [
         {
           "word": "Hester's",
-          "start": 0.052625,
-          "end": 0.513166
+          "start": 0,
+          "end": 0.587
         },
         {
           "word": "board",
-          "start": 0.513166,
-          "end": 0.934208
+          "start": 0.587,
+          "end": 0.747
         },
         {
           "word": "is",
-          "start": 0.934208,
-          "end": 1.092125
+          "start": 0.747,
+          "end": 0.853
         },
         {
           "word": "by",
-          "start": 1.092125,
-          "end": 1.35525
+          "start": 0.853,
+          "end": 0.98
         },
         {
           "word": "the",
-          "start": 1.35525,
-          "end": 1.434208
+          "start": 0.98,
+          "end": 1.093
         },
         {
           "word": "river",
-          "start": 1.434208,
-          "end": 1.723666
+          "start": 1.093,
+          "end": 1.406
         },
         {
           "word": "bridge",
-          "start": 1.723666,
-          "end": 3.263166
+          "start": 1.406,
+          "end": 1.86
         },
         {
           "word": "She'll",
-          "start": 3.263166,
-          "end": 3.565791
+          "start": 1.86,
+          "end": 2.592
         },
         {
           "word": "show",
-          "start": 3.565791,
-          "end": 3.881583
+          "start": 2.592,
+          "end": 2.74
         },
         {
           "word": "you",
-          "start": 3.881583,
-          "end": 4
+          "start": 2.74,
+          "end": 2.832
         },
         {
           "word": "what",
-          "start": 4,
-          "end": 4.184208
+          "start": 2.832,
+          "end": 2.994
         },
         {
           "word": "counts",
-          "start": 4.184208,
-          "end": 4.64475
+          "start": 2.994,
+          "end": 3.227
         },
         {
           "word": "as",
-          "start": 4.64475,
-          "end": 4.802625
+          "start": 3.227,
+          "end": 3.324
         },
         {
           "word": "evidence",
-          "start": 4.802625,
-          "end": 5.052625
+          "start": 3.324,
+          "end": 3.574
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.lyra.done",
       "speaker": "Lyra",
       "text": "Listen, adjust, play it again. That tune never gets old, Captain.",
-      "duration": 6.507,
+      "duration": 5.408,
       "files": {
         "webm": "kh.lyra.done.webm",
         "m4a": "kh.lyra.done.m4a"
       },
-      "hash": "2745ce57813e2b9d",
+      "hash": "28a80da662218005",
       "words": [
         {
           "word": "Listen",
-          "start": 0.052625,
-          "end": 0.631583
+          "start": 0,
+          "end": 0.8
         },
         {
           "word": "adjust",
-          "start": 0.631583,
-          "end": 1.328958
+          "start": 0.8,
+          "end": 1.568
         },
         {
           "word": "play",
-          "start": 1.328958,
-          "end": 1.697375
+          "start": 1.568,
+          "end": 1.787
         },
         {
           "word": "it",
-          "start": 1.697375,
-          "end": 1.763166
+          "start": 1.787,
+          "end": 1.92
         },
         {
           "word": "again",
-          "start": 1.763166,
-          "end": 3.157875
+          "start": 1.92,
+          "end": 2.624
         },
         {
           "word": "That",
-          "start": 3.157875,
-          "end": 3.368416
+          "start": 2.624,
+          "end": 3.6
         },
         {
           "word": "tune",
-          "start": 3.368416,
-          "end": 3.763166
+          "start": 3.6,
+          "end": 3.973
         },
         {
           "word": "never",
-          "start": 3.763166,
-          "end": 4.065791
+          "start": 3.973,
+          "end": 4.288
         },
         {
           "word": "gets",
-          "start": 4.065791,
-          "end": 4.342125
+          "start": 4.288,
+          "end": 4.54
         },
         {
           "word": "old",
-          "start": 4.342125,
-          "end": 4.947375
+          "start": 4.54,
+          "end": 4.86
         },
         {
           "word": "Captain",
-          "start": 4.947375,
-          "end": 5.197375
+          "start": 4.86,
+          "end": 5.11
         }
       ],
-      "voice": "en-GB-LibbyNeural"
+      "voice": "AyCt0WmAXUcPJR11zeeP"
     },
     {
       "id": "kh.hester.wait",
@@ -37209,165 +37139,165 @@
       "id": "kh.dory.wait",
       "speaker": "Dory",
       "text": "Hester first, Captain. She'll tell you what we're proving up here.",
-      "duration": 4.008,
+      "duration": 3.408,
       "files": {
         "webm": "kh.dory.wait.webm",
         "m4a": "kh.dory.wait.m4a"
       },
-      "hash": "da16322e77486312",
+      "hash": "693f3bb3ae72d1e9",
       "words": [
         {
           "word": "Hester",
           "start": 0,
-          "end": 0.453
+          "end": 0.36
         },
         {
           "word": "first",
-          "start": 0.453,
-          "end": 0.86
+          "start": 0.36,
+          "end": 0.69
         },
         {
           "word": "Captain",
-          "start": 0.86,
-          "end": 1.54
+          "start": 0.69,
+          "end": 1.28
         },
         {
           "word": "She'll",
-          "start": 1.54,
-          "end": 2.208
+          "start": 1.28,
+          "end": 1.888
         },
         {
           "word": "tell",
-          "start": 2.208,
-          "end": 2.42
+          "start": 1.888,
+          "end": 2.1
         },
         {
           "word": "you",
-          "start": 2.42,
-          "end": 2.512
+          "start": 2.1,
+          "end": 2.192
         },
         {
           "word": "what",
-          "start": 2.512,
-          "end": 2.667
+          "start": 2.192,
+          "end": 2.347
         },
         {
           "word": "we're",
-          "start": 2.667,
-          "end": 2.84
+          "start": 2.347,
+          "end": 2.52
         },
         {
           "word": "proving",
-          "start": 2.84,
-          "end": 3.2
+          "start": 2.52,
+          "end": 2.853
         },
         {
           "word": "up",
-          "start": 3.2,
-          "end": 3.424
+          "start": 2.853,
+          "end": 3.008
         },
         {
           "word": "here",
-          "start": 3.424,
-          "end": 3.674
+          "start": 3.008,
+          "end": 3.258
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.dory.01",
       "speaker": "Dory",
       "text": "Before you change a thing, prove the hull is sound. That's your known-good baseline.",
-      "duration": 6.808,
+      "duration": 6.008,
       "files": {
         "webm": "kh.dory.01.webm",
         "m4a": "kh.dory.01.m4a"
       },
-      "hash": "a30d4e8f2016de40",
+      "hash": "96ed7cf96b6b91a3",
       "words": [
         {
           "word": "Before",
           "start": 0,
-          "end": 0.46
+          "end": 0.44
         },
         {
           "word": "you",
-          "start": 0.46,
-          "end": 0.697
+          "start": 0.44,
+          "end": 0.617
         },
         {
           "word": "change",
-          "start": 0.697,
-          "end": 1.08
+          "start": 0.617,
+          "end": 1
         },
         {
           "word": "a",
-          "start": 1.08,
-          "end": 1.187
+          "start": 1,
+          "end": 1.093
         },
         {
           "word": "thing",
-          "start": 1.187,
-          "end": 2.013
+          "start": 1.093,
+          "end": 1.813
         },
         {
           "word": "prove",
-          "start": 2.013,
-          "end": 2.54
+          "start": 1.813,
+          "end": 2.12
         },
         {
           "word": "the",
-          "start": 2.54,
-          "end": 2.8
+          "start": 2.12,
+          "end": 2.288
         },
         {
           "word": "hull",
-          "start": 2.8,
-          "end": 3.227
+          "start": 2.288,
+          "end": 2.533
         },
         {
           "word": "is",
-          "start": 3.227,
-          "end": 3.533
+          "start": 2.533,
+          "end": 2.72
         },
         {
           "word": "sound",
-          "start": 3.533,
-          "end": 4.288
+          "start": 2.72,
+          "end": 3.408
         },
         {
           "word": "That's",
-          "start": 4.288,
-          "end": 4.912
+          "start": 3.408,
+          "end": 4.016
         },
         {
           "word": "your",
-          "start": 4.912,
-          "end": 5.12
+          "start": 4.016,
+          "end": 4.16
         },
         {
           "word": "known-good",
-          "start": 5.12,
-          "end": 5.92
+          "start": 4.16,
+          "end": 4.88
         },
         {
           "word": "baseline",
-          "start": 5.92,
-          "end": 6.17
+          "start": 4.88,
+          "end": 5.13
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.dory.02",
       "speaker": "Dory",
       "text": "In the app, that's a new worktree session, the review panel, and its Terminal tab.",
-      "duration": 5.608,
+      "duration": 5.208,
       "files": {
         "webm": "kh.dory.02.webm",
         "m4a": "kh.dory.02.m4a"
       },
-      "hash": "2575e8ee80374eaa",
+      "hash": "dd42065c8abdcb31",
       "words": [
         {
           "word": "In",
@@ -37377,16 +37307,288 @@
         {
           "word": "the",
           "start": 0.12,
-          "end": 0.34
+          "end": 0.3
         },
         {
           "word": "app",
-          "start": 0.34,
-          "end": 0.752
+          "start": 0.3,
+          "end": 0.736
         },
         {
           "word": "that's",
-          "start": 0.752,
+          "start": 0.736,
+          "end": 1.02
+        },
+        {
+          "word": "a",
+          "start": 1.02,
+          "end": 1.11
+        },
+        {
+          "word": "new",
+          "start": 1.11,
+          "end": 1.264
+        },
+        {
+          "word": "worktree",
+          "start": 1.264,
+          "end": 1.75
+        },
+        {
+          "word": "session",
+          "start": 1.75,
+          "end": 2.66
+        },
+        {
+          "word": "the",
+          "start": 2.66,
+          "end": 2.777
+        },
+        {
+          "word": "review",
+          "start": 2.777,
+          "end": 3.187
+        },
+        {
+          "word": "panel",
+          "start": 3.187,
+          "end": 3.9
+        },
+        {
+          "word": "and",
+          "start": 3.9,
+          "end": 4.12
+        },
+        {
+          "word": "its",
+          "start": 4.12,
+          "end": 4.284
+        },
+        {
+          "word": "Terminal",
+          "start": 4.284,
+          "end": 4.74
+        },
+        {
+          "word": "tab",
+          "start": 4.74,
+          "end": 4.99
+        }
+      ],
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
+    },
+    {
+      "id": "kh.dory.03",
+      "speaker": "Dory",
+      "text": "Four planks ring true: four passing tests. And she floats: the build works.",
+      "duration": 6.308,
+      "files": {
+        "webm": "kh.dory.03.webm",
+        "m4a": "kh.dory.03.m4a"
+      },
+      "hash": "b6544503925160cb",
+      "words": [
+        {
+          "word": "Four",
+          "start": 0,
+          "end": 0.293
+        },
+        {
+          "word": "planks",
+          "start": 0.293,
+          "end": 0.768
+        },
+        {
+          "word": "ring",
+          "start": 0.768,
+          "end": 1.04
+        },
+        {
+          "word": "true",
+          "start": 1.04,
+          "end": 1.552
+        },
+        {
+          "word": "four",
+          "start": 1.552,
+          "end": 2.06
+        },
+        {
+          "word": "passing",
+          "start": 2.06,
+          "end": 2.587
+        },
+        {
+          "word": "tests",
+          "start": 2.587,
+          "end": 3.44
+        },
+        {
+          "word": "And",
+          "start": 3.44,
+          "end": 3.96
+        },
+        {
+          "word": "she",
+          "start": 3.96,
+          "end": 4.16
+        },
+        {
+          "word": "floats",
+          "start": 4.16,
+          "end": 5.14
+        },
+        {
+          "word": "the",
+          "start": 5.14,
+          "end": 5.253
+        },
+        {
+          "word": "build",
+          "start": 5.253,
+          "end": 5.613
+        },
+        {
+          "word": "works",
+          "start": 5.613,
+          "end": 5.863
+        }
+      ],
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
+    },
+    {
+      "id": "kh.dory.04",
+      "speaker": "Dory",
+      "text": "Every dock has its own tool chest. Run npm install the first time you use a new worktree.",
+      "duration": 6.208,
+      "files": {
+        "webm": "kh.dory.04.webm",
+        "m4a": "kh.dory.04.m4a"
+      },
+      "hash": "e75d4545fd305dd2",
+      "words": [
+        {
+          "word": "Every",
+          "start": 0,
+          "end": 0.304
+        },
+        {
+          "word": "dock",
+          "start": 0.304,
+          "end": 0.6
+        },
+        {
+          "word": "has",
+          "start": 0.6,
+          "end": 0.76
+        },
+        {
+          "word": "its",
+          "start": 0.76,
+          "end": 0.94
+        },
+        {
+          "word": "own",
+          "start": 0.94,
+          "end": 1.168
+        },
+        {
+          "word": "tool",
+          "start": 1.168,
+          "end": 1.453
+        },
+        {
+          "word": "chest",
+          "start": 1.453,
+          "end": 2.2
+        },
+        {
+          "word": "Run",
+          "start": 2.2,
+          "end": 2.84
+        },
+        {
+          "word": "npm",
+          "start": 2.84,
+          "end": 3.42
+        },
+        {
+          "word": "install",
+          "start": 3.42,
+          "end": 3.88
+        },
+        {
+          "word": "the",
+          "start": 3.88,
+          "end": 4.04
+        },
+        {
+          "word": "first",
+          "start": 4.04,
+          "end": 4.288
+        },
+        {
+          "word": "time",
+          "start": 4.288,
+          "end": 4.52
+        },
+        {
+          "word": "you",
+          "start": 4.52,
+          "end": 4.72
+        },
+        {
+          "word": "use",
+          "start": 4.72,
+          "end": 5
+        },
+        {
+          "word": "a",
+          "start": 5,
+          "end": 5.1
+        },
+        {
+          "word": "new",
+          "start": 5.1,
+          "end": 5.344
+        },
+        {
+          "word": "worktree",
+          "start": 5.344,
+          "end": 5.594
+        }
+      ],
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
+    },
+    {
+      "id": "kh.dory.05",
+      "speaker": "Dory",
+      "text": "A reply may show a Run button by a snippet. Or copy the snippet into the Terminal tab yourself.",
+      "duration": 6.208,
+      "files": {
+        "webm": "kh.dory.05.webm",
+        "m4a": "kh.dory.05.m4a"
+      },
+      "hash": "16caad6dbe4b4661",
+      "words": [
+        {
+          "word": "A",
+          "start": 0,
+          "end": 0.147
+        },
+        {
+          "word": "reply",
+          "start": 0.147,
+          "end": 0.54
+        },
+        {
+          "word": "may",
+          "start": 0.54,
+          "end": 0.768
+        },
+        {
+          "word": "show",
+          "start": 0.768,
           "end": 1
         },
         {
@@ -37395,581 +37597,309 @@
           "end": 1.1
         },
         {
-          "word": "new",
+          "word": "Run",
           "start": 1.1,
-          "end": 1.36
-        },
-        {
-          "word": "worktree",
-          "start": 1.36,
-          "end": 1.91
-        },
-        {
-          "word": "session",
-          "start": 1.91,
-          "end": 2.9
-        },
-        {
-          "word": "the",
-          "start": 2.9,
-          "end": 3.017
-        },
-        {
-          "word": "review",
-          "start": 3.017,
-          "end": 3.44
-        },
-        {
-          "word": "panel",
-          "start": 3.44,
-          "end": 4.06
-        },
-        {
-          "word": "and",
-          "start": 4.06,
-          "end": 4.3
-        },
-        {
-          "word": "its",
-          "start": 4.3,
-          "end": 4.533
-        },
-        {
-          "word": "Terminal",
-          "start": 4.533,
-          "end": 5.06
-        },
-        {
-          "word": "tab",
-          "start": 5.06,
-          "end": 5.31
-        }
-      ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
-    },
-    {
-      "id": "kh.dory.03",
-      "speaker": "Dory",
-      "text": "Four planks ring true: four passing tests. And she floats: the build works.",
-      "duration": 8.508,
-      "files": {
-        "webm": "kh.dory.03.webm",
-        "m4a": "kh.dory.03.m4a"
-      },
-      "hash": "6e777e8a4ccd1f07",
-      "words": [
-        {
-          "word": "Four",
-          "start": 0,
-          "end": 0.24
-        },
-        {
-          "word": "planks",
-          "start": 0.24,
-          "end": 0.768
-        },
-        {
-          "word": "ring",
-          "start": 0.768,
-          "end": 1.072
-        },
-        {
-          "word": "true",
-          "start": 1.072,
-          "end": 1.792
-        },
-        {
-          "word": "four",
-          "start": 1.792,
-          "end": 2.63
-        },
-        {
-          "word": "passing",
-          "start": 2.63,
-          "end": 3.24
-        },
-        {
-          "word": "tests",
-          "start": 3.24,
-          "end": 4.14
-        },
-        {
-          "word": "And",
-          "start": 4.14,
-          "end": 4.86
-        },
-        {
-          "word": "she",
-          "start": 4.86,
-          "end": 5.143
-        },
-        {
-          "word": "floats",
-          "start": 5.143,
-          "end": 6.41
-        },
-        {
-          "word": "the",
-          "start": 6.41,
-          "end": 6.893
-        },
-        {
-          "word": "build",
-          "start": 6.893,
-          "end": 7.52
-        },
-        {
-          "word": "works",
-          "start": 7.52,
-          "end": 7.77
-        }
-      ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
-    },
-    {
-      "id": "kh.dory.04",
-      "speaker": "Dory",
-      "text": "Every dock has its own tool chest. Run npm install the first time you use a new worktree.",
-      "duration": 9.108,
-      "files": {
-        "webm": "kh.dory.04.webm",
-        "m4a": "kh.dory.04.m4a"
-      },
-      "hash": "ac2bdac94e75f96d",
-      "words": [
-        {
-          "word": "Every",
-          "start": 0,
-          "end": 0.496
-        },
-        {
-          "word": "dock",
-          "start": 0.496,
-          "end": 0.98
-        },
-        {
-          "word": "has",
-          "start": 0.98,
-          "end": 1.32
-        },
-        {
-          "word": "its",
-          "start": 1.32,
-          "end": 1.5
-        },
-        {
-          "word": "own",
-          "start": 1.5,
-          "end": 1.76
-        },
-        {
-          "word": "tool",
-          "start": 1.76,
-          "end": 2.173
-        },
-        {
-          "word": "chest",
-          "start": 2.173,
-          "end": 3.18
-        },
-        {
-          "word": "Run",
-          "start": 3.18,
-          "end": 4.16
-        },
-        {
-          "word": "npm",
-          "start": 4.16,
-          "end": 4.83
-        },
-        {
-          "word": "install",
-          "start": 4.83,
-          "end": 5.68
-        },
-        {
-          "word": "the",
-          "start": 5.68,
-          "end": 5.987
-        },
-        {
-          "word": "first",
-          "start": 5.987,
-          "end": 6.416
-        },
-        {
-          "word": "time",
-          "start": 6.416,
-          "end": 6.86
-        },
-        {
-          "word": "you",
-          "start": 6.86,
-          "end": 7.16
-        },
-        {
-          "word": "use",
-          "start": 7.16,
-          "end": 7.6
-        },
-        {
-          "word": "a",
-          "start": 7.6,
-          "end": 7.76
-        },
-        {
-          "word": "new",
-          "start": 7.76,
-          "end": 8.08
-        },
-        {
-          "word": "worktree",
-          "start": 8.08,
-          "end": 8.33
-        }
-      ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
-    },
-    {
-      "id": "kh.dory.05",
-      "speaker": "Dory",
-      "text": "A reply may show a Run button by a snippet. Or copy the snippet into the Terminal tab yourself.",
-      "duration": 8.508,
-      "files": {
-        "webm": "kh.dory.05.webm",
-        "m4a": "kh.dory.05.m4a"
-      },
-      "hash": "a56f9cc1db83a65f",
-      "words": [
-        {
-          "word": "A",
-          "start": 0,
-          "end": 0.173
-        },
-        {
-          "word": "reply",
-          "start": 0.173,
-          "end": 0.7
-        },
-        {
-          "word": "may",
-          "start": 0.7,
-          "end": 0.944
-        },
-        {
-          "word": "show",
-          "start": 0.944,
-          "end": 1.28
-        },
-        {
-          "word": "a",
-          "start": 1.28,
-          "end": 1.44
-        },
-        {
-          "word": "Run",
-          "start": 1.44,
-          "end": 1.737
+          "end": 1.337
         },
         {
           "word": "button",
-          "start": 1.737,
-          "end": 2.16
+          "start": 1.337,
+          "end": 1.733
         },
         {
           "word": "by",
-          "start": 2.16,
-          "end": 2.36
+          "start": 1.733,
+          "end": 1.88
         },
         {
           "word": "a",
-          "start": 2.36,
-          "end": 2.48
+          "start": 1.88,
+          "end": 1.99
         },
         {
           "word": "snippet",
-          "start": 2.48,
-          "end": 3.867
+          "start": 1.99,
+          "end": 2.747
         },
         {
           "word": "Or",
-          "start": 3.867,
-          "end": 5.024
+          "start": 2.747,
+          "end": 3.184
         },
         {
           "word": "copy",
-          "start": 5.024,
-          "end": 5.64
+          "start": 3.184,
+          "end": 3.46
         },
         {
           "word": "the",
-          "start": 5.64,
-          "end": 5.81
+          "start": 3.46,
+          "end": 3.58
         },
         {
           "word": "snippet",
-          "start": 5.81,
-          "end": 6.224
+          "start": 3.58,
+          "end": 4.064
         },
         {
           "word": "into",
-          "start": 6.224,
-          "end": 6.5
+          "start": 4.064,
+          "end": 4.34
         },
         {
           "word": "the",
-          "start": 6.5,
-          "end": 6.622
+          "start": 4.34,
+          "end": 4.462
         },
         {
           "word": "Terminal",
-          "start": 6.622,
-          "end": 7.22
+          "start": 4.462,
+          "end": 5.02
         },
         {
           "word": "tab",
-          "start": 7.22,
-          "end": 7.6
+          "start": 5.02,
+          "end": 5.271
         },
         {
           "word": "yourself",
-          "start": 7.6,
-          "end": 7.85
+          "start": 5.271,
+          "end": 5.521
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.dory.06",
       "speaker": "Dory",
       "text": "The terminal reuses its shell when it can, so where you were and what you set carry over.",
-      "duration": 7.208,
+      "duration": 5.608,
       "files": {
         "webm": "kh.dory.06.webm",
         "m4a": "kh.dory.06.m4a"
       },
-      "hash": "af73050a60047442",
+      "hash": "86eb79dfb6e6ece2",
       "words": [
         {
           "word": "The",
           "start": 0,
-          "end": 0.231
+          "end": 0.204
         },
         {
           "word": "terminal",
-          "start": 0.231,
-          "end": 0.907
+          "start": 0.204,
+          "end": 0.64
         },
         {
           "word": "reuses",
-          "start": 0.907,
-          "end": 1.58
+          "start": 0.64,
+          "end": 1.16
         },
         {
           "word": "its",
-          "start": 1.58,
-          "end": 1.813
+          "start": 1.16,
+          "end": 1.333
         },
         {
           "word": "shell",
-          "start": 1.813,
-          "end": 2.112
+          "start": 1.333,
+          "end": 1.632
         },
         {
           "word": "when",
-          "start": 2.112,
-          "end": 2.293
+          "start": 1.632,
+          "end": 1.787
         },
         {
           "word": "it",
-          "start": 2.293,
-          "end": 2.52
+          "start": 1.787,
+          "end": 1.92
         },
         {
           "word": "can",
-          "start": 2.52,
-          "end": 3.68
+          "start": 1.92,
+          "end": 2.773
         },
         {
           "word": "so",
-          "start": 3.68,
-          "end": 3.88
+          "start": 2.773,
+          "end": 2.92
         },
         {
           "word": "where",
-          "start": 3.88,
-          "end": 4.14
+          "start": 2.92,
+          "end": 3.18
         },
         {
           "word": "you",
-          "start": 4.14,
-          "end": 4.416
+          "start": 3.18,
+          "end": 3.408
         },
         {
           "word": "were",
-          "start": 4.416,
-          "end": 4.86
+          "start": 3.408,
+          "end": 3.68
         },
         {
           "word": "and",
-          "start": 4.86,
-          "end": 5.088
+          "start": 3.68,
+          "end": 3.968
         },
         {
           "word": "what",
-          "start": 5.088,
-          "end": 5.32
+          "start": 3.968,
+          "end": 4.18
         },
         {
           "word": "you",
-          "start": 5.32,
-          "end": 5.6
+          "start": 4.18,
+          "end": 4.34
         },
         {
           "word": "set",
-          "start": 5.6,
-          "end": 6.173
+          "start": 4.34,
+          "end": 4.707
         },
         {
           "word": "carry",
-          "start": 6.173,
-          "end": 6.736
+          "start": 4.707,
+          "end": 5.12
         },
         {
           "word": "over",
-          "start": 6.736,
-          "end": 6.986
+          "start": 5.12,
+          "end": 5.37
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.dory.07",
       "speaker": "Dory",
       "text": "Cass runs Drydock 2, next along. Mind her slate.",
-      "duration": 5.208,
+      "duration": 4.108,
       "files": {
         "webm": "kh.dory.07.webm",
         "m4a": "kh.dory.07.m4a"
       },
-      "hash": "1f37c439d17791e4",
+      "hash": "9bee379470675e94",
       "words": [
         {
           "word": "Cass",
           "start": 0,
-          "end": 0.48
+          "end": 0.384
         },
         {
           "word": "runs",
-          "start": 0.48,
-          "end": 0.88
+          "start": 0.384,
+          "end": 0.7
         },
         {
           "word": "Drydock",
-          "start": 0.88,
-          "end": 1.54
+          "start": 0.7,
+          "end": 1.2
         },
         {
           "word": "2",
-          "start": 1.54,
-          "end": 2
+          "start": 1.2,
+          "end": 1.616
         },
         {
           "word": "next",
-          "start": 2,
-          "end": 2.413
+          "start": 1.616,
+          "end": 2.067
         },
         {
           "word": "along",
-          "start": 2.413,
-          "end": 3.376
+          "start": 2.067,
+          "end": 2.64
         },
         {
           "word": "Mind",
-          "start": 3.376,
-          "end": 4.12
+          "start": 2.64,
+          "end": 3.32
         },
         {
           "word": "her",
-          "start": 4.12,
-          "end": 4.347
+          "start": 3.32,
+          "end": 3.52
         },
         {
           "word": "slate",
-          "start": 4.347,
-          "end": 4.597
+          "start": 3.52,
+          "end": 3.77
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.dory.done",
       "speaker": "Dory",
       "text": "Sound hull, own tool chest. That dock is ready for work.",
-      "duration": 7.208,
+      "duration": 3.708,
       "files": {
         "webm": "kh.dory.done.webm",
         "m4a": "kh.dory.done.m4a"
       },
-      "hash": "465f0052bc92dd89",
+      "hash": "f715eae32d570b68",
       "words": [
         {
           "word": "Sound",
           "start": 0,
-          "end": 0.528
+          "end": 0.384
         },
         {
           "word": "hull",
-          "start": 0.528,
-          "end": 1.74
+          "start": 0.384,
+          "end": 0.82
         },
         {
           "word": "own",
-          "start": 1.74,
-          "end": 2.256
+          "start": 0.82,
+          "end": 1.168
         },
         {
           "word": "tool",
-          "start": 2.256,
-          "end": 2.747
+          "start": 1.168,
+          "end": 1.427
         },
         {
           "word": "chest",
-          "start": 2.747,
-          "end": 3.648
+          "start": 1.427,
+          "end": 2.016
         },
         {
           "word": "That",
-          "start": 3.648,
-          "end": 4.592
+          "start": 2.016,
+          "end": 2.448
         },
         {
           "word": "dock",
-          "start": 4.592,
-          "end": 5.2
+          "start": 2.448,
+          "end": 2.693
         },
         {
           "word": "is",
-          "start": 5.2,
-          "end": 5.6
+          "start": 2.693,
+          "end": 2.84
         },
         {
           "word": "ready",
-          "start": 5.6,
-          "end": 6.1
+          "start": 2.84,
+          "end": 3.08
         },
         {
           "word": "for",
-          "start": 6.1,
-          "end": 6.512
+          "start": 3.08,
+          "end": 3.28
         },
         {
           "word": "work",
-          "start": 6.512,
-          "end": 6.762
+          "start": 3.28,
+          "end": 3.53
         }
       ],
-      "voice": "t6WJWTYTryhcQnrBHdCr"
+      "voice": "EfdW5L7xDpYTHDlIRmg9"
     },
     {
       "id": "kh.cass.wait",
@@ -44758,123 +44688,123 @@
     {
       "id": "kh.bram.market.auto",
       "speaker": "Bram",
-      "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
-      "duration": 9.208,
+      "text": "Copilot Fusion's on the menu too. Not one model: it picks models and a workflow for each job. It's not Autopilot, mind.",
+      "duration": 10.008,
       "files": {
         "webm": "kh.bram.market.auto.webm",
         "m4a": "kh.bram.market.auto.m4a"
       },
-      "hash": "cbade0cdfe6553f5",
+      "hash": "c9a7ede30abdbdeb",
       "words": [
         {
-          "word": "Auto's",
+          "word": "Copilot",
           "start": 0,
-          "end": 0.587
+          "end": 0.549
         },
         {
-          "word": "on",
-          "start": 0.587,
-          "end": 0.66
-        },
-        {
-          "word": "the",
-          "start": 0.66,
-          "end": 0.8
-        },
-        {
-          "word": "menu",
-          "start": 0.8,
+          "word": "Fusion's",
+          "start": 0.549,
           "end": 1.2
         },
         {
-          "word": "too",
+          "word": "on",
           "start": 1.2,
-          "end": 1.64
+          "end": 1.38
         },
         {
-          "word": "The",
-          "start": 1.64,
-          "end": 2.1
+          "word": "the",
+          "start": 1.38,
+          "end": 1.52
         },
         {
-          "word": "app",
-          "start": 2.1,
-          "end": 2.48
+          "word": "menu",
+          "start": 1.52,
+          "end": 1.94
         },
         {
-          "word": "picks",
-          "start": 2.48,
-          "end": 2.92
+          "word": "too",
+          "start": 1.94,
+          "end": 2.46
         },
         {
-          "word": "a",
-          "start": 2.92,
-          "end": 3.027
+          "word": "Not",
+          "start": 2.46,
+          "end": 2.94
+        },
+        {
+          "word": "one",
+          "start": 2.94,
+          "end": 3.2
         },
         {
           "word": "model",
-          "start": 3.027,
-          "end": 3.44
+          "start": 3.2,
+          "end": 4
+        },
+        {
+          "word": "it",
+          "start": 4,
+          "end": 4.213
+        },
+        {
+          "word": "picks",
+          "start": 4.213,
+          "end": 4.56
+        },
+        {
+          "word": "models",
+          "start": 4.56,
+          "end": 5.1
+        },
+        {
+          "word": "and",
+          "start": 5.1,
+          "end": 5.36
+        },
+        {
+          "word": "a",
+          "start": 5.36,
+          "end": 5.52
+        },
+        {
+          "word": "workflow",
+          "start": 5.52,
+          "end": 6.26
         },
         {
           "word": "for",
-          "start": 3.44,
-          "end": 3.74
+          "start": 6.26,
+          "end": 6.608
         },
         {
-          "word": "you",
-          "start": 3.74,
-          "end": 4.2
+          "word": "each",
+          "start": 6.608,
+          "end": 6.92
         },
         {
-          "word": "and",
-          "start": 4.2,
-          "end": 4.387
-        },
-        {
-          "word": "tells",
-          "start": 4.387,
-          "end": 4.76
-        },
-        {
-          "word": "you",
-          "start": 4.76,
-          "end": 5.013
-        },
-        {
-          "word": "which",
-          "start": 5.013,
-          "end": 5.78
-        },
-        {
-          "word": "and",
-          "start": 5.78,
-          "end": 6.18
-        },
-        {
-          "word": "why",
-          "start": 6.18,
-          "end": 6.8
+          "word": "job",
+          "start": 6.92,
+          "end": 7.627
         },
         {
           "word": "It's",
-          "start": 6.8,
-          "end": 7.42
+          "start": 7.627,
+          "end": 8.28
         },
         {
           "word": "not",
-          "start": 7.42,
-          "end": 7.7
+          "start": 8.28,
+          "end": 8.46
         },
         {
           "word": "Autopilot",
-          "start": 7.7,
-          "end": 8.64
+          "start": 8.46,
+          "end": 9.36
         },
         {
           "word": "mind",
-          "start": 8.64,
-          "end": 8.89
+          "start": 9.36,
+          "end": 9.61
         }
       ],
       "voice": "JbAJPrBwqw2dm8hxfklG"
@@ -45237,138 +45167,83 @@
     {
       "id": "kh.bram.market.hard.auto",
       "speaker": "Bram",
-      "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort.",
-      "duration": 8.808,
+      "text": "Right-sized! A hard job wants a higher Fusion level: more capable models, deeper reasoning.",
+      "duration": 8.708,
       "files": {
         "webm": "kh.bram.market.hard.auto.webm",
         "m4a": "kh.bram.market.hard.auto.m4a"
       },
-      "hash": "7e86831d9e001cb2",
+      "hash": "d4de785d381f7513",
       "words": [
         {
-          "word": "Auto",
+          "word": "Right-sized",
           "start": 0,
-          "end": 0.457
+          "end": 1.32
         },
         {
-          "word": "picked",
-          "start": 0.457,
-          "end": 0.84
-        },
-        {
-          "word": "a",
-          "start": 0.84,
-          "end": 0.973
-        },
-        {
-          "word": "model",
-          "start": 0.973,
-          "end": 1.48
-        },
-        {
-          "word": "and",
-          "start": 1.48,
-          "end": 1.68
-        },
-        {
-          "word": "got",
-          "start": 1.68,
-          "end": 1.973
-        },
-        {
-          "word": "it",
-          "start": 1.973,
-          "end": 2.16
-        },
-        {
-          "word": "done",
-          "start": 2.16,
-          "end": 2.8
-        },
-        {
-          "word": "On",
-          "start": 2.8,
-          "end": 3.2
-        },
-        {
-          "word": "a",
-          "start": 3.2,
-          "end": 3.344
+          "word": "A",
+          "start": 1.32,
+          "end": 1.52
         },
         {
           "word": "hard",
-          "start": 3.344,
-          "end": 3.76
+          "start": 1.52,
+          "end": 1.94
         },
         {
           "word": "job",
-          "start": 3.76,
-          "end": 4.28
+          "start": 1.94,
+          "end": 2.347
         },
         {
-          "word": "you",
-          "start": 4.28,
-          "end": 4.427
-        },
-        {
-          "word": "could",
-          "start": 4.427,
-          "end": 4.624
-        },
-        {
-          "word": "also",
-          "start": 4.624,
-          "end": 4.96
-        },
-        {
-          "word": "turn",
-          "start": 4.96,
-          "end": 5.36
-        },
-        {
-          "word": "Auto",
-          "start": 5.36,
-          "end": 5.8
-        },
-        {
-          "word": "off",
-          "start": 5.8,
-          "end": 6.24
-        },
-        {
-          "word": "and",
-          "start": 6.24,
-          "end": 6.544
-        },
-        {
-          "word": "pick",
-          "start": 6.544,
-          "end": 6.84
+          "word": "wants",
+          "start": 2.347,
+          "end": 2.96
         },
         {
           "word": "a",
-          "start": 6.84,
-          "end": 6.947
+          "start": 2.96,
+          "end": 3.131
         },
         {
-          "word": "model",
-          "start": 6.947,
-          "end": 7.38
+          "word": "higher",
+          "start": 3.131,
+          "end": 3.771
         },
         {
-          "word": "and",
-          "start": 7.38,
-          "end": 7.728
+          "word": "Fusion",
+          "start": 3.771,
+          "end": 4.387
+        },
+        {
+          "word": "level",
+          "start": 4.387,
+          "end": 5.248
         },
         {
           "word": "more",
-          "start": 7.728,
-          "end": 8.011
+          "start": 5.248,
+          "end": 5.5
         },
         {
-          "word": "effort",
-          "start": 8.011,
-          "end": 8.261
+          "word": "capable",
+          "start": 5.5,
+          "end": 6.011
+        },
+        {
+          "word": "models",
+          "start": 6.011,
+          "end": 6.697
+        },
+        {
+          "word": "deeper",
+          "start": 6.697,
+          "end": 7.6
+        },
+        {
+          "word": "reasoning",
+          "start": 7.6,
+          "end": 7.85
         }
       ],
       "voice": "JbAJPrBwqw2dm8hxfklG"
@@ -45695,6 +45570,476 @@
           "word": "you",
           "start": 3.9,
           "end": 4.15
+        }
+      ],
+      "voice": "JbAJPrBwqw2dm8hxfklG"
+    },
+    {
+      "id": "mer.market.over.auto",
+      "speaker": "Gilda",
+      "text": "A higher Fusion level for a quick look? Standard would've done it, for fewer starfish.",
+      "duration": 5.008,
+      "files": {
+        "webm": "mer.market.over.auto.webm",
+        "m4a": "mer.market.over.auto.m4a"
+      },
+      "hash": "db5c8c11a59d8c65",
+      "words": [
+        {
+          "word": "A",
+          "start": 0,
+          "end": 0.126
+        },
+        {
+          "word": "higher",
+          "start": 0.126,
+          "end": 0.446
+        },
+        {
+          "word": "Fusion",
+          "start": 0.446,
+          "end": 0.773
+        },
+        {
+          "word": "level",
+          "start": 0.773,
+          "end": 1.08
+        },
+        {
+          "word": "for",
+          "start": 1.08,
+          "end": 1.24
+        },
+        {
+          "word": "a",
+          "start": 1.24,
+          "end": 1.32
+        },
+        {
+          "word": "quick",
+          "start": 1.32,
+          "end": 1.584
+        },
+        {
+          "word": "look",
+          "start": 1.584,
+          "end": 2.018
+        },
+        {
+          "word": "Standard",
+          "start": 2.018,
+          "end": 2.827
+        },
+        {
+          "word": "would've",
+          "start": 2.827,
+          "end": 3.072
+        },
+        {
+          "word": "done",
+          "start": 3.072,
+          "end": 3.307
+        },
+        {
+          "word": "it",
+          "start": 3.307,
+          "end": 3.72
+        },
+        {
+          "word": "for",
+          "start": 3.72,
+          "end": 3.907
+        },
+        {
+          "word": "fewer",
+          "start": 3.907,
+          "end": 4.304
+        },
+        {
+          "word": "starfish",
+          "start": 4.304,
+          "end": 4.554
+        }
+      ],
+      "voice": "aAsWcN5jdLdiYG7Hq0YL"
+    },
+    {
+      "id": "mer.mina.dashboards",
+      "speaker": "Mina",
+      "text": "And Dashboards shows your GitHub work as a board of widgets. The practice items show up in Pulls created and Issues assigned.",
+      "duration": 8.207,
+      "files": {
+        "webm": "mer.mina.dashboards.webm",
+        "m4a": "mer.mina.dashboards.m4a"
+      },
+      "hash": "47fea04e0c3da1c7",
+      "words": [
+        {
+          "word": "And",
+          "start": 0.0471659,
+          "end": 0.247625
+        },
+        {
+          "word": "Dashboards",
+          "start": 0.247625,
+          "end": 0.790083
+        },
+        {
+          "word": "shows",
+          "start": 0.790083,
+          "end": 1.061333
+        },
+        {
+          "word": "your",
+          "start": 1.061333,
+          "end": 1.17925
+        },
+        {
+          "word": "GitHub",
+          "start": 1.17925,
+          "end": 1.615583
+        },
+        {
+          "word": "work",
+          "start": 1.615583,
+          "end": 1.933958
+        },
+        {
+          "word": "as",
+          "start": 1.933958,
+          "end": 2.040083
+        },
+        {
+          "word": "a",
+          "start": 2.040083,
+          "end": 2.122625
+        },
+        {
+          "word": "board",
+          "start": 2.122625,
+          "end": 2.417458
+        },
+        {
+          "word": "of",
+          "start": 2.417458,
+          "end": 2.535375
+        },
+        {
+          "word": "widgets",
+          "start": 2.535375,
+          "end": 3.927583
+        },
+        {
+          "word": "The",
+          "start": 3.927583,
+          "end": 4.057291
+        },
+        {
+          "word": "practice",
+          "start": 4.057291,
+          "end": 4.505416
+        },
+        {
+          "word": "items",
+          "start": 4.505416,
+          "end": 4.906375
+        },
+        {
+          "word": "show",
+          "start": 4.906375,
+          "end": 5.130416
+        },
+        {
+          "word": "up",
+          "start": 5.130416,
+          "end": 5.3545
+        },
+        {
+          "word": "in",
+          "start": 5.3545,
+          "end": 5.507791
+        },
+        {
+          "word": "Pulls",
+          "start": 5.507791,
+          "end": 5.837958
+        },
+        {
+          "word": "created",
+          "start": 5.837958,
+          "end": 6.392208
+        },
+        {
+          "word": "and",
+          "start": 6.392208,
+          "end": 6.510125
+        },
+        {
+          "word": "Issues",
+          "start": 6.510125,
+          "end": 6.852125
+        },
+        {
+          "word": "assigned",
+          "start": 6.852125,
+          "end": 7.102125
+        }
+      ],
+      "voice": "en-GB-HollieNeural"
+    },
+    {
+      "id": "desmond.market.over.auto",
+      "speaker": "Desmond",
+      "text": "A higher Fusion level for a quick look? Standard would have done it, and cost you less.",
+      "duration": 6.908,
+      "files": {
+        "webm": "desmond.market.over.auto.webm",
+        "m4a": "desmond.market.over.auto.m4a"
+      },
+      "hash": "cc80f1a3236b3d18",
+      "words": [
+        {
+          "word": "A",
+          "start": 0,
+          "end": 0.126
+        },
+        {
+          "word": "higher",
+          "start": 0.126,
+          "end": 0.469
+        },
+        {
+          "word": "Fusion",
+          "start": 0.469,
+          "end": 0.947
+        },
+        {
+          "word": "level",
+          "start": 0.947,
+          "end": 1.36
+        },
+        {
+          "word": "for",
+          "start": 1.36,
+          "end": 1.68
+        },
+        {
+          "word": "a",
+          "start": 1.68,
+          "end": 1.8
+        },
+        {
+          "word": "quick",
+          "start": 1.8,
+          "end": 2.064
+        },
+        {
+          "word": "look",
+          "start": 2.064,
+          "end": 2.729
+        },
+        {
+          "word": "Standard",
+          "start": 2.729,
+          "end": 4.12
+        },
+        {
+          "word": "would",
+          "start": 4.12,
+          "end": 4.352
+        },
+        {
+          "word": "have",
+          "start": 4.352,
+          "end": 4.528
+        },
+        {
+          "word": "done",
+          "start": 4.528,
+          "end": 4.8
+        },
+        {
+          "word": "it",
+          "start": 4.8,
+          "end": 5.18
+        },
+        {
+          "word": "and",
+          "start": 5.18,
+          "end": 5.664
+        },
+        {
+          "word": "cost",
+          "start": 5.664,
+          "end": 5.98
+        },
+        {
+          "word": "you",
+          "start": 5.98,
+          "end": 6.256
+        },
+        {
+          "word": "less",
+          "start": 6.256,
+          "end": 6.506
+        }
+      ],
+      "voice": "GLpuYaUYNnusyOVvP3PM"
+    },
+    {
+      "id": "tb.lani.market.over.auto",
+      "speaker": "Lani",
+      "text": "A higher Fusion level for a quick look? Standard would have been plenty.",
+      "duration": 4.608,
+      "files": {
+        "webm": "tb.lani.market.over.auto.webm",
+        "m4a": "tb.lani.market.over.auto.m4a"
+      },
+      "hash": "7200b6a3b3ec5a76",
+      "words": [
+        {
+          "word": "A",
+          "start": 0,
+          "end": 0.126
+        },
+        {
+          "word": "higher",
+          "start": 0.126,
+          "end": 0.457
+        },
+        {
+          "word": "Fusion",
+          "start": 0.457,
+          "end": 0.867
+        },
+        {
+          "word": "level",
+          "start": 0.867,
+          "end": 1.24
+        },
+        {
+          "word": "for",
+          "start": 1.24,
+          "end": 1.44
+        },
+        {
+          "word": "a",
+          "start": 1.44,
+          "end": 1.573
+        },
+        {
+          "word": "quick",
+          "start": 1.573,
+          "end": 1.92
+        },
+        {
+          "word": "look",
+          "start": 1.92,
+          "end": 2.516
+        },
+        {
+          "word": "Standard",
+          "start": 2.516,
+          "end": 3.467
+        },
+        {
+          "word": "would",
+          "start": 3.467,
+          "end": 3.616
+        },
+        {
+          "word": "have",
+          "start": 3.616,
+          "end": 3.712
+        },
+        {
+          "word": "been",
+          "start": 3.712,
+          "end": 3.92
+        },
+        {
+          "word": "plenty",
+          "start": 3.92,
+          "end": 4.17
+        }
+      ],
+      "voice": "sxEoZ67pB0EMoWOZZ37G"
+    },
+    {
+      "id": "kh.bram.market.over.auto",
+      "speaker": "Bram",
+      "text": "A higher Fusion level for a quick look? Standard would have done it.",
+      "duration": 4.708,
+      "files": {
+        "webm": "kh.bram.market.over.auto.webm",
+        "m4a": "kh.bram.market.over.auto.m4a"
+      },
+      "hash": "5dca7be94ee2de34",
+      "words": [
+        {
+          "word": "A",
+          "start": 0,
+          "end": 0.149
+        },
+        {
+          "word": "higher",
+          "start": 0.149,
+          "end": 0.617
+        },
+        {
+          "word": "Fusion",
+          "start": 0.617,
+          "end": 1.027
+        },
+        {
+          "word": "level",
+          "start": 1.027,
+          "end": 1.42
+        },
+        {
+          "word": "for",
+          "start": 1.42,
+          "end": 1.64
+        },
+        {
+          "word": "a",
+          "start": 1.64,
+          "end": 1.733
+        },
+        {
+          "word": "quick",
+          "start": 1.733,
+          "end": 2.064
+        },
+        {
+          "word": "look",
+          "start": 2.064,
+          "end": 2.729
+        },
+        {
+          "word": "Standard",
+          "start": 2.729,
+          "end": 3.48
+        },
+        {
+          "word": "would",
+          "start": 3.48,
+          "end": 3.712
+        },
+        {
+          "word": "have",
+          "start": 3.712,
+          "end": 3.904
+        },
+        {
+          "word": "done",
+          "start": 3.904,
+          "end": 4.24
+        },
+        {
+          "word": "it",
+          "start": 4.24,
+          "end": 4.49
         }
       ],
       "voice": "JbAJPrBwqw2dm8hxfklG"

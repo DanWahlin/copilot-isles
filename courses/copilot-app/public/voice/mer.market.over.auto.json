@@ -1,0 +1,82 @@
+{
+  "id": "mer.market.over.auto",
+  "speaker": "Gilda",
+  "text": "A higher Fusion level for a quick look? Standard would've done it, for fewer starfish.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.126
+    },
+    {
+      "word": "higher",
+      "start": 0.126,
+      "end": 0.446
+    },
+    {
+      "word": "Fusion",
+      "start": 0.446,
+      "end": 0.773
+    },
+    {
+      "word": "level",
+      "start": 0.773,
+      "end": 1.08
+    },
+    {
+      "word": "for",
+      "start": 1.08,
+      "end": 1.24
+    },
+    {
+      "word": "a",
+      "start": 1.24,
+      "end": 1.32
+    },
+    {
+      "word": "quick",
+      "start": 1.32,
+      "end": 1.584
+    },
+    {
+      "word": "look",
+      "start": 1.584,
+      "end": 2.018
+    },
+    {
+      "word": "Standard",
+      "start": 2.018,
+      "end": 2.827
+    },
+    {
+      "word": "would've",
+      "start": 2.827,
+      "end": 3.072
+    },
+    {
+      "word": "done",
+      "start": 3.072,
+      "end": 3.307
+    },
+    {
+      "word": "it",
+      "start": 3.307,
+      "end": 3.72
+    },
+    {
+      "word": "for",
+      "start": 3.72,
+      "end": 3.907
+    },
+    {
+      "word": "fewer",
+      "start": 3.907,
+      "end": 4.304
+    },
+    {
+      "word": "starfish",
+      "start": 4.304,
+      "end": 4.554
+    }
+  ]
+}

@@ -5,108 +5,108 @@
   "words": [
     {
       "word": "Port",
-      "start": 0.052625,
-      "end": 0.35525
+      "start": 0,
+      "end": 0.22
     },
     {
       "word": "Meridian’s",
-      "start": 0.35525,
-      "end": 1.078958
+      "start": 0.22,
+      "end": 0.864
     },
     {
       "word": "next",
-      "start": 1.078958,
-      "end": 1.5
+      "start": 0.864,
+      "end": 1.147
     },
     {
       "word": "on",
-      "start": 1.5,
-      "end": 1.64475
+      "start": 1.147,
+      "end": 1.22
     },
     {
       "word": "the",
-      "start": 1.64475,
-      "end": 1.75
+      "start": 1.22,
+      "end": 1.347
     },
     {
       "word": "chart",
-      "start": 1.75,
-      "end": 3.276333
+      "start": 1.347,
+      "end": 1.973
     },
     {
       "word": "There",
-      "start": 3.276333,
-      "end": 3.421041
+      "start": 1.973,
+      "end": 2.66
     },
     {
       "word": "you’ll",
-      "start": 3.421041,
-      "end": 3.684208
+      "start": 2.66,
+      "end": 2.853
     },
     {
       "word": "learn",
-      "start": 3.684208,
-      "end": 4.026333
+      "start": 2.853,
+      "end": 3.16
     },
     {
       "word": "why",
-      "start": 4.026333,
-      "end": 4.315791
+      "start": 3.16,
+      "end": 3.32
     },
     {
       "word": "the",
-      "start": 4.315791,
-      "end": 4.473666
+      "start": 3.32,
+      "end": 3.52
     },
     {
       "word": "app",
-      "start": 4.473666,
-      "end": 4.64475
+      "start": 3.52,
+      "end": 3.84
     },
     {
       "word": "matters",
-      "start": 4.64475,
-      "end": 5.197375
+      "start": 3.84,
+      "end": 4.46
     },
     {
       "word": "and",
-      "start": 5.197375,
-      "end": 5.447375
+      "start": 4.46,
+      "end": 4.704
     },
     {
       "word": "tour",
-      "start": 5.447375,
-      "end": 5.776333
+      "start": 4.704,
+      "end": 5.02
     },
     {
       "word": "its",
-      "start": 5.776333,
-      "end": 5.934208
+      "start": 5.02,
+      "end": 5.28
     },
     {
       "word": "rooms",
-      "start": 5.934208,
-      "end": 7.526333
+      "start": 5.28,
+      "end": 6.24
     },
     {
       "word": "I’ll",
-      "start": 7.526333,
-      "end": 7.75
+      "start": 6.24,
+      "end": 6.76
     },
     {
       "word": "see",
-      "start": 7.75,
-      "end": 8.013166
+      "start": 6.76,
+      "end": 6.9
     },
     {
       "word": "you",
-      "start": 8.013166,
-      "end": 8.184208
+      "start": 6.9,
+      "end": 7.013
     },
     {
       "word": "there",
-      "start": 8.184208,
-      "end": 8.434208
+      "start": 7.013,
+      "end": 7.263
     }
   ]
 }

@@ -6,67 +6,67 @@
     {
       "word": "Four",
       "start": 0,
-      "end": 0.24
+      "end": 0.293
     },
     {
       "word": "planks",
-      "start": 0.24,
+      "start": 0.293,
       "end": 0.768
     },
     {
       "word": "ring",
       "start": 0.768,
-      "end": 1.072
+      "end": 1.04
     },
     {
       "word": "true",
-      "start": 1.072,
-      "end": 1.792
+      "start": 1.04,
+      "end": 1.552
     },
     {
       "word": "four",
-      "start": 1.792,
-      "end": 2.63
+      "start": 1.552,
+      "end": 2.06
     },
     {
       "word": "passing",
-      "start": 2.63,
-      "end": 3.24
+      "start": 2.06,
+      "end": 2.587
     },
     {
       "word": "tests",
-      "start": 3.24,
-      "end": 4.14
+      "start": 2.587,
+      "end": 3.44
     },
     {
       "word": "And",
-      "start": 4.14,
-      "end": 4.86
+      "start": 3.44,
+      "end": 3.96
     },
     {
       "word": "she",
-      "start": 4.86,
-      "end": 5.143
+      "start": 3.96,
+      "end": 4.16
     },
     {
       "word": "floats",
-      "start": 5.143,
-      "end": 6.41
+      "start": 4.16,
+      "end": 5.14
     },
     {
       "word": "the",
-      "start": 6.41,
-      "end": 6.893
+      "start": 5.14,
+      "end": 5.253
     },
     {
       "word": "build",
-      "start": 6.893,
-      "end": 7.52
+      "start": 5.253,
+      "end": 5.613
     },
     {
       "word": "works",
-      "start": 7.52,
-      "end": 7.77
+      "start": 5.613,
+      "end": 5.863
     }
   ]
 }

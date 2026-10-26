@@ -78,15 +78,30 @@ export const EFFORTS: readonly Effort[] = ['low', 'default', 'high'];
 const effortData = (m: MarketData, e: Effort) => m.efforts.find((x) => x.id === e);
 export let EFFORT_LABEL = {} as Readonly<Record<Effort, string>>;
 
-/** A hire: Auto (the app picks, and Effort is hidden), or a model of a category with an effort. */
-export type Hire = { auto: true } | { auto: false; category: ModelCategory; model: string; effort: Effort };
+/**
+ * A hire: the house special (the app's own pick, `auto`) at one of its own effort levels (the pack's
+ * `house.levels`), or a model of a category with an effort.
+ */
+export type Hire =
+  { auto: true; level: HouseLevel } | { auto: false; category: ModelCategory; model: string; effort: Effort };
+
+/** One of the house special's effort levels: its id in the pack (`house.levels`). */
+export type HouseLevel = string;
+/** The house special's levels, lowest first (the first is its base). */
+export let HOUSE_LEVELS: readonly HouseLevel[] = [];
+export let HOUSE_LEVEL_LABEL: Readonly<Record<HouseLevel, string>> = {};
+export let HOUSE_LEVEL_PRICE: Readonly<Record<HouseLevel, number>> = {};
+/** The house special's base level (its first). */
+export const baseLevel = (): HouseLevel => HOUSE_LEVELS[0] ?? '';
+/** A house level above its base: more than a quick look needs, and what a hard job wants. */
+const aboveBase = (m: MarketData, level: HouseLevel) => m.house.levels.findIndex((l) => l.id === level) > 0;
 
 /** Each category's size (the grading reads sizes, never a course's category names). */
 export let TIER_OF = {} as Readonly<Record<ModelCategory, ModelTier>>;
 /** The course's category for each size. */
 export let CATEGORY_OF = {} as Readonly<Record<ModelTier, ModelCategory>>;
 
-/** Starfish per hire (docs/specs/MODEL-MARKET.md §3): bigger models cost more. */
+/** Starfish per hire (docs/specs/MODEL-MARKET.md §3): bigger models cost more. The house special's base price. */
 export let AUTO_PRICE = 0;
 export let CATEGORY_PRICE = {} as Readonly<Record<ModelCategory, number>>;
 export let EFFORT_PRICE = {} as Readonly<Record<Effort, number>>;
@@ -96,7 +111,8 @@ export const price = (h: Hire): number => priceIn(MARKET, h);
 
 /** A hire's price with a market file's prices (the content check reads the file on disk). */
 export function priceIn(m: MarketData, h: Hire): number {
-  if (h.auto) return m.autoPrice;
+  if (h.auto)
+    return Math.min(m.maxPrice, m.house.price + (m.house.levels.find((l) => l.id === h.level)?.price ?? 0));
   const model = m.categories.find((c) => c.id === h.category)?.price ?? 0;
   return Math.min(m.maxPrice, model + (effortData(m, h.effort)?.price ?? 0));
 }
@@ -129,37 +145,48 @@ export type Reason =
   | 'quick-right'
   | 'quick-keep'
   | 'quick-over-effort'
+  | 'quick-over-auto'
   | 'hard-right'
   | 'hard-auto'
+  | 'hard-short-auto'
   | 'hard-short-model'
   | 'hard-short-effort';
 
 /**
  * Grades a hire for a job by its model's size and the effort, by the course's rule (for the Copilot
- * app course, Models and Reasoning Effort: "For a repository tour or a short explanation, keep Auto or
- * the current model and its default reasoning effort. For a difficult bug or a change across several
- * files, consider a model suited to complex coding and a higher effort level."; Lightweight, Versatile
- * and Powerful are small, medium and large):
- * - A quick look (a tour, a short explanation): Auto, or any model on its default (or low) effort, is
- *   right-sized, whatever its size (it could be your current model: `quick-keep` when it's bigger than
- *   the smallest, which only costs more starfish). High effort overspends. Nothing falls short.
- * - A hard job (a difficult bug, a change across several files): Auto (it chooses a model for your
- *   task) is right-sized, with a nudge that you can turn it off and choose a model and more effort; so
- *   is a large model on default or high, or a medium one on high. A small model, a medium one below
- *   high or any model on low falls short. Nothing overspends.
+ * app course, Models and Reasoning Effort: "For a repository tour or a short explanation, use Copilot
+ * Fusion at Standard, or keep your current model and its default reasoning effort. For a difficult bug
+ * or a change across several files, consider a higher Fusion effort level or a model suited to complex
+ * coding."; the house special is Copilot Fusion, its levels Standard, High and Max; Lightweight,
+ * Versatile and Powerful are small, medium and large):
+ * - A quick look (a tour, a short explanation): the house special at its base level, or any model on
+ *   its default (or low) effort, is right-sized, whatever its size (it could be your current model:
+ *   `quick-keep` when it's bigger than the smallest, which only costs more starfish). A higher house
+ *   level, or High effort, overspends. Nothing falls short.
+ * - A hard job (a difficult bug, a change across several files): the house special above its base
+ *   level is right-sized; so is a large model on default or high, or a medium one on high. The house
+ *   special at its base, a small model, a medium one below high or any model on low falls short.
+ *   Nothing overspends.
  */
 export function grade(
   job: MarketJob,
   h: Hire,
   tiers: Readonly<Record<ModelCategory, ModelTier>> = TIER_OF,
+  m: MarketData = MARKET,
 ): { outcome: Outcome; reason: Reason } {
   const tier = h.auto ? null : tiers[h.category];
   if (job.size === 'quick') {
-    if (h.auto) return { outcome: 'right', reason: 'quick-right' };
+    if (h.auto)
+      return aboveBase(m, h.level)
+        ? { outcome: 'over', reason: 'quick-over-auto' }
+        : { outcome: 'right', reason: 'quick-right' };
     if (h.effort === 'high') return { outcome: 'over', reason: 'quick-over-effort' };
     return { outcome: 'right', reason: tier === 'small' ? 'quick-right' : 'quick-keep' };
   }
-  if (h.auto) return { outcome: 'right', reason: 'hard-auto' };
+  if (h.auto)
+    return aboveBase(m, h.level)
+      ? { outcome: 'right', reason: 'hard-auto' }
+      : { outcome: 'short', reason: 'hard-short-auto' };
   if (tier === 'small') return { outcome: 'short', reason: 'hard-short-model' };
   const enough = tier === 'large' ? h.effort !== 'low' : h.effort === 'high';
   return enough
@@ -167,9 +194,9 @@ export function grade(
     : { outcome: 'short', reason: 'hard-short-effort' };
 }
 
-/** Every hire the market sells (each category at each effort, and Auto), for the economy's sums. */
+/** Every hire the market sells (each category at each effort, and the house special at each level). */
 function everyHire(): Hire[] {
-  const out: Hire[] = [{ auto: true }];
+  const out: Hire[] = HOUSE_LEVELS.map((level) => ({ auto: true, level }));
   for (const c of MARKET.categories)
     for (const effort of EFFORTS) out.push({ auto: false, category: c.id, model: c.id, effort });
   return out;
@@ -231,7 +258,10 @@ onCourse(() => {
     Effort,
     string
   >;
-  AUTO_PRICE = m.autoPrice;
+  AUTO_PRICE = m.house.price;
+  HOUSE_LEVELS = m.house.levels.map((l) => l.id);
+  HOUSE_LEVEL_LABEL = Object.fromEntries(m.house.levels.map((l) => [l.id, l.label]));
+  HOUSE_LEVEL_PRICE = Object.fromEntries(m.house.levels.map((l) => [l.id, l.price]));
   TIER_OF = Object.fromEntries(m.categories.map((c) => [c.id, c.acts])) as Record<ModelCategory, ModelTier>;
   CATEGORY_OF = Object.fromEntries(m.categories.map((c) => [c.acts, c.id])) as Record<
     ModelTier,
@@ -261,9 +291,11 @@ onCourse(() => {
   STAMP = m.stamps;
 });
 
-/** "Auto", or "Claude Haiku 5.5 on Default". */
+/** The house special at a level ("Copilot Fusion at Standard"), or "Claude Haiku 5.5 on Default". */
 export function hireName(h: Hire): string {
-  return h.auto ? T('auto') : T('hireName', { model: h.model, effort: EFFORT_LABEL[h.effort] });
+  return h.auto
+    ? T('autoName', { level: HOUSE_LEVEL_LABEL[h.level] ?? h.level })
+    : T('hireName', { model: h.model, effort: EFFORT_LABEL[h.effort] });
 }
 
 export function feedback(job: MarketJob, h: Hire): Feedback {
@@ -292,6 +324,13 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         summary,
         quotes: [QUOTES.effort, job.why],
       };
+    case 'quick-over-auto':
+      return {
+        ...base,
+        key: 'overAuto',
+        summary,
+        quotes: [QUOTES.autoMore, job.why],
+      };
     case 'hard-right':
       return {
         ...base,
@@ -305,8 +344,16 @@ export function feedback(job: MarketJob, h: Hire): Feedback {
         ...base,
         key: 'hardAuto',
         summary,
-        quotes: [QUOTES.auto, QUOTES.hard, QUOTES.autoHidden],
+        quotes: [QUOTES.hard, QUOTES.autoLevels, QUOTES.noGuarantee],
         retry: 'again',
+      };
+    case 'hard-short-auto':
+      return {
+        ...base,
+        key: 'short',
+        summary,
+        quotes: [QUOTES.hard, QUOTES.autoLevels, QUOTES.retry],
+        retry: 'short',
       };
     case 'hard-short-model':
       return {
@@ -338,17 +385,17 @@ export interface RetryPlan {
   /** The hire being retried (shown as last time's). */
   last: Hire;
   /**
-   * The picker that's live, nothing chosen in it: the models' for "a different model", the effort
-   * dial's for "more effort". After Auto it's always the models' (Auto's off: it hides the effort).
+   * The picker that's live, nothing chosen in it: the models' for "a different model" (after the house
+   * special, it's off), the effort dial's for "more effort" (the house special's own levels after it).
    */
   live: 'model' | 'effort';
 }
 
 export function retryPlan(last: Hire, kind: 'model' | 'effort'): RetryPlan {
-  return { kind, last, live: last.auto ? 'model' : kind };
+  return { kind, last, live: kind };
 }
 
-/** A pick a Retry won't take again: Auto after Auto, or the model you just used. */
+/** A pick a Retry won't take again: the house special after it (a different model), or the model you just used. */
 export function usedLastTime(plan: RetryPlan, pick: 'auto' | ModelCategory, model?: string): boolean {
   if (plan.live !== 'model') return false;
   if (plan.last.auto) return pick === 'auto';
@@ -362,8 +409,16 @@ export function effortLastTime(plan: RetryPlan, model: string, effort: Effort): 
   );
 }
 
+/** A house level a Retry won't take again: the level you just used, on the house special. */
+export function levelLastTime(plan: RetryPlan, level: HouseLevel): boolean {
+  return plan.live === 'effort' && plan.last.auto && plan.last.level === level;
+}
+
 /** Whether a hire is a Retry's: it changes what the Retry is about (a different model, or the effort). */
 export function retryChanges(plan: RetryPlan, h: Hire): boolean {
-  if (h.auto) return !usedLastTime(plan, 'auto');
+  if (h.auto) {
+    if (!plan.last.auto) return true;
+    return plan.live === 'effort' && !levelLastTime(plan, h.level);
+  }
   return !usedLastTime(plan, h.category, h.model) && !effortLastTime(plan, h.model, h.effort);
 }

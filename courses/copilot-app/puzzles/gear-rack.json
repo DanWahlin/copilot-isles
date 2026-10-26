@@ -3,7 +3,7 @@
   "id": "gear.rack",
   "mechanic": "checklist",
   "quest": "Q0.4",
-  "$comment": "Bo's gear rack (Q0.4 `checks`): the course's \"Check your tools in Terminal\", one version check per piece of gear on the rack (the game's compass, lantern, rope and spyglass), run one per press. The first press plays `intro` (Review panel → Terminal). The lantern's first run prints an old Node.js major, so the player meets the course's rule (compare the first number with the LTS on the download page; if it's lower, install the LTS and run the checks again) and runs it again; `output` must track the version nodejs.org marks LTS (v24 on 2026-10-23). The rope's Windows note is the course's npm.ps1 fix. Once all four pass, `checked` adds GitHub CLI's own sign-in and moves the quests on.",
+  "$comment": "Bo's gear rack (Q0.4 `checks`): the course's \"Check your tools in Terminal\", one version check per piece of gear on the rack (the game's compass, lantern, rope and spyglass), run one per press. The first press plays `intro` (Review panel → Terminal). The lantern's first run prints an old Node.js major, so the player meets the course's rule (compare the first number with the LTS on the download page; if it's lower, install the LTS and run the checks again) and runs it again; `output` must track the version nodejs.org marks LTS (v24 on 2026-10-25, v24.22.1), and be at least what the course's sample app needs: `samples/book-app-web` declares `engines.node` `>=24.15.0` since the course's 81c759b (jsdom 30). The chapter's rule is still the LTS comparison, so that's what the rack teaches. The rope's Windows note is the course's npm.ps1 fix. Once all four pass, `checked` adds GitHub CLI's own sign-in and moves the quests on.",
   "checks": [
     {
       "id": "compass",
@@ -45,7 +45,7 @@
     "intro": [
       {
         "show": "shared/app-review-panel",
-        "caption": "**View → Toggle Review Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
+        "caption": "**View → Toggle Panel**, then the **Terminal** tab. No tab? **+** → **Terminal**."
       },
       {
         "say": "bo.gear.brief.01"

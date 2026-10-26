@@ -5,83 +5,83 @@
   "words": [
     {
       "word": "Project",
-      "start": 0.052625,
-      "end": 0.539458
+      "start": 0,
+      "end": 0.444
     },
     {
       "word": "sessions",
-      "start": 0.539458,
-      "end": 1.10525
+      "start": 0.444,
+      "end": 0.84
     },
     {
       "word": "are",
-      "start": 1.10525,
-      "end": 1.342125
+      "start": 0.84,
+      "end": 1.006
     },
     {
       "word": "Anders’s",
-      "start": 1.342125,
-      "end": 1.921041
+      "start": 1.006,
+      "end": 1.427
     },
     {
       "word": "trade",
-      "start": 1.921041,
-      "end": 3.434208
+      "start": 1.427,
+      "end": 2.107
     },
     {
       "word": "He’s",
-      "start": 3.434208,
-      "end": 3.592125
+      "start": 2.107,
+      "end": 2.587
     },
     {
       "word": "at",
-      "start": 3.592125,
-      "end": 3.723666
+      "start": 2.587,
+      "end": 2.66
     },
     {
       "word": "the",
-      "start": 3.723666,
-      "end": 3.85525
+      "start": 2.66,
+      "end": 2.768
     },
     {
       "word": "shipyard",
-      "start": 3.85525,
-      "end": 4.671041
+      "start": 2.768,
+      "end": 3.44
     },
     {
       "word": "at",
-      "start": 4.671041,
-      "end": 4.842125
+      "start": 3.44,
+      "end": 3.54
     },
     {
       "word": "the",
-      "start": 4.842125,
-      "end": 4.960541
+      "start": 3.54,
+      "end": 3.648
     },
     {
       "word": "west",
-      "start": 4.960541,
-      "end": 5.289458
+      "start": 3.648,
+      "end": 3.9
     },
     {
       "word": "end",
-      "start": 5.289458,
-      "end": 5.565791
+      "start": 3.9,
+      "end": 4.107
     },
     {
       "word": "of",
-      "start": 5.565791,
-      "end": 5.618416
+      "start": 4.107,
+      "end": 4.18
     },
     {
       "word": "the",
-      "start": 5.618416,
-      "end": 5.736833
+      "start": 4.18,
+      "end": 4.304
     },
     {
       "word": "quay",
-      "start": 5.736833,
-      "end": 5.986833
+      "start": 4.304,
+      "end": 4.554
     }
   ]
 }

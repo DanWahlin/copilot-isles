@@ -224,7 +224,7 @@ const NO_LEARNING: LearningFile = {
 const NO_MARKET: MarketData = {
   categories: [],
   efforts: [],
-  autoPrice: 0,
+  house: { price: 0, levels: [] },
   maxPrice: 0,
   sizes: {
     quick: { label: '', refund: 0, doubloons: 0 },

@@ -2,24 +2,29 @@
 
 > Status: **a stall on every island** (2026-10-22): Gilda's on Port Meridian (the prototype of 2026-10-16),
 > Desmond's on Anchorage Cay and Lani's on Thousand-Bough Isle, sharing one board, one purse and one save.
-> **Graded by the course's rule, and Oren's practice** (2026-10-23): a quick look is right-sized with Auto or
-> any model on its default effort; Auto is right-sized on a hard job; the stalls open once Oren has taught
-> models (Q1.6), and two of his jobs are Q1.6's hands-on step (§5, §7).
+> **Graded by the course's rule, and Oren's practice** (2026-10-23): a quick look is right-sized with the
+> house special or any model on its default effort; the stalls open once Oren has taught models (Q1.6),
+> and two of his jobs are Q1.6's hands-on step (§5, §7).
+> **Copilot Fusion** (2026-10-25, course `f24b521`): the course replaced Auto with Copilot Fusion, which has
+> its own effort levels (Standard, High, Max). The house special is Copilot Fusion now, with its own effort
+> dial: Standard is right-sized for a quick look and falls short of a hard job; High and Max overspend on a
+> quick look and are right-sized for a hard job (§3, §5).
 > Concepts: world B ("tavern-menu arcade") and UI 2 ("parchment work order").
 
 ## 1. Purpose
 
 Starfish get a use, and Chapter 01's model and effort lesson gets practice. At any island's market stall
 (Gilda's on Port Meridian's plaza, Desmond's on Anchorage Cay's quay, Lani's on Thousand-Bough's landing) you
-pick a job from the board, hire a model (or **Auto**) and set the effort dial, and pay in starfish. Bigger models
+pick a job from the board, hire a model (or **Copilot Fusion**, the house special) and set the effort dial
+(Copilot Fusion's own **Standard**, **High** or **Max**), and pay in starfish. Bigger models
 cost more. The work order comes back stamped:
 
 - **✓ Right-sized**: the hire fits the job, by the course's rule. A hard job gives 2 starfish back for a model
-  hire (Auto and a quick look none: their fair hire is 1), and the first time for that job, 5 doubloons (10 for
+  hire (Copilot Fusion at High 1, at Max 2; a quick look none: its fair hire is 1), and the first time for that job, 5 doubloons (10 for
   a hard job). A refund is always less than the hire, so a right-sized job always costs at least 1 starfish.
   After a hard job, **Retry** it to compare (a different model).
-- **! Overspent**: the job got done, but you paid for more than it needed: High effort on a quick look. No
-  refund.
+- **! Overspent**: the job got done, but you paid for more than it needed: High effort, or Copilot Fusion
+  above Standard, on a quick look. No refund.
 - **↻ Fell short**: the hire wasn't enough for a hard job. No refund. **Retry** it: the same job, without writing
   it again (the course's Retry), and you choose the different model or the higher effort yourself.
 
@@ -47,7 +52,7 @@ Gilda's stall:
 | What | Where (src) | Notes |
 | --- | --- | --- |
 | The stall | `src/world/meridian-town/model-market.ts` (`addModelMarketStall`), shapes in `market-shapes.ts`, built into the town's buckets | A warm sandstone loggia against the corner house on the plaza's east side, at the top of the stair street from the quay. Three round arches for the stall and a fourth as an open passage over the harbour-front lane; square piers in courses with plinths and capitals, voussoir rings with a keystone and a moulded archivolt, a cornice, an upper storey with four shuttered windows and window boxes, and a tiled gable roof (the plaza's `addTiledRoof`). The counter stands back under the arches behind a walkway with a timber ceiling. |
-| Signboards | `src/world/sites/model-market.ts` (`createModelMarketSigns`), one `SignSet` | Three boards hang on chains from carved beams inside the arches, each a step higher: **Lightweight** (sage, 1.32 × 0.74 m, scalloped top), **Versatile** (blue, 1.86 × 1.0 m, scalloped top), **Powerful** (red, 2.6 × 1.42 m, a crest and a gilded frame). The shaped backings and carved frames are geometry; the faces are the sign atlas. Each says its category and price, the board rule's four names, and "+N more". Also: a small carved name plaque on the left pier, the chalk plaque **House special: Auto · 1 ★** on the counter's front, and four job notes on the cork board (✓ Done once a job's done right-sized). |
+| Signboards | `src/world/sites/model-market.ts` (`createModelMarketSigns`), one `SignSet` | Three boards hang on chains from carved beams inside the arches, each a step higher: **Lightweight** (sage, 1.32 × 0.74 m, scalloped top), **Versatile** (blue, 1.86 × 1.0 m, scalloped top), **Powerful** (red, 2.6 × 1.42 m, a crest and a gilded frame). The shaped backings and carved frames are geometry; the faces are the sign atlas. Each says its category and price, the board rule's four names, and "+N more". Also: a small carved name plaque on the left pier, the chalk plaque **House special: Copilot Fusion · 1 ★** on the counter's front, and four job notes on the cork board (✓ Done once a job's done right-sized). |
 | Dressing | the stall | A red-and-white awning with a scalloped valance over the counter, a big glass jar of starfish (the collectible's own shape and colours) at the counter's front edge, a brass bell, a cork jobs board on posts, two iron lanterns (their glass is the glow material, warm by day too), shelves of turned bottles, jars and pots, a blue curtain, a blue-and-white cloth over the counter's end, a barrel, and the plaza's planting kit in Meridian's colours: a fan palm in a big terracotta pot at each end of the counter with a pot of geraniums before it, and a fan palm in a mound of geraniums in the stone planter by the passage. |
 | Gilda | `src/game/meridian-npcs.ts` (`gilda`, body `mer_market`, 1.2× scale) | Behind the counter on a step. Headscarf, apron, money pouch. She has no bark: the counter's E opens the market, and the camera holds a square-on view of the stall (`site.shot`, like concept B's close-up). |
 | Keeper's light | the market (`MarketHost.spotlight`) | While you're at the counter (within 6 m, or with the work order open), the keeper gets the talk shot's light (`setSpotlight`: a soft key from the camera's side and a rim, at full detail), as anyone you talk to does: in the walkway's shade Gilda's face read flat, lit by the sky alone. |
@@ -78,7 +83,8 @@ and draw, and each keeper one more character (a palette, no new shader).
 
 | Hire | Starfish |
 | --- | --- |
-| **Auto** (house special) | 1 |
+| **Copilot Fusion** (house special) at **Standard** | 1 |
+| Copilot Fusion at **High** / **Max** | 2 / 3 (`house.levels[].price` +1 / +2) |
 | Lightweight model | 1 |
 | Versatile model | 2 |
 | Powerful model | 3 |
@@ -87,11 +93,11 @@ and draw, and each keeper one more character (a palette, no new shader).
 
 - **Refunds:** `refundFor` (`src/game/market/jobs.ts`) pays a right-sized hire its size's refund
   (`sizes.*.refund` in `market.json`: quick 0, hard 2), but never more than the hire less one: a right-sized job
-  always costs at least 1 starfish (Auto's 1 gets none back). The content check fails a refund that isn't less
+  always costs at least 1 starfish (Copilot Fusion's 1 at Standard gets none back). The content check fails a refund that isn't less
   than the cheapest right-sized model hire for its size.
 - **Spendable starfish:** `progress.starfishPurse`. Each starfish you pick up adds 1 (and still pays its
   doubloons). The market takes from it. It never goes below 0: a hire you can't afford doesn't pay, and the
-  button says "You need N starfish" with a hint to pick Auto or Lightweight (1 each).
+  button says "You need N starfish" with a hint to pick Copilot Fusion or Lightweight (1 each).
 - **Found counts don't change:** "found N of M" still counts the ids in `progress.starfish`.
 - **Old saves:** a save from before the market gets one to spend for each starfish it had found.
 - **The purse** shows the balance beside the island's found count: a jar with a starfish and "N to spend".
@@ -109,6 +115,10 @@ and draw, and each keeper one more character (a palette, no new shader).
 | Starfish to start with (best order) | 4 | 4 |
 | The economy check | 8 ≤ 12 (Anchorage and Meridian) | 4 ≤ 7 (the course's first island) |
 | Broke (0 starfish) | the keeper's "No starfish?" line; nothing to hire | the same; with 1 starfish a quick job is still right-sized (and leaves 0) |
+
+**After Copilot Fusion (2026-10-25):** a hard job's cheapest right-sized hire is Copilot Fusion at High
+(2 paid, 1 back: net 1, the same as Powerful on Default or Versatile on High). Every job at its fair hire
+still nets 4, and the first island's 7 starfish clear the board.
 
 **After the course's rule (2026-10-23):** Auto is right-sized on a hard job too, so every job's fair hire is Auto
 (1 starfish, none back): the board at its fair hires costs 4 and gets 0 back (net 4, as before), and needs 4 to
@@ -162,9 +172,10 @@ Each signboard shows **4** models of its category (`boardFor` in `src/game/marke
 4. The board lists them in the step-1 order. The overlay shows every other model in the category behind
    **"+N more"**.
 
-Today (github/docs `dae83f7`): Lightweight GPT-6 Luna, GPT-5.6 Luna, Claude Haiku 5.5, MAI-Code-1.1-Flash (+3);
-Versatile GPT-5.6 Terra, Claude Sonnet 5.5, GPT-5.4, Claude Sonnet 5 (+3); Powerful GPT-6.1 Sol, GPT-6 Astra,
-Claude Opus 5.5, Claude Fable 5.1 (+8).
+Today (github/docs `02c25d1`, which retired GPT-5 mini, GPT-5.4 mini, GPT-5.4 and GPT-5.5): Lightweight
+GPT-6 Luna, GPT-5.6 Luna, Claude Haiku 5.5, MAI-Code-1.1-Flash (+1); Versatile GPT-5.6 Terra, Claude Sonnet
+5.5, Claude Sonnet 5, Claude Sonnet 4.6 (+2); Powerful GPT-6.1 Sol, GPT-6 Astra, Claude Opus 5.5, Claude
+Fable 5.1 (+7).
 
 ### 4.3 A model that leaves the list
 
@@ -187,22 +198,30 @@ builds that commit and deploys it (it can still be run by hand).
 
 | Job (key) | Size | The course sentence on the work order |
 | --- | --- | --- |
-| 1 · Give the new deckhand a tour of the repo | Quick look | "For a repository tour or a short explanation, keep **Auto** or the current model and its default reasoning effort." (Models and Reasoning Effort) |
+| 1 · Give the new deckhand a tour of the repo | Quick look | "For a repository tour or a short explanation, use **Copilot Fusion** at **Standard**, or keep your current model and its default reasoning effort." (Models and Reasoning Effort) |
 | 2 · Explain how filterBooks searches | Quick look | "Keep the default for this simple question." (Try the Controls) |
-| 3 · Track down a difficult bug in the book app | Hard job | "For a difficult bug or a change across several files, consider a model suited to complex coding and a higher effort level." (Models and Reasoning Effort) |
+| 3 · Track down a difficult bug in the book app | Hard job | "For a difficult bug or a change across several files, consider a higher Fusion effort level or a model suited to complex coding." (Models and Reasoning Effort) |
 | 4 · Change the book app across several files | Hard job | The same sentence. |
 
 **Grading** (`grade` in `src/game/market/jobs.ts`), by the course's rule: "For a repository tour or a short
-explanation, keep **Auto** or the current model and its default reasoning effort. For a difficult bug or a change
-across several files, consider a model suited to complex coding and a higher effort level." The market can't
+explanation, use **Copilot Fusion** at **Standard**, or keep your current model and its default reasoning effort.
+For a difficult bug or a change across several files, consider a higher Fusion effort level or a model suited to
+complex coding." The course's Copilot Fusion table agrees: **Standard** for everyday coding tasks ("Start here
+for this course"), **High** for challenging tasks, **Max** for the most demanding ones. The market can't
 know your current model, so **any** model on its default (or low) effort counts as it; a bigger one only costs
 more starfish. Key Takeaway 5 says the same: "Keep the defaults for simple tasks; consider higher effort for
 complex work."
 
 | Job | Right-sized | Overspent | Fell short |
 | --- | --- | --- | --- |
-| Quick look | Auto; **any model on Low or Default** (Lightweight at the fair price; Versatile or Powerful `keep`: "your model on its default effort is fine", and it cost more) | **High effort** (any model) | never |
-| Hard job | **Auto** (`hardAuto`: it chose a model; "you can also turn Auto off, then pick a model and a higher effort", with a Retry to compare); Powerful on Default or High; Versatile on High | never | Lightweight (any); Versatile on Low or Default; Powerful on Low |
+| Quick look | Copilot Fusion at **Standard**; **any model on Low or Default** (Lightweight at the fair price; Versatile or Powerful `keep`: "your model on its default effort is fine", and it cost more) | **High effort** (any model); Copilot Fusion at **High** or **Max** (`overAuto`) | never |
+| Hard job | Copilot Fusion at **High** or **Max** (`hardAuto`, with a Retry to compare); Powerful on Default or High; Versatile on High | never | Copilot Fusion at **Standard**; Lightweight (any); Versatile on Low or Default; Powerful on Low |
+
+2026-10-25 (Copilot Fusion): before, Auto was right-sized on a hard job (it "chooses a model for your task",
+and its effort was hidden). Copilot Fusion has its own effort levels, and the course says to consider a higher
+one for a hard job, so the house special grades like a model: its base level falls short of a hard job (both
+Retries: a different model turns it off; more effort keeps it on, with its level to choose), and a higher level
+overspends on a quick look ("Higher levels can take longer and use more AI credits.").
 
 Before (2026-10-16 to 10-22): a quick look with Versatile or Powerful was Overspent ("Auto would've done it"), and
 Auto on a hard job Fell short. The course never says to use a light model for a quick look (its own screenshots
@@ -216,15 +235,20 @@ Each outcome quotes the course word for word (a unit test finds every quote in `
   and usage cost."
 - Fell short: the hard-job sentence and "If the agent's response doesn't work for you, you can retry it with a
   different model or reasoning effort without re-typing your prompt." (Try Again with a Different Model).
-- Right-sized with Auto on a hard job: the course's description of Auto, the hard-job sentence, and "If the
-  **Auto** switch is on, these settings are hidden. Turn it off to see them."
-- Right-sized: the job's sentence (and, after Auto, the course's description of Auto); a hard job also gets
+- Right-sized with Copilot Fusion above Standard on a hard job: the hard-job sentence, "These levels guide
+  Copilot Fusion's model choices. They are not the reasoning settings of one fixed model." and "Higher effort
+  does not guarantee a correct answer."
+- Fell short with Copilot Fusion at Standard: the hard-job sentence, the levels sentence and the Retry one.
+- Overspent with Copilot Fusion above Standard on a quick look: "Higher levels can take longer and use more AI
+  credits." and the job's sentence.
+- Right-sized: the job's sentence (and, after Copilot Fusion at Standard, the course's description of it); a
+  hard job also gets
   "Higher effort does not guarantee a correct answer."
 - Every **hard job's work order** also shows "You do not need a specific model for this course." and "Available
   models, effort levels, and context window sizes vary." (`sizes.hard.quotes` in `market.json`).
 
-**Auto** is explained with the course's words: the app chooses a model and shows which one it picked and why, and
-it's different from **Autopilot**.
+**Copilot Fusion** is explained with the course's words (Copilot Fusion): it "is not a single model. It selects
+models and a workflow for each request, then returns one response.", and it's different from **Autopilot**.
 
 **Retry** (after a hard job: **Fell short** offers a different model or more effort; **Right-sized** offers a
 different model, to compare) opens the work order for the same job (you don't write it again), with the picker
@@ -232,10 +256,12 @@ it's about live and **nothing chosen in it**, so you choose the different model 
 `usedLastTime`, `effortLastTime`, `retryChanges` in `jobs.ts`):
 
 - **Retry: a different model** (R, X on a pad): no model picked; the model that fell short is marked "Last
-  time" and can't be picked again (its category's other models can, and Auto can). The effort stays as it was.
+  time" and can't be picked again (its category's other models can, and Copilot Fusion can). The effort stays as it was.
 - **Retry: more effort** (E, A on a pad): the same model, the effort dial live with nothing chosen, last time's
   effort marked "Last time" (and not taken again on that model). The model picker stays open too.
-- **After Auto**, either Retry turns Auto off, and the model picker is live (Auto's marked "Last time").
+- **After Copilot Fusion**, Retry: a different model turns it off, and the model picker is live (Copilot
+  Fusion's marked "Last time"); Retry: more effort keeps it on with its levels live and nothing chosen (last
+  time's level marked "Last time").
 
 Until you've chosen, the work order shows "Choose a model" (or "Choose an effort") in the tally, the button says
 **Choose a different model** (or **Choose an effort**) and signing does nothing but say so; the live picker has
@@ -256,9 +282,10 @@ A parchment work order (the chart label's `paper.webp`, 9-sliced) with three scr
 
 1. **The board:** the three categories with their size marks (■□□ ■■□ ■■■), prices, the board's names and
    "+N more"; the House special; the jobs board (1-4).
-2. **The hire:** the work order and what the course says; **1 · Pick a model** (Auto, Lightweight, Versatile,
-   Powerful, then a name with its task area from GitHub Docs); **2 · Set the effort dial** (a gauge, and Low,
-   Default, High; hidden with Auto, as in the app); the tally and your purse; **Sign & pay**.
+2. **The hire:** the work order and what the course says; **1 · Pick a model** (Copilot Fusion, Lightweight,
+   Versatile, Powerful, then a name with its task area from GitHub Docs); **2 · Set the effort dial** (a gauge,
+   and Low, Default, High; with Copilot Fusion, **2 · Set the effort level**: Standard, High, Max, as its
+   **Effort level** in the app); the tally and your purse; **Sign & pay**.
 3. **The result:** the stamp, what happened, what the keeper says, the course's sentences, the refund (or "you
    paid a fair price"), and **Got it**, or after a hard job **Retry: a different model** (and, after Fell short,
    **Retry: more effort**; §5: the work order opens again with that picker live and nothing chosen).
@@ -289,7 +316,7 @@ again is labelled for screen readers ("GPT-6 Luna: hired last time, pick another
   teaches models up at the observatory…", "…Oren teaches them on Port Meridian. Come back after his lesson."), the
   work order stays shut, there's no hello, no chart label and no Wingman hint. Before 2026-10-23 Desmond's stall
   graded the jobs on Anchorage, before Chapter 01 was taught.
-- **Oren's practice** (Q1.6's hands-on step): Oren teaches the model control, Auto, effort and Try the Controls,
+- **Oren's practice** (Q1.6's hands-on step): Oren teaches the model control, Copilot Fusion, effort and Try the Controls,
   then sends you down to Gilda (Q1.6 → `market`; the compass points at her counter). While `lesson.practice` holds,
   her stall runs the practice: **a quick look right-sized** (or one already done in the save) and **a hard job,
   then its Retry** (whatever the first hire's grade). She stakes the starfish (§3). When both are done, the stall
@@ -326,26 +353,27 @@ calm, mature man (its description: "unmistakably Jamaican without sounding exagg
 `desmond.market.*`. Lani (Thousand-Bough): "Kalala – Calm & Friendly Pacific" (`sxEoZ67pB0EMoWOZZ37G`), a warm,
 calm Pacific woman's voice; lines `tb.lani.market.*`. Each keeper says every line in their own voice and words:
 their own version of each of Gilda's (`hello`, `open`, `auto`, `right`, `fair`, `keep`, `overEffort`, `short`,
-`hardAuto`, `broke`, `done`, `early`, with the same teaching and the same `source` citations, never naming her or
+`hardAuto`, `overAuto`, `broke`, `done`, `early`, with the same teaching and the same `source` citations, never naming her or
 her stall), plus a goodbye (`bye`), so a stall never plays Gilda's voice. `practiced` is Gilda's alone (only her
 stall runs Oren's practice). 2026-10-23: `over` and `shortAuto` (the old grades) became `keep` and `hardAuto`, and
 `early` and `practiced` are new (`mer.market.keep`, `.hard.auto`, `.early`, `.practiced`; `desmond.market.keep`,
-`.hard.auto`, `.early`; `tb.lani.market.keep`, `.hard.auto`, `.early`). The grading returns which moment it is
-(`Feedback.key`), and each stall says its keeper's line for it.
+`.hard.auto`, `.early`; `tb.lani.market.keep`, `.hard.auto`, `.early`). 2026-10-25: `auto` and `hardAuto` say Copilot Fusion now, and `overAuto` is new
+(`mer.market.over.auto`, `desmond.market.over.auto`, `tb.lani.market.over.auto`, `kh.bram.market.over.auto`).
+The grading returns which moment it is (`Feedback.key`), and each stall says its keeper's line for it.
 
 ## 9. Tests
 
 - `src/game/market/market.test.ts`: the sync's parsing and filtering (fixture in `tools/models/fixtures/`), the
-  board rule, `courses/copilot-app/models.json`, prices, every grade path (quick: Auto, each category on Low and
-  Default, each on High; hard: Auto, each category at each effort), each outcome's stamp, line, quotes and Retry,
+  board rule, `courses/copilot-app/models.json`, prices, every grade path (quick: Copilot Fusion at each level, each category on Low and
+  Default, each on High; hard: Copilot Fusion at each level, each category at each effort), each outcome's stamp, line, quotes and Retry,
   the hard jobs' "no specific model" quotes, refunds (always less than the hire),
-  the Retry plan (nothing chosen; last time's model or effort can't be taken again; Auto off after Auto), the
+  the Retry plan (nothing chosen; last time's model or effort can't be taken again; Copilot Fusion off after it for a different model, its levels open for more effort), the
   purse (earn, spend, never below 0, old-save migration), saved hires (a model that left the list), every quote is
   the course's, and the market at every stall (a stall per island, only Gilda's runs the story; a Retry with real
   picks; one board and one purse across stalls; every keeper voices every line in their own voice; jobs cleared at
   another stall leave `Q1.A` open and the page unfiled until you visit Gilda, who then finishes it; every stall
   holds off before the lesson with its keeper's `early` line; Oren's practice with an empty purse (the stake, an
-  overspent quick look that doesn't count, a right-sized one that does, Auto on a hard job and its Retry, Q1.6 →
+  overspent quick look that doesn't count, a right-sized one that does, Copilot Fusion at High on a hard job and its Retry, Q1.6 →
   `practiced` and Gilda's line, the stake stopping); the practice only at Gilda's, a quick look in the save
   counting; broke after the lesson).
 - `src/content/content.test.ts`: `courses/copilot-app/market.json` against its schema; every quote word for word in its
@@ -361,7 +389,7 @@ stall runs Oren's practice). 2026-10-23: `over` and `shortAuto` (the old grades)
 - `tools/meridiantest.mjs`: Gilda's counter before Oren (her `early` line, the work order shut), then Oren's
   practice with real keys and an empty purse (the stake; a quick job right-sized, one overspent with High effort,
   one right-sized with a Powerful model on Default; a hard job that falls short and its Retry with a different
-  model, picked by hand, which finishes the practice; one retried with more effort; one with Auto and its Retry
+  model, picked by hand, which finishes the practice; one retried with more effort; one with Copilot Fusion at High and its Retry
   offered), reloads Meridian and checks the save and the notes, then Oren's debrief.
 - `tools/video/scenarios/model-market.mjs` (Gilda's) and `model-market-stalls.mjs` (Desmond's Retry, then the
   same purse at Lani's): video scenarios.

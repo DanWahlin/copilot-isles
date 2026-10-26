@@ -166,7 +166,12 @@ spec, PLAN §3 and PLAN §4 now use the course's words.
 | `human-judgment-loop` | `pg3.agent-merge` | No app UI; no Octocat, no Copilot logo |
 | `shared/assignment` | `pg3.assignment` | In the snapshot |
 
-**The stale-screenshot rule.** Six Chapter 03 screenshots (marked above) show the left sidebar before
+**Retaken (2026-10-25, issue row 320).** The course retook all six at `f24b521`; the snapshot takes them,
+the new `app-filter-repo` (the query filter, callouts 1–3) is on Stroud's spyglass, and H3.1 (Dory, the four
+passing tests in **Terminal**) and H3.2 (Arlo, the failed **Book app web** check) are measured on them. Rules
+1–3 below still hold for the new pictures, and `ch03.test.ts` checks them.
+
+**The stale-screenshot rule (before 2026-10-25).** Six Chapter 03 screenshots (marked above) show the left sidebar before
 app 1.1.30: a **Projects** heading and a **More** row. App 1.1.30 calls the heading **Sessions** and has
 no **More** (upstream commit `036c19b`). Upstream issue github/copilot-app-for-beginners#50 listed only
 the Chapter 00–01 images; a comment of 2026-10-24 adds the six Chapter 03 ones (O9). Chapter 03's text does not name the sidebar heading, so the text and the
@@ -1774,6 +1779,10 @@ filter", which both texts say. A trial sync to `f24b521` gives 45 Chapter 03 ent
 changed, no quote or objective that is not word for word, and no UI name that the chapter does not
 mention. The weekly refresh must update those hashes and unpin the six screenshots (they are retaken
 upstream without the old sidebar).
+
+**Done (2026-10-25, branch `danwahlin-course-refresh-fusion`, issue row 320):** the snapshot is `f24b521`;
+the six screenshots are unpinned; **Toggle Panel**, **Query filter mode** with a `repo:` term, and "If the
+**Review plan** box stays open, select **Continue**" are in the pages and app cards; H3.1 and H3.2 are in.
 
 ### W.12 As wired (branch `danwahlin-keelhaven-wiring`)
 

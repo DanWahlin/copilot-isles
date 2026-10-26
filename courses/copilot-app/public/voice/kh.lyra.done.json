@@ -5,58 +5,58 @@
   "words": [
     {
       "word": "Listen",
-      "start": 0.052625,
-      "end": 0.631583
+      "start": 0,
+      "end": 0.8
     },
     {
       "word": "adjust",
-      "start": 0.631583,
-      "end": 1.328958
+      "start": 0.8,
+      "end": 1.568
     },
     {
       "word": "play",
-      "start": 1.328958,
-      "end": 1.697375
+      "start": 1.568,
+      "end": 1.787
     },
     {
       "word": "it",
-      "start": 1.697375,
-      "end": 1.763166
+      "start": 1.787,
+      "end": 1.92
     },
     {
       "word": "again",
-      "start": 1.763166,
-      "end": 3.157875
+      "start": 1.92,
+      "end": 2.624
     },
     {
       "word": "That",
-      "start": 3.157875,
-      "end": 3.368416
+      "start": 2.624,
+      "end": 3.6
     },
     {
       "word": "tune",
-      "start": 3.368416,
-      "end": 3.763166
+      "start": 3.6,
+      "end": 3.973
     },
     {
       "word": "never",
-      "start": 3.763166,
-      "end": 4.065791
+      "start": 3.973,
+      "end": 4.288
     },
     {
       "word": "gets",
-      "start": 4.065791,
-      "end": 4.342125
+      "start": 4.288,
+      "end": 4.54
     },
     {
       "word": "old",
-      "start": 4.342125,
-      "end": 4.947375
+      "start": 4.54,
+      "end": 4.86
     },
     {
       "word": "Captain",
-      "start": 4.947375,
-      "end": 5.197375
+      "start": 4.86,
+      "end": 5.11
     }
   ]
 }

@@ -5,103 +5,103 @@
   "words": [
     {
       "word": "Ah",
-      "start": 0.052625,
-      "end": 0.407875
+      "start": 0,
+      "end": 0.28
     },
     {
       "word": "the",
-      "start": 0.407875,
-      "end": 0.578958
+      "start": 0.28,
+      "end": 0.44
     },
     {
       "word": "new",
-      "start": 0.578958,
-      "end": 0.868416
+      "start": 0.44,
+      "end": 0.63
     },
     {
       "word": "captain",
-      "start": 0.868416,
-      "end": 2.447375
+      "start": 0.63,
+      "end": 1.47
     },
     {
       "word": "Sit",
-      "start": 2.447375,
-      "end": 2.710541
+      "start": 1.47,
+      "end": 1.72
     },
     {
       "word": "a",
-      "start": 2.710541,
-      "end": 2.802625
+      "start": 1.72,
+      "end": 1.806
     },
     {
       "word": "moment",
-      "start": 2.802625,
-      "end": 4.39475
+      "start": 1.806,
+      "end": 2.56
     },
     {
       "word": "The",
-      "start": 4.39475,
-      "end": 4.486833
+      "start": 2.56,
+      "end": 3.566
     },
     {
       "word": "course",
-      "start": 4.486833,
-      "end": 4.842125
+      "start": 3.566,
+      "end": 3.86
     },
     {
       "word": "you’re",
-      "start": 4.842125,
-      "end": 5.078958
+      "start": 3.86,
+      "end": 4.13
     },
     {
       "word": "sailing",
-      "start": 5.078958,
-      "end": 5.618416
+      "start": 4.13,
+      "end": 4.52
     },
     {
       "word": "has",
-      "start": 5.618416,
-      "end": 5.828958
+      "start": 4.52,
+      "end": 4.72
     },
     {
       "word": "a",
-      "start": 5.828958,
-      "end": 5.934208
+      "start": 4.72,
+      "end": 4.864
     },
     {
       "word": "song",
-      "start": 5.934208,
-      "end": 6.25
+      "start": 4.864,
+      "end": 5.15
     },
     {
       "word": "running",
-      "start": 6.25,
-      "end": 6.618416
+      "start": 5.15,
+      "end": 5.39
     },
     {
       "word": "through",
-      "start": 6.618416,
-      "end": 6.907875
+      "start": 5.39,
+      "end": 5.653
     },
     {
       "word": "it",
-      "start": 6.907875,
-      "end": 7.657875
+      "start": 5.653,
+      "end": 6.36
     },
     {
       "word": "a",
-      "start": 7.657875,
-      "end": 7.85525
+      "start": 6.36,
+      "end": 6.504
     },
     {
       "word": "recording",
-      "start": 7.85525,
-      "end": 8.368416
+      "start": 6.504,
+      "end": 6.8
     },
     {
       "word": "studio",
-      "start": 8.368416,
-      "end": 8.618416
+      "start": 6.8,
+      "end": 7.05
     }
   ]
 }

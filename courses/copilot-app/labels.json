@@ -103,20 +103,20 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "settings",
-        "hash": "49fadf6d109a"
+        "hash": "4c5198f8635b"
       }
     },
     "puzzle:market": {
       "game": "puzzle",
       "k": "Port Meridian · The Model Market",
       "t": "Hire a model that fits the job",
-      "b": "For a quick look, keep Auto or your model on its default effort. For hard work, consider a stronger model and more effort.",
+      "b": "Quick look: Copilot Fusion at Standard, or your model at its default effort. Hard work: a higher Fusion level or a stronger model.",
       "ch": "01",
       "c": "Models and Reasoning Effort",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "hash": "0f81a0a94c0c"
       }
     },
     "puzzle:P2.1": {
@@ -183,7 +183,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "key-takeaways",
-        "hash": "863dccd1b579"
+        "hash": "b74b93cb51b2"
       }
     },
     "arrival:keelhaven": {
@@ -209,7 +209,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "inner-loop-develop-and-validate-on-your-machine",
-        "hash": "77f6c9aa2f53"
+        "hash": "10a0fe3998b5"
       }
     },
     "puzzle:P3.2": {
@@ -222,7 +222,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "outer-loop-move-the-work-through-github",
-        "hash": "07e5691870a8"
+        "hash": "fe635c153065"
       }
     }
   }

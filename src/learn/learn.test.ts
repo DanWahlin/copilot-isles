@@ -28,11 +28,11 @@ describe('grade', () => {
   });
 
   it('grades hotspots by point, picking the target under the click', () => {
-    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.184, y: 0.356 })).toMatchObject({
+    expect(grade(q('H0.2'), { type: 'hotspot', x: 0.22, y: 0.428 })).toMatchObject({
       correct: true,
       hit: 'projects-plus',
     });
-    const prompt = grade(q('H0.2'), { type: 'hotspot', x: 0.341, y: 0.506 });
+    const prompt = grade(q('H0.2'), { type: 'hotspot', x: 0.304, y: 0.505 });
     expect(prompt).toMatchObject({ correct: false, hit: 'prompt-plus' });
     expect(prompt.feedback).toContain('prompt box');
     expect(grade(q('H0.2'), { type: 'hotspot', x: 0.9, y: 0.9 })).toMatchObject({

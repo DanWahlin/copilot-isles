@@ -13,18 +13,18 @@
     {
       "id": "shared/app-github-copilot-app",
       "src": "course/shared/app-github-copilot-app.webp",
-      "hash": "371d5ae374bc",
+      "hash": "daa76eb25427",
       "width": 1920,
       "height": 1080,
-      "alt": "The GitHub Copilot app New view from before app 1.1.30: New, Pull requests, Issues, Automations, Customize and More in the sidebar, an empty Projects list (the app calls it Sessions now), and the prompt box with Chat below it"
+      "alt": "The GitHub Copilot app New view: New, Pull requests, Issues, Dashboards, Automations and Customize in the sidebar, an empty Sessions list, and the prompt box with Copilot Fusion · Standard and Chat below it"
     },
     {
       "id": "ch00/app-add-project",
       "src": "course/ch00/app-add-project.webp",
-      "hash": "faf03f246231",
+      "hash": "ad8ec6afd4ba",
       "width": 1920,
       "height": 1080,
-      "alt": "The sidebar's + menu open, from before app 1.1.30 (its Projects heading is Sessions now), with callouts on the + (1) and Add GitHub repository (2), between Chat above and Clone repository and Open folder below"
+      "alt": "The sidebar's + menu next to Sessions open, with callouts on the + (1) and Add GitHub repository (2), between Chat above and Clone repository and Open folder below"
     },
     {
       "id": "ch00/app-current-checkout-workspace-selector",
@@ -45,10 +45,10 @@
     {
       "id": "shared/app-review-panel",
       "src": "course/shared/app-review-panel.webp",
-      "hash": "999a405eeb53",
-      "width": 1570,
+      "hash": "8f01fda93c06",
+      "width": 1453,
       "height": 1080,
-      "alt": "A project session: the conversation and prompt box on the left, and the review panel on the right with its Terminal tab and + highlighted"
+      "alt": "A project session: the conversation and prompt box on the left, and the review panel on the right, highlighted, with its Terminal tab, its + and four passing tests"
     }
   ],
   "quizzes": [
@@ -100,45 +100,45 @@
       "targets": [
         {
           "id": "projects-plus",
-          "rect": [0.175, 0.34074074074074073, 0.017708333333333333, 0.03148148148148148],
+          "rect": [0.211458, 0.412963, 0.016667, 0.031481],
           "label": "+ next to Sessions",
           "correct": true
         },
         {
           "id": "prompt-plus",
-          "rect": [0.33229166666666665, 0.49166666666666664, 0.016666666666666666, 0.02962962962962963],
+          "rect": [0.295833, 0.486111, 0.016667, 0.037037],
           "label": "+ in the prompt box",
-          "feedback": "That **+** belongs to the prompt box. The heading above your projects has its own **+** in the sidebar."
+          "feedback": "That **+** belongs to the prompt box. The **Sessions** heading has its own **+** in the sidebar."
         },
         {
           "id": "new",
-          "rect": [0.005208333333333333, 0.07037037037037037, 0.19166666666666668, 0.03888888888888889],
+          "rect": [0.005208, 0.083333, 0.230208, 0.048148],
           "label": "New",
-          "feedback": "**New** starts new work. Adding a project starts from the heading above your projects."
+          "feedback": "**New** starts new work. Adding a project starts from the **Sessions** heading."
         },
         {
           "id": "customize",
-          "rect": [0.005208333333333333, 0.23425925925925925, 0.19166666666666668, 0.03888888888888889],
+          "rect": [0.005208, 0.331481, 0.230208, 0.048148],
           "label": "Customize",
-          "feedback": "**Customize** is where you extend the app. Look beside the heading above your projects."
+          "feedback": "**Customize** is where you extend the app. Look beside the **Sessions** heading."
         }
       ],
       "explain": {
-        "correct": "Right! The **+** next to **Sessions** opens the menu for adding a project. This picture’s from an older app version, where that heading read **Projects**.",
-        "wrong": "Close! Look for the **+** beside the heading above your projects: **Sessions** in the app, **Projects** in this older picture."
+        "correct": "Right! The **+** next to **Sessions** opens the menu for adding a project.",
+        "wrong": "Close! Look for the **+** beside the **Sessions** heading in the sidebar."
       },
       "hints": [
         "Your projects live in the sidebar.",
-        "Find the heading above your projects. It’s **Sessions** in the app (this picture still says **Projects**). There’s a small button beside it.",
-        "Select the **+** to the right of that heading."
+        "Find the **Sessions** heading in the sidebar. There’s a small button beside it.",
+        "Select the **+** to the right of **Sessions**."
       ],
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97",
+        "hash": "39e180f24372",
         "image": {
           "src": "course/shared/app-github-copilot-app.webp",
-          "hash": "371d5ae374bc"
+          "hash": "daa76eb25427"
         }
       }
     },
@@ -171,7 +171,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       }
     },
     {
@@ -219,7 +219,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14",
+        "hash": "8f3efb0f005a",
         "image": {
           "src": "course/ch00/app-current-checkout-workspace-selector.webp",
           "hash": "9685f68887a9"
@@ -260,7 +260,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -297,7 +297,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -360,7 +360,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       }
     },
     {
@@ -416,7 +416,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -586,7 +586,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -688,7 +688,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -799,18 +799,18 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       }
     },
     {
       "id": "C0.4",
       "title": "Add your fork",
       "image": "ch00/app-add-project",
-      "caption": "**+** next to **Sessions** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have your fork’s URL? **Clone repository**, paste it in **Repository URL**, then select **Clone**. If the app says Git is missing, install Git and try again. This picture’s from an older app version, where **Sessions** was called **Projects**.",
+      "caption": "**+** next to **Sessions** → **Add GitHub repository**, search for `copilot-app-for-beginners`, and pick your fork, not the original. Already have a local copy? **Open folder**. Have your fork’s URL? **Clone repository**, paste it in **Repository URL**, then select **Clone**. If the app says Git is missing, install Git and try again.",
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       }
     },
     {
@@ -822,19 +822,19 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
       "id": "pg.terminal",
       "title": "Terminal in the app",
       "image": "shared/app-review-panel",
-      "caption": "Select **View → Toggle Review Panel**, then **Terminal**. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Each check should print a version. For `node -v`, compare the first number with the **LTS** on the [Node.js download page](https://nodejs.org/en/download): lower means install the LTS. Install only what’s missing, then run the checks again. On Windows, if PowerShell won’t load `npm.ps1`, use `npm.cmd` in place of `npm`, or, if your organization allows it, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`. Requests to the agent go in the prompt box.",
+      "caption": "Select **View → Toggle Panel**, then **Terminal**. No tab? Select **+**, then **Terminal**. Commands run here: the version checks, `gh auth status`, and the setup script. Each check should print a version. For `node -v`, compare the first number with the **LTS** on the [Node.js download page](https://nodejs.org/en/download): lower means install the LTS. Install only what’s missing, then run the checks again. On Windows, if PowerShell won’t load `npm.ps1`, use `npm.cmd` in place of `npm`, or, if your organization allows it, run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`. Requests to the agent go in the prompt box.",
       "code": "git --version\nnode -v\nnpm -v\ngh --version\ngh auth status   # signed in as the account that owns your fork?\ngh auth login    # if not: GitHub.com → Login with a web browser",
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -1002,7 +1002,7 @@
     {
       "id": "review-panel",
       "term": "Review panel",
-      "definition": "The app’s side panel, with tabs such as Changes and Terminal. Open it with View → Toggle Review Panel."
+      "definition": "The app’s side panel, with tabs such as Changes and Terminal. Open it with View → Toggle Panel."
     },
     {
       "id": "github-actions",
@@ -1055,62 +1055,62 @@
     "nell.papers.06": {
       "chapter": "01-tour-the-app",
       "anchor": "settings",
-      "hash": "49fadf6d109a"
+      "hash": "4c5198f8635b"
     },
     "ezra.fork.01": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "hash": "39e180f24372"
     },
     "ezra.fork.02": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "hash": "39e180f24372"
     },
     "ezra.fork.03": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "hash": "39e180f24372"
     },
     "ezra.fork.careful": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "hash": "39e180f24372"
     },
     "bo.deck.01": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.deck.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.deck.03": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.gear.brief.01": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.gear.brief.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.gear.brief.03": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.gear.checked.02": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "pim.brief.01": {
       "chapter": "00-setup",
@@ -1195,7 +1195,7 @@
     "pim.solved.fork": {
       "chapter": "00-setup",
       "anchor": "connect-to-your-repository",
-      "hash": "fda261a1fa97"
+      "hash": "39e180f24372"
     },
     "pol.refuse.actions.01": {
       "chapter": "00-setup",
@@ -1240,12 +1240,12 @@
     "bo.deck.rack": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "bo.gear.lts": {
       "chapter": "00-setup",
       "anchor": "check-your-tools-in-terminal",
-      "hash": "a098a1855e14"
+      "hash": "8f3efb0f005a"
     },
     "pol.solved.issues": {
       "chapter": "00-setup",
@@ -1344,7 +1344,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     "gear.rack.lantern": {
@@ -1352,7 +1352,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     "gear.rack.rope.windows": {
@@ -1360,7 +1360,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     "gear.rack.signedIn": {
@@ -1368,7 +1368,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     "P0.1.signs": {

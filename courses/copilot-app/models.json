@@ -2,8 +2,8 @@
   "source": {
     "repo": "github/docs",
     "path": "data/tables/copilot",
-    "commit": "dae83f7d28f3b8e10015bd6b6d8b72267cedceca",
-    "fetchedAt": "2026-10-16T22:36:34.864Z"
+    "commit": "02c25d16369fe27f9bdb28d1201f6b452f0d21dd",
+    "fetchedAt": "2026-10-25T21:52:41.676Z"
   },
   "models": [
     {
@@ -13,24 +13,6 @@
       "category": "Lightweight",
       "taskArea": "Fast help with simple or repetitive tasks",
       "excelsAt": "Fast, reliable answers to lightweight coding questions",
-      "ga": true
-    },
-    {
-      "name": "GPT-5 mini",
-      "provider": "openai",
-      "family": "GPT",
-      "category": "Lightweight",
-      "taskArea": "General-purpose coding and writing",
-      "excelsAt": "Fast, accurate code completions and explanations",
-      "ga": true
-    },
-    {
-      "name": "GPT-5.4 mini",
-      "provider": "openai",
-      "family": "GPT",
-      "category": "Lightweight",
-      "taskArea": "Agentic software development",
-      "excelsAt": "Codebase exploration and is especially effective when using grep-style tools",
       "ga": true
     },
     {
@@ -115,15 +97,6 @@
       "ga": true
     },
     {
-      "name": "GPT-5.4",
-      "provider": "openai",
-      "family": "GPT",
-      "category": "Versatile",
-      "taskArea": "Deep reasoning and debugging",
-      "excelsAt": "Multi-step problem solving and architecture-level code analysis",
-      "ga": true
-    },
-    {
       "name": "GPT-5.6 Terra",
       "provider": "openai",
       "family": "GPT",
@@ -193,15 +166,6 @@
       "category": "Powerful",
       "taskArea": "Agentic software development",
       "excelsAt": "Agentic tasks",
-      "ga": true
-    },
-    {
-      "name": "GPT-5.5",
-      "provider": "openai",
-      "family": "GPT",
-      "category": "Powerful",
-      "taskArea": "Deep reasoning and debugging",
-      "excelsAt": "Multi-step problem solving and architecture-level code analysis",
       "ga": true
     },
     {

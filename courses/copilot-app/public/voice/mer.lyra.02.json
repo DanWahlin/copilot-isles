@@ -5,98 +5,98 @@
   "words": [
     {
       "word": "A",
-      "start": 0.052625,
-      "end": 0.131583
+      "start": 0,
+      "end": 0.124
     },
     {
       "word": "producer",
-      "start": 0.131583,
-      "end": 0.75
+      "start": 0.124,
+      "end": 0.507
     },
     {
       "word": "doesn’t",
-      "start": 0.75,
-      "end": 1.131583
+      "start": 0.507,
+      "end": 0.78
     },
     {
       "word": "run",
-      "start": 1.131583,
-      "end": 1.64475
+      "start": 0.78,
+      "end": 1.027
     },
     {
       "word": "every",
-      "start": 1.64475,
-      "end": 1.986833
+      "start": 1.027,
+      "end": 1.424
     },
     {
       "word": "take",
-      "start": 1.986833,
-      "end": 2.25
+      "start": 1.424,
+      "end": 1.72
     },
     {
       "word": "the",
-      "start": 2.25,
-      "end": 2.368416
+      "start": 1.72,
+      "end": 1.888
     },
     {
       "word": "same",
-      "start": 2.368416,
-      "end": 2.697375
+      "start": 1.888,
+      "end": 2.14
     },
     {
       "word": "way",
-      "start": 2.697375,
-      "end": 4.131583
+      "start": 2.14,
+      "end": 2.704
     },
     {
       "word": "Some",
-      "start": 4.131583,
-      "end": 4.473666
+      "start": 2.704,
+      "end": 3.648
     },
     {
       "word": "need",
-      "start": 4.473666,
-      "end": 4.802625
+      "start": 3.648,
+      "end": 3.907
     },
     {
       "word": "close",
-      "start": 4.802625,
-      "end": 5.197375
+      "start": 3.907,
+      "end": 4.288
     },
     {
       "word": "direction",
-      "start": 5.197375,
-      "end": 6.960541
+      "start": 4.288,
+      "end": 4.848
     },
     {
       "word": "Some",
-      "start": 6.960541,
-      "end": 7.328958
+      "start": 4.848,
+      "end": 5.392
     },
     {
       "word": "need",
-      "start": 7.328958,
-      "end": 7.618416
+      "start": 5.392,
+      "end": 5.54
     },
     {
       "word": "the",
-      "start": 7.618416,
-      "end": 7.789458
+      "start": 5.54,
+      "end": 5.653
     },
     {
       "word": "arrangement",
-      "start": 7.789458,
-      "end": 8.434208
+      "start": 5.653,
+      "end": 6.293
     },
     {
       "word": "charted",
-      "start": 8.434208,
-      "end": 8.973666
+      "start": 6.293,
+      "end": 6.707
     },
     {
       "word": "first",
-      "start": 8.973666,
-      "end": 9.223666
+      "start": 6.707,
+      "end": 6.957
     }
   ]
 }

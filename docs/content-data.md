@@ -21,7 +21,7 @@ Chapter 00, captions only). To add one, see [Adding a course](adding-a-course.md
 | `learning.json` (optional) | The learning systems: the real-app tasks scripts hand off ("Do this in the app" cards and the Logbook's App checklist), each chapter's learning objectives and what covers them (the Course map), the reflection before each Seal, and a finished quest's Logbook line until its app tasks are confirmed (`learned`) | You, by hand | `src/learn/learning.ts` |
 | `labels.json` | Chart labels: what you learn at an island, a puzzle or a sea battle (docs/specs/LOWER-THIRDS.md) | You, by hand | `src/learn/content/labels.ts` |
 | `boards.json` | The course notice boards' header and pin text, and the `##` sections that aren't topics | You, by hand | `src/content/course-boards.ts` |
-| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the Auto price and the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' own version of each (and a goodbye) | You, by hand | `src/content/market.ts` |
+| `market.json` (optional) | The Model Market: model categories (order, price, tagline), effort levels (label, price), the house special (its price and its own effort levels), the price cap, refunds and doubloons by job size, the board rule's numbers (`board.size`, `board.perFamily`), the stamps, the course quotes, the jobs on the market's board, Gilda's lines, and the other stalls' keepers' own version of each (and a goodbye) | You, by hand | `src/content/market.ts` |
 | `models.json` (optional) | The Model Market's model names, categories and task areas, from GitHub Docs | `npm run models:sync` (`models-refresh.yml`) | `src/game/market/models.ts` |
 | `lock.json` | The bundled course snapshot: its commit and a hash for each section and image. The boards' topics come from it | `npm run course:sync` (`weekly-refresh.yml`) | `src/learn/course/lock.ts` |
 | `voice/lines.json` | Every voice line: id, speaker and text (the caption), and anything that's the line's own (a prosody, a `sub`); `"pending": true` on a line written before its voice is chosen | You, by hand ([voices.md](voices.md)) | `tools/voice/lines.ts` |
@@ -244,14 +244,18 @@ so VS Code and other editors check your edit as you type and show each field's d
 
 - **Categories** are your model categories (models.json names them), smallest first, each bound to a
   size the grading reads (`"acts"`: `small`, `medium`, `large`, in that order): a quick look is
-  right-sized with Auto or any size on its default (or low) effort (only high effort overspends); a hard
-  job wants Auto, a large one, or a medium one on high effort.
+  right-sized with the house special at its base level or any size on its default (or low) effort (a
+  higher house level or high effort overspends); a hard job wants the house special above its base, a
+  large one, or a medium one on high effort.
+- **`house`** is the house special, the app's own pick (Copilot Fusion in this course): its `price` and
+  its own effort `levels`, lowest first (`standard`, `high`, `max`). The first level is its base. A level's
+  `id` is saved in players' progress, so don't rename it.
 - **Prices** are starfish. `categories[].price` must go up from the smallest to the largest. A hire costs
-  its category's price plus its effort's price, up to `maxPrice` (at most 4). Auto costs `autoPrice`.
+  its category's price plus its effort's price, up to `maxPrice` (at most 4). The house special costs `house.price` plus its level's price.
 - **Refunds** (`sizes.quick.refund`, `sizes.hard.refund`) are paid for a right-sized hire. A refund must be
   less than the cheapest right-sized model hire for that size, so a right-sized job always costs at least 1
-  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price (Auto's 1 gets
-  none back). `sizes.*.quotes` (optional) are keys of `quotes` every work order of that size shows after
+  starfish (today: quick 0, hard 2). The game also never pays back a hire's whole price (the house special's 1 at
+  its base gets none back). `sizes.*.quotes` (optional) are keys of `quotes` every work order of that size shows after
   its job's `why` (today the hard jobs': `noSpecific`, `vary`).
 - **Doubloons** (`sizes.*.doubloons`) are paid the first time a job is done right-sized.
 - **`board`**: how many model names each signboard shows, and how many of one family it takes before
@@ -259,15 +263,15 @@ so VS Code and other editors check your edit as you type and show each field's d
 - **Quotes** are course sentences, word for word (`**bold**` included), with the section they're from:
   `chapter`, `anchor` and `hash`. Get the anchor and hash from `npm run course:refs -- 01`. The overlay
   shows the section's title from the course lock. The keys the grading and the work order use (`cost`,
-  `effort`, `hard`, `noGuarantee`, `auto`, `autoAside`, `autoHidden`, `retry`, `noSpecific`, `vary`)
+  `effort`, `hard`, `noGuarantee`, `auto`, `autoAside`, `autoLevels`, `autoMore`, `retry`, `noSpecific`, `vary`)
   must stay.
 - **Jobs** (at most four: the cork board has four spots) name a quote key in `why`. A job's `id` is
   saved in players' progress, so don't rename it.
 - **Gilda's lines** (`gilda.*`) have a `voice` (the line's id in the pack's `voice/lines.json`), the
   `text` shown as her caption, and, for a teaching line, the course `source` it paraphrases (the drift
   report checks it). `right` is for a right-sized hire with starfish back, `fair` for one with none,
-  `keep` for a quick look right-sized with a bigger model on its default effort, `hardAuto` for a hard job
-  done with Auto, and `early` for the counter before the course's model lesson. `practiced` (Gilda's
+  `keep` for a quick look right-sized with a bigger model on its default effort, `overAuto` for a quick look with the house special above its base,
+  `hardAuto` for a hard job right-sized with the house special above its base, and `early` for the counter before the course's model lesson. `practiced` (Gilda's
   alone, optional) is said when the lesson's practice is done at her stall.
 - **The other keepers** (`keepers.<island>`): each stall but Gilda's (the game's
   `src/game/market/stalls.ts`: Desmond on `anchorage`, Lani on `thousand-bough`) has its keeper's own

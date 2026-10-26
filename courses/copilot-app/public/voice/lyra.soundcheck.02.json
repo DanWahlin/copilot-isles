@@ -5,123 +5,123 @@
   "words": [
     {
       "word": "Before",
-      "start": 0.052625,
-      "end": 0.447375
+      "start": 0,
+      "end": 0.28
     },
     {
       "word": "you",
-      "start": 0.447375,
-      "end": 0.618416
+      "start": 0.28,
+      "end": 0.469
     },
     {
       "word": "record",
-      "start": 0.618416,
-      "end": 1
+      "start": 0.469,
+      "end": 0.933
     },
     {
       "word": "anything",
-      "start": 1,
-      "end": 1.776333
+      "start": 0.933,
+      "end": 1.62
     },
     {
       "word": "you",
-      "start": 1.776333,
-      "end": 2.10525
+      "start": 1.62,
+      "end": 1.72
     },
     {
       "word": "get",
-      "start": 2.10525,
-      "end": 2.289458
+      "start": 1.72,
+      "end": 1.86
     },
     {
       "word": "the",
-      "start": 2.289458,
-      "end": 2.407875
+      "start": 1.86,
+      "end": 1.989
     },
     {
       "word": "studio",
-      "start": 2.407875,
-      "end": 2.986833
+      "start": 1.989,
+      "end": 2.453
     },
     {
       "word": "ready",
-      "start": 2.986833,
-      "end": 4.263166
+      "start": 2.453,
+      "end": 3.22
     },
     {
       "word": "You",
-      "start": 4.263166,
-      "end": 4.460541
+      "start": 3.22,
+      "end": 3.824
     },
     {
       "word": "sign",
-      "start": 4.460541,
-      "end": 4.776333
+      "start": 3.824,
+      "end": 4.16
     },
     {
       "word": "in",
-      "start": 4.776333,
-      "end": 5.157875
+      "start": 4.16,
+      "end": 4.688
     },
     {
       "word": "plug",
-      "start": 5.157875,
-      "end": 5.618416
+      "start": 4.688,
+      "end": 4.933
     },
     {
       "word": "in",
-      "start": 5.618416,
-      "end": 5.723666
+      "start": 4.933,
+      "end": 5.056
     },
     {
       "word": "your",
-      "start": 5.723666,
-      "end": 5.881583
+      "start": 5.056,
+      "end": 5.2
     },
     {
       "word": "gear",
-      "start": 5.881583,
-      "end": 6.64475
+      "start": 5.2,
+      "end": 5.968
     },
     {
       "word": "load",
-      "start": 6.64475,
-      "end": 6.934208
+      "start": 5.968,
+      "end": 6.18
     },
     {
       "word": "the",
-      "start": 6.934208,
-      "end": 7.052625
+      "start": 6.18,
+      "end": 6.32
     },
     {
       "word": "song",
-      "start": 7.052625,
-      "end": 7.60525
+      "start": 6.32,
+      "end": 7.08
     },
     {
       "word": "and",
-      "start": 7.60525,
-      "end": 7.934208
+      "start": 7.08,
+      "end": 7.24
     },
     {
       "word": "run",
-      "start": 7.934208,
-      "end": 8.223666
+      "start": 7.24,
+      "end": 7.4
     },
     {
       "word": "a",
-      "start": 8.223666,
-      "end": 8.276333
+      "start": 7.4,
+      "end": 7.467
     },
     {
       "word": "quick",
-      "start": 8.276333,
-      "end": 8.592125
+      "start": 7.467,
+      "end": 7.667
     },
     {
       "word": "soundcheck",
-      "start": 8.592125,
-      "end": 8.842125
+      "start": 7.667,
+      "end": 7.917
     }
   ]
 }
