@@ -76,9 +76,17 @@ export default {
         head: 2500,
         tail: 2000,
       });
-      if (!walked) await api.cut(() => api.teleport(spot.x, spot.z, undefined, spot.y + 0.3));
-      await api.pause(500);
-      await api.interact('', { timeout: 4000, beat: 350 });
+      // Off the station's spot (a rail or a lamp post in the way): a cut to it.
+      await api.pause(400);
+      if (!walked || !(await api.prompt()))
+        await api.cut(async () => {
+          await api.teleport(spot.x, spot.z, undefined, spot.y + 0.3);
+          await api.pause(600);
+        });
+      if (!(await api.interact('', { timeout: 4000, beat: 350 }))) {
+        api.log(`no prompt at the ring's ${st.at} station`);
+        break;
+      }
       await api.pause(900);
       await answerStation(api, tried);
       await api.pause(600);
