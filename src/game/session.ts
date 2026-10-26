@@ -28,6 +28,7 @@ import { seaState } from '../world/ocean/sea-state';
 import { windAt } from '../world/wind';
 import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
+import { ShipCameraBlockers } from './ship-camera';
 import { Residency, type ResidencyDecision } from './residency';
 import { footprintDistance } from '../world/islands/footprint';
 import { Dialogue } from './dialogue';
@@ -441,6 +442,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   for (const b of village.cameraBlockers) world.addCameraBox(b);
   for (const b of cove.wreck.cameraBlockers) world.addCameraBox(b);
   for (const b of sites.colliders.camera) world.addCameraBox(b);
+  // The moored ship: the follow camera keeps out of her hull and rig while you're ashore.
+  const shipCams = new ShipCameraBlockers(world);
 
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? `${courseVoiceBase()}manifest.json`);
@@ -2671,6 +2674,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         // An island's mooring lines only run to the hull while she's tied up at its berth.
         const moored = mode !== 'sail' && mode !== 'docking' && shipDocked();
+        if (moored) shipCams.place(dyn.pose.x, ship.group.position.y, dyn.pose.z, dyn.pose.heading);
+        else shipCams.park();
         for (let i = 0; i < contentList.length; i++)
           contentList[i]!.moored?.(moored && island === contentIds[i]);
         ship.setGangway(gangwayDown ? plank.foot : null);

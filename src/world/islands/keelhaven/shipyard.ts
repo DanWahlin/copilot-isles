@@ -6,7 +6,7 @@ import type { MaterialKey, VillageKit } from '../../village/kit';
 import { beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from '../../village/pieces';
 import { halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
 import { mulberry32 } from '../../../util/math';
-import { addVerandaHouse } from '../../village/veranda-house';
+import { addVerandaHouse, type VerandaHouseInfo } from '../../village/veranda-house';
 import { FRAME, toWorld } from './layout';
 import { keelhavenHeight } from './height';
 import {
@@ -324,6 +324,8 @@ function railAlong(
     rot: s.along === 'v' ? YAW_U + Math.PI / 2 : YAW_U,
     y0: top - 0.45,
     y1: top + 1.3,
+    // The camera passes over the rail itself (its pad still keeps the near plane off it).
+    eyeTop: top + H + 0.05,
     height: H,
   });
   void c;
@@ -406,6 +408,7 @@ function mitreGate(
         rot: YAW_U - side * tilt,
         y0: walk - 0.6,
         y1: walk + 1.2,
+        eyeTop: walk + 1.1,
         height: 1.1,
       });
     }
@@ -604,14 +607,36 @@ export function ropeCoil(b: Buckets, u: number, v: number, y: number, r = 0.42):
   );
 }
 
-/** Casks and crates in a loose group. */
-export function stores(b: Buckets, u: number, v: number, y: number, seed: number): void {
+/** A camera blocker round each propped shutter of a veranda house (they stand out up to a metre). */
+export function shadeBlockers(info: VerandaHouseInfo, cams: CameraBlockerBox[]): void {
+  for (const h of info.shades)
+    cams.push({
+      x: h.x,
+      z: h.z,
+      hx: h.half,
+      hz: h.depth + 0.05,
+      rot: Math.atan2(-h.az, h.ax),
+      y0: h.y0 - 0.1,
+      y1: h.y1 + 0.1,
+    });
+}
+
+/** Casks and crates in a loose group (each keeps the camera out when `cams` is given). */
+export function stores(
+  b: Buckets,
+  u: number,
+  v: number,
+  y: number,
+  seed: number,
+  cams?: CameraBlockerBox[],
+): void {
   const rand = mulberry32(seed);
   for (let i = 0; i < 6; i++) {
     const du = (rand() - 0.5) * 3.2;
     const dv = (rand() - 0.5) * 2.4;
     if (rand() < 0.55) {
       const p = at(u + du, y, v + dv);
+      cams?.push({ x: p.x, z: p.z, hx: 0.38, hz: 0.38, rot: 0, y0: y - 0.3, y1: y + 0.95 });
       rod(b, 'wood', p, { x: p.x, y: y + 0.9, z: p.z }, 0.34, 8, YARD_PAINT.weathered, 0.3);
       rod(
         b,
@@ -634,6 +659,9 @@ export function stores(b: Buckets, u: number, v: number, y: number, seed: number
     } else {
       const s = 0.7 + rand() * 0.4;
       ubox(b, 'wood', u + du, y + s / 2, v + dv, s, s, s, YARD_PAINT.silver, rand() * 0.8);
+      // A box round the crate at any turn (half its diagonal).
+      const q = at(u + du, y, v + dv);
+      cams?.push({ x: q.x, z: q.z, hx: s * 0.71, hz: s * 0.71, rot: 0, y0: y - 0.3, y1: y + s + 0.05 });
     }
   }
 }
@@ -1028,7 +1056,7 @@ function quay(b: Buckets, out: ShipyardOut): void {
   });
   lanternPaint(lampTop.glass);
   jibCrane(b, out, q.u1 - 16, q.v + 2, q.top, -Math.PI / 2 - 0.4, 7);
-  stores(b, q.u1 - 10, q.v + 1.5, q.top, 0x51);
+  stores(b, q.u1 - 10, q.v + 1.5, q.top, 0x51, out.cameraBoxes);
   ropeCoil(b, q.u0 + 18, q.v - 2.6, q.top);
   ropeCoil(b, q.u0 + 42, q.v - 2.6, q.top, 0.36);
   // Steps down to the beach at its root (walked as a ramp to the sand).
@@ -1218,8 +1246,8 @@ export function* buildShipyard(
   ropeCoil(b, 90, -33.5, yard);
   ropeCoil(b, 92, -33.2, yard, 0.36);
   ropeCoil(b, 140, -71, yard + 0.2);
-  stores(b, 122, -31, yard, 16);
-  stores(b, 60, -84, yard, 17);
+  stores(b, 122, -31, yard, 16, out.cameraBoxes);
+  stores(b, 60, -84, yard, 17, out.cameraBoxes);
   sailsDrying(b, 160, -22.5, yard, 13);
   if (!lite) sailsDrying(b, 34, -50, PADS.locks.y, 10);
   for (const [u, v] of [
@@ -1231,7 +1259,7 @@ export function* buildShipyard(
   yield;
   // The gatehouse by the lower lock (the lock keeper's: a stone ground floor, a timber upper storey).
   const gate = at(26, PADS.locks.y, -74.5);
-  addVerandaHouse(b, kit, {
+  const gatehouse = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 4 },
     storeys: 2,
     origin: { x: gate.x, y: gate.y, z: gate.z },
@@ -1258,9 +1286,10 @@ export function* buildShipyard(
     y0: gate.y - 0.5,
     y1: gate.y + 6.5,
   });
+  shadeBlockers(gatehouse, out.cameraBoxes);
   // The mould loft at the yard's inland corner, where the hulls' lines are drawn out full size.
   const loft = at(169.5, yard, -28.5);
-  addVerandaHouse(b, kit, {
+  const mouldLoft = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 8 },
     storeys: 2,
     origin: { x: loft.x, y: loft.y, z: loft.z },
@@ -1287,6 +1316,7 @@ export function* buildShipyard(
     y0: loft.y - 0.5,
     y1: loft.y + 7,
   });
+  shadeBlockers(mouldLoft, out.cameraBoxes);
   // The yard's blank sign boards: over the yard gate, and at each dock's head.
   signBoard(b, 54, -24, yard, 2.6);
   for (const v of DOCKS.v) signBoard(b, DOCKS.u1 + 2.6, v + 4, yard, 1.6);
@@ -1483,7 +1513,7 @@ function yardDressing(b: Buckets, out: ShipyardOut, lite: boolean): void {
   // (On the terrace's north strip: the south strip is the towpath down to the beach, kept clear.)
   shed(b, out, 43, -73.5, PADS.locks.y, 9, 5.5, 3.4, YARD_PAINT.weathered);
   shed(b, out, 15.5, -73.5, PADS.locks.y, 5, 5, 3, YARD_PAINT.tar);
-  stores(b, 15.5, -73.5, PADS.locks.y, 0x91);
+  stores(b, 15.5, -73.5, PADS.locks.y, 0x91, out.cameraBoxes);
   // A small boat on chocks in the boat shed.
   hullFrames(b, { u: 43, y: PADS.locks.y + 0.9, v: -73.5 }, 0.26, false, lite ? 1 : 7);
   if (!lite) {

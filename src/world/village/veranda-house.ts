@@ -74,6 +74,20 @@ export interface VerandaHouseInfo {
    * length along the wall and half its depth out from it, and its top (for the walker).
    */
   decks: { x: number; z: number; ax: number; az: number; half: number; width: number; y: number }[];
+  /**
+   * Each propped shutter's room (world): its middle, the unit direction along its wall, half its width
+   * along the wall and half its depth out from it, and its foot and hinge heights (for camera blockers).
+   */
+  shades: {
+    x: number;
+    z: number;
+    ax: number;
+    az: number;
+    half: number;
+    depth: number;
+    y0: number;
+    y1: number;
+  }[];
 }
 
 const H = HOUSE_STOREY_HEIGHT;
@@ -347,7 +361,13 @@ function louvres(
   }
 }
 
-/** Shutters for one window (`along` its middle, `width` × `height` from `sill` up, its frame `out` m proud). */
+/** A propped shutter's room in the house's own frame (`VerandaHouseInfo.shades` before the turn). */
+type Shade = VerandaHouseInfo['shades'][number];
+
+/**
+ * Shutters for one window (`along` its middle, `width` × `height` from `sill` up, its frame `out` m
+ * proud). A propped one adds its room to `shades` (house-local).
+ */
 function shutters(
   s: Sheet,
   w: WallFrame,
@@ -360,10 +380,24 @@ function shutters(
   style: 'propped' | 'shut',
   lite: boolean,
   rand: () => number,
+  shades: Shade[],
 ): void {
   if (style === 'propped') {
     // Bahama shutters: one panel hinged above the window, propped out from its foot.
     const tilt = 0.5 + rand() * 0.25;
+    const top = sill + height + 0.1;
+    const reach = (height + 0.05) * Math.sin(tilt) + 0.02;
+    const mid = onWall(w, along, 0, out + reach / 2);
+    shades.push({
+      x: mid[0],
+      z: mid[2],
+      ax: w.ax,
+      az: w.az,
+      half: width / 2 + 0.05,
+      depth: reach / 2,
+      y0: top - (height + 0.05) * Math.cos(tilt),
+      y1: top,
+    });
     louvres(
       s,
       w,
@@ -538,6 +572,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   const out: Record<HouseSide, number> = { front: 0, back: 0, left: 0, right: 0 };
   const posts: { x: number; z: number }[] = [];
   const decks: VerandaHouseInfo['decks'] = [];
+  const shades: Shade[] = [];
   const verandaSides = new Set(spec.veranda?.sides ?? []);
   const vd = spec.veranda?.depth ?? 0;
   for (const s of verandaSides) out[s] = vd;
@@ -606,6 +641,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
             style,
             lite,
             rand,
+            shades,
           );
         }
       }
@@ -613,7 +649,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   } else {
     const covered = (side: HouseSide, storey: number) =>
       verandaSides.has(side) && (storey === 0 || !!spec.veranda?.gallery);
-    boardWalls(sheet, spec, wallCol, trimCol, shutterCol, weather, lite, rand, (side, storey) =>
+    boardWalls(sheet, spec, wallCol, trimCol, shutterCol, weather, lite, rand, shades, (side, storey) =>
       covered(side, storey) ? (rand() < 0.5 ? 'shut' : null) : shutterStyle(),
     );
   }
@@ -866,7 +902,18 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   }
 
   for (const key of Object.keys(sheets) as MaterialKey[]) pushSheet(b, key, sheets[key]!, root);
-  return { top: spec.origin.y + roofTop, posts, out, decks };
+  // The shutters' rooms, turned into the world.
+  for (const h of shades) {
+    const p = toWorld(h.x, h.z);
+    const ax = h.ax * cr + h.az * sr;
+    h.az = -h.ax * sr + h.az * cr;
+    h.ax = ax;
+    h.x = p.x;
+    h.z = p.z;
+    h.y0 += spec.origin.y;
+    h.y1 += spec.origin.y;
+  }
+  return { top: spec.origin.y + roofTop, posts, out, decks, shades };
 }
 
 function xzOf(p: V3): [number, number] {
@@ -969,6 +1016,7 @@ function boardWalls(
   weather: number,
   lite: boolean,
   rand: () => number,
+  shades: Shade[],
   shutterStyle: (side: HouseSide, storey: number) => 'propped' | 'shut' | null,
 ): void {
   const top = spec.storeys * H;
@@ -1059,7 +1107,7 @@ function boardWalls(
             trimCol,
           );
         const style = shutterStyle(side, st);
-        if (style) shutters(s, wf, along, sill, wW + 0.08, wH, 0.1, shutterCol, style, lite, rand);
+        if (style) shutters(s, wf, along, sill, wW + 0.08, wH, 0.1, shutterCol, style, lite, rand, shades);
       }
   }
 }

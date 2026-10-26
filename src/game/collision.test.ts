@@ -28,6 +28,21 @@ describe('CollisionWorld.cameraBlockedAt', () => {
     expect(w.cameraBlockedAt(0, 3.5, 1.4, 0.25)).toBe(false);
   });
 
+  it("keeps the camera's pad over a rail's drawn top, not the walker's span over it", () => {
+    const rail = { x: 0, z: 0, hx: 5, hz: 0.12, rot: 0, y0: 1.5, y1: 3.3, height: 1.05 };
+    const w = new CollisionWorld({ ground: seabed, surfaces: [pier], boxes: [rail] });
+    // The walker's span (to 3.3) holds the eye 0.5 m over it ...
+    expect(w.cameraBlockedAt(0, 3.6, 0, 0.5)).toBe(true);
+    const r = new CollisionWorld({
+      ground: seabed,
+      surfaces: [pier],
+      boxes: [{ ...rail, eyeTop: 3.1 }],
+    });
+    // ... the drawn top (3.1) lets it pass just over the rail, and still not into it.
+    expect(r.cameraBlockedAt(0, 3.65, 0, 0.5)).toBe(false);
+    expect(r.cameraBlockedAt(0, 3.5, 0, 0.5)).toBe(true);
+  });
+
   it('lets a building roof rise over its top near the walls', () => {
     const w = new CollisionWorld({
       ground: seabed,

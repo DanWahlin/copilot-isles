@@ -16,6 +16,7 @@ import {
   ground,
   lampGlass,
   ropeCoil,
+  shadeBlockers,
   stores,
   ubox,
   YAW_U,
@@ -207,6 +208,7 @@ function house(
       y0: base + 2.3,
       y1: eave + 0.6,
     });
+  shadeBlockers(info, out.cameraBoxes);
   // Steps up to the door where the floor stands over the street.
   const rise = base - ground(housePoint(h, 0, h.d / 2 + 0.9).u, housePoint(h, 0, h.d / 2 + 0.9).v);
   const front = (k: number) => housePoint(h, 0, h.d / 2 + 0.25 + k);
@@ -352,10 +354,10 @@ function house(
       y0: yRoof - 0.45,
       y1: yRoof + 0.45,
     });
-    stores(b, mid.u, mid.v, Math.max(g, low), seed + 7);
+    stores(b, mid.u, mid.v, Math.max(g, low), seed + 7, out.cameraBoxes);
   } else if (rand() < 0.5) {
     const p = housePoint(h, -(h.w / 2 + 1.0), h.d / 2 - 0.5);
-    stores(b, p.u, p.v, ground(p.u, p.v), seed + 9);
+    stores(b, p.u, p.v, ground(p.u, p.v), seed + 9, out.cameraBoxes);
   }
   // Nets drying on a frame by the houses near the beach.
   if (h.u < 60 && rand() < 0.5) {
@@ -814,7 +816,20 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
     lite,
     groundAt: (x, z) => keelhavenHeight(x, z),
   });
-  out.colliders.push({ x: k.x, z: k.z, hx: 3.2, hz: 2.2, rot: faceYaw({ u: 1, v: 0 }), height: 5 });
+  const keeperYaw = faceYaw({ u: 1, v: 0 });
+  out.colliders.push({ x: k.x, z: k.z, hx: 3.2, hz: 2.2, rot: keeperYaw, height: 5 });
+  // The camera stays out of its walls, roof and veranda roof (it stands on the headland's path).
+  out.cameraBoxes.push({ x: k.x, z: k.z, hx: 3.35, hz: 2.35, rot: keeperYaw, y0: L.y - 0.5, y1: keeper.top });
+  out.cameraBoxes.push({
+    x: k.x,
+    z: k.z,
+    hx: 3.3,
+    hz: 2 + keeper.out.front + 0.3,
+    rot: keeperYaw,
+    y0: L.y + 2.3,
+    y1: L.y + HOUSE_STOREY_HEIGHT + 0.6,
+  });
+  shadeBlockers(keeper, out.cameraBoxes);
   for (const d of keeper.decks) out.decks.push(verandaDeck(d));
 }
 
@@ -1349,7 +1364,7 @@ export function* buildTown(
   barrels(b, out, SQUARE.u1 - 2.5, SQUARE.v0 + 2.5, 0x5b1);
   barrels(b, out, SQUARE.u0 + 2, SQUARE.v1 - 2, 0x5b2);
   if (!lite) barrels(b, out, SQUARE.u0 + 6.5, SQUARE.v0 + 2, 0x5b3);
-  stores(b, SQUARE.u1 + 2.6, SQUARE.v0 + 4, ground(SQUARE.u1 + 2.6, SQUARE.v0 + 4), 0x5a1);
+  stores(b, SQUARE.u1 + 2.6, SQUARE.v0 + 4, ground(SQUARE.u1 + 2.6, SQUARE.v0 + 4), 0x5a1, out.cameraBoxes);
   ropeCoil(b, SQUARE.u0 + 1.5, SQUARE.v0 + 6, ground(SQUARE.u0 + 1.5, SQUARE.v0 + 6));
   // Lanterns at its corners.
   for (const [u, v] of [
