@@ -291,7 +291,7 @@ function nearestChamber(u: number, v: number): { c: Chamber; d: number } {
 const NEAREST: { c: Chamber; d: number } = { c: CHAMBERS[0]!, d: 0 };
 
 /** How far under the sea (m) the ground under the cut's arms is pinned (`worksPin`). */
-const SEA_SKIRT = -0.3;
+const SEA_SKIRT = -1.8;
 
 /**
  * How far past a wall's outer face a terrain level with vertices `step` m apart keeps the chamber's
@@ -437,3 +437,17 @@ const CELL_TAPS = [
 export function wallFaceDistance(u: number, v: number): number {
   return nearestChamber(u, v).d - WALL;
 }
+
+/**
+ * The sea's floor for the ocean's depth colour round the cut (the one chamber that holds the sea): its
+ * floor inside it, under its walls and a few metres past them, so the ocean's coarse depth tile (a
+ * texel is ~3 m) doesn't read a shoal of saw-teeth along its walls. Null elsewhere (the bake's floor).
+ */
+export function worksSeaFloor(x: number, z: number): number | null {
+  toFrame(x, z, F);
+  if (F.u < -60 || F.u > 40 || F.v < -90 || F.v > -30) return null;
+  const { c, d } = nearestChamber(F.u, F.v);
+  return c.water === null && c.floor < 0 && d < WALL + SEA_FLOOR_PAST ? c.floor : null;
+}
+/** How far (m) past the cut's walls the ocean reads its floor (a texel and a half of its depth tile). */
+const SEA_FLOOR_PAST = 5;

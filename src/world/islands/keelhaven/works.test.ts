@@ -83,7 +83,7 @@ describe("Keelhaven's harbour works", () => {
       // Under its wall (the middle of the wall's width).
       const wall = toWorld((c.u0 + c.u1) / 2, c.v1 + WALL / 2);
       const w = worksPin(wall.x, wall.z, 1);
-      expect(w === c.floor || w === -0.3, c.name).toBe(true);
+      expect(w === c.floor || w === -1.8, c.name).toBe(true);
     }
     // The yard well clear of every wall keeps its pad's level, on every level of detail.
     const yard = toWorld(100, -21);

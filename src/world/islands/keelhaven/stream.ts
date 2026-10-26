@@ -28,7 +28,7 @@ import { createKeelhavenWorldAsync, type KeelhavenWorld } from './index';
 import { KEELHAVEN as K } from './layout';
 import { createKeelhavenSilhouette } from './silhouette';
 import { KEELHAVEN_PLANT_LOOK } from './vegetation';
-import { worksApronSteps, worksPin } from './works';
+import { worksApronSteps, worksPin, worksSeaFloor } from './works';
 import { KEELHAVEN_WRECKS } from './wrecks';
 
 /** Keelhaven's stream (its registry entry holds its ranges and outline): its world is the town and works. */
@@ -107,7 +107,8 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
       skip: worksFoamSkip,
     });
     self.foam = foam;
-    await depth?.build(data, ctx.breathe);
+    // The ocean reads the cut's floor (its sea is deep right to its walls).
+    await depth?.build(data, ctx.breathe, worksSeaFloor);
     if (disposed) {
       depth?.drop();
       return null;

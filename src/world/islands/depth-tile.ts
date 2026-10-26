@@ -14,8 +14,12 @@ import type { TerrainBakeData } from '../terrain/bake';
  * the hitch guard excuses), or when the island first shows without a warm-up.
  */
 export interface IslandDepthTile {
-  /** Builds the tile from the island's bake, a few rows a breath. */
-  build(data: TerrainBakeData, breathe: () => Promise<void>): Promise<void>;
+  /** Builds the tile from the island's bake (and its own floor, `floorAt`), a few rows a breath. */
+  build(
+    data: TerrainBakeData,
+    breathe: () => Promise<void>,
+    floorAt?: ((x: number, z: number) => number | null) | null,
+  ): Promise<void>;
   /** Lends the built tile to the ocean (again is a no-op); `ready`: the island's ground is in. */
   lend(ready: boolean): void;
   /** Takes the tile back (the island is freed). */
@@ -25,8 +29,8 @@ export interface IslandDepthTile {
 export function createIslandDepthTile(id: string): IslandDepthTile {
   let tile: WaterDepthTile | null = null;
   return {
-    async build(data, breathe) {
-      const steps = waterDepthTileFromTerrain(data, id);
+    async build(data, breathe, floorAt = null) {
+      const steps = waterDepthTileFromTerrain(data, id, floorAt);
       for (let r = steps.next(); ; r = steps.next()) {
         if (r.done) {
           tile = r.value;
