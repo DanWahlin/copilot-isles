@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   Group,
   LoopRepeat,
+  Matrix4,
   MeshStandardNodeMaterial,
   SkinnedMesh,
   Vector3,
@@ -13,7 +14,7 @@ import {
   type Camera,
   type Object3D,
 } from 'three/webgpu';
-import { attribute } from 'three/tsl';
+import { attribute, smoothstep } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
@@ -21,6 +22,7 @@ import { plainShadowColor } from '../../engine/shadow-color';
 import type { Tier } from '../contracts';
 import { shareSkinning } from '../characters/shared-skinning';
 import { createKrakenBody, type KrakenBody } from './kraken-body';
+import { KRAKEN_GLOW_RED, recolourTentacle } from './kraken-palette';
 import { ChainPoser, CurvePath } from './tentacle-pose';
 
 export type TentacleClip = 'Tentacle_Idle' | 'Tentacle_Attack' | 'Tentacle_Attack2' | 'Tentacle_Poke';
@@ -49,6 +51,8 @@ export interface KrakenArm {
   /** The arm's length (m) at its scale. */
   readonly length: number;
   readonly socket: Vector3;
+  /** Which way the socket points (out and down, the body's frame, unit). */
+  readonly outward: Vector3;
   /** Shown (Lite and the distance level of detail draw fewer). */
   shown: boolean;
   /** The clip it plays now. */
@@ -61,15 +65,30 @@ export interface KrakenOptions {
   base?: string;
   /** Which sockets get an arm (default: every one, or four on Lite). */
   sockets?: readonly number[];
+  /** Each socket's arm scale (default `KRAKEN_ARM_SCALES`). */
+  scales?: readonly number[];
+  /** Sockets whose arm is the slim one: thinner along its length, for coiling round a mast. */
+  slim?: readonly number[];
+  /** How fast the clips play: a huge creature moves slowly (0.4–0.6). */
+  clipSpeed?: number;
 }
+
+/**
+ * Each socket's arm scale: long arms that reach a ship from under the water. Socket 0's (the one
+ * that arcs over a deck and coils a mast) is shorter, so its bones are short enough to wind tight.
+ */
+export const KRAKEN_ARM_SCALES: readonly number[] = [1.75, 2.2, 2.0, 2.1, 1.9, 2.1, 2.0, 2.2];
 
 /** The sockets with arms per tier: Lite's four are the ones that face the prey, and one behind. */
 export function krakenSockets(tier: Tier): readonly number[] {
-  return tier === 'lite' ? [0, 1, 7, 4] : [0, 1, 2, 3, 4, 5, 6, 7];
+  return tier === 'lite' ? [0, 1, 7, 6] : [0, 1, 2, 3, 4, 5, 6, 7];
 }
 
 interface TentacleSource {
   geometry: BufferGeometry;
+  /** The same arm, thinner along its length (made once, on first use). */
+  slim: BufferGeometry | null;
+  mesh: SkinnedMesh;
   scene: Object3D;
   clips: readonly AnimationClip[];
 }
@@ -88,14 +107,15 @@ function loadTentacle(base: string): Promise<TentacleSource> {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
     const gltf = await loader.loadAsync(`${base}tentacle.glb`);
-    let geometry: BufferGeometry | null = null;
+    let mesh: SkinnedMesh | null = null;
     gltf.scene.traverse((obj) => {
       const m = obj as SkinnedMesh;
-      if (m.isSkinnedMesh) geometry = m.geometry;
+      if (m.isSkinnedMesh) mesh = m;
     });
-    if (!geometry) throw new Error('kraken: no tentacle mesh');
+    if (!mesh) throw new Error('kraken: no tentacle mesh');
+    const geometry = (mesh as SkinnedMesh).geometry;
     unpackAttributes(geometry);
-    return { geometry, scene: gltf.scene, clips: gltf.animations };
+    return { geometry, slim: null, mesh, scene: gltf.scene, clips: gltf.animations };
   })();
   // A failed download isn't kept: the next kraken tries again.
   source.catch(() => (source = null));
@@ -115,11 +135,17 @@ export class Kraken {
   readonly body: KrakenBody;
   readonly arms: KrakenArm[] = [];
   readonly material: MeshStandardNodeMaterial;
+  /**
+   * Poses arm `k` after its clip (the encounter drives its arms along paths); without it, an arm
+   * with a weight follows its `path`.
+   */
+  onPose: ((arm: KrakenArm, k: number) => void) | null = null;
   private readonly camPos = new Vector3();
   private lodFar = false;
   private disposed = false;
+  private readonly slim: BufferGeometry | null;
 
-  private constructor(tentacle: TentacleSource, sockets: readonly number[]) {
+  private constructor(tentacle: TentacleSource, sockets: readonly number[], o: KrakenOptions) {
     this.group.name = 'kraken';
     const { scene: source, clips } = tentacle;
     users++;
@@ -127,32 +153,30 @@ export class Kraken {
     this.material = shared;
     this.body = createKrakenBody(this.material, 8);
     this.group.add(this.body.root);
-    // Varied arms: scale, the clip each sways with and its phase. The first three are the long
-    // ones that reach for a ship.
-    const SCALES = [1.8, 1.7, 1.15, 1.05, 1.2, 1.0, 1.25, 1.8];
+    // Varied arms: scale, the clip each sways with and its phase.
+    const scales = o.scales ?? KRAKEN_ARM_SCALES;
+    const speed = o.clipSpeed ?? 0.5;
+    this.slim = o.slim?.length ? slimTentacle(tentacle) : null;
     for (const i of sockets) {
       const socket = this.body.sockets[i]!;
       const root = new Group();
       root.name = `kraken arm ${i}`;
-      const scale = SCALES[i]!;
+      const scale = scales[i] ?? 2;
       root.scale.setScalar(scale);
       root.position.copy(socket.position);
-      // Each arm leans out from the body a little and turns so its suckers face in.
-      root.rotation.set(
-        socket.outward.z * 0.28,
-        Math.atan2(socket.outward.x, socket.outward.z),
-        -socket.outward.x * 0.28,
-        'YXZ',
-      );
+      // Each arm turns to face out from its socket (its suckers inward).
+      root.rotation.set(0, Math.atan2(socket.outward.x, socket.outward.z), 0, 'YXZ');
       const rig = SkeletonUtils.clone(source);
       root.add(rig);
       const bones: Bone[] = [];
       for (let b = 1; b <= 15; b++) bones.push(rig.getObjectByName(`Tentacle${b}`) as Bone);
       const tip = (rig.getObjectByName('Tentacle15_end') as Bone).position.clone();
-      rig.traverse((o) => {
-        const m = o as SkinnedMesh;
+      const slimArm = !!this.slim && !!o.slim?.includes(i);
+      rig.traverse((obj) => {
+        const m = obj as SkinnedMesh;
         if (!m.isSkinnedMesh) return;
         m.material = this.material;
+        if (slimArm) m.geometry = this.slim!;
         m.castShadow = true;
         m.receiveShadow = true;
         // A posed arm reaches far from its bind pose's bounds.
@@ -171,7 +195,7 @@ export class Kraken {
       actions.Tentacle_Idle.play();
       // Each arm sways at its own pace and phase.
       actions.Tentacle_Idle.time = (i * 0.37) % actions.Tentacle_Idle.getClip().duration;
-      actions.Tentacle_Idle.timeScale = 0.75 + (i % 3) * 0.12;
+      actions.Tentacle_Idle.timeScale = speed * (0.85 + (i % 3) * 0.12);
       const poser = new ChainPoser(bones, tip);
       this.arms.push({
         index: i,
@@ -185,6 +209,7 @@ export class Kraken {
         scale,
         length: 0,
         socket: socket.position.clone(),
+        outward: socket.outward.clone(),
         shown: true,
         clip: 'Tentacle_Idle',
       });
@@ -198,7 +223,7 @@ export class Kraken {
   /** Loads the tentacle (once for every kraken) and builds a kraken. */
   static async load(o: KrakenOptions): Promise<Kraken> {
     const base = o.base ?? `${import.meta.env.BASE_URL || '/'}packs/testcove/kraken/`;
-    return new Kraken(await loadTentacle(base), o.sockets ?? krakenSockets(o.tier));
+    return new Kraken(await loadTentacle(base), o.sockets ?? krakenSockets(o.tier), o);
   }
 
   /** Bone lengths in world metres (after the kraken is placed or scaled). */
@@ -255,8 +280,12 @@ export class Kraken {
       const show = arm.sink < arm.length + 2 && (!this.lodFar || k < 4 || arm.weight > 0);
       arm.root.visible = arm.shown = show;
       if (!show) continue;
-      arm.mixer.update(dt);
-      if (arm.weight > 0) {
+      // An arm on a path all the way (weight 1) needs no clip under it.
+      if (arm.weight < 1) arm.mixer.update(dt);
+      if (this.onPose) {
+        arm.root.updateWorldMatrix(true, false);
+        this.onPose(arm, k);
+      } else if (arm.weight > 0) {
         arm.root.updateWorldMatrix(true, false);
         arm.poser.pose(arm.path, arm.weight);
       }
@@ -271,19 +300,25 @@ export class Kraken {
     // The shared tentacle and material go with the last kraken (their CPU side stays for the next).
     if (--users === 0) {
       shared?.dispose();
-      void source?.then((s) => s.geometry.dispose());
+      void source?.then((s) => {
+        s.geometry.dispose();
+        s.slim?.dispose();
+      });
     }
   }
 }
 
 /**
- * The tentacles' one look: flat vertex colours (the kit's swatches), a little sheen. Shared by the
- * body, so the kraken is one shader (and its shadow) whatever it's made of.
+ * The kraken's one look (arms and body): flat vertex colours (deep-sea teal-green, amber suckers) and
+ * a soft sheen; its eyes' amber, the only colour that red, glows (through the post, as any emissive
+ * does). Shared by every kraken, so it's one shader (and its shadow) whatever it's made of.
  */
 function createKrakenMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({ roughness: 0.48, metalness: 0 });
+  const m = new MeshStandardNodeMaterial({ roughness: 0.5, metalness: 0 });
   m.name = 'kraken';
-  m.colorNode = attribute('color', 'vec3');
+  const vc = attribute('color', 'vec3');
+  m.colorNode = vc;
+  m.emissiveNode = vc.mul(smoothstep(KRAKEN_GLOW_RED, 0.99, vc.x)).mul(2.2);
   return m;
 }
 
@@ -300,6 +335,15 @@ function unpackAttributes(g: BufferGeometry): void {
     for (let i = 0; i < a.count; i++) for (let c = 0; c < size; c++) out[i * size + c] = a.getComponent(i, c);
     g.setAttribute(name, new BufferAttribute(out, size));
   }
+  // The atlas's swatches as the game draws them: a teal-green back, a sea-green underside, amber suckers.
+  g.computeBoundingBox();
+  const box = g.boundingBox!;
+  recolourTentacle(
+    g.getAttribute('color').array as Float32Array,
+    g.getAttribute('normal').array as Float32Array,
+    g.getAttribute('position').array as Float32Array,
+    Math.max(box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z),
+  );
   const j = g.getAttribute('skinIndex');
   if (j && !(j.array instanceof Uint16Array)) {
     const out = new Uint16Array(j.count * 4);
@@ -307,4 +351,62 @@ function unpackAttributes(g: BufferGeometry): void {
     g.setAttribute('skinIndex', new BufferAttribute(out, 4));
   }
   g.computeBoundingSphere();
+}
+
+const _bind = new Matrix4();
+const _bone = new Matrix4();
+
+/**
+ * The tentacle made thinner along its length, for an arm that coils round a mast: each vertex moves
+ * toward its bone's line (in the bind pose) by a factor that falls from 1 at the base to 0.55 from
+ * the middle on. Same vertex layout, so the same shader; made once and shared.
+ */
+function slimTentacle(t: TentacleSource): BufferGeometry {
+  if (t.slim) return t.slim;
+  const mesh = t.mesh;
+  const sk = mesh.skeleton;
+  const names: string[] = [];
+  for (let b = 1; b <= 15; b++) names.push(`Tentacle${b}`);
+  names.push('Tentacle15_end');
+  const slots = names.map((n) => sk.bones.findIndex((b) => b.name === n));
+  // Each joint in the geometry's own space (the bind pose).
+  _bind.copy(mesh.bindMatrix).invert();
+  const joints = slots.map((s) =>
+    new Vector3().setFromMatrixPosition(_bone.copy(sk.boneInverses[s]!).invert()).applyMatrix4(_bind),
+  );
+  const chainOf = new Map<number, number>();
+  slots.forEach((s, j) => chainOf.set(s, j));
+  const g = t.geometry.clone();
+  const pos = g.getAttribute('position');
+  const idx = g.getAttribute('skinIndex');
+  const wt = g.getAttribute('skinWeight');
+  const v = new Vector3();
+  const seg = new Vector3();
+  const along = new Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    let best = -1;
+    let bestW = 0;
+    for (let c = 0; c < 4; c++) {
+      const j = chainOf.get(idx.getComponent(i, c));
+      const w = wt.getComponent(i, c);
+      if (j !== undefined && j < joints.length - 1 && w > bestW) {
+        bestW = w;
+        best = j;
+      }
+    }
+    if (best < 0) continue;
+    v.fromBufferAttribute(pos, i);
+    const a = joints[best]!;
+    seg.subVectors(joints[best + 1]!, a);
+    const len2 = seg.lengthSq() || 1;
+    const u = Math.min(1, Math.max(0, v.clone().sub(a).dot(seg) / len2));
+    along.copy(a).addScaledVector(seg, u);
+    const x = best + u;
+    const f = x < 3 ? 1 : x > 7 ? 0.55 : 1 - 0.45 * ((x - 3) / 4);
+    v.sub(along).multiplyScalar(f).add(along);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeBoundingSphere();
+  t.slim = g;
+  return g;
 }

@@ -5,43 +5,44 @@ import {
   Group,
   Matrix4,
   Quaternion,
-  type Object3D,
   Skeleton,
   SkinnedMesh,
   Vector3,
   type Material,
+  type Object3D,
 } from 'three/webgpu';
+import { KRAKEN_COLORS, hexToLinear } from './kraken-palette';
 
 /**
- * The kraken's body: a low-poly mantle and head in the Quaternius Pirate Kit's flat colours (the
- * tentacle's own swatches: pink, light pink, purple and gold), with big eyes that follow their
- * target. It's a skinned mesh in the tentacles' vertex layout, so it draws with their one material
- * and the shared skinning graph (no shader of its own).
+ * The kraken's body: a round, low-poly octopus head (a bulb of a mantle over a face with two big
+ * glowing amber eyes, slit pupils, and a few amber spots and darker mottles) in the arms' own deep-sea
+ * teal-green: a dark back, a pale sea-green face and throat. Its arms grow from
+ * a ring under the head, below the eyes, as an octopus's do: surfaced, the head and eyes show and
+ * the arms rise from the water round it. It's a skinned mesh in the tentacles' vertex layout, so it
+ * draws with their one material and the shared skinning graph (no shader of its own).
  *
  * Swappable: whatever body replaces this one (a model such as "The Kraken" with its own tentacles
- * removed) only has to give the same `KrakenBody`: a root, the sockets the tentacles grow from, and
- * an update. The tentacles don't know what body they're on.
+ * removed) only has to give the same `KrakenBody`: a root, its drawn parts, the sockets the
+ * tentacles grow from (under its head), its eyes' height, and an update. The tentacles don't know
+ * what body they're on.
  */
 export interface KrakenBody {
   readonly root: Group;
   /** The body's own drawn parts (hidden when only arms show, as in a distant sighting). */
   readonly drawn: Object3D;
-  /** Where each tentacle grows from, in the body's frame (under the water line), and its outward lean. */
+  /**
+   * Where each tentacle grows from, in the body's frame: a ring under the head, below the eyes. Each
+   * points out and down (`outward`, unit).
+   */
   readonly sockets: readonly { position: Vector3; outward: Vector3 }[];
+  /** The eyes' height in the body's frame (the sockets are all well below it). */
+  readonly eyeHeight: number;
+  /** How far up the body lifts out of the water when surfaced (its frame's origin is the water line). */
+  readonly surfaced: number;
   /** Breathing, sway and the eyes' look (`look` in world space, or null to look ahead). */
   update(dt: number, t: number, look: Vector3 | null, anger: number): void;
   dispose(): void;
 }
-
-/** The tentacle's swatches (sRGB), so body and arms match. */
-export const KRAKEN_SWATCHES = {
-  pink: 0xdb71a3,
-  light: 0xe890b2,
-  purple: 0xa14b7c,
-  gold: 0xff9a0c,
-  white: 0xf3efe6,
-  black: 0x14080f,
-} as const;
 
 const BODY = 0;
 const MANTLE = 1;
@@ -49,66 +50,55 @@ const EYE_L = 2;
 const EYE_R = 3;
 const BROWS = 4;
 
-/** Low-poly triangles with flat normals, a colour per face and one bone per vertex. */
-class FlatBuilder {
+/** Indexed, smooth-shaded triangles with a colour and up to two bones per vertex. */
+class SmoothBuilder {
   readonly pos: number[] = [];
   readonly col: number[] = [];
   readonly bone: number[] = [];
   readonly weight: number[] = [];
-  private r = 1;
-  private g = 1;
-  private b = 1;
+  readonly index: number[] = [];
+  private readonly rgb = [1, 1, 1];
 
   color(hex: number): this {
-    this.r = linear((hex >> 16) & 255);
-    this.g = linear((hex >> 8) & 255);
-    this.b = linear(hex & 255);
+    hexToLinear(hex, this.rgb);
     return this;
   }
 
-  tri(a: Vector3, b: Vector3, c: Vector3, ba: number, bb = ba, bc = ba, wa = 1, wb = wa, wc = wa): void {
-    for (const [p, bone, w] of [
-      [a, ba, wa],
-      [b, bb, wb],
-      [c, bc, wc],
-    ] as const) {
-      this.pos.push(p.x, p.y, p.z);
-      this.col.push(this.r, this.g, this.b);
-      this.bone.push(bone, BODY, 0, 0);
-      this.weight.push(w, 1 - w, 0, 0);
-    }
+  /** A vertex on `bone` (weight `w`, the rest on the body). Returns its index. */
+  vertex(p: Vector3, bone: number, w = 1, rgb: readonly number[] = this.rgb): number {
+    this.pos.push(p.x, p.y, p.z);
+    this.col.push(rgb[0]!, rgb[1]!, rgb[2]!);
+    this.bone.push(bone, BODY, 0, 0);
+    this.weight.push(w, 1 - w, 0, 0);
+    return this.pos.length / 3 - 1;
   }
 
-  /** A low-poly ellipsoid on one bone (flattened along `squash` of its own z). */
+  /** A round low-poly ellipsoid on one bone, its own z flattened by `rz`, turned by `rot`. */
   blob(
     c: Vector3,
     rx: number,
     ry: number,
     rz: number,
     bone: number,
-    seg = 8,
-    rings = 5,
+    seg = 12,
+    rings = 7,
     rot: Quaternion | null = null,
   ): void {
-    const pt = (i: number, j: number, out: Vector3) => {
-      const th = (i / seg) * Math.PI * 2;
-      const ph = (j / rings) * Math.PI;
-      out.set(Math.sin(ph) * Math.cos(th) * rx, Math.cos(ph) * ry, Math.sin(ph) * Math.sin(th) * rz);
-      if (rot) out.applyQuaternion(rot);
-      return out.add(c);
-    };
-    const a = new Vector3(),
-      b = new Vector3(),
-      d = new Vector3(),
-      e = new Vector3();
+    const first = this.pos.length / 3;
+    const p = new Vector3();
+    for (let j = 0; j <= rings; j++)
+      for (let i = 0; i < seg; i++) {
+        const th = (i / seg) * Math.PI * 2;
+        const ph = (j / rings) * Math.PI;
+        p.set(Math.sin(ph) * Math.cos(th) * rx, Math.cos(ph) * ry, Math.sin(ph) * Math.sin(th) * rz);
+        if (rot) p.applyQuaternion(rot);
+        this.vertex(p.add(c), bone);
+      }
     for (let j = 0; j < rings; j++)
       for (let i = 0; i < seg; i++) {
-        pt(i, j, a);
-        pt(i + 1, j, b);
-        pt(i, j + 1, d);
-        pt(i + 1, j + 1, e);
-        if (j > 0) this.tri(a, d, b, bone);
-        if (j < rings - 1) this.tri(b, d, e, bone);
+        const a = first + j * seg + i;
+        const b = first + j * seg + ((i + 1) % seg);
+        this.index.push(a, a + seg, b, b, a + seg, b + seg);
       }
   }
 
@@ -118,112 +108,146 @@ class FlatBuilder {
     g.setAttribute('color', new BufferAttribute(new Float32Array(this.col), 3));
     g.setAttribute('skinIndex', new BufferAttribute(new Uint16Array(this.bone), 4));
     g.setAttribute('skinWeight', new BufferAttribute(new Float32Array(this.weight), 4));
+    g.setIndex(this.index);
     g.computeVertexNormals();
+    g.computeBoundingBox();
+    g.computeBoundingSphere();
     return g;
   }
 }
 
-function linear(c: number): number {
-  const s = c / 255;
-  return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-}
-
-/** A small, stable hash in [0, 1) for the face pattern. */
-function hash(i: number, j: number): number {
-  const s = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
-  return s - Math.floor(s);
-}
-
-/** Head and mantle profile: (radius, height), bottom (under the water) to the mantle's tip. */
+/** The head's profile, bottom to top: (radius, height) in metres. A bulb: face below, mantle above. */
 const PROFILE: readonly (readonly [number, number])[] = [
-  [2.4, -3.2],
-  [3.3, -1.8],
-  [3.75, 0.2],
-  [3.6, 1.9],
-  [3.05, 3.3],
-  [3.35, 4.6],
-  [3.4, 6.0],
-  [3.0, 7.4],
-  [2.15, 8.7],
-  [1.05, 9.7],
-  [0, 10.15],
+  [0.01, -3.5],
+  [1.9, -3.4],
+  [2.9, -2.9],
+  [3.5, -2.0],
+  [3.8, -0.8],
+  [3.75, 0.5],
+  [3.5, 1.7],
+  [3.3, 2.6],
+  [3.7, 3.8],
+  [4.0, 5.2],
+  [3.9, 6.5],
+  [3.4, 7.7],
+  [2.6, 8.7],
+  [1.5, 9.4],
+  [0.6, 9.75],
+  [0.01, 9.85],
 ];
-/** Where the mantle's bone takes over (its crease over the head). */
-const CREASE = 3.3;
-const SEGMENTS = 14;
+/** Where the mantle's bone takes over (its crease over the face). */
+const CREASE = 2.6;
+const SEGMENTS = 22;
+/** The eyes' height (and the sockets' ring, well under it). */
+const EYE_Y = 1.25;
+const SOCKET_Y = -3.15;
+const SOCKET_R = 2.05;
 
+/** The mantle leans back over the face, as an octopus's does. */
 function lean(y: number): number {
-  return y > CREASE ? -0.3 * (y - CREASE) : 0;
+  return y > CREASE ? -0.34 * (y - CREASE) : 0;
+}
+
+/** A point on the head's surface at profile row `j` (fractional) and angle `th` (0 at the face). */
+function surface(j: number, th: number, out: Vector3): Vector3 {
+  const j0 = Math.min(PROFILE.length - 2, Math.floor(j));
+  const f = j - j0;
+  const r = PROFILE[j0]![0] + (PROFILE[j0 + 1]![0] - PROFILE[j0]![0]) * f;
+  const y = PROFILE[j0]![1] + (PROFILE[j0 + 1]![1] - PROFILE[j0]![1]) * f;
+  // The face is a little flatter than the back.
+  const front = Math.cos(th) > 0 ? 1 - 0.08 * Math.cos(th) : 1;
+  return out.set(Math.sin(th) * r, y, Math.cos(th) * r * front + lean(y));
 }
 
 function buildBody(): { geometry: BufferGeometry; bones: Bone[] } {
-  const B = new FlatBuilder();
-  const ring = (j: number, i: number, out: Vector3) => {
-    const [r, y] = PROFILE[j]!;
-    const th = (i / SEGMENTS) * Math.PI * 2 + Math.PI * 0.5;
-    return out.set(Math.cos(th) * r, y, Math.sin(th) * r * 0.92 + lean(y));
-  };
-  const a = new Vector3(),
-    b = new Vector3(),
-    c = new Vector3(),
-    d = new Vector3(),
-    mid = new Vector3();
-  for (let j = 0; j < PROFILE.length - 1; j++)
+  const B = new SmoothBuilder();
+  const pink: number[] = [];
+  const light: number[] = [];
+  hexToLinear(KRAKEN_COLORS.back, pink);
+  hexToLinear(KRAKEN_COLORS.under, light);
+  const mixed = [0, 0, 0];
+  const p = new Vector3();
+  // The head: rings round the profile, shared vertices (smooth), no seam.
+  const rows = PROFILE.length;
+  for (let j = 0; j < rows; j++)
     for (let i = 0; i < SEGMENTS; i++) {
-      ring(j, i, a);
-      ring(j, i + 1, b);
-      ring(j + 1, i, c);
-      ring(j + 1, i + 1, d);
-      mid.copy(a).add(b).add(c).add(d).multiplyScalar(0.25);
-      const front = mid.z > 0.6 && Math.abs(mid.x) < 2.6;
-      const yMid = (PROFILE[j]![1] + PROFILE[j + 1]![1]) * 0.5;
-      let hex: number = KRAKEN_SWATCHES.pink;
-      if (yMid < CREASE && front) hex = KRAKEN_SWATCHES.light;
-      else if (yMid > CREASE && hash(i, j) < 0.32) hex = KRAKEN_SWATCHES.purple;
-      else if (Math.abs(yMid - CREASE) < 0.8 && i % 2 === 0) hex = KRAKEN_SWATCHES.purple;
-      B.color(hex);
-      // Vertices above the crease ride the mantle bone; the crease row is shared half and half.
-      const w = (p: Vector3) => (p.y > CREASE + 0.05 ? 1 : p.y > CREASE - 0.05 ? 0.5 : 0);
-      B.tri(a, c, b, MANTLE, MANTLE, MANTLE, w(a), w(c), w(b));
-      B.tri(b, c, d, MANTLE, MANTLE, MANTLE, w(b), w(c), w(d));
+      const th = (i / SEGMENTS) * Math.PI * 2;
+      surface(j, th, p);
+      // The face, the throat and the underside are pale (the arms' sucker side), the back dark.
+      const face =
+        Math.min(1, Math.max(0, Math.cos(th) * 1.3) ** 1.5 + Math.max(0, -p.y - 1.5) / 2) *
+        (p.y < CREASE ? 1 : Math.max(0, 1 - (p.y - CREASE) / 1.4));
+      for (let c = 0; c < 3; c++) mixed[c] = pink[c]! + (light[c]! - pink[c]!) * face;
+      const w = p.y > CREASE + 0.6 ? 1 : p.y > CREASE - 0.6 ? (p.y - CREASE + 0.6) / 1.2 : 0;
+      B.vertex(p, MANTLE, w, mixed);
     }
-  // Gold spots on the mantle: the suckers' gold.
-  B.color(KRAKEN_SWATCHES.gold);
-  for (let k = 0; k < 7; k++) {
-    const th = Math.PI * 0.5 + (k - 3) * 0.55;
-    const y = 4.4 + (k % 2) * 1.5;
-    const r = 3.42 - (k % 2) * 0.12;
-    B.blob(
-      new Vector3(Math.cos(th) * r, y, Math.sin(th) * r * 0.92 + lean(y)),
-      0.46,
-      0.46,
-      0.3,
-      MANTLE,
-      6,
-      3,
-      faceOut(th),
-    );
+  for (let j = 0; j < rows - 1; j++)
+    for (let i = 0; i < SEGMENTS; i++) {
+      const a = j * SEGMENTS + i;
+      const b = j * SEGMENTS + ((i + 1) % SEGMENTS);
+      B.index.push(a, b, a + SEGMENTS, b, b + SEGMENTS, a + SEGMENTS);
+    }
+  // Spots on the mantle: a few amber-gold (the suckers' colour) and darker mottles, raised a little.
+  const spots: [number, number, number, number][] = [
+    // row, angle (0 the face), size, colour
+    [8.6, 0.55, 0.5, KRAKEN_COLORS.sucker],
+    [8.6, -0.55, 0.5, KRAKEN_COLORS.sucker],
+    [10.1, 1.25, 0.42, KRAKEN_COLORS.sucker],
+    [10.1, -1.25, 0.42, KRAKEN_COLORS.sucker],
+    [9.4, 0, 0.36, KRAKEN_COLORS.suckerRim],
+    [9.2, 2.3, 0.75, KRAKEN_COLORS.backDark],
+    [9.0, -2.4, 0.65, KRAKEN_COLORS.backDark],
+    [11.0, 3.1, 0.7, KRAKEN_COLORS.backDark],
+    [10.5, 1.9, 0.5, KRAKEN_COLORS.backDark],
+    [10.6, -1.9, 0.55, KRAKEN_COLORS.backDark],
+    [12.0, 2.7, 0.5, KRAKEN_COLORS.backDark],
+    [12.2, -2.6, 0.45, KRAKEN_COLORS.backDark],
+  ];
+  const n = new Vector3();
+  const q = new Quaternion();
+  const Z = new Vector3(0, 0, 1);
+  for (const [row, th, size, hex] of spots) {
+    surface(row, th, p);
+    // The outward normal, from neighbouring surface points.
+    const a = surface(row, th + 0.05, new Vector3()).sub(surface(row, th - 0.05, new Vector3()));
+    const b = surface(row + 0.05, th, new Vector3()).sub(surface(row - 0.05, th, new Vector3()));
+    n.crossVectors(b, a).normalize();
+    q.setFromUnitVectors(Z, n);
+    B.color(hex).blob(p.addScaledVector(n, 0.04), size, size * 0.9, size * 0.35, MANTLE, 10, 4, q);
   }
-  // Big eyes: white, a gold iris, a black pupil and a glint. Each eye's parts ride its own bone.
+  // Big eyes, old and calm: glowing amber, a dark slit pupil and a glint, in a dark lid. Each rides
+  // its own bone.
   const eyes: [number, Vector3][] = [
-    [EYE_L, new Vector3(1.72, 1.55, 2.72)],
-    [EYE_R, new Vector3(-1.72, 1.55, 2.72)],
+    [EYE_L, new Vector3(1.95, EYE_Y, 2.4)],
+    [EYE_R, new Vector3(-1.95, EYE_Y, 2.4)],
   ];
   for (const [bone, e] of eyes) {
-    B.color(KRAKEN_SWATCHES.white);
-    B.blob(e, 1.18, 1.25, 1.1, bone, 12, 7);
-    B.color(KRAKEN_SWATCHES.gold);
-    B.blob(new Vector3(e.x, e.y, e.z + 0.98), 0.74, 0.8, 0.28, bone, 12, 4);
-    B.color(KRAKEN_SWATCHES.black);
-    B.blob(new Vector3(e.x, e.y, e.z + 1.2), 0.42, 0.62, 0.16, bone, 10, 4);
-    B.color(KRAKEN_SWATCHES.white);
-    B.blob(new Vector3(e.x + 0.18 * Math.sign(e.x), e.y + 0.3, e.z + 1.3), 0.13, 0.13, 0.06, bone, 6, 3);
+    B.color(KRAKEN_COLORS.backDark).blob(new Vector3(e.x, e.y, e.z - 0.12), 1.36, 1.42, 1.18, bone, 16, 10);
+    B.color(KRAKEN_COLORS.eye).blob(new Vector3(e.x, e.y, e.z + 0.06), 1.2, 1.26, 1.14, bone, 16, 10);
+    B.color(KRAKEN_COLORS.pupil).blob(new Vector3(e.x, e.y, e.z + 1.17), 0.24, 0.8, 0.16, bone, 12, 6);
+    B.color(KRAKEN_COLORS.glint).blob(
+      new Vector3(e.x + 0.34 * Math.sign(e.x), e.y + 0.42, e.z + 1.12),
+      0.15,
+      0.15,
+      0.07,
+      bone,
+      8,
+      4,
+    );
   }
-  // Heavy brows that tilt down to the middle: a scowl.
-  B.color(KRAKEN_SWATCHES.purple);
+  // Heavy, soft brows that only lower when it's angry.
   for (const s of [1, -1]) {
-    const q = new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), s * -0.38);
-    B.blob(new Vector3(s * 1.75, 2.95, 3.05), 1.45, 0.34, 0.5, BROWS, 8, 3, q);
+    q.setFromAxisAngle(new Vector3(0, 0, 1), s * -0.18);
+    B.color(KRAKEN_COLORS.backDark).blob(
+      new Vector3(s * 1.95, EYE_Y + 1.5, 2.85),
+      1.15,
+      0.3,
+      0.5,
+      BROWS,
+      12,
+      5,
+      q,
+    );
   }
   const geometry = B.build();
   const bones: Bone[] = [];
@@ -233,7 +257,7 @@ function buildBody(): { geometry: BufferGeometry; bones: Bone[] } {
     new Vector3(0, CREASE, 0),
     eyes[0]![1],
     eyes[1]![1],
-    new Vector3(0, 2.95, 3.0),
+    new Vector3(0, EYE_Y + 1.55, 2.8),
   ];
   for (let i = 0; i < names.length; i++) {
     const bone = new Bone();
@@ -242,16 +266,23 @@ function buildBody(): { geometry: BufferGeometry; bones: Bone[] } {
     if (i > 0) bones[0]!.add(bone);
     bones.push(bone);
   }
-  // Bind space: a vertex rides relative to its bone's rest position.
   return { geometry, bones };
 }
 
-function faceOut(theta: number): Quaternion {
-  // The spot's flat (local z) faces out from the mantle.
-  return new Quaternion().setFromUnitVectors(
-    new Vector3(0, 0, 1),
-    new Vector3(Math.cos(theta), 0, Math.sin(theta)).normalize(),
-  );
+/** The ring of sockets under the head (pure: the tests check it against the body's eyes and bounds). */
+export function krakenSockets(count = 8): { position: Vector3; outward: Vector3 }[] {
+  const sockets: { position: Vector3; outward: Vector3 }[] = [];
+  for (let i = 0; i < count; i++) {
+    // Round the underside, from the face's left round to its right.
+    const th = ((i + 0.5) / count) * Math.PI * 2;
+    const x = Math.sin(th);
+    const z = Math.cos(th);
+    sockets.push({
+      position: new Vector3(x * SOCKET_R, SOCKET_Y, z * SOCKET_R),
+      outward: new Vector3(x, -0.35, z).normalize(),
+    });
+  }
+  return sockets;
 }
 
 const _look = new Vector3();
@@ -280,29 +311,23 @@ export function createKrakenBody(material: Material, armCount = 8): KrakenBody {
   drawn.add(mesh);
   root.add(drawn);
   const [, mantle, eyeL, eyeR, brows] = bones as [Bone, Bone, Bone, Bone, Bone];
-  const eyes = [eyeL, eyeR] as const;
-
-  const sockets: { position: Vector3; outward: Vector3 }[] = [];
-  for (let i = 0; i < armCount; i++) {
-    // Round the head under the water line, the gap facing forward (toward its prey) a little wider.
-    const th = Math.PI * 0.5 + ((i + 0.5) / armCount) * Math.PI * 2;
-    const outward = new Vector3(Math.cos(th), 0, Math.sin(th));
-    sockets.push({ position: new Vector3(outward.x * 2.6, -2.6, outward.z * 2.5), outward });
-  }
+  const eyeBones = [eyeL, eyeR] as const;
 
   return {
     root,
     drawn,
-    sockets,
+    sockets: krakenSockets(armCount),
+    eyeHeight: EYE_Y,
+    surfaced: 0.7,
     update(dt, t, look, anger) {
       // Breathing: the mantle swells and leans, slow and heavy.
       const breathe = Math.sin(t * 1.3);
       mantle.scale.set(1 + 0.035 * breathe, 1 - 0.03 * breathe, 1 + 0.035 * breathe);
-      mantle.rotation.set(-0.06 + 0.05 * Math.sin(t * 0.55), 0, 0.05 * Math.sin(t * 0.37));
-      brows.position.y = 2.95 - 0.22 * anger;
-      brows.rotation.x = 0.12 * anger;
+      mantle.rotation.set(-0.05 + 0.05 * Math.sin(t * 0.55), 0, 0.05 * Math.sin(t * 0.37));
+      brows.position.y = EYE_Y + 1.55 - 0.3 * anger;
+      brows.rotation.x = 0.1 * anger;
       // Eyes turn to their target (in the body's frame), a little lazily.
-      for (const eye of eyes) {
+      for (const eye of eyeBones) {
         if (look) {
           root.updateWorldMatrix(true, false);
           _inv.copy(root.matrixWorld).invert();

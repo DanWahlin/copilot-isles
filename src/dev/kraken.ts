@@ -24,8 +24,8 @@ import { compileAndStart, createDevHarness, engineStats, seaOrbitControls } from
  * W/F/D the scenarios, S sightings, K a sighting now. Flags: ?webgl, ?tier=, ?rm, ?shot, ?wait,
  * ?time= (hour), ?scenario=wreck|fight|dodge|sightings, ?nomusic.
  */
-type Scenario = 'wreck' | 'fight' | 'dodge' | 'sightings';
-const SCENARIOS: readonly Scenario[] = ['wreck', 'fight', 'dodge', 'sightings'];
+type Scenario = 'wreck' | 'fight' | 'dodge' | 'surface' | 'sightings';
+const SCENARIOS: readonly Scenario[] = ['wreck', 'fight', 'dodge', 'surface', 'sightings'];
 
 const harness = await createDevHarness();
 const { q, backend, tier, canvas, renderer, engine } = harness;
@@ -127,8 +127,8 @@ kraken.on((e) => {
   const t = clock.sim;
   if (e.type === 'telling' && e.act !== 'retreat')
     say(
-      e.act === 'rise'
-        ? `Bubbles ${bearing(e.x, e.z)}! Something big below!`
+      e.act === 'rise' || e.act === 'wrap'
+        ? `Bubbles and a great shadow ${bearing(e.x, e.z)}! Something big below!`
         : `Bubbles and a shadow ${bearing(e.x, e.z)}! Hard over!`,
       t,
     );
@@ -144,7 +144,7 @@ kraken.on((e) => {
     lastStrike.clearance = Infinity;
     lastStrike.hit = false;
   }
-  if (e.type === 'striking' && e.act === 'wrap') say('It has the Grey Gull!', t);
+  if (e.type === 'striking' && e.act === 'wrap' && kraken.phase() === 'grip') say('It has the Grey Gull!', t);
 });
 
 const controls = seaOrbitControls(camera, canvas);
@@ -153,47 +153,80 @@ controls.minDistance = 4;
 let director = true;
 controls.addEventListener('start', () => (director = false));
 
-/** Scripted shots for the wreck by its phase: camera and target from the wreck (its +x is the kraken's side). */
-const SHOTS: Record<string, readonly [number[], number[]]> = {
+/**
+ * Scripted shots by the kraken's phase: from (start) and to (end) camera places and a target, from the
+ * wreck (its +x is the kraken's side). The camera holds each beat and pushes in slowly across it.
+ */
+const SHOTS: Record<string, readonly [number[], number[], number[]]> = {
   none: [
     [-34, 9, 30],
+    [-33, 9, 29],
     [6, 4, 0],
   ],
   tell: [
-    [-8, 24, 30],
-    [15, 0, -1],
+    [-10, 26, 32],
+    [-7, 23, 28],
+    [10, 0, -1],
+  ],
+  tips: [
+    [-26, 8, 30],
+    [-23, 7, 26],
+    [5, 2, 0],
   ],
   rise: [
-    [-30, 8, 36],
-    [9, 5, 0],
+    [-30, 10, 34],
+    [-26, 10, 30],
+    [3, 6, 0],
   ],
-  reach: [
-    [-28, 13, 32],
-    [6, 7, 0],
+  arc: [
+    [-30, 12, 32],
+    [-17, 10, 22],
+    [0, 12, 8],
   ],
-  coil: [
-    [-21, 10, 25],
-    [3, 4, 0],
+  hang: [
+    [-17, 10, 22],
+    [-14, 9, 19],
+    [0, 13, 8],
+  ],
+  grip: [
+    [-22, 11, 25],
+    [-18, 9, 21],
+    [2, 5, 1],
   ],
   squeeze: [
-    [-16, 7, 19],
+    [-17, 8, 19],
+    [-13, 6, 15],
     [2, 3, 0],
   ],
   break: [
-    [-28, 12, 28],
-    [3, 2, 0],
+    [-30, 12, 27],
+    [-28, 11, 25],
+    [3, 3, 0],
   ],
-  apart: [
-    [-34, 11, 26],
-    [4, 1, 0],
+  under: [
+    [-34, 10, 24],
+    [-32, 8, 20],
+    [5, 1, 0],
   ],
-  sink: [
-    [-36, 8, 18],
-    [6, 0, 0],
+  withdraw: [
+    [-32, 9, 27],
+    [-30, 8, 25],
+    [8, 2, 0],
+  ],
+  finale: [
+    [-16, 6, 15],
+    [-8, 4.5, 8],
+    [15, 3.5, -1.5],
   ],
   retreat: [
     [-30, 9, 30],
-    [13, 3, 0],
+    [-29, 9, 29],
+    [12, 3, 0],
+  ],
+  surfaced: [
+    [-30, 9, 30],
+    [-29, 9, 29],
+    [12, 3, 0],
   ],
 };
 
@@ -205,6 +238,8 @@ let st = 0;
 const fired = new Set<string>();
 const once = (key: string, at: number) => st >= at && !fired.has(key) && !!fired.add(key);
 const deck = { yaw: Math.PI / 2, pitch: 0.02 };
+/** The camera on your deck whatever the scenario (dev shots). */
+let deckCam = false;
 const camGoal = new Vector3();
 const lookGoal = new Vector3();
 const at = new Vector3();
@@ -227,6 +262,7 @@ function setup(): void {
   st = 0;
   fired.clear();
   dodgeTurn = 0;
+  deckCam = false;
   hazardSeen.w = 0;
   lastStrike.act = '';
   kraken.reset();
@@ -244,7 +280,7 @@ function setup(): void {
     mine.restartMotion(-38 * Math.cos(h) - 22 * Math.sin(h), 38 * Math.sin(h) - 22 * Math.cos(h), h);
   }
   if (scenario === 'dodge') mine.restartMotion(0, 0, COURSE);
-  if (scenario === 'sightings') mine.restartMotion(0, 0, 0);
+  if (scenario === 'sightings' || scenario === 'surface') mine.restartMotion(0, 0, 0);
 }
 
 /** One step of the scenario: its script, the ships, the kraken. */
@@ -255,19 +291,23 @@ function advance(dt: number, t: number): void {
     flagship.dynamics.setInput({ trim: 0, rudder: 0 });
   } else if (scenario === 'fight') {
     // Both under sail on a broad reach; the kraken takes the flagship mid-fight.
-    if (kraken.phase() === 'none' || kraken.phase() === 'tell' || kraken.phase() === 'rise')
-      steer(flagship, 0.9, 0.7);
-    steer(mine, 0.9, st > 10 ? 0.3 : 0.65);
+    // She sails on until its arms close on her (from then the kraken holds her).
+    if (st < 3 + kraken.beats.grip - 2) steer(flagship, 0.9, 0.7);
+    steer(mine, 0.9, st > 14 ? 0.3 : 0.6);
     if (once('wrap', 3)) kraken.wrapAndBreak(flagship);
   } else if (scenario === 'dodge') {
     // On course; at the lookout's call, hard over away from the evidence, then back on course.
     steer(mine, COURSE + dodgeTurn * 0.8, 0.8);
-    if (once('slam', 3)) placeHazard('slam', 1);
-    if (once('calm', 10)) dodgeTurn = 0;
-    if (once('sweep', 14)) placeHazard('sweep', -1);
-    if (once('calm2', 23)) dodgeTurn = 0;
+    if (once('slam', 2)) placeHazard('slam', 1);
+    if (once('calm', 13)) dodgeTurn = 0;
+    if (once('sweep', 16)) placeHazard('sweep', -1);
+    if (once('calm2', 27)) dodgeTurn = 0;
     if (q.has('nododge')) dodgeTurn = 0;
-    if (once('leave', 27)) kraken.retreat();
+    if (once('leave', 31)) kraken.retreat();
+  } else if (scenario === 'surface') {
+    // The kraken surfaces off your starboard side (the battle's `rise`), then goes back under.
+    if (once('rise', 1)) kraken.rise(40, 12, -Math.PI / 2);
+    if (once('leave', 26)) kraken.retreat();
   }
   if (scenario !== 'wreck' && dt > 0) mine.update(dt, t, myEnv);
   if ((scenario === 'wreck' || scenario === 'fight') && dt > 0) flagship.update(dt, t, flagEnv);
@@ -301,7 +341,7 @@ function placeHazard(kind: HazardKind, side: number): void {
   const p = mine.dynamics.pose;
   const spec = HAZARD_SPECS[kind];
   const v = Math.max(1.5, p.speed);
-  const ahead = v * (spec.tell + 0.7) + (kind === 'sweep' ? 6 : 2);
+  const ahead = v * hazardImpactAt(spec) + (kind === 'sweep' ? 6 : 2);
   // Just inside the area on her course; the sweep's arc edge needs a little less.
   const off = side * (spec.radius + halfBeamAt(0, 1) - (kind === 'sweep' ? 1.6 : 2.5));
   const s = Math.sin(p.heading);
@@ -313,7 +353,8 @@ function placeHazard(kind: HazardKind, side: number): void {
   kraken.hazard(x, z, kind, Math.atan2(p.x + s * ahead - x, p.z + c * ahead - z));
 }
 const dangers: HazardArea[] = [];
-const { HAZARD_SPECS, hazardClearance } = await import('../world/kraken/hazards');
+const { HAZARD_SPECS, hazardClearance, hazardImpactAt } = await import('../world/kraken/hazards');
+const { ease } = await import('../world/kraken/arm-paths');
 const clearance = (d: HazardArea, b: Float32Array, s: Float32Array, beam: number) =>
   hazardClearance(d, b[0]!, b[1]!, s[0]!, s[1]!, beam);
 
@@ -321,12 +362,24 @@ function frameCamera(dt: number): void {
   if (!director) return;
   const k = snapCamera ? 1 : 1 - Math.exp(-dt * 0.9);
   snapCamera = false;
-  if (scenario === 'wreck') {
-    const [p, l] = SHOTS[kraken.phase()] ?? SHOTS.none!;
+  if (deckCam) {
+    // Falls through to the deck camera below.
+  } else if (scenario === 'wreck') {
+    const [a, z, l] = SHOTS[kraken.phase()] ?? SHOTS.none!;
+    const u = ease(kraken.phaseProgress());
     kraken.wreckPosition(at);
     if (kraken.phase() === 'none') at.copy(flagship.group.position).setY(0);
-    camGoal.set(at.x + p[0]!, p[1]!, at.z + p[2]!);
+    camGoal.set(
+      at.x + a[0]! + (z[0]! - a[0]!) * u,
+      a[1]! + (z[1]! - a[1]!) * u,
+      at.z + a[2]! + (z[2]! - a[2]!) * u,
+    );
     lookGoal.set(at.x + l[0]!, l[1]!, at.z + l[2]!);
+  } else if (scenario === 'surface') {
+    // Off your ship's side, looking at the kraken as it surfaces with its arms round it.
+    kraken.bodyPosition(at);
+    camGoal.set(at.x - 46, 9, at.z + 18);
+    lookGoal.set(at.x, 4, at.z);
   } else if (scenario === 'fight') {
     // From beyond your ship, high, looking past her at the flagship: what you'd see in the fight.
     kraken.wreckPosition(at);
@@ -526,6 +579,7 @@ const KEYS: Record<string, () => void> = {
   Digit3: () => reload('tier', 'high'),
   KeyB: () => backendBtn.click(),
   KeyW: () => restart('wreck'),
+  KeyU: () => restart('surface'),
   KeyF: () => restart('fight'),
   KeyD: () => restart('dodge'),
   KeyS: () => restart('sightings'),
@@ -592,6 +646,14 @@ dev.__kraken = {
   /** A sighting now: `kind` tip, group or arc, at `distance` m (the planner's rules still apply). */
   sight,
   /** The deck camera's look: `yaw` from the bow (radians), `pitch` up. */
+  /** Your deck's camera in any scenario, looking `yaw` from the bow. */
+  deckView: (yaw: number, pitch = 0.02) => {
+    deck.yaw = yaw;
+    deck.pitch = pitch;
+    deckCam = true;
+    director = true;
+    snapCamera = true;
+  },
   deckLook: (yaw: number, pitch = 0.02) => {
     deck.yaw = yaw;
     deck.pitch = pitch;

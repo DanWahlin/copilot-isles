@@ -76,22 +76,22 @@ export interface SightingRules {
 }
 
 export const SIGHTING_RULES: SightingRules = {
-  minDistance: 300,
-  maxDistance: 900,
+  minDistance: 150,
+  maxDistance: 400,
   minGap: 150,
   maxGap: 330,
   firstAfter: 90,
   minPixels: 8,
-  pathClearance: 220,
+  pathClearance: 140,
 };
 
 /**
  * The biggest size (m) each kind shows above the water, which the pixel rule reads (as a leap reads
  * an animal's length): a tip's height, a group's spread, the mantle's length.
  */
-export const SIGHTING_SPAN: Readonly<Record<SightingKind, number>> = { tip: 14, group: 20, arc: 13 };
+export const SIGHTING_SPAN: Readonly<Record<SightingKind, number>> = { tip: 24, group: 32, arc: 22 };
 /** How long each kind shows (s). */
-const DURATION: Readonly<Record<SightingKind, number>> = { tip: 9, group: 11, arc: 12 };
+const DURATION: Readonly<Record<SightingKind, number>> = { tip: 13, group: 15, arc: 15 };
 /** How far off (m) a sighting's sound is placed, on its bearing. */
 const SOUND_REACH = 160;
 /** Seconds to wait after a moment with no place for one. */
@@ -223,12 +223,14 @@ const smooth = (x: number) => {
 };
 /** Where each arm of a group stands (m, the group's frame) and how high its tip stands (m over the sea). */
 const SPOTS = [
-  [0, 0, 15],
-  [-11, 7, 10],
-  [9, -8, 12],
+  [0, 0, 24],
+  [-17, 11, 16],
+  [14, -12, 19],
 ] as const;
+/** The sighting arms' scales (by socket), before the sighting kraken's own scale. */
+const SIGHTING_ARM_SCALES: readonly number[] = [1.8, 1.7, 1.15, 1.05, 1.2, 1.0, 1.25, 1.8];
 /** A single tip's height (m over the sea). */
-const TIP_HEIGHT = 17;
+const TIP_HEIGHT = 26;
 
 /**
  * The sightings in the scene: one small kraken (Lite: one arm; else three and the body for an arc)
@@ -278,8 +280,8 @@ export class KrakenSightings {
     this.gates = o.gates ?? {};
     this.planner = new SightingsPlanner(o.seed, o.rules);
     this.group.name = 'kraken sightings';
-    // Bigger than the battle's kraken: it reads at 300–900 m.
-    kraken.group.scale.setScalar(1.3);
+    // Bigger than the battle's kraken (about twice): it reads clearly at 150–400 m, from the deck.
+    kraken.group.scale.setScalar(2.2);
     kraken.measure();
     kraken.group.visible = false;
     this.group.add(kraken.group);
@@ -292,7 +294,13 @@ export class KrakenSightings {
 
   static async create(o: KrakenSightingsOptions): Promise<KrakenSightings> {
     const sockets = o.tier.tier === 'lite' ? [0] : [0, 3, 6];
-    const kraken = await Kraken.load({ tier: o.tier.tier, base: o.base, sockets });
+    const kraken = await Kraken.load({
+      tier: o.tier.tier,
+      base: o.base,
+      sockets,
+      scales: SIGHTING_ARM_SCALES,
+      clipSpeed: 0.45,
+    });
     return new KrakenSightings(o, kraken);
   }
 
@@ -390,16 +398,17 @@ export class KrakenSightings {
       // A group spreads its arms round the spot.
       arm.socket.set(spot[0] / scale, -2, spot[1] / scale);
       arm.root.rotation.set(0.1 * (this.rand() - 0.5), this.rand() * Math.PI * 2, 0.1 * (this.rand() - 0.5));
-      k.play(i, 'Tentacle_Idle', 0, 0.7 + this.rand() * 0.3, true);
+      k.play(i, 'Tentacle_Idle', 0, 0.4 + this.rand() * 0.15, true);
     }
   }
 
   /** How far up arm `i` is at `u` s into the sighting (0 under, 1 fully up). */
   private shown(i: number, u: number, plan: SightingPlan): number {
     if (i >= plan.arms) return 0;
-    const delay = i * 0.7;
-    const rise = this.gentle ? 3.4 : 2.2;
-    const fall = this.gentle ? 3.4 : 2.6;
+    const delay = i * 1.1;
+    // Slow, as a creature this size moves: a long rise, a long slide back under.
+    const rise = this.gentle ? 5 : 4;
+    const fall = this.gentle ? 5 : 4.5;
     const end = Math.min(plan.duration, this.leaveAt) - 0.3 * (plan.arms - 1 - i);
     const up = smooth((u - delay) / rise) * (1 - smooth((u - (end - fall)) / fall));
     return up;
@@ -422,26 +431,26 @@ export class KrakenSightings {
         this.risen[i] = 1;
         this.ring(arm.root, t, 1);
         if (i === 0) this.emit('rise', 0.5);
-      } else if (state === 1 && u > i * 0.7 + 3) {
+      } else if (state === 1 && u > i * 1.1 + 5) {
         this.risen[i] = 2;
         // Up: a curl or a slow sway.
-        if (plan.kind === 'group' && i > 0) k.play(i, 'Tentacle_Poke', 0.8, 0.55);
-        else if (plan.kind === 'tip') k.play(i, 'Tentacle_Attack2', 1, 0.45);
-      } else if (state === 2 && u > Math.min(plan.duration, this.leaveAt) - 2.8 - 0.3 * (plan.arms - 1 - i)) {
+        if (plan.kind === 'group' && i > 0) k.play(i, 'Tentacle_Poke', 1.6, 0.3);
+        else if (plan.kind === 'tip') k.play(i, 'Tentacle_Attack2', 1.8, 0.28);
+      } else if (state === 2 && u > Math.min(plan.duration, this.leaveAt) - 4.5 - 0.3 * (plan.arms - 1 - i)) {
         this.risen[i] = 3;
-        k.play(i, 'Tentacle_Idle', 0.8, 0.8);
+        k.play(i, 'Tentacle_Idle', 1.5, 0.45);
         this.ring(arm.root, t, 0.8);
         if (i === 0) this.emit('sink', 0.35);
       }
       // Going down, it turns: a swirl as it slides under.
-      if (state === 3) arm.root.rotation.y += dt * 1.6;
+      if (state === 3) arm.root.rotation.y += dt * 0.7;
     }
     if (plan.kind === 'arc') {
       // The mantle's back rolls up out of the sea and under again, travelling mantle first as a squid swims.
       const a = smooth(u / plan.duration);
       const body = k.body.root;
       body.rotation.set(1.2, 0, 0.12 * Math.sin(u * 0.6));
-      body.position.set(0, -8.6 + 9 * Math.sin(Math.PI * Math.min(1, u / plan.duration)), -8 + 16 * a);
+      body.position.set(0, -12 + 8.1 * Math.sin(Math.PI * Math.min(1, u / plan.duration)), -6 + 12 * a);
       // Spray where the back breaks the water, and again as it goes under.
       if (this.arcCue === 0 && u > plan.duration * 0.22) {
         this.arcCue = 1;

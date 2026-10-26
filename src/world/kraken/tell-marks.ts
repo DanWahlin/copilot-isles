@@ -30,6 +30,8 @@ export interface MarkState {
   ring: number;
   /** The swirl's turn (radians). */
   spin: number;
+  /** 0 the kraken's shadow under the water (dark), 1 white water (foam where it breaks the surface). */
+  foam: number;
 }
 
 const RINGS = 6;
@@ -40,6 +42,7 @@ const BAND = 1.1;
 const LIFT = 0.12;
 const SHADOW = [0.01, 0.035, 0.05] as const;
 const DANGER = [1.0, 0.36, 0.12] as const;
+const FOAM = [0.86, 0.92, 0.95] as const;
 
 let material: MeshBasicNodeMaterial | null = null;
 let users = 0;
@@ -58,6 +61,9 @@ interface Slot {
   mesh: Mesh;
   pos: BufferAttribute;
   alpha: BufferAttribute;
+  color: BufferAttribute;
+  /** The look its colours are written for now (0 shadow and ring, 1 foam). */
+  tint: number;
   state: MarkState;
   live: boolean;
 }
@@ -123,7 +129,8 @@ export class TellMarks {
     pos.setUsage(35048); // DynamicDrawUsage
     alpha.setUsage(35048);
     g.setAttribute('position', pos);
-    g.setAttribute('color', new BufferAttribute(color, 3));
+    const colorAttr = new BufferAttribute(color, 3);
+    g.setAttribute('color', colorAttr);
     g.setAttribute('markAlpha', alpha);
     g.setIndex(index);
     const mesh = new Mesh(g, this.material);
@@ -136,8 +143,10 @@ export class TellMarks {
       mesh,
       pos,
       alpha,
+      color: colorAttr,
+      tint: 0,
       live: false,
-      state: { x: 0, z: 0, radius: 10, heading: 0, arc: Math.PI * 2, shadow: 0, ring: 0, spin: 0 },
+      state: { x: 0, z: 0, radius: 10, heading: 0, arc: Math.PI * 2, shadow: 0, ring: 0, spin: 0, foam: 0 },
     };
   }
 
@@ -146,7 +155,7 @@ export class TellMarks {
     for (const s of this.slots)
       if (!s.live) {
         s.live = true;
-        s.state.shadow = s.state.ring = s.state.spin = 0;
+        s.state.shadow = s.state.ring = s.state.spin = s.state.foam = 0;
         s.state.arc = Math.PI * 2;
         return s.state;
       }
@@ -186,6 +195,8 @@ export class TellMarks {
       const p = s.pos.array as Float32Array;
       const a = s.alpha.array as Float32Array;
       const n = this.discR.length;
+      const foam = m.foam > 0.5 ? 1 : 0;
+      if (foam !== s.tint) this.retint(s, foam);
       for (let i = 0; i < n; i++) {
         const r = this.discR[i]! * m.radius * 0.9;
         const ang = this.discA[i]!;
@@ -194,10 +205,16 @@ export class TellMarks {
         p[i * 3] = x;
         p[i * 3 + 1] = waves.heightAt(x, z, t) + LIFT;
         p[i * 3 + 2] = z;
-        // Darkest in the middle, soft at the edge, with two slow spiral bands: the swirl.
         const rn = this.discR[i]!;
-        const swirl = 0.72 + 0.28 * Math.sin(2 * ang + 7 * rn - m.spin);
-        a[i] = m.shadow * (1 - rn * rn) * swirl;
+        if (foam) {
+          // White water: a broken ring of foam, densest toward its rim, streaked by the swirl.
+          const streak = 0.55 + 0.45 * Math.sin(5 * ang + 11 * rn - m.spin) * Math.sin(3 * ang - 4 * rn);
+          a[i] = m.shadow * Math.min(1, rn * 1.6) * (1 - rn ** 4) * streak;
+        } else {
+          // Darkest in the middle, soft at the edge, with two slow spiral bands: the swirl.
+          const swirl = 0.72 + 0.28 * Math.sin(2 * ang + 7 * rn - m.spin);
+          a[i] = m.shadow * (1 - rn * rn) * swirl;
+        }
       }
       for (let j = 0; j < this.ringA.length; j++) {
         const i = n + j;
@@ -214,6 +231,20 @@ export class TellMarks {
       s.pos.needsUpdate = true;
       s.alpha.needsUpdate = true;
     }
+  }
+
+  /** Rewrites a slot's colours for its look (only when it changes: an upload, no new geometry). */
+  private retint(s: Slot, foam: number): void {
+    s.tint = foam;
+    const c = s.color.array as Float32Array;
+    const n = this.discR.length;
+    for (let i = 0; i < c.length / 3; i++) {
+      const col = i < n ? (foam ? FOAM : SHADOW) : foam ? FOAM : DANGER;
+      c[i * 3] = col[0];
+      c[i * 3 + 1] = col[1];
+      c[i * 3 + 2] = col[2];
+    }
+    s.color.needsUpdate = true;
   }
 
   dispose(): void {

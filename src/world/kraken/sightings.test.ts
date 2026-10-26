@@ -62,9 +62,9 @@ describe('SightingsPlanner', () => {
   });
 
   it('skips a sighting that would be only a few pixels tall', () => {
-    // A tiny window: nothing 300 m off is 8 px tall in it.
+    // A tiny window: nothing 150 m off is 8 px tall in it.
     const p = new SightingsPlanner(5);
-    expect(p.plan(0, view({ viewportHeight: 90 }), {}, false)).toBeNull();
+    expect(p.plan(0, view({ viewportHeight: 30 }), {}, false)).toBeNull();
     expect(p.nextAt).toBeGreaterThan(0);
   });
 

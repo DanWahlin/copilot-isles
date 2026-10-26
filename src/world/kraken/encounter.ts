@@ -5,24 +5,39 @@ import type { BattleSound } from '../battle/battle';
 import { SplashPool, SplinterPool, fxBudget } from '../battle/fx';
 import type { WaveSampler } from '../contracts';
 import type { Brigantine } from '../ship';
-import { BRIGANTINE_MASTS } from '../ship/brigantine-rig';
-import { BRIGANTINE_HALF_LENGTH, deckHeightAt, halfBeamAt, sheerHeightAt } from '../ship/lines';
+import { BRIGANTINE_HALF_LENGTH, halfBeamAt, sheerHeightAt } from '../ship/lines';
+import {
+  Points,
+  WRAP_SPOTS,
+  deckArc,
+  ease,
+  heavy,
+  hullCoil,
+  mastCoil,
+  railGrip,
+  standPath,
+} from './arm-paths';
 import { KrakenHazards, type HazardArea, type HazardKind } from './hazards';
 import { Kraken, type KrakenArm } from './kraken';
 import { cutShip, type ShipPieces } from './ship-break';
+import { CurvePath } from './tentacle-pose';
 import { TellMarks, type MarkState } from './tell-marks';
 
 /**
  * What the kraken does, driven by a battle (or the dev page): `rise(at)`, `wrapAndBreak(ship)`,
- * `hazard(at, kind)` and `retreat()`. It gives its evidence before it acts (bubbles, a shadow and a
- * swirl under the water, a danger ring) and tells its driver through events:
+ * `hazard(at, kind)` and `retreat()`. It's huge, so it moves slowly and deliberately: its arms rise
+ * one or two at a time, sway in long, slow undulations, and make big moves with a little
+ * anticipation and an overshoot that settles. It gives its evidence before it acts (bubbles, a
+ * shadow and a swirl under the water, a danger ring) and tells its driver through events:
  * - `telling`: evidence is showing; it acts in `strikeIn` seconds (the lookout's call goes here);
- * - `striking`: it acts now (a rise breaks the water, the arms reach for a ship, a hazard lands);
+ * - `striking`: it acts now (its body or arms break the water, its arms grip a ship, a hazard lands);
  * - `done`: a wreck is under, a hazard's arm is down, or the kraken has gone.
  *
- * A ship it wraps is the driver's: the encounter only reads her pose, holds her (no way on, from the
- * reach), hides her when her pieces stand in, and never updates her. Cut her ahead of time with
- * `prepare(ship)` (in the battle's warm-up): her pieces must be drawn once before she breaks.
+ * Every duration is data (`KRAKEN_TIMING`, `HAZARD_SPECS`), so a battle can tune them.
+ *
+ * A ship it wraps is the driver's: the encounter only reads her pose, holds her (her way comes off as
+ * its arms grip), hides her when her pieces stand in, and never updates her. Cut her ahead of time
+ * with `prepare(ship)` (in the battle's warm-up): her pieces must be drawn once before she breaks.
  */
 export type KrakenEventType = 'telling' | 'striking' | 'done';
 export type KrakenAct = 'rise' | 'wrap' | 'retreat' | HazardKind;
@@ -38,61 +53,208 @@ export interface KrakenEvent {
   strikeIn: number;
 }
 
-/** A wrap's beats (s after it starts). The reduced-motion one is shorter and gentler. */
-interface WrapBeats {
-  coil: number;
+/** How long each part of a wrap takes (s). The battle can pass its own. */
+export interface KrakenTiming {
+  /** The evidence (bubbles, the shadow) before the first tip breaks the water. */
+  tell: number;
+  /** One arm, from its tip breaking the water to standing at its full height. */
+  riseEach: number;
+  /** The mean gap between one arm starting to rise and the next (each gap varies ±45 %). */
+  riseGap: number;
+  /** The highest arm's slow arc over the deck, and how long it hangs there. */
+  arc: number;
+  hang: number;
+  /** The arms curling over the deck and closing round the hull and mast. */
+  grip: number;
+  /** The squeeze, the hull rolling and groaning, until she tears in two. */
+  squeeze: number;
+  /** The two halves pulled apart, masts falling outward. */
+  apart: number;
+  /** The halves dragged under (the foam bursts as they go). */
+  under: number;
+  /** The arms withdrawing, one after another. */
+  withdraw: number;
+  /** The body and its eyes surfacing behind the wreck, then sinking (0: no finale). */
+  finale: number;
+  /** The arms' slow sway: its period (s) and size (m). */
+  swayPeriod: number;
+  swayAmp: number;
+  /** The anticipation and the overshoot of a big move (0 for none). */
+  anticipate: number;
+  overshoot: number;
+}
+
+export const KRAKEN_TIMING: KrakenTiming = {
+  tell: 3.5,
+  riseEach: 4.5,
+  riseGap: 1.0,
+  arc: 4,
+  hang: 2.5,
+  grip: 6,
+  squeeze: 6,
+  apart: 4,
+  under: 6,
+  withdraw: 7,
+  finale: 9,
+  swayPeriod: 7,
+  swayAmp: 0.9,
+  anticipate: 0.05,
+  overshoot: 0.07,
+};
+
+/** Reduced motion: shorter, gentler, no anticipation or overshoot, a smaller sway. */
+export const KRAKEN_TIMING_GENTLE: KrakenTiming = {
+  ...KRAKEN_TIMING,
+  tell: 3,
+  riseEach: 3.5,
+  riseGap: 0.7,
+  arc: 3,
+  hang: 1.5,
+  grip: 4.5,
+  squeeze: 4,
+  apart: 3,
+  under: 4.5,
+  withdraw: 5,
+  finale: 6,
+  swayAmp: 0.5,
+  anticipate: 0,
+  overshoot: 0,
+};
+
+/** A wrap's beats: seconds after it starts, from the timing and how many arms rise. */
+export interface WrapBeats {
+  tips: number;
+  /** When the last (highest) arm starts to rise. */
+  lastRise: number;
+  arc: number;
+  hang: number;
+  grip: number;
   squeeze: number;
   break: number;
-  sink: number;
-  release: number;
-  /** The kraken goes down on its own after this. */
-  leave: number;
+  under: number;
+  foam: number;
+  withdraw: number;
+  finale: number;
+  end: number;
 }
 
-const WRAP: WrapBeats = { coil: 3, squeeze: 6.5, break: 10.5, sink: 15, release: 18.5, leave: 20.5 };
-const WRAP_GENTLE: WrapBeats = { coil: 2.5, squeeze: 5, break: 7.5, sink: 10.5, release: 13.5, leave: 15 };
-/** A rise: the tell (s), then the arms, then the body. */
-const RISE_TELL = 2.6;
-const RISE_TELL_GENTLE = 3.2;
-/** Where the kraken rises beside a ship it's going to wrap (her frame: x to port, z to the bow). */
-const ANCHOR = { x: 17, z: -1.5 } as const;
+export function wrapBeats(t: KrakenTiming, arms: number): WrapBeats {
+  const tips = t.tell;
+  const lastRise = tips + t.riseGap * Math.max(0, arms - 1);
+  const arc = lastRise + t.riseEach * 0.55;
+  const hang = arc + t.arc;
+  const grip = hang + t.hang;
+  const squeeze = grip + t.grip;
+  const brk = squeeze + t.squeeze;
+  const under = brk + t.apart * 0.5;
+  const foam = brk + t.apart + 1;
+  const withdraw = brk + t.apart + t.under * 0.6;
+  const finale = withdraw + t.withdraw * 0.6;
+  return {
+    tips,
+    lastRise,
+    arc,
+    hang,
+    grip,
+    squeeze,
+    break: brk,
+    under,
+    foam,
+    withdraw,
+    finale,
+    end: finale + t.finale + 1,
+  };
+}
 
 export type WrapPhase =
-  'none' | 'tell' | 'rise' | 'reach' | 'coil' | 'squeeze' | 'break' | 'apart' | 'sink' | 'retreat';
+  | 'none'
+  | 'tell'
+  | 'tips'
+  | 'rise'
+  | 'arc'
+  | 'hang'
+  | 'grip'
+  | 'squeeze'
+  | 'break'
+  | 'under'
+  | 'withdraw'
+  | 'finale'
+  | 'surfaced'
+  | 'retreat';
 
-type Role = 'hull' | 'mast' | 'stern';
-
-interface Wrapper {
-  arm: KrakenArm;
-  role: Role;
-  delay: number;
-  piece: number;
-}
-
-/** The ship's cuts (ship-local z): between the fore and main masts, and between the main and mizzen. */
-const CUTS = [-4.8, 1.8] as const;
-const HULL_Z = 0.25;
-const STERN_Z = -10.1;
-const FORE = BRIGANTINE_MASTS.fore;
-const SINK_DELAY = [0.9, -1.5, 0.4] as const;
-const CUE_BODY = 0;
-const CUE_SLAP = 1;
-const CUE_GROAN = 4;
-const CUE_UNDER = 7;
-const CUE_REACH = 10;
-const CUE_DONE = 11;
-const CUE_RISE = 12;
-const CUE_GONE = 13;
-
-const smooth = (x: number) => {
-  const t = clamp01(x);
-  return t * t * (3 - 2 * t);
+/** What each arm does in a wrap (by its socket: 0 and 7 face the ship). */
+type Role = 'mast' | 'bow' | 'stern' | 'gripFore' | 'gripAft' | 'standFar' | 'standFarFore' | 'standNear';
+const ROLE_OF: Readonly<Record<number, Role>> = {
+  0: 'mast',
+  7: 'bow',
+  1: 'stern',
+  6: 'gripFore',
+  2: 'gripAft',
+  3: 'standFar',
+  5: 'standFarFore',
+  4: 'standNear',
 };
+/** The order they rise in: tips beside the hull first, the highest (the arc over the deck) last. */
+const RISE_ORDER: readonly Role[] = [
+  'gripFore',
+  'gripAft',
+  'standFar',
+  'standFarFore',
+  'stern',
+  'bow',
+  'standNear',
+  'mast',
+];
+/** Which half each arm holds after she tears in two (0 the stern half, 1 the bow). */
+const PIECE_OF: Readonly<Record<Role, number>> = {
+  mast: 1,
+  bow: 1,
+  gripFore: 1,
+  stern: 0,
+  gripAft: 0,
+  standFar: 0,
+  standFarFore: 1,
+  standNear: 0,
+};
+/** Where each arm breaks the water beside the ship (her frame: x to the kraken's side, z to her bow) and how tall it stands (m). */
+const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
+  mast: [6.5, 7.5, 10],
+  bow: [5.6, 9.5, 11],
+  stern: [6, -4.6, 11],
+  gripFore: [5.4, 1.8, 10],
+  gripAft: [5.6, -11.5, 10],
+  standFar: [-9, -5, 15],
+  standFarFore: [-8.5, 6.5, 13],
+  standNear: [13, -15, 14],
+};
+/** How far round the surfaced body its arms rise (m), and how tall they stand there. */
+const RING = 9.5;
+const RING_HEIGHT = 9;
+/** Where the kraken lies beside a ship it wraps (her frame), and how deep its body is. */
+const ANCHOR = { x: 15, z: -1.5, depth: -11 } as const;
+/** The ship's one cut: she tears in two between the fore and main masts. */
+const CUTS = [1.8] as const;
+
+interface ArmState {
+  arm: KrakenArm;
+  k: number;
+  role: Role;
+  /** When it starts to rise (s after the wrap or rise starts). */
+  riseAt: number;
+  sway: number;
+  stand: CurvePath;
+  target: CurvePath;
+  target2: CurvePath;
+  /** Its visible height last frame (a ring of foam where it breaks the water). */
+  shown: number;
+}
 
 const _m = new Matrix4();
 const _p = new Vector3();
 const _a = new Vector3();
+const _o = new Vector3();
 const _look = new Vector3();
+const _pts = new Points(64);
 
 export interface KrakenEncounterOptions {
   tier: TierSettings;
@@ -100,12 +262,18 @@ export interface KrakenEncounterOptions {
   onSound?: (kind: BattleSound, pos: { x: number; y: number; z: number }, gain: number) => void;
   /** The tentacle's folder (defaults to the game's pack). */
   base?: string;
+  /** Timings to use instead of `KRAKEN_TIMING` (and its gentle one with reduced motion). */
+  timing?: Partial<KrakenTiming>;
 }
 
 interface Wreck {
   ship: Brigantine;
   pieces: ShipPieces;
+  /** Each rigging line's own opacity (they fade as their half goes under). */
+  lineBase: number[];
 }
+
+type Mode = 'idle' | 'surfaced' | 'wrap';
 
 export class KrakenEncounter {
   readonly group = new Group();
@@ -116,30 +284,35 @@ export class KrakenEncounter {
   readonly splinters: SplinterPool;
   /** Seconds since the encounter started (its own clock). */
   time = 0;
-  reducedMotion = false;
+  private gentle = false;
+  private beatsNow: WrapBeats;
   /** Camera shake for this frame (m), 0 with reduced motion. */
   shake = 0;
+  private readonly timingFull: KrakenTiming;
+  private readonly timingGentle: KrakenTiming;
   private readonly waves: WaveSampler;
   private readonly onSound: KrakenEncounterOptions['onSound'];
   private readonly listeners: ((e: Readonly<KrakenEvent>) => void)[] = [];
   private readonly event: KrakenEvent = { type: 'telling', act: 'rise', x: 0, z: 0, radius: 0, strikeIn: 0 };
-  private readonly wrappers: Wrapper[] = [];
-  private readonly wrapperOf: (Wrapper | null)[] = [];
-  private readonly tipY: Float32Array;
-  private readonly fired = new Uint8Array(32);
+  private readonly states: ArmState[] = [];
+  private readonly fired = new Uint8Array(48);
   private readonly wrecks: Wreck[] = [];
   private rand = mulberry32(0x6b72);
-  /** When the rise started (encounter time), NaN when it hasn't. */
-  private riseAt = NaN;
-  private retreatAt = NaN;
-  private wrapAt = NaN;
+  private mode: Mode = 'idle';
+  /** When the rise or the wrap started, and when it was told to leave (encounter time; NaN none). */
+  private startAt = NaN;
+  private leaveAt = NaN;
   private wreck: Wreck | null = null;
   private broke = false;
-  private riseMark: MarkState | null = null;
+  private tellMark: MarkState | null = null;
+  private readonly foamMarks: (MarkState | null)[] = [];
+  private readonly foamAt: number[] = [];
   private readonly brokeAt = { x: 0, z: 0, heading: 0, pitch: 0, roll: 0 };
   private readonly sound = { x: 0, y: 0, z: 0 };
   private readonly anchor = new Vector3();
   private anchorHeading = 0;
+  private trim = 0;
+  private t = 0;
 
   private constructor(
     o: KrakenEncounterOptions,
@@ -150,6 +323,9 @@ export class KrakenEncounter {
   ) {
     this.waves = o.waves;
     this.onSound = o.onSound;
+    this.timingFull = { ...KRAKEN_TIMING, ...o.timing };
+    this.timingGentle = { ...KRAKEN_TIMING_GENTLE, ...o.timing };
+    this.beatsNow = wrapBeats(this.timingFull, kraken.arms.length);
     this.kraken = kraken;
     this.hazards = hazards;
     this.marks = marks;
@@ -159,23 +335,30 @@ export class KrakenEncounter {
     this.splinters = new SplinterPool(budget.splinters);
     if (budget.splinters === 0) this.splinters.mesh.visible = false;
     this.group.add(kraken.group, hazards.kraken.group, marks.group, splashes.mesh, this.splinters.mesh);
-    const roles: [number, Role, number, number][] = [
-      [0, 'hull', 0, 1],
-      [7, 'mast', 0.6, 2],
-      [1, 'stern', 1.1, 0],
-    ];
-    for (const [socket, role, delay, piece] of roles) {
-      const arm = kraken.arms.find((a) => a.index === socket);
-      if (arm) this.wrappers.push({ arm, role, delay, piece });
-    }
-    for (const arm of kraken.arms) this.wrapperOf.push(this.wrappers.find((w) => w.arm === arm) ?? null);
-    this.tipY = new Float32Array(kraken.arms.length);
+    kraken.arms.forEach((arm, k) => {
+      this.states.push({
+        arm,
+        k,
+        role: ROLE_OF[arm.index] ?? 'standNear',
+        riseAt: 0,
+        sway: arm.index * 1.7,
+        stand: new CurvePath(24, 5),
+        target: new CurvePath(48, 4),
+        target2: new CurvePath(48, 4),
+        shown: 0,
+      });
+    });
+    // Rise order: the order's roles first, any others after.
+    this.states.sort((a, b) => RISE_ORDER.indexOf(a.role) - RISE_ORDER.indexOf(b.role));
+    kraken.onPose = (arm, k) => this.poseArm(arm, k);
     this.reset();
   }
 
   static async create(o: KrakenEncounterOptions): Promise<KrakenEncounter> {
-    const kraken = await Kraken.load({ tier: o.tier.tier, base: o.base });
-    const marks = new TellMarks(o.tier.tier === 'lite' ? 3 : 4);
+    // Every arm is the slim one: thick at its root (under the water), tapering long and thin above it.
+    const kraken = await Kraken.load({ tier: o.tier.tier, base: o.base, slim: [0, 1, 2, 3, 4, 5, 6, 7] });
+    const lite = o.tier.tier === 'lite';
+    const marks = new TellMarks(lite ? 5 : 8);
     const splashes = new SplashPool(fxBudget(o.tier).splashes);
     let enc: KrakenEncounter | null = null;
     const rand = mulberry32(0x4a2d);
@@ -190,9 +373,17 @@ export class KrakenEncounter {
         telling: (a, kind, strikeIn) => enc?.emitEvent('telling', kind, a.x, a.z, a.radius, strikeIn),
         striking: (a, kind) => {
           enc?.emitEvent('striking', kind, a.x, a.z, a.radius, 0);
+          enc?.foam(
+            a.x + Math.sin(a.heading) * a.radius * 0.3,
+            a.z + Math.cos(a.heading) * a.radius * 0.3,
+            4,
+            a.radius,
+            4,
+          );
           _p.set(a.x, 0, a.z);
-          enc?.emit('splash', _p, 1.2);
+          enc?.emit('splash', _p, 1.4);
         },
+        emerging: (at) => enc?.breakWater(at.x, at.z, 0.8),
         done: (kind) => enc?.emitEvent('done', kind, 0, 0, 0, 0),
       },
     });
@@ -200,7 +391,26 @@ export class KrakenEncounter {
     return enc;
   }
 
-  /** Listens to the encounter's events; returns the function that stops listening. */
+  /** Reduced motion: the gentle timing, smaller splashes, no shake. */
+  get reducedMotion(): boolean {
+    return this.gentle;
+  }
+
+  set reducedMotion(on: boolean) {
+    this.gentle = on;
+    this.beatsNow = wrapBeats(this.timing, this.states.length);
+  }
+
+  /** The timing in use (the gentle one with reduced motion). */
+  get timing(): KrakenTiming {
+    return this.gentle ? this.timingGentle : this.timingFull;
+  }
+
+  /** The wrap's beats now (s after it starts). */
+  get beats(): WrapBeats {
+    return this.beatsNow;
+  }
+
   on(fn: (e: Readonly<KrakenEvent>) => void): () => void {
     this.listeners.push(fn);
     return () => {
@@ -210,8 +420,8 @@ export class KrakenEncounter {
   }
 
   /**
-   * Cuts `ship` into her pieces ahead of time (in the warm-up, with her rig and figurehead as they'll
-   * be). Her pieces join the encounter's group, hidden; they're drawn in its warm (`stageWarm`).
+   * Cuts `ship` into her two halves ahead of time (in the warm-up, with her rig and figurehead as
+   * they'll be). They join the encounter's group, hidden; its warm (`stageWarm`) draws them.
    */
   prepare(ship: Brigantine): void {
     const old = this.wrecks.findIndex((w) => w.ship === ship);
@@ -223,130 +433,173 @@ export class KrakenEncounter {
     const pieces = cutShip(ship.group, CUTS, shipMaterialOf(ship.group));
     pieces.group.visible = false;
     this.group.add(pieces.group);
-    this.wrecks.push({ ship, pieces });
+    const lineBase: number[] = [];
+    for (const p of pieces.pieces) for (const m of p.lineMaterials) lineBase.push(m.opacity);
+    this.wrecks.push({ ship, pieces, lineBase });
   }
 
-  /** Back to calm: the kraken deep, no hazards, any wrecked ship whole again (shown). */
+  /** Back to calm: the kraken deep and hidden, no hazards, any wrecked ship whole again (shown). */
   reset(): void {
     this.time = 0;
-    this.riseAt = this.retreatAt = this.wrapAt = NaN;
+    this.mode = 'idle';
+    this.startAt = this.leaveAt = NaN;
     this.broke = false;
     this.wreck = null;
     this.fired.fill(0);
-    this.tipY.fill(-100);
     this.rand = mulberry32(0x6b72);
     this.marks.clear();
-    this.riseMark = null;
+    this.tellMark = null;
+    this.foamMarks.length = 0;
+    this.foamAt.length = 0;
     this.hazards.reset();
     for (const w of this.wrecks) {
       w.ship.group.visible = true;
       w.pieces.group.visible = false;
+      let i = 0;
       for (const p of w.pieces.pieces) {
         p.root.visible = true;
         p.pivot.rotation.set(0, 0, 0);
+        for (const m of p.lineMaterials) m.opacity = w.lineBase[i++]!;
         for (const l of p.lines) l.visible = true;
       }
     }
     this.splashes.clear();
     this.splinters.clear();
-    for (let k = 0; k < this.kraken.arms.length; k++) {
-      const arm = this.kraken.arms[k]!;
-      arm.weight = 0;
-      arm.sink = arm.length + 4;
-      this.kraken.play(k, 'Tentacle_Idle', 0, 0.75 + (arm.index % 3) * 0.12, true);
+    for (const s of this.states) {
+      s.arm.weight = 0;
+      s.arm.sink = s.arm.length + 4;
+      s.shown = 0;
     }
-    this.kraken.body.root.position.y = -16;
+    this.kraken.body.root.position.set(0, -16, 0);
     this.kraken.group.visible = false;
   }
 
-  /** Rises at (x, z), facing `heading` (its eyes' way), after its tell. */
+  /** Surfaces at (x, z), facing `heading`, after its tell: its arms rise round it, one or two at a time. */
   rise(x: number, z: number, heading: number): void {
-    if (!Number.isNaN(this.riseAt) && Number.isNaN(this.retreatAt)) return;
-    this.riseAt = this.time;
-    this.retreatAt = NaN;
-    this.fired.fill(0);
-    this.tipY.fill(-100);
+    if (this.mode !== 'idle' && Number.isNaN(this.leaveAt)) return;
+    this.begin('surfaced');
     this.anchor.set(x, 0, z);
     this.anchorHeading = heading;
     this.kraken.group.position.copy(this.anchor);
     this.kraken.group.rotation.y = heading;
-    this.kraken.group.visible = true;
-    this.riseMark ??= this.marks.acquire();
-    if (this.riseMark) {
-      this.riseMark.x = x;
-      this.riseMark.z = z;
-      this.riseMark.radius = 11;
-      this.riseMark.arc = Math.PI * 2;
-    }
-    this.emitEvent('telling', 'rise', x, z, 11, this.riseTell);
+    this.emitEvent('telling', 'rise', x, z, 11, this.timing.tell);
   }
 
   /**
-   * Wraps `ship` (prepared with `prepare`) and tears her apart. If the kraken isn't up, it rises
-   * beside her first (with its tell); either way it swims alongside her as she goes.
+   * Wraps `ship` (prepared with `prepare`) and tears her in two, from under the water beside her:
+   * its evidence, then tips beside her hull, arms rising round her, one arcing over her deck, the
+   * grip, the squeeze, the tear, the halves dragged under, the arms withdrawing, and (with a finale)
+   * its body and eyes surfacing behind the wreck. It follows her if she's under way.
    */
   wrapAndBreak(ship: Brigantine): boolean {
     const wreck = this.wrecks.find((w) => w.ship === ship);
     if (!wreck || this.wreck) return false;
     this.wreck = wreck;
     this.broke = false;
+    this.trim = ship.dynamics.control.trim;
+    this.begin('wrap');
     this.anchorFor(ship);
-    if (Number.isNaN(this.riseAt) || !Number.isNaN(this.retreatAt)) {
-      this.rise(this.anchor.x, this.anchor.z, this.anchorHeading);
-      this.wrapAt = this.time + this.riseTell + 5.5;
-    } else this.wrapAt = this.time + 0.8;
+    this.kraken.group.position.copy(this.anchor);
+    this.kraken.group.rotation.y = this.anchorHeading;
+    this.emitEvent('telling', 'wrap', this.anchor.x, this.anchor.z, 11, this.timing.tell);
     return true;
   }
 
-  /** A tentacle hazard at (x, z): `heading` is a sweep's middle direction. Returns its id (0: none free). */
+  private begin(mode: Mode): void {
+    this.mode = mode;
+    this.startAt = this.time;
+    this.leaveAt = NaN;
+    this.fired.fill(0);
+    this.kraken.group.visible = true;
+    this.kraken.body.root.position.set(0, mode === 'wrap' ? ANCHOR.depth - 4 : -16, 0);
+    // Each arm's rise: one or two at a time, a varied gap between them.
+    let at = this.timing.tell;
+    for (const s of this.states) {
+      s.riseAt = at;
+      s.shown = 0;
+      s.arm.sink = 0;
+      s.arm.weight = 1;
+      at += this.timing.riseGap * (0.55 + 0.9 * this.rand());
+    }
+    this.tellMark ??= this.marks.acquire();
+    if (this.tellMark) {
+      this.tellMark.radius = 12;
+      this.tellMark.arc = Math.PI * 2;
+    }
+  }
+
   hazard(x: number, z: number, kind: HazardKind, heading = 0): number {
     return this.hazards.start(kind, x, z, heading);
   }
 
-  /** The kraken goes back under: its arms let go, its hazards sink, then its body. */
+  /** The kraken goes back under: its arms let go and withdraw, its hazards sink, then its body. */
   retreat(): void {
     this.hazards.retreat();
-    if (Number.isNaN(this.riseAt) || !Number.isNaN(this.retreatAt)) return;
-    this.retreatAt = this.time;
+    if (this.mode === 'idle' || !Number.isNaN(this.leaveAt)) return;
+    this.leaveAt = this.time;
     this.emitEvent('telling', 'retreat', this.anchor.x, this.anchor.z, 0, 0);
   }
 
-  /** True when a hull touches a hazard that can hurt now (a landing strike or a standing arm). */
   hitsHull(bowX: number, bowZ: number, sternX: number, sternZ: number, halfBeam: number): boolean {
     return this.hazards.hitsHull(bowX, bowZ, sternX, sternZ, halfBeam);
   }
 
-  /** The areas that can hurt now (written into `out`). */
   dangers(out: HazardArea[]): HazardArea[] {
     return this.hazards.dangers(out);
   }
 
-  get riseTell(): number {
-    return this.reducedMotion ? RISE_TELL_GENTLE : RISE_TELL;
-  }
-
-  private get beats(): WrapBeats {
-    return this.reducedMotion ? WRAP_GENTLE : WRAP;
-  }
-
-  /** Where the wrap stands (for a camera or a HUD). */
+  /** Where it stands (for a camera or a HUD). */
   phase(): WrapPhase {
-    const t = this.time;
-    if (!Number.isNaN(this.retreatAt)) return t - this.retreatAt < 6 ? 'retreat' : 'none';
-    if (Number.isNaN(this.riseAt)) return 'none';
-    if (t < this.riseAt + this.riseTell) return 'tell';
-    if (Number.isNaN(this.wrapAt) || t < this.wrapAt) return 'rise';
-    const w = t - this.wrapAt;
+    if (this.mode === 'idle') return 'none';
+    const w = this.time - this.startAt;
     const b = this.beats;
-    if (w < b.coil) return 'reach';
-    if (w < b.squeeze) return 'coil';
+    if (!Number.isNaN(this.leaveAt) && (this.mode !== 'wrap' || this.time - this.leaveAt < 8))
+      return 'retreat';
+    if (w < b.tips) return 'tell';
+    if (this.mode === 'surfaced') return w < b.lastRise + this.timing.riseEach ? 'rise' : 'surfaced';
+    if (w < b.tips + this.timing.riseGap * 1.5) return 'tips';
+    if (w < b.arc) return 'rise';
+    if (w < b.hang) return 'arc';
+    if (w < b.grip) return 'hang';
+    if (w < b.squeeze) return 'grip';
     if (w < b.break) return 'squeeze';
-    if (w < b.break + 1.2) return 'break';
-    if (w < b.sink) return 'apart';
-    return 'sink';
+    if (w < b.under) return 'break';
+    if (w < b.withdraw) return 'under';
+    if (w < b.finale) return 'withdraw';
+    if (w < b.end) return 'finale';
+    return 'none';
   }
 
-  /** For the warm-up: everything that shows later, shown; returns the undo. */
+  /** How far through the current phase it is, 0…1 (for a camera's slow push-in). */
+  phaseProgress(): number {
+    const w = this.time - this.startAt;
+    const b = this.beats;
+    switch (this.phase()) {
+      case 'tell':
+        return span(w, 0, b.tips);
+      case 'tips':
+      case 'rise':
+        return span(w, b.tips, b.arc);
+      case 'arc':
+        return span(w, b.arc, b.hang);
+      case 'hang':
+        return span(w, b.hang, b.grip);
+      case 'grip':
+        return span(w, b.grip, b.squeeze);
+      case 'squeeze':
+        return span(w, b.squeeze, b.break);
+      case 'break':
+      case 'under':
+        return span(w, b.break, b.withdraw);
+      case 'withdraw':
+        return span(w, b.withdraw, b.finale);
+      case 'finale':
+        return span(w, b.finale, b.end);
+      default:
+        return 0;
+    }
+  }
+
   stageWarm(): () => void {
     const restore: (() => void)[] = [];
     const show = (o: Object3D) => {
@@ -371,41 +624,139 @@ export class KrakenEncounter {
   /** One frame: `dt` the encounter's step (0 while paused), `t` the sea's clock. */
   update(dt: number, t: number, camera: Camera | null): void {
     this.time += dt;
-    const time = this.time;
+    this.t = t;
+    const w = this.time - this.startAt;
+    const b = this.beats;
     const wreck = this.wreck;
-    if (wreck) {
+    if (wreck && this.mode === 'wrap') {
       wreck.ship.group.updateMatrixWorld(true);
       if (!this.broke) this.anchorFor(wreck.ship);
-      // From the reach she's held: no way on (the driver must leave her helm alone).
-      if (time >= this.wrapAt) wreck.ship.dynamics.setInput(HELD);
-      const b = this.beats;
-      const w = time - this.wrapAt;
+      // Held: her way comes off as its arms close on her (her sails come in as the trim falls).
+      if (w >= b.grip - 2) {
+        this.trim = Math.max(0, this.trim - dt * 0.35);
+        HELD.trim = this.trim;
+        wreck.ship.dynamics.setInput(HELD);
+      }
       const showPieces = w >= b.squeeze;
       wreck.ship.group.visible = !showPieces;
       wreck.pieces.group.visible = showPieces;
       if (showPieces) this.placePieces(wreck, w, t);
       if (w >= b.break && !this.broke) this.breakApart(wreck, t);
-      if (w >= b.leave && Number.isNaN(this.retreatAt)) this.retreat();
+      if (w >= b.end && Number.isNaN(this.leaveAt)) this.leaveAt = this.time;
     }
-    // It swims to its place beside the ship (or stays where it rose).
-    if (!Number.isNaN(this.riseAt)) {
+    if (this.mode !== 'idle') {
+      // It swims slowly to its place beside the ship (or stays where it rose).
       const g = this.kraken.group;
-      const k = 1 - Math.exp(-dt * 1.4);
+      const k = 1 - Math.exp(-dt * 0.6);
       g.position.lerp(this.anchor, k);
       g.rotation.y +=
         Math.atan2(Math.sin(this.anchorHeading - g.rotation.y), Math.cos(this.anchorHeading - g.rotation.y)) *
         k;
+      this.moveBody(w, b);
+      for (const s of this.states) s.arm.sink = this.armHidden(s, w, b) ? s.arm.length + 4 : 0;
     }
-    this.updateRiseMark(time);
-    this.updateKraken(dt, t, time, camera);
+    this.kraken.place();
+    if (this.mode !== 'idle') {
+      if (this.wreck) this.wreck.ship.group.getWorldPosition(_look);
+      else if (camera) camera.getWorldPosition(_look);
+      const anger = this.mode === 'wrap' && w > b.grip && w < b.withdraw ? 1 : 0;
+      this.kraken.update(dt, t, camera, _look, anger);
+    }
+    this.updateTell(w, b);
     this.hazards.update(dt, t, camera);
+    this.updateFoam();
     this.marks.update(t, this.waves);
     this.splashes.sync(t);
     this.splinters.update(dt, t, this.waves);
-    this.cues(time, t);
+    if (this.mode !== 'idle') this.cues(w, b, t);
+    this.shake = Math.max(0, this.shake - dt * 0.5);
+    if (!this.reducedMotion && this.mode === 'wrap' && w > b.squeeze && w < b.break)
+      this.shake = Math.max(this.shake, 0.05 * this.squeezeAt(w));
+    if (this.reducedMotion) this.shake = 0;
   }
 
-  /** The kraken's place beside `ship`: on her +x side, facing her. */
+  /** The body: deep beside a ship it wraps (its shadow under the water), surfaced for a rise or the finale. */
+  private moveBody(w: number, b: WrapBeats): void {
+    const body = this.kraken.body;
+    const tm = this.timing;
+    let y: number;
+    if (this.mode === 'wrap') {
+      const fin =
+        tm.finale > 0
+          ? heavy((w - b.finale) / 4, tm.anticipate, tm.overshoot) * (1 - ease((w - b.end + 4.5) / 4))
+          : 0;
+      const down = ease((w - b.tips + 2) / 4);
+      y = ANCHOR.depth - 4 * (1 - down) + (body.surfaced - ANCHOR.depth) * fin;
+    } else {
+      const up = heavy((w - tm.tell - 1.5) / (tm.riseEach * 1.1), tm.anticipate, tm.overshoot);
+      y = -16 + (16 + body.surfaced) * up;
+    }
+    if (!Number.isNaN(this.leaveAt) && this.mode !== 'wrap')
+      y -= 17 * ease((this.time - this.leaveAt - 2) / 5);
+    body.root.position.y = y + Math.sin(this.t * 0.4) * 0.2;
+  }
+
+  private armHidden(s: ArmState, w: number, b: WrapBeats): boolean {
+    if (w < s.riseAt - 1) return true;
+    if (this.mode === 'wrap' && w > b.end) return true;
+    if (!Number.isNaN(this.leaveAt) && this.time - this.leaveAt > this.timing.withdraw + 4) return true;
+    return false;
+  }
+
+  /** The evidence: the shadow and swirl over where it'll rise, then gone. */
+  private updateTell(w: number, b: WrapBeats): void {
+    const m = this.tellMark;
+    if (!m) return;
+    const tm = this.timing;
+    const told = ease(w / (tm.tell * 0.7));
+    const gone = 1 - ease((w - tm.tell - 2) / 3);
+    m.shadow = 0.95 * told * gone;
+    m.ring = 0;
+    m.foam = 0;
+    m.spin = w * (0.6 + 0.6 * told);
+    // Over the body's place, or between it and the ship it's after.
+    const g = this.kraken.group.position;
+    m.x = this.wreck ? (g.x * 2 + this.wreck.ship.group.position.x) / 3 : g.x;
+    m.z = this.wreck ? (g.z * 2 + this.wreck.ship.group.position.z) / 3 : g.z;
+    if (w > b.tips + 5) {
+      this.marks.release(m);
+      this.tellMark = null;
+    }
+  }
+
+  /** White water: a ring of foam that spreads and fades (an arm breaking the water, the hull tearing). */
+  foam(x: number, z: number, r0: number, r1: number, seconds: number): void {
+    const m = this.marks.acquire();
+    if (!m) return;
+    m.foam = 1;
+    m.x = x;
+    m.z = z;
+    m.radius = r0;
+    m.arc = Math.PI * 2;
+    m.ring = 0;
+    m.shadow = 1;
+    this.foamMarks.push(m);
+    // Start time, then the radii and length packed after it.
+    this.foamAt.push(this.time, r0, r1, seconds);
+  }
+
+  private updateFoam(): void {
+    for (let i = this.foamMarks.length - 1; i >= 0; i--) {
+      const m = this.foamMarks[i]!;
+      const j = i * 4;
+      const age = (this.time - this.foamAt[j]!) / this.foamAt[j + 3]!;
+      if (age >= 1 || this.time < this.foamAt[j]!) {
+        if (m) this.marks.release(m);
+        this.foamMarks.splice(i, 1);
+        this.foamAt.splice(j, 4);
+        continue;
+      }
+      m.radius = this.foamAt[j + 1]! + (this.foamAt[j + 2]! - this.foamAt[j + 1]!) * ease(age * 1.3);
+      m.shadow = 0.9 * Math.min(1, age * 6) * (1 - age) ** 1.5;
+      m.spin = age * 2.5;
+    }
+  }
+
   private anchorFor(ship: Brigantine): void {
     const g = ship.group;
     const pose = ship.dynamics.pose;
@@ -419,69 +770,242 @@ export class KrakenEncounter {
     this.anchorHeading = pose.heading - Math.PI / 2;
   }
 
-  /** The rise's evidence: shadow and swirl before the arms break the water, then gone. */
-  private updateRiseMark(time: number): void {
-    const m = this.riseMark;
-    if (!m) return;
-    const age = time - this.riseAt;
-    const tell = this.riseTell;
-    const told = smooth(age / (tell * 0.75));
-    const gone = 1 - smooth((age - tell - 1.5) / 2);
-    m.shadow = 0.9 * told * gone;
-    m.ring = 0;
-    m.spin = age * (1 + told);
-    m.x = this.kraken.group.position.x;
-    m.z = this.kraken.group.position.z;
-    if (age > tell + 4) {
-      this.marks.release(m);
-      this.riseMark = null;
+  /** The frame turning a ship-local point into the world for an arm: her (whole), or the half it holds. */
+  private frameFor(role: Role, w: number): Object3D {
+    const wreck = this.wreck!;
+    if (w < this.beats.squeeze) return wreck.ship.group;
+    return wreck.pieces.pieces[PIECE_OF[role]]!.pivot.children[0]!;
+  }
+
+  /** One arm, each frame (Kraken.onPose): stand up from the water, then its role's shape over it. */
+  private poseArm(arm: KrakenArm, k: number): void {
+    const s = this.stateOf(k);
+    if (!s) return;
+    const tm = this.timing;
+    const b = this.beats;
+    const w = this.time - this.startAt;
+    const a = tm.anticipate;
+    const o = tm.overshoot;
+    // How tall it stands: up slowly (tips first), down slowly when it withdraws.
+    const rise = heavy((w - s.riseAt) / tm.riseEach, a, o);
+    let out = 0;
+    if (this.mode === 'wrap') {
+      const order = RISE_ORDER.indexOf(s.role);
+      out = ease((w - b.withdraw - order * 0.55) / (tm.withdraw * 0.6));
     }
+    if (!Number.isNaN(this.leaveAt))
+      out = Math.max(
+        out,
+        ease((this.time - this.leaveAt - (s.riseAt - tm.tell) * 0.5) / (tm.withdraw * 0.6)),
+      );
+    // Where it breaks the water: beside the ship it's after, or round its own surfaced body.
+    const finaleArm =
+      this.mode === 'wrap' &&
+      w > b.finale &&
+      (s.role === 'standFar' || s.role === 'standNear' || s.role === 'standFarFore');
+    let height: number;
+    const frame = this.mode === 'wrap' ? this.frameFor(s.role, w) : null;
+    if (this.mode === 'wrap' && !finaleArm) {
+      const e = EMERGE[s.role];
+      // The emergence point stays with the ship until she breaks; then where she broke.
+      frame!.updateWorldMatrix(true, false);
+      _a.set(e[0], 0, e[1]).applyMatrix4(
+        this.broke ? this.wreck!.ship.group.matrixWorld : frame!.matrixWorld,
+      );
+      height = e[2];
+    } else {
+      // Round the body (the surfaced kraken, or the finale), out along its socket.
+      _o.copy(arm.outward).setY(0).normalize().transformDirection(this.kraken.body.root.matrixWorld);
+      this.kraken.body.root.getWorldPosition(_a);
+      _a.addScaledVector(_o.setY(0).normalize(), RING);
+      height = RING_HEIGHT;
+      if (finaleArm) {
+        const fin = heavy((w - b.finale - 1.5) / tm.riseEach, a, o) * (1 - ease((w - b.end + 4) / 3.5));
+        out = 1 - fin;
+      }
+    }
+    const h = height * Math.max(0, rise) * (1 - out);
+    // Foam where it breaks the water, coming up or going down.
+    if (s.shown < 0.5 !== h < 0.5 && h + s.shown > 0) this.breakWater(_a.x, _a.z, h > s.shown ? 1 : 0.7);
+    s.shown = h;
+    const sea = this.waves.heightAt(_a.x, _a.z, this.t);
+    arm.poser.base(_p);
+    _o.copy(arm.outward).transformDirection(this.kraken.body.root.matrixWorld);
+    // It leans toward the ship it's after (or out from its body), its tip hooked over.
+    let lx = 0;
+    let lz = 1;
+    if (this.wreck) {
+      const sp = this.wreck.ship.group.position;
+      lx = sp.x - _a.x;
+      lz = sp.z - _a.z;
+    } else {
+      lx = _o.x;
+      lz = _o.z;
+    }
+    const ll = Math.hypot(lx, lz) || 1;
+    lx /= ll;
+    lz /= ll;
+    const sway = (this.t / tm.swayPeriod) * Math.PI * 2 + s.sway;
+    s.stand.clear();
+    standPath(
+      s.stand,
+      _p.x,
+      _p.y,
+      _p.z,
+      _o.x,
+      _o.z,
+      _a.x,
+      _a.z,
+      sea,
+      h,
+      arm.length,
+      sway,
+      tm.swayAmp,
+      lx,
+      lz,
+      0.8,
+    );
+    s.stand.build();
+    arm.poser.pose(s.stand, 1);
+    if (this.mode !== 'wrap' || finaleArm || !frame) return;
+    // Its role's shape over the ship, blended in slowly (and out as it withdraws).
+    const grip = heavy((w - b.grip - (RISE_ORDER.indexOf(s.role) % 3) * 0.6) / (tm.grip * 0.7), a, o);
+    const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
+    const release = 1 - out;
+    if (s.role === 'mast') {
+      // The highest arm: a slow arc high over the deck, a hang, then down round the foremast.
+      const arc = heavy((w - b.arc) / tm.arc, a, o);
+      const wArc = ease((w - b.arc + 0.5) / (tm.arc * 0.5)) * release;
+      if (wArc > 0) {
+        this.shipPath(
+          s,
+          s.target,
+          frame,
+          _a,
+          sea,
+          SHAPE_ARC,
+          Math.max(0.05, arc),
+          Math.sin(this.t * 0.5) * 0.6,
+        );
+        arm.poser.pose(s.target, wArc);
+      }
+      const wMast = ease((w - b.grip) / (tm.grip * 0.6)) * release;
+      if (wMast > 0) {
+        this.shipPath(s, s.target2, frame, _a, sea, SHAPE_MAST, 1 - Math.min(1, Math.max(0, grip)), squeeze);
+        arm.poser.pose(s.target2, wMast);
+      }
+      return;
+    }
+    const wGrip = ease((w - b.grip - (RISE_ORDER.indexOf(s.role) % 3) * 0.6) / (tm.grip * 0.45)) * release;
+    if (wGrip <= 0) return;
+    const loose = 1 - Math.min(1, Math.max(0, grip));
+    if (s.role === 'bow') this.shipPath(s, s.target, frame, _a, sea, SHAPE_BOW, loose, squeeze);
+    else if (s.role === 'stern') this.shipPath(s, s.target, frame, _a, sea, SHAPE_STERN, loose, squeeze);
+    else if (s.role === 'gripFore') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FORE, squeeze, 0);
+    else if (s.role === 'gripAft') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_AFT, squeeze, 0);
+    else return;
+    arm.poser.pose(s.target, wGrip);
+  }
+
+  /**
+   * An arm's path to a shape on the ship: from its base under the water to where it breaks the
+   * surface (with its spare length looped under), then the shape (ship-local, through `frame`).
+   */
+  private shipPath(
+    s: ArmState,
+    path: CurvePath,
+    frame: Object3D,
+    e: Vector3,
+    sea: number,
+    shape: number,
+    u: number,
+    v: number,
+  ): void {
+    _pts.clear();
+    if (shape === SHAPE_ARC) deckArc(_pts, u, v);
+    else if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
+    else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
+    else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
+    else railGrip(_pts, shape === SHAPE_GRIP_FORE ? WRAP_SPOTS.gripFore : WRAP_SPOTS.gripAft, u);
+    frame.updateWorldMatrix(true, false);
+    _m.copy(frame.matrixWorld);
+    // The shape's own length above the water, so the loop under it takes up only the rest.
+    let above = 0;
+    let lx = e.x;
+    let ly = sea;
+    let lz = e.z;
+    for (let i = 0; i < _pts.n; i++) {
+      _p.set(_pts.xyz[i * 3]!, _pts.xyz[i * 3 + 1]!, _pts.xyz[i * 3 + 2]!).applyMatrix4(_m);
+      above += Math.hypot(_p.x - lx, _p.y - ly, _p.z - lz);
+      lx = _p.x;
+      ly = _p.y;
+      lz = _p.z;
+    }
+    const arm = s.arm;
+    arm.poser.base(_p);
+    path.clear();
+    standPath(path, _p.x, _p.y, _p.z, _o.x, _o.z, e.x, e.z, sea, above, arm.length, 0, 0, 0, 1, 0);
+    // standPath stops at the surface when it has no standing part: drop its last (rising) points.
+    path.ctrlCount = Math.min(path.ctrlCount, 4);
+    for (let i = 0; i < _pts.n; i++) {
+      _p.set(_pts.xyz[i * 3]!, _pts.xyz[i * 3 + 1]!, _pts.xyz[i * 3 + 2]!).applyMatrix4(_m);
+      path.push(_p.x, _p.y, _p.z);
+    }
+    path.build();
+  }
+
+  private stateOf(k: number): ArmState | undefined {
+    for (const s of this.states) if (s.k === k) return s;
+    return undefined;
   }
 
   private placePieces(wreck: Wreck, w: number, t: number): void {
     const b = this.beats;
+    const tm = this.timing;
     const g = wreck.ship.group;
     const gentle = this.reducedMotion ? 0.5 : 1;
     const list = wreck.pieces.pieces;
     if (!this.broke) {
-      // Still one ship: the pieces ride with her, and sag at the cuts as the arms squeeze.
+      // Still one ship: she rolls toward the kraken and hogs at the cut with each squeeze.
       const squeeze = this.squeezeAt(w);
       for (let k = 0; k < list.length; k++) {
         const p = list[k]!;
         p.root.position.copy(g.position);
         p.root.quaternion.copy(g.quaternion);
-        const sign = k === 0 ? 1 : k === 2 ? -1 : 0;
-        p.pivot.rotation.set(sign * 0.03 * squeeze * gentle, 0, sign * 0.012 * squeeze * gentle);
+        const sign = k === 0 ? -1 : 1;
+        p.pivot.rotation.set(sign * 0.025 * squeeze * gentle, 0, 0.16 * squeeze * gentle);
       }
       return;
     }
     const age = w - b.break;
-    const pull = smooth(age / 3.5);
+    const pull = heavy(age / tm.apart, tm.anticipate, tm.overshoot);
+    let i = 0;
     for (let k = 0; k < list.length; k++) {
       const p = list[k]!;
-      const dir = k === 0 ? -1 : k === 2 ? 1 : 0;
-      const along = dir * 5.5 * pull;
-      const toward = (k === 1 ? 2.2 : 0.8) * pull;
-      const yaw = dir * 0.22 * pull;
+      const dir = k === 0 ? -1 : 1;
+      const along = dir * 5 * pull;
+      const toward = 2.5 * pull;
       const hs = Math.sin(this.brokeAt.heading);
       const hc = Math.cos(this.brokeAt.heading);
       const x = this.brokeAt.x + along * hs + toward * hc;
       const z = this.brokeAt.z + along * hc - toward * hs;
-      const sinkAge = w - (b.sink + SINK_DELAY[k]!);
+      const sinkAge = w - b.under - (k === 1 ? 0 : 0.8);
       const swell = this.waves.heightAt(x, z, t) * Math.max(0, 1 - Math.max(0, sinkAge) / 3);
-      const down = 0.6 * smooth(age / 2) + 2 * smooth(sinkAge / 2.5) + 10 * clamp01(sinkAge / 4.5) ** 2;
+      const down = 0.8 * ease(age / 2) + 2 * ease(sinkAge / 3) + 11 * clamp01(sinkAge / tm.under) ** 2;
       p.root.position.set(x, swell - down, z);
       p.root.rotation.set(
         this.brokeAt.pitch * 0.5,
-        this.brokeAt.heading + yaw,
+        this.brokeAt.heading + dir * 0.18 * pull,
         this.brokeAt.roll * 0.5,
         'YXZ',
       );
-      const tilt = smooth(age / 4) * 0.3 + smooth(sinkAge / 3) * 0.55;
-      if (k === 1) p.pivot.rotation.set(0, 0, -0.5 * smooth(sinkAge / 3) - 0.12 * pull);
-      else p.pivot.rotation.set(-dir * tilt * (this.reducedMotion ? 0.7 : 1), 0, dir * 0.15 * pull);
+      // Torn ends up, outer ends dragged down: her masts fall outward; each half rolls away.
+      const tilt = (0.32 * pull + 0.4 * ease(sinkAge / tm.under)) * (this.reducedMotion ? 0.7 : 1);
+      p.pivot.rotation.set(dir * tilt, 0, 0.16 + dir * 0.22 * pull);
       p.root.visible = down < 16;
-      for (const l of p.lines) l.visible = sinkAge < 0.6;
+      const fade = 1 - ease((sinkAge + 0.6) / 2);
+      for (const m of p.lineMaterials) m.opacity = wreck.lineBase[i++]! * fade;
+      for (const l of p.lines) l.visible = fade > 0.02;
     }
   }
 
@@ -494,265 +1018,160 @@ export class KrakenEncounter {
     this.brokeAt.heading = pose.heading;
     this.brokeAt.pitch = g.rotation.x;
     this.brokeAt.roll = g.rotation.z;
-    const chips = this.reducedMotion ? 3 : 10;
+    const chips = this.reducedMotion ? 4 : 14;
     for (const z of CUTS) {
       for (let side = -1; side <= 1; side += 2) {
         const y = sheerHeightAt(z);
         const x = side * halfBeamAt(z, y);
         _p.set(x, y - 0.4, z).applyMatrix4(g.matrixWorld);
-        _a.set(side, 0, 0).transformDirection(g.matrixWorld);
+        _a.set(side, 0.3, 0).transformDirection(g.matrixWorld);
         this.splinters.burst(_p.x, _p.y, _p.z, _a.x, _a.z, chips, this.rand);
         _p.set(side * halfBeamAt(z, 0.2), 0.2, z).applyMatrix4(g.matrixWorld);
         this.splinters.burst(_p.x, _p.y, _p.z, _a.x, _a.z, Math.ceil(chips * 0.6), this.rand);
-        const sea = this.waves.heightAt(_p.x, _p.z, t);
-        this.splashes.spawn(_p.x, sea, _p.z, t, this.reducedMotion ? 2 : 3.2, 1, this.rand());
+      }
+      _p.set(0, 0, z).applyMatrix4(g.matrixWorld);
+      // White water bursting up through the tear, scaled to the ship.
+      this.foam(_p.x, _p.z, 6, 20, 5);
+      const n = this.reducedMotion ? 3 : 7;
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * Math.PI * 2;
+        const x = _p.x + Math.cos(a) * 5;
+        const zz = _p.z + Math.sin(a) * 5;
+        this.splashes.spawn(
+          x,
+          this.waves.heightAt(x, zz, t),
+          zz,
+          t,
+          this.reducedMotion ? 2.5 : 4.2,
+          k % 2,
+          this.rand(),
+        );
       }
       _p.set(0, sheerHeightAt(z), z).applyMatrix4(g.matrixWorld);
-      this.emit('timber', _p, 1);
+      this.emit('timber', _p, 1.2);
+      this.emit('groan', _p, 1);
     }
-    this.shake = this.reducedMotion ? 0 : 0.45;
+    this.shake = this.reducedMotion ? 0 : 0.4;
   }
 
-  /** 0…1 pulses of the arms' squeeze, from the squeeze beat to the break (`w`: seconds into the wrap). */
   private squeezeAt(w: number): number {
     const b = this.beats;
-    if (Number.isNaN(w) || w < b.squeeze) return 0;
+    if (w < b.squeeze) return 0;
     if (w >= b.break) return 1;
     const u = (w - b.squeeze) / (b.break - b.squeeze);
     const pulses = this.reducedMotion ? 2 : 3;
-    return smooth(u * 1.2) * (0.55 + 0.45 * Math.abs(Math.sin(u * Math.PI * pulses)));
-  }
-
-  private updateKraken(dt: number, t: number, time: number, camera: Camera | null): void {
-    const kraken = this.kraken;
-    if (Number.isNaN(this.riseAt)) return;
-    const riseFrom = this.riseAt + this.riseTell;
-    const leaving = !Number.isNaN(this.retreatAt);
-    const up =
-      smooth((time - riseFrom - 2) / 3) * (leaving ? 1 - smooth((time - this.retreatAt - 2) / 3.5) : 1);
-    const body = kraken.body.root;
-    body.position.y = -16 + 16 * up + Math.sin(t * 0.7) * 0.25 * up;
-    for (let k = 0; k < kraken.arms.length; k++) {
-      const arm = kraken.arms[k]!;
-      const stagger = (arm.index * 0.37) % 1.6;
-      const rise = smooth((time - riseFrom - stagger) / 2.6);
-      const fall = leaving ? smooth((time - this.retreatAt - stagger * 0.6) / 3) : 0;
-      arm.sink = (arm.length + 4) * (1 - rise + fall);
-    }
-    kraken.place();
-    const w = time - this.wrapAt;
-    const b = this.beats;
-    const retreating = leaving;
-    for (let k = 0; k < kraken.arms.length; k++) {
-      const arm = kraken.arms[k]!;
-      const wr = this.wrapperOf[k];
-      if (wr && this.wreck && !Number.isNaN(w)) this.driveWrapper(wr, k, w, t);
-      else if (retreating) {
-        arm.weight = Math.max(0, arm.weight - dt / 1.8);
-        kraken.play(k, 'Tentacle_Idle', 1.2);
-      } else if (w >= b.squeeze) kraken.play(k, k % 2 ? 'Tentacle_Attack' : 'Tentacle_Poke', 0.8, 0.8);
-      const tip = body.position.y + arm.socket.y - arm.sink + arm.length * 0.85;
-      const was = this.tipY[k]!;
-      this.tipY[k] = tip;
-      if (was > -99 && was < 0 !== tip < 0 && arm.root.visible) this.ring(arm, t, tip > was ? 1 : 0.8);
-    }
-    if (this.wreck) this.wreck.ship.group.getWorldPosition(_look);
-    else _look.copy(kraken.group.position).add(_a.set(0, 0, 20).applyAxisAngle(Y, kraken.group.rotation.y));
-    _look.y += 3;
-    const anger = this.wreck && w >= 0 && !retreating ? 1 : 0;
-    kraken.update(dt, t, camera, _look, anger);
-    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 0.6);
-    if (!this.reducedMotion && w > b.squeeze && w < b.break)
-      this.shake = Math.max(this.shake, 0.05 * this.squeezeAt(w));
-    if (this.reducedMotion) this.shake = 0;
-  }
-
-  /** A reaching arm: its weight, its clip, and its path round what it holds (`w`: seconds into the wrap). */
-  private driveWrapper(wr: Wrapper, k: number, w: number, t: number): void {
-    const b = this.beats;
-    const arm = wr.arm;
-    if (w >= wr.delay - 0.6 && w < b.release) this.kraken.play(k, 'Tentacle_Attack', 0.5, 0.7);
-    else if (w >= b.release) this.kraken.play(k, 'Tentacle_Attack2', 0.8, 0.6);
-    const weightIn = smooth((w - wr.delay) / 1.4);
-    const weightOut = smooth((w - b.release - wr.delay * 0.4) / 1.8);
-    arm.weight = weightIn * (1 - weightOut);
-    if (arm.weight <= 0) return;
-    const u = smooth((w - b.coil - wr.delay * 0.5) / 2.4);
-    const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
-    const frame = w >= b.squeeze ? this.pieceFrame(wr.piece) : this.wreck!.ship.group;
-    frame.updateWorldMatrix(true, false);
-    _m.copy(frame.matrixWorld);
-    const path = arm.path;
-    path.clear();
-    arm.poser.base(_p);
-    path.push(_p.x, _p.y, _p.z);
-    if (wr.role === 'mast') this.mastPath(wr, u, squeeze, t);
-    else this.hullPath(wr, u, squeeze, t);
-    path.build();
-  }
-
-  private pieceFrame(k: number): Object3D {
-    return this.wreck!.pieces.pieces[k]!.pivot.children[0]!;
-  }
-
-  private local(w: Wrapper, x: number, y: number, z: number): void {
-    _p.set(x, y, z).applyMatrix4(_m);
-    w.arm.path.push(_p.x, _p.y, _p.z);
-  }
-
-  /**
-   * Up out of the water beside the hull, then a helix round her waist: over the rail and deck, down
-   * the far side, under the keel and round again. Held high and loose at first (u 0), it drops and
-   * cinches tight (u 1); a squeeze pulls it tighter still.
-   */
-  private hullPath(w: Wrapper, u: number, squeeze: number, t: number): void {
-    const zc = w.role === 'stern' ? STERN_Z : HULL_Z;
-    const beam = halfBeamAt(zc, 1.2);
-    const lift = 9 * (1 - u) * (1 - u);
-    const loose = 1 + 0.9 * (1 - u);
-    const tight = 1 - 0.08 * squeeze;
-    const rx = (beam + 0.75) * loose * tight;
-    const top = sheerHeightAt(zc) + 0.35;
-    const ry = (top + 0.7) * loose * tight;
-    const cy = 0.15 + lift;
-    this.local(w, beam + 6, -2.4, zc + 1.2);
-    this.local(w, rx + 0.9, -0.6, zc + 0.6);
-    const pitch = 1.5;
-    const steps = 24;
-    const wobble = Math.sin(t * 2.1 + zc) * 0.08 * (1 - u);
-    for (let s = 0; s <= steps; s++) {
-      const th = (s / 10) * Math.PI * 2 * (1 + wobble);
-      this.local(w, Math.cos(th) * rx, cy + Math.sin(th) * ry, zc + (pitch * s) / 10 - pitch * 0.4);
-    }
-  }
-
-  /** Up beside the hull, over the rail to the foremast, then a climbing helix round it that cinches. */
-  private mastPath(w: Wrapper, u: number, squeeze: number, t: number): void {
-    const zm = FORE.z;
-    const beam = halfBeamAt(zm, 1.5);
-    const deck = deckHeightAt(zm);
-    const rail = sheerHeightAt(zm);
-    const r = (1.15 + 4.5 * (1 - u) * (1 - u)) * (1 - 0.12 * squeeze);
-    const lift = 5 * (1 - u);
-    this.local(w, beam + 6, -2.4, zm + 2.5);
-    this.local(w, beam + 0.9, -0.4, zm + 1.6);
-    this.local(w, beam + 0.5, rail + 1.4 + lift * 0.5, zm + 1.2);
-    const climb = 2.4;
-    const y0 = deck + 1.3 + lift;
-    const steps = 24;
-    const sway = Math.sin(t * 1.7) * 0.15 * (1 - u);
-    for (let s = 0; s <= steps; s++) {
-      const ph = (s / 8) * Math.PI * 2 + sway;
-      const y = y0 + (climb * s) / 8;
-      this.local(w, Math.cos(ph) * r, Math.min(y, FORE.lowerTop - 0.9), zm + Math.sin(ph) * r);
-    }
+    return ease(u * 1.2) * (0.55 + 0.45 * Math.abs(Math.sin(u * Math.PI * pulses)));
   }
 
   private once(cue: number, at: number): boolean {
-    if (this.time < at || this.fired[cue]) return false;
+    if (this.time - this.startAt < at || this.fired[cue]) return false;
     this.fired[cue] = 1;
     return true;
   }
 
-  /** Sounds, splashes and events that happen once at a beat. */
-  private cues(time: number, t: number): void {
-    if (Number.isNaN(this.riseAt)) return;
-    const riseFrom = this.riseAt + this.riseTell;
-    // Bubbles over its shadow while it tells.
-    if (time < riseFrom && this.rand() < (this.reducedMotion ? 0.12 : 0.3)) {
-      const g = this.kraken.group.position;
-      const r = Math.sqrt(this.rand()) * 6;
+  private cues(w: number, b: WrapBeats, t: number): void {
+    const tm = this.timing;
+    // Bubbles over the shadow while it tells.
+    if (w < tm.tell + 1 && this.rand() < (this.reducedMotion ? 0.15 : 0.35) && this.tellMark) {
+      const m = this.tellMark;
+      const r = Math.sqrt(this.rand()) * 7;
       const a = this.rand() * Math.PI * 2;
-      const x = g.x + Math.cos(a) * r;
-      const z = g.z + Math.sin(a) * r;
-      this.splashes.spawn(x, this.waves.heightAt(x, z, t), z, t, 0.5 + this.rand() * 0.5, 0, this.rand());
+      const x = m.x + Math.cos(a) * r;
+      const z = m.z + Math.sin(a) * r;
+      this.splashes.spawn(x, this.waves.heightAt(x, z, t), z, t, 0.6 + this.rand() * 0.6, 0, this.rand());
     }
-    if (this.once(CUE_RISE, riseFrom)) {
+    if (this.once(CUE_TIPS, b.tips)) {
       const g = this.kraken.group.position;
-      this.emitEvent('striking', 'rise', g.x, g.z, 11, 0);
+      this.emitEvent('striking', this.mode === 'wrap' ? 'wrap' : 'rise', g.x, g.z, 11, 0);
     }
-    if (this.once(CUE_BODY, riseFrom + 3.2)) {
+    if (this.mode === 'surfaced' && this.once(CUE_BODY, tm.tell + 1.5 + tm.riseEach * 0.5)) {
       this.kraken.group.getWorldPosition(_p);
-      for (let k = 0; k < 6; k++) {
-        const a = (k / 6) * Math.PI * 2;
-        const x = _p.x + Math.cos(a) * 4.5;
-        const z = _p.z + Math.sin(a) * 4.5;
-        this.splashes.spawn(x, this.waves.heightAt(x, z, t), z, t, 2.4, k % 2, this.rand());
-      }
-      this.emit('sink', _p, 0.7);
+      this.foam(_p.x, _p.z, 5, 14, 5);
+      this.emit('sink', _p, 0.8);
     }
-    if (!Number.isNaN(this.retreatAt) && this.once(CUE_GONE, this.retreatAt + 6.5)) {
+    if (!Number.isNaN(this.leaveAt) && this.once(CUE_GONE, this.leaveAt - this.startAt + tm.withdraw + 3)) {
       const g = this.kraken.group.position;
       this.emitEvent('done', 'retreat', g.x, g.z, 0, 0);
     }
     const wreck = this.wreck;
-    if (!wreck) return;
-    const b = this.beats;
+    if (!wreck || this.mode !== 'wrap') return;
     const g = wreck.ship.group;
-    if (this.once(CUE_REACH, this.wrapAt))
+    if (this.once(CUE_GRIP, b.grip))
       this.emitEvent('striking', 'wrap', g.position.x, g.position.z, BRIGANTINE_HALF_LENGTH, 0);
-    for (let i = 0; i < this.wrappers.length; i++) {
-      const w = this.wrappers[i]!;
-      if (this.once(CUE_SLAP + i, this.wrapAt + b.coil + w.delay * 0.5 + 1.6)) {
-        const z = w.role === 'mast' ? FORE.z : w.role === 'stern' ? STERN_Z : HULL_Z;
-        _p.set(halfBeamAt(z, 0) + 1, 0, z).applyMatrix4(g.matrixWorld);
-        this.splashes.spawn(_p.x, this.waves.heightAt(_p.x, _p.z, t), _p.z, t, 2.2, 1, this.rand());
-        this.emit('splash', _p, 0.8);
-      }
-    }
     const span = b.break - b.squeeze;
     for (let k = 0; k < 3; k++)
-      if (this.once(CUE_GROAN + k, this.wrapAt + b.squeeze + 0.3 + (k * span) / 3)) {
+      if (this.once(CUE_GROAN + k, b.squeeze + 0.4 + (k * span) / 3)) {
         g.getWorldPosition(_p);
         this.emit('groan', _p, 1);
       }
     if (this.broke) {
-      const w = time - this.wrapAt;
-      if (w > b.sink - 1.5 && w < b.leave + 2 && this.rand() < 0.08 * (this.reducedMotion ? 0.5 : 1)) {
+      if (w > b.under && w < b.withdraw + 2 && this.rand() < 0.1 * (this.reducedMotion ? 0.5 : 1)) {
         const p = wreck.pieces.pieces[Math.floor(this.rand() * wreck.pieces.pieces.length)]!;
         p.root.getWorldPosition(_p);
-        _p.x += (this.rand() - 0.5) * 6;
-        _p.z += (this.rand() - 0.5) * 6;
+        _p.x += (this.rand() - 0.5) * 9;
+        _p.z += (this.rand() - 0.5) * 9;
         this.splashes.spawn(
           _p.x,
           this.waves.heightAt(_p.x, _p.z, t),
           _p.z,
           t,
-          1 + this.rand(),
+          1.4 + this.rand() * 1.2,
           0,
           this.rand(),
         );
       }
+      // The big burst of foam and spray as the halves go under.
       for (let k = 0; k < wreck.pieces.pieces.length; k++)
-        if (this.once(CUE_UNDER + k, this.wrapAt + b.sink + SINK_DELAY[k]! + 3.2)) {
+        if (this.once(CUE_UNDER + k, b.foam + k * 0.9)) {
           wreck.pieces.pieces[k]!.root.getWorldPosition(_p);
-          this.splashes.spawn(_p.x, this.waves.heightAt(_p.x, _p.z, t), _p.z, t, 3, 1, this.rand());
-          this.emit('sink', _p, 1);
+          this.foam(_p.x, _p.z, 8, 22, 6);
+          const n = this.reducedMotion ? 3 : 8;
+          for (let j = 0; j < n; j++) {
+            const a = (j / n) * Math.PI * 2 + k;
+            const x = _p.x + Math.cos(a) * 6;
+            const z = _p.z + Math.sin(a) * 6;
+            this.splashes.spawn(
+              x,
+              this.waves.heightAt(x, z, t),
+              z,
+              t,
+              this.reducedMotion ? 2.5 : 4.8,
+              j % 2,
+              this.rand(),
+            );
+          }
+          this.emit('sink', _p, 1.2);
         }
-      if (this.once(CUE_DONE, this.wrapAt + b.sink + 4.5))
+      if (this.once(CUE_DONE, b.foam + 4))
         this.emitEvent('done', 'wrap', this.brokeAt.x, this.brokeAt.z, 0, 0);
+    }
+    if (tm.finale > 0 && this.once(CUE_FINALE, b.finale + 1.2)) {
+      this.kraken.group.getWorldPosition(_p);
+      this.foam(_p.x, _p.z, 5, 15, 6);
+      this.emit('sink', _p, 0.7);
     }
   }
 
-  private ring(arm: KrakenArm, t: number, scale: number): void {
-    arm.root.getWorldPosition(_p);
-    const r = 1.6 * arm.scale;
-    const n = this.reducedMotion ? 3 : 5;
+  /** White water where an arm breaks the surface (or slides under), sized to the creature. */
+  breakWater(x: number, z: number, scale: number): void {
+    this.foam(x, z, 2.5 * scale, 9 * scale, 3.5);
+    const n = this.reducedMotion ? 2 : 4;
     for (let k = 0; k < n; k++) {
-      const a = (k / n) * Math.PI * 2 + arm.index;
-      const x = _p.x + Math.cos(a) * r;
-      const z = _p.z + Math.sin(a) * r;
+      const a = (k / n) * Math.PI * 2 + this.rand();
+      const xx = x + Math.cos(a) * 2.8;
+      const zz = z + Math.sin(a) * 2.8;
       this.splashes.spawn(
-        x,
-        this.waves.heightAt(x, z, t),
-        z,
-        t,
-        (1.3 + this.rand() * 0.6) * scale,
-        k === 0 ? 1 : 0,
+        xx,
+        this.waves.heightAt(xx, zz, this.t),
+        zz,
+        this.t,
+        (2 + this.rand()) * scale,
+        k === 0 && !this.reducedMotion ? 1 : 0,
         this.rand(),
       );
     }
-    this.emit('splash', _p, 0.6 * scale);
+    _p.set(x, 0, z);
+    this.emit('splash', _p, 0.7 * scale);
   }
 
   private emit(kind: BattleSound, p: Vector3, gain: number): void {
@@ -787,6 +1206,11 @@ export class KrakenEncounter {
     return out.copy(this.kraken.group.position);
   }
 
+  /** The kraken's own place (its body), for a camera. */
+  bodyPosition(out: Vector3): Vector3 {
+    return this.kraken.body.root.getWorldPosition(out);
+  }
+
   dispose(): void {
     for (const w of this.wrecks) w.pieces.dispose();
     this.kraken.dispose();
@@ -797,8 +1221,26 @@ export class KrakenEncounter {
   }
 }
 
+const CUE_TIPS = 0;
+const CUE_BODY = 1;
+const CUE_GONE = 2;
+const CUE_GRIP = 3;
+const CUE_GROAN = 4;
+const CUE_UNDER = 8;
+const CUE_DONE = 12;
+const CUE_FINALE = 13;
 const HELD = { trim: 0, rudder: 0 };
-const Y = new Vector3(0, 1, 0);
+
+/** How far `w` is from `a` to `z`, 0…1. */
+function span(w: number, a: number, z: number): number {
+  return clamp01((w - a) / Math.max(0.001, z - a));
+}
+const SHAPE_ARC = 0;
+const SHAPE_MAST = 1;
+const SHAPE_BOW = 2;
+const SHAPE_STERN = 3;
+const SHAPE_GRIP_FORE = 4;
+const SHAPE_GRIP_AFT = 5;
 
 /** The ship's hull material (the caps are its planking). */
 function shipMaterialOf(ship: Object3D): Material {

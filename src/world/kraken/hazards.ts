@@ -4,6 +4,7 @@ import type { SplashPool } from '../battle/fx';
 import type { Tier, WaveSampler } from '../contracts';
 import { Kraken } from './kraken';
 import type { MarkState, TellMarks } from './tell-marks';
+import { heavy } from './arm-paths';
 
 /**
  * Tentacle hazards (a kraken battle's twist, docs: the battle 3 plan): a tentacle that slams down on
@@ -19,19 +20,39 @@ export interface HazardSpec {
   radius: number;
   /** The danger arc's width (radians; 2π all round). */
   arc: number;
-  /** The tell before the strike (s): bubbles, shadow, swirl, ring. */
+  /** The tell before the arm shows (s): bubbles, shadow, swirl, ring. */
   tell: number;
-  /** How long the strike can hit (s), from when it lands. */
-  strike: number;
+  /** The wind-up (s): the arm rises out of the water slowly and rears back. */
+  windUp: number;
+  /** The strike itself (s): the only fast move, the slam coming down or the sweep across. */
+  fall: number;
+  /** How long it can hit (s), from when it lands. */
+  danger: number;
+  /** The heavy follow-through (s): it lies across the water and drags before it stands. */
+  follow: number;
   /** The standing arm's danger radius (m) after the strike. */
   standing: number;
 }
 
 /** The hazards' sizes and timings, as data (the battle reads these, tests check them). */
 export const HAZARD_SPECS: Readonly<Record<HazardKind, HazardSpec>> = {
-  slam: { radius: 14, arc: Math.PI * 2, tell: 2.6, strike: 0.8, standing: 5 },
-  sweep: { radius: 24, arc: 1.7, tell: 2.8, strike: 1.3, standing: 5 },
+  slam: {
+    radius: 14,
+    arc: Math.PI * 2,
+    tell: 2.6,
+    windUp: 2.4,
+    fall: 0.45,
+    danger: 0.9,
+    follow: 1.8,
+    standing: 5,
+  },
+  sweep: { radius: 24, arc: 1.7, tell: 2.8, windUp: 2.2, fall: 1.1, danger: 1.3, follow: 1.6, standing: 5 },
 };
+
+/** Seconds from a hazard's start to its strike landing (the tell, the wind-up and the strike). */
+export function hazardImpactAt(spec: HazardSpec): number {
+  return spec.tell + spec.windUp + spec.fall;
+}
 
 /** A danger area on the sea: a circle, or a sector `arc` wide round `heading` (clockwise from +z). */
 export interface HazardArea {
@@ -118,6 +139,8 @@ interface Hazard {
 export interface HazardEvents {
   telling(h: Readonly<HazardArea>, kind: HazardKind, strikeIn: number): void;
   striking(h: Readonly<HazardArea>, kind: HazardKind): void;
+  /** Its arm breaks the water (at `at`) to wind up. */
+  emerging(at: Vector3, kind: HazardKind): void;
   done(kind: HazardKind): void;
 }
 
@@ -188,7 +211,13 @@ export class KrakenHazards {
     rand: () => number;
   }): Promise<KrakenHazards> {
     const sockets = o.tier === 'lite' ? [3, 5] : [3, 5, 6];
-    const kraken = await Kraken.load({ tier: o.tier, base: o.base, sockets });
+    const kraken = await Kraken.load({
+      tier: o.tier,
+      base: o.base,
+      sockets,
+      scales: HAZARD_ARM_SCALES,
+      clipSpeed: 0.5,
+    });
     return new KrakenHazards(kraken, o);
   }
 
@@ -212,7 +241,8 @@ export class KrakenHazards {
 
   private dangerous(h: Hazard): boolean {
     const spec = HAZARD_SPECS[h.kind];
-    if (h.stage === 'strike') return h.age >= spec.tell + LAND && h.age <= spec.tell + LAND + spec.strike;
+    const impact = hazardImpactAt(spec);
+    if (h.stage === 'strike') return h.age >= impact && h.age <= impact + spec.danger;
     return h.stage === 'stand';
   }
 
@@ -259,7 +289,7 @@ export class KrakenHazards {
     );
     arm.root.rotation.set(0, heading, 0);
     this.kraken.play(h.arm, 'Tentacle_Idle', 0, 1, true);
-    this.events.telling(h.area, kind, spec.tell);
+    this.events.telling(h.area, kind, hazardImpactAt(spec));
     return h.id;
   }
 
@@ -291,8 +321,11 @@ export class KrakenHazards {
     const age = h.age;
     const m = h.mark;
     const tell = spec.tell;
-    // After the strike the danger shrinks to the standing arm's circle.
-    const standing = smooth((age - tell - LAND - spec.strike - 0.2) / 1.2);
+    const impact = hazardImpactAt(spec);
+    // Seconds since it landed (negative before).
+    const s = age - impact;
+    // After the strike and its follow-through the danger shrinks to the standing arm's circle.
+    const standing = smooth((s - spec.danger - spec.follow * 0.5) / 1.5);
     a.radius = spec.radius + (spec.standing - spec.radius) * standing;
     a.arc = spec.arc + (Math.PI * 2 - spec.arc) * standing;
     // The evidence: the shadow darkens and swirls, bubbles come faster, the ring pulses.
@@ -300,14 +333,14 @@ export class KrakenHazards {
       const told = smooth(age / (tell * 0.7));
       const down = h.downAt < Infinity ? 1 - smooth((age - h.downAt) / 1.5) : 1;
       m.shadow = 0.9 * told * (1 - 0.6 * standing) * down;
-      m.ring =
-        (age < tell + LAND + spec.strike ? 0.45 + 0.4 * Math.abs(Math.sin(age * 5)) : 0.5) * told * down;
+      m.ring = (s < spec.danger ? 0.45 + 0.4 * Math.abs(Math.sin(age * 4)) : 0.5) * told * down;
       m.radius = a.radius;
       m.arc = a.arc;
-      m.spin = age * (1.2 + told);
+      m.foam = 0;
+      m.spin = age * (0.8 + told);
       // Bubbles: a few at first, more as it comes.
-      if (age < tell && t >= this.bubbleAt) {
-        this.bubbleAt = t + (gentle ? 0.35 : 0.18) * (1.4 - age / tell);
+      if (age < tell + spec.windUp * 0.5 && t >= this.bubbleAt) {
+        this.bubbleAt = t + (gentle ? 0.35 : 0.18) * (1.4 - Math.min(1, age / tell));
         const r = Math.sqrt(this.rand()) * spec.radius * 0.45;
         const ang = this.rand() * Math.PI * 2;
         const bx = a.x + Math.cos(ang) * r;
@@ -317,7 +350,7 @@ export class KrakenHazards {
           this.waves.heightAt(bx, bz, t),
           bz,
           t,
-          0.45 + this.rand() * 0.4,
+          0.5 + this.rand() * 0.5,
           0,
           this.rand(),
         );
@@ -329,25 +362,25 @@ export class KrakenHazards {
     }
     if (h.stage === 'tell') {
       h.stage = 'strike';
-      this.kraken.play(h.arm, 'Tentacle_Attack', 0.2, 1.4);
+      this.kraken.play(h.arm, 'Tentacle_Idle', 0.5, 0.5);
+      this.events.emerging(arm.root.getWorldPosition(_p), h.kind);
     }
-    // Up fast out of the water, then the strike (a slam over and down, or a sweep low across).
-    const up = smooth((age - tell) / (gentle ? 0.9 : 0.55));
-    const goneDown = h.downAt < Infinity ? smooth((age - h.downAt) / 2.2) : 0;
+    // Up slowly out of the water (the wind-up), and down slowly when it goes.
+    const up = heavy((age - tell) / (spec.windUp * 0.8), gentle ? 0 : 0.05, gentle ? 0 : 0.06);
+    const goneDown = h.downAt < Infinity ? smooth((age - h.downAt) / 3) : 0;
     const share = h.kind === 'sweep' ? 0.62 : 0.85;
-    arm.sink = arm.length * (1 - share * up) + (arm.length * share + 4) * goneDown;
-    const s = age - tell - LAND;
+    arm.sink = arm.length * (1 - share * Math.max(0, up)) + (arm.length * share + 4) * goneDown;
     if (!h.struck && s >= 0) {
       h.struck = true;
       this.events.striking(a, h.kind);
       this.impact(h, t, gentle);
     }
-    if (h.kind === 'sweep' && s > 0 && s < spec.strike) this.sprayAlong(h, t, s / spec.strike);
-    if (h.stage === 'strike' && s > spec.strike + 0.8) {
+    if (h.kind === 'sweep' && s > -spec.fall && s < 0) this.sprayAlong(h, t, (s + spec.fall) / spec.fall);
+    if (h.stage === 'strike' && s > spec.danger + spec.follow) {
       h.stage = 'stand';
-      this.kraken.play(h.arm, 'Tentacle_Idle', 1.2, 0.8);
+      this.kraken.play(h.arm, 'Tentacle_Idle', 1.6, 0.45);
     }
-    this.strikePath(h, s);
+    this.strikePath(h, age, s);
     if (goneDown >= 1) {
       this.marks.release(h.mark);
       h.mark = null;
@@ -357,14 +390,23 @@ export class KrakenHazards {
     }
   }
 
-  /** The arm's path for its strike (weighted in and out round it). */
-  private strikePath(h: Hazard, s: number): void {
+  /**
+   * The arm's path for its strike: rearing back through the wind-up, the fast strike (accelerating,
+   * the only quick move), and a heavy follow-through, weighted in and out round it.
+   */
+  private strikePath(h: Hazard, age: number, s: number): void {
     const spec = HAZARD_SPECS[h.kind];
     const arm = this.kraken.arms[h.arm]!;
     const a = h.area;
-    const w = smooth((s + LAND) / LAND) * (1 - smooth((s - spec.strike - 0.2) / 1.2));
-    arm.weight = s > -LAND ? w : 0;
-    if (arm.weight <= 0) return;
+    const w =
+      smooth((age - spec.tell) / (spec.windUp * 0.6)) * (1 - smooth((s - spec.danger - spec.follow) / 2));
+    arm.weight = w;
+    if (w <= 0) return;
+    // -0.3 reared back at the top of the wind-up … 0 ready … 1 landed, a small settle after.
+    const wind = smooth((age - spec.tell) / spec.windUp);
+    const strike = Math.min(1, Math.max(0, (s + spec.fall) / spec.fall)) ** 2;
+    const settle = s > 0 ? 0.06 * Math.exp(-s * 2.5) * Math.sin(s * 9) : 0;
+    const fall = s < -spec.fall ? -0.3 * wind : strike + settle;
     const path = arm.path;
     path.clear();
     arm.poser.base(_p);
@@ -372,24 +414,24 @@ export class KrakenHazards {
     const hs = Math.sin(a.heading);
     const hc = Math.cos(a.heading);
     if (h.kind === 'slam') {
-      // Up out of the circle's far side, over, and down across its middle (raised high, then it falls).
+      // Up out of the circle's far side, rearing back, then over and down across its middle.
       const bx = _p.x;
       const bz = _p.z;
-      const fall = smooth((s + LAND) / LAND);
       path.push(bx, 2, bz);
       path.push(bx + hs * 3, 11 - 2 * fall, bz + hc * 3);
       path.push(a.x + hs * 2 * fall, 0.5 + 9 * (1 - fall), a.z + hc * 2 * fall);
       path.push(a.x + hs * (2 + 6 * fall), 0.2 + 7 * (1 - fall), a.z + hc * (2 + 6 * fall));
     } else {
-      // Rises at the middle and sweeps low across the arc, from one side to the other.
-      const u = smooth(s / spec.strike);
+      // Rises at the middle, held at one side of the arc, and sweeps low across it.
+      const u = Math.min(1, Math.max(0, fall));
       const ang = a.heading - spec.arc / 2 + spec.arc * u;
       const r = spec.radius * 0.75;
-      path.push(_p.x, 3, _p.z);
+      const lift = 2.5 * (1 - u) * wind;
+      path.push(_p.x, 3 + lift, _p.z);
       for (let k = 0; k <= 4; k++) {
         const b = ang - 0.9 + 0.225 * k;
         const rr = (r * (k + 1)) / 5;
-        path.push(a.x + Math.sin(b) * rr, 1.6 - 0.2 * k, a.z + Math.cos(b) * rr);
+        path.push(a.x + Math.sin(b) * rr, 1.6 - 0.2 * k + lift, a.z + Math.cos(b) * rr);
       }
     }
     path.build();
@@ -410,7 +452,7 @@ export class KrakenHazards {
         this.waves.heightAt(x, z, t),
         z,
         t,
-        gentle ? 1.6 : 2.8,
+        gentle ? 2 : 3.8,
         gentle ? 0 : k % 2,
         this.rand(),
       );
@@ -440,5 +482,5 @@ export class KrakenHazards {
   }
 }
 
-/** Seconds from the end of the tell to the strike landing. */
-const LAND = 0.7;
+/** The hazards' arms: about 30 m long at the hazards' kraken's scale. */
+const HAZARD_ARM_SCALES: readonly number[] = [1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1];

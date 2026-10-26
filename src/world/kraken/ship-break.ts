@@ -34,8 +34,10 @@ export interface ShipPiece {
   /** The piece's span along the ship (ship-local z). */
   readonly z0: number;
   readonly z1: number;
-  /** The piece's rigging lines (see-through: hidden once the piece goes under, or they'd show through the sea). */
+  /** The piece's rigging lines (see-through: they fade as the piece goes under, or they'd show through the sea). */
   readonly lines: readonly Object3D[];
+  /** The lines' own materials (a copy per piece of the ship's, so each half fades on its own: same shader). */
+  readonly lineMaterials: readonly (Material & { opacity: number })[];
 }
 
 export interface ShipPieces {
@@ -88,6 +90,7 @@ export function cutShip(
   group.name = 'ship pieces';
   const pieces: ShipPiece[] = [];
   const owned: BufferGeometry[] = [];
+  const ownedMaterials: Material[] = [];
   let triangles = 0;
   for (let k = 0; k < bounds.length - 1; k++) {
     const z0 = Math.max(-14, bounds[k]!);
@@ -115,10 +118,18 @@ export function cutShip(
     pivot.add(inner);
     root.add(pivot);
     const lines: Object3D[] = [];
+    const lineMaterials: (Material & { opacity: number })[] = [];
     for (const merged of mergeAlike(list)) {
+      let material = merged.material;
+      if (merged.lines) {
+        material = merged.material.clone();
+        material.transparent = true;
+        lineMaterials.push(material as Material & { opacity: number });
+        ownedMaterials.push(material);
+      }
       const draw = merged.lines
-        ? new LineSegments(merged.geometry, merged.material)
-        : new Mesh(merged.geometry, merged.material);
+        ? new LineSegments(merged.geometry, material)
+        : new Mesh(merged.geometry, material);
       draw.castShadow = merged.shadow;
       draw.receiveShadow = true;
       draw.name = `piece ${k} ${merged.material.name || merged.material.type}`;
@@ -128,7 +139,7 @@ export function cutShip(
       if (!merged.lines) triangles += merged.geometry.getAttribute('position').count / 3;
     }
     group.add(root);
-    pieces.push({ root, pivot, centre, z0, z1, lines });
+    pieces.push({ root, pivot, centre, z0, z1, lines, lineMaterials });
   }
   return {
     group,
@@ -136,6 +147,7 @@ export function cutShip(
     triangles: Math.round(triangles),
     dispose() {
       for (const g of owned) g.dispose();
+      for (const m of ownedMaterials) m.dispose();
     },
   };
 }
