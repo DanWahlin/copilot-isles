@@ -70,9 +70,9 @@ async function voyage(page: Page, course: string, chapter: string, all = false) 
     { timeout: 60_000 },
   );
   const keys = await page.evaluate(() => Object.keys(localStorage));
-  expect(keys).toContain(`copilot-isles.${course}.progress.v1`);
-  expect(keys).toContain('copilot-isles.course');
-  expect(await page.evaluate(() => localStorage.getItem('copilot-isles.course'))).toBe(course);
+  expect(keys).toContain(`kraken-isles.${course}.progress.v1`);
+  expect(keys).toContain('kraken-isles.course');
+  expect(await page.evaluate(() => localStorage.getItem('kraken-isles.course'))).toBe(course);
   expect(errors).toEqual([]);
 }
 

@@ -7,7 +7,7 @@ import { courseKey, writeCourseKey } from '../game/save-keys';
  * Learning progress (POC §3.9 subset): pages, chests, glossary, quiz attempts, quests, trials, seals,
  * and doubloons, saved to localStorage under a versioned key. Position/captain stay in GameFlow's save.
  */
-// Per course: `copilot-isles.<course>.progress.v1` (src/game/save-keys.ts, COURSE-PACKS.md §6).
+// Per course: `kraken-isles.<course>.progress.v1` (src/game/save-keys.ts, COURSE-PACKS.md §6).
 
 interface QuizRecord {
   attempts: number;

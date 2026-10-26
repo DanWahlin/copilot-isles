@@ -1,4 +1,4 @@
-// Copilot Isles setup helpers shared by the scenarios (all off camera, before recording starts).
+// Kraken Isles setup helpers shared by the scenarios (all off camera, before recording starts).
 import fs from 'node:fs';
 import { skipTalk } from './lib.mjs';
 

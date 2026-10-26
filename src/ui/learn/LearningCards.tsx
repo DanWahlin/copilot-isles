@@ -374,7 +374,7 @@ export function drawBadge(ctx: CanvasRenderingContext2D, b: BadgeData): void {
   };
   ctx.font = '700 22px system-ui, sans-serif';
   ctx.fillStyle = '#e8c88a';
-  ctx.fillText('COPILOT ISLES', x, 120);
+  ctx.fillText('KRAKEN ISLES', x, 120);
   let y = wrap(b.heading, 190, '600 56px Georgia, serif', '#fff6de', W - x - 80, 62);
   y = wrap(`${b.who} ${b.what}.`, y + 8, '400 28px system-ui, sans-serif', '#fbefd6', W - x - 80, 38);
   y += 6;
@@ -420,7 +420,7 @@ export function BadgeCard({ store, badge }: { store: LearnStore; badge: BadgeDat
       setCopied('select');
     }
   };
-  const file = `copilot-isles-${COURSE.id}-${badge.kind === 'course' ? 'voyage' : 'seal'}.png`;
+  const file = `kraken-isles-${COURSE.id}-${badge.kind === 'course' ? 'voyage' : 'seal'}.png`;
   return (
     <div className="ci-learn-backdrop">
       <section

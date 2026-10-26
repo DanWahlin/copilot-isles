@@ -311,7 +311,7 @@ async function synthesizeElevenLabs(
       '--format',
       'json',
       '--via',
-      'copilot-isles-voice',
+      'kraken-isles-voice',
     ],
     { maxBuffer: 64 * 1024 * 1024 },
   );

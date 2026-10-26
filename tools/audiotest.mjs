@@ -21,10 +21,10 @@
 // The network matters: GitHub Pages serves HTTP/2 by request priority, so the game's high-priority
 // fetches went before the music's stream and starved it; a local HTTP/1.1 server (or Chrome's own
 // throttling) never shows that. `--serve=dist` serves the build like Pages (tools/lib/pages-server.mjs:
-// HTTP/2 under /copilot-isles/, the line shaped to the profile by priority; Chrome adds the round trip).
+// HTTP/2 under /kraken-isles/, the line shaped to the profile by priority; Chrome adds the round trip).
 //
 // npm run build && node tools/audiotest.mjs --serve=dist [--port=4176]
-// node tools/audiotest.mjs --base=https://danwahlin.github.io/copilot-isles (the live site)
+// node tools/audiotest.mjs --base=https://danwahlin.github.io/kraken-isles (the live site)
 //   [--profile=slow4g|fast3g|dsl|none] [--visits=cold|cold,warm] [--flow=opening|islands|full]
 //   [--tier=high] [--webgl] [--tap] [--max-gap=300] [--out=/tmp/audiotest] [--headed]
 //   [--insecure --shaped] (another local pages-server: its own certificate, and its line shaped)

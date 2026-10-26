@@ -41,7 +41,7 @@ export interface BadgeData {
   text: string;
 }
 
-const GAME = 'Copilot Isles';
+const GAME = 'Kraken Isles';
 
 /** Whether every charted chapter's Seal is held (the course certificate). */
 export function courseComplete(islands: readonly BadgeIsland[], earned: readonly string[]): boolean {

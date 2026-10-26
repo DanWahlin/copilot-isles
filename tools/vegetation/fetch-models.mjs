@@ -75,7 +75,7 @@ async function downloadZip() {
   } catch {
     // Missing cache entry.
   }
-  const response = await fetch(ZIP_URL, { headers: { 'user-agent': 'Copilot Isles asset fetcher' } });
+  const response = await fetch(ZIP_URL, { headers: { 'user-agent': 'Kraken Isles asset fetcher' } });
   if (!response.ok) throw new Error(`${ZIP_URL}: ${response.status} ${response.statusText}`);
   await writeFile(ZIP, Buffer.from(await response.arrayBuffer()));
   const hash = await sha256(ZIP);

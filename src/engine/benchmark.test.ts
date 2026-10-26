@@ -9,7 +9,7 @@ import {
 describe('startup benchmark helpers', () => {
   it('builds stable storage keys', () => {
     expect(benchmarkStorageKey('webgpu', ' Apple   M3 Max ')).toBe(
-      'copilot-isles.benchmark.v1:webgpu:apple m3 max',
+      'kraken-isles.benchmark.v1:webgpu:apple m3 max',
     );
   });
 

@@ -110,8 +110,8 @@ export interface CourseMeta {
   setup?: SetupCopy;
   hooks: CourseHooks;
   /**
-   * Saves from before course packs (keys without a course) are this course's: copied to its keys
-   * once, mirrored for a release, and an export code without a course is its (src/game/save-keys.ts).
+   * Saves from before course packs (keys without a course) are this course's: moved to its keys
+   * once, and an export code without a course is its (src/game/save-keys.ts).
    */
   legacySaves?: boolean;
   migrations?: CourseMigrations;

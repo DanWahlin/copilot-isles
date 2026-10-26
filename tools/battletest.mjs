@@ -353,7 +353,7 @@ async function play() {
   await shot(page, 'won');
   await sample(page, 'won');
   res.saved = await page.evaluate(
-    () => JSON.parse(localStorage.getItem('copilot-isles.copilot-app.save.v1') ?? 'null')?.battles,
+    () => JSON.parse(localStorage.getItem('kraken-isles.copilot-app.save.v1') ?? 'null')?.battles,
   );
   if (!res.saved?.includes(BATTLE_ID)) fail(`the win wasn't saved (${JSON.stringify(res.saved)})`);
   if (BATTLE === 3) {
@@ -436,7 +436,7 @@ async function skip() {
   const s = await snap(page);
   if (s && s.phase !== 'skipped') fail(`(skip) the battle is ${s.phase} after Skip battle`);
   res.saved = await page.evaluate(
-    () => JSON.parse(localStorage.getItem('copilot-isles.copilot-app.save.v1') ?? 'null')?.battles,
+    () => JSON.parse(localStorage.getItem('kraken-isles.copilot-app.save.v1') ?? 'null')?.battles,
   );
   if (!res.saved?.includes(BATTLE_ID)) fail(`(skip) the skip wasn't saved (${JSON.stringify(res.saved)})`);
   await shot(page, 'skip-after');

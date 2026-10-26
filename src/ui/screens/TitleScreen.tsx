@@ -17,7 +17,7 @@ export function TitleScreen({ state, bridge }: { state: UiState; bridge: GameBri
     <main className="ci-title-shell" aria-labelledby="title-wordmark">
       <div className="ci-wordmark-block">
         <p className="ci-kicker">A pirate island adventure</p>
-        <h1 id="title-wordmark">COPILOT ISLES</h1>
+        <h1 id="title-wordmark">KRAKEN ISLES</h1>
         <div id="title-wordmark-gull" className="ci-title-gull" aria-hidden="true" />
         <p className="ci-subtitle">{COURSE.tagline}</p>
       </div>

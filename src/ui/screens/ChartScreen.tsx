@@ -113,7 +113,7 @@ export function ChartScreen({ state, bridge }: { state: UiState; bridge: GameBri
             preserveAspectRatio="xMidYMid meet"
             role="group"
             aria-label={
-              mode === 'archipelago' ? 'Chart of the Copilot Isles' : `Chart of ${chart.island.name}`
+              mode === 'archipelago' ? 'Chart of the Kraken Isles' : `Chart of ${chart.island.name}`
             }
           >
             {mode === 'archipelago' ? (

@@ -411,12 +411,13 @@ text-only pack, its captions). The PR, "Weekly refresh: <course title> @ <sha>",
 
 ## Saves
 
-Each course keeps its own save and progress (`copilot-isles.<course>.save.v1`,
-`copilot-isles.<course>.progress.v1`, `src/game/save-keys.ts`), and `copilot-isles.course` names the
-last one for Continue. Saves from before course packs (`copilot-isles.save.v1`, `copilot-isles.progress.v1`)
-are copied once to the keys of the course marked `"legacySaves": true` (copilot-app), and its saves
-still write the old keys for one release so a rollback finds them. Export codes name their course
-(`c`); a code without it is that course's. Never
+Each course keeps its own save and progress (`kraken-isles.<course>.save.v1`,
+`kraken-isles.<course>.progress.v1`, `src/game/save-keys.ts`), and `kraken-isles.course` names the
+last one for Continue. On start, the game moves old keys (COURSE-PACKS.md §6): keys from when the
+game was Copilot Isles (`copilot-isles.*`) go to `kraken-isles.*`, and saves from before course packs
+(`copilot-isles.save.v1`, `copilot-isles.progress.v1`) go to the keys of the course marked
+`"legacySaves": true` (copilot-app). A move never overwrites a key that has a value, and it removes
+the old key. Export codes name their course (`c`); a code without it is that course's. Never
 rename an id that a save holds (quests, pages, chests, quizzes, puzzles, labels, market jobs).
 
 ## How a change reaches players

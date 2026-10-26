@@ -17,7 +17,7 @@ export function showFallback(reason: 'no-webgl2' | 'software'): void {
   box.style.padding = '0 1.5em';
   const h = document.createElement('p');
   h.id = 'loadTitle';
-  h.textContent = 'COPILOT ISLES';
+  h.textContent = 'KRAKEN ISLES';
   const p = document.createElement('p');
   p.textContent = `${message} A 2D Chart & Logbook mode is coming. Until then, you can follow the course directly.`;
   box.append(h, p);

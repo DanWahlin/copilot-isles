@@ -1,5 +1,5 @@
 // A GitHub Pages stand-in for the network tests (tools/audiotest.mjs): serves a build under the
-// Pages sub-path (/copilot-isles/) with Range requests, gzip for text, ETag/304 and
+// Pages sub-path (/kraken-isles/) with Range requests, gzip for text, ETag/304 and
 // `Cache-Control: max-age=600`, as Pages does. Over HTTP/2 (`h2`, a throwaway self-signed certificate
 // made with openssl) it can also shape the line by request priority: Pages (Fastly) serves the
 // browser's RFC 9218 priorities, so high-priority fetches (`u=1`) go before an `<audio>` element's
@@ -80,10 +80,10 @@ function certificate(dir) {
 export function startPagesServer({
   root,
   port = 4176,
-  prefix = '/copilot-isles/',
+  prefix = '/kraken-isles/',
   h2 = false,
   shape = 0,
-  certDir = path.join(os.tmpdir(), 'copilot-isles-pages-server'),
+  certDir = path.join(os.tmpdir(), 'kraken-isles-pages-server'),
 }) {
   const dir = path.resolve(root);
   const gzCache = new Map();

@@ -1,9 +1,9 @@
 ---
 name: isles-threejs-practices
-description: Copilot Isles' rules and lessons for three.js (r186, WebGPU-first, TSL) world building. Use when adding or changing an island, terrain, vegetation, characters, the opening, shaders/materials, GPU resources, loading/streaming, or anything rendered in the game; and before adding a new island.
+description: Kraken Isles' rules and lessons for three.js (r186, WebGPU-first, TSL) world building. Use when adding or changing an island, terrain, vegetation, characters, the opening, shaders/materials, GPU resources, loading/streaming, or anything rendered in the game; and before adding a new island.
 ---
 
-# Copilot Isles: three.js world-building practices
+# Kraken Isles: three.js world-building practices
 
 The game runs on three.js **0.186** with `three/webgpu` + `three/tsl` (WebGPU first, automatic WebGL2
 fallback). Read `.github/copilot-instructions.md` first; this skill adds the _how_ and the lessons

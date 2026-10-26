@@ -987,7 +987,7 @@ export function writeIndex(dir) {
     .map((f) => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')))
     .sort((a, b) => (a.order ?? 99) - (b.order ?? 99) || a.id.localeCompare(b.id));
   const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Copilot Isles · gameplay videos</title>
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Kraken Isles · gameplay videos</title>
 <style>
 body{margin:0;padding:28px 32px 48px;background:#06121b;color:#f6ecd6;font-family:Georgia,serif}
 h1{font-weight:300;letter-spacing:.06em;margin:0 0 4px}
@@ -1002,7 +1002,7 @@ h2{margin:6px 0 6px;font-weight:400;font-size:22px}
 .meta{margin-top:8px;font:13px system-ui,sans-serif;color:#b9d8e5}
 a{color:#e8c88a}
 </style></head><body>
-<h1>Copilot Isles · gameplay videos</h1>
+<h1>Kraken Isles · gameplay videos</h1>
 <p class="lead">Each one is recorded live from the game (WebGPU, High tier) with its own audio.</p>
 <div class="grid">
 ${items

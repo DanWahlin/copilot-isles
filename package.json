@@ -1,9 +1,9 @@
 {
-  "name": "copilot-isles",
+  "name": "kraken-isles",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Copilot Isles: a browser island adventure that teaches the GitHub Copilot app for Beginners course.",
+  "description": "Kraken Isles: a browser island adventure that teaches the GitHub Copilot app for Beginners course.",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },

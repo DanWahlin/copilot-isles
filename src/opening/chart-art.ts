@@ -237,7 +237,7 @@ export function drawChartArt(grids: readonly IslandGrid[], inkWidth = 2048): Cha
   // The cartouche.
   c.font = `italic 600 ${30 * unit}px Fraunces, Georgia, serif`;
   c.fillStyle = '#3a2812';
-  c.fillText('The Copilot Isles', px(CARTOUCHE.u), py(CARTOUCHE.v) - 8 * unit);
+  c.fillText('The Kraken Isles', px(CARTOUCHE.u), py(CARTOUCHE.v) - 8 * unit);
   c.font = `${13 * unit}px Fraunces, Georgia, serif`;
   c.fillStyle = INK_SOFT;
   c.fillText('A chart for the captain, drawn by hand', px(CARTOUCHE.u), py(CARTOUCHE.v) + 20 * unit);

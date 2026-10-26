@@ -267,7 +267,7 @@ async function main(): Promise<void> {
       render: { calls?: number; drawCalls?: number; triangles?: number };
       memory: { programs?: number };
     };
-    hudElement.innerHTML = `<strong>Copilot Isles vegetation</strong><br />Backend: <code>${params.has('webgl') ? 'forced WebGL2' : 'WebGPU'}</code> · Tier: <code>${tier.tier}</code><br />Vegetation draws: <code>${stats.drawCalls}</code>, tris: <code>${stats.triangles.toLocaleString()}</code><br />Frame draws: <code>${info.render.drawCalls ?? info.render.calls ?? 0}</code>, tris: <code>${(info.render.triangles ?? 0).toLocaleString()}</code>, pipelines: <code>${info.memory.programs ?? 0}</code><br />Impostor bake: <code>${stats.impostorBakeMs.toFixed(1)} ms</code><br />Shots available: <code>beach()</code>, <code>hill()</code>, <code>far()</code>`;
+    hudElement.innerHTML = `<strong>Kraken Isles vegetation</strong><br />Backend: <code>${params.has('webgl') ? 'forced WebGL2' : 'WebGPU'}</code> · Tier: <code>${tier.tier}</code><br />Vegetation draws: <code>${stats.drawCalls}</code>, tris: <code>${stats.triangles.toLocaleString()}</code><br />Frame draws: <code>${info.render.drawCalls ?? info.render.calls ?? 0}</code>, tris: <code>${(info.render.triangles ?? 0).toLocaleString()}</code>, pipelines: <code>${info.memory.programs ?? 0}</code><br />Impostor bake: <code>${stats.impostorBakeMs.toFixed(1)} ms</code><br />Shots available: <code>beach()</code>, <code>hill()</code>, <code>far()</code>`;
   });
 }
 

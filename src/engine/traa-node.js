@@ -273,7 +273,7 @@ class TRAANode extends TempNode {
      */
     this._previousDepthNode = texture(new DepthTexture(1, 1));
 
-    // Copilot Isles: the stand-in above is drawn with until the first depth copy, and nothing freed
+    // Kraken Isles: the stand-in above is drawn with until the first depth copy, and nothing freed
     // it (a 1x1 depth texture more after every post rebuild, issue 248). `dispose()` frees it.
     this._previousDepthStandIn = this._previousDepthNode.value;
 

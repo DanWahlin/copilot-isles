@@ -1,6 +1,6 @@
 # Third-party notices
 
-Copilot Isles adapts code from the open-source projects below. Each adapted source file also carries a header
+Kraken Isles adapts code from the open-source projects below. Each adapted source file also carries a header
 naming its origin (`Adapted from <project> © <holder>, <license>, <path>@<commit>`). Third-party *assets*
 (audio, models, textures) are listed with their authors and licenses in `ASSETS.md`.
 

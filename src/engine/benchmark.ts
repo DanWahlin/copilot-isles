@@ -16,7 +16,7 @@ export interface StartupBenchmarkSample {
   refinedTier: Tier;
 }
 
-const STORAGE_PREFIX = 'copilot-isles.benchmark.v1';
+const STORAGE_PREFIX = 'kraken-isles.benchmark.v1';
 const MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
 
 function clean(s: string): string {
