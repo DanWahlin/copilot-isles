@@ -106,7 +106,7 @@ describe("Keelhaven's harbour works", () => {
         [(r.u0 + r.u1) / 2, (r.v0 + r.v1) / 2],
       ] as const) {
         expect(padFlatAt(u, v), `${u}, ${v}`).toBe(r.y);
-        expect(wallFaceDistance(u, v), `${u}, ${v}`).toBeGreaterThan(-0.31);
+        expect(wallFaceDistance(u, v), `${u}, ${v}`).toBeGreaterThan(-0.91);
       }
     }
   });

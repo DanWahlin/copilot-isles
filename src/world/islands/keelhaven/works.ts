@@ -334,10 +334,11 @@ export interface ApronRect extends UvRect {
 /** The apron's cells (m): its rectangles' edges fall on this grid. */
 const APRON_CELL = 0.5;
 /**
- * How far (m) the apron reaches in under a wall's coping from its outer face: no gap at the wall's
- * foot on the cell grid, for the eye or the walker (the coping's deck is higher, so it's walked on).
+ * How far (m) the apron reaches in under a wall's coping from its outer face: more than a cell, so on
+ * the cell grid its edge always lies under the coping (which reaches 0.08 past the face) and leaves
+ * no gap at the wall's foot, for the eye or the walker (the coping's deck is higher, so it's walked on).
  */
-const APRON_TUCK = 0.3;
+const APRON_TUCK = 0.9;
 
 /**
  * The works' apron: every flat pad's ground outside the chambers' walls, as rectangles in the cove
