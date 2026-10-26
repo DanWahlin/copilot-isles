@@ -25,4 +25,4 @@ course-neutral. See [docs/specs/COURSE-PACKS.md](../../docs/specs/COURSE-PACKS.m
 
 The course's text and screenshots in `public/course/` are © GitHub, Inc., under the MIT License
 (`public/course/LICENSE`); `THIRD_PARTY_NOTICES.md` and `ASSETS.md` list them. The voice audio is
-AI-generated (`ART_PROVENANCE.md`, `docs/voices.md`). The rest is Copilot Isles' own.
+AI-generated (`ART_PROVENANCE.md`, `docs/voices.md`). The rest is Kraken Isles' own.

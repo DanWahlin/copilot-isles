@@ -87,7 +87,7 @@ npm run test:e2e                                           # tests/e2e/courses.s
 
 In the dev server, `play.html?pack=<id>` opens the pack on Anchorage. Keep `"listed": false` in its
 `course.json` until it's ready: players won't see it, and `?courses=all` on the title lists it for you.
-Remove the flag (and add the course to `tests/e2e/courses.spec.ts`'s listed run) to ship it. Each course has its own save (`copilot-isles.<id>.save.v1`).
+Remove the flag (and add the course to `tests/e2e/courses.spec.ts`'s listed run) to ship it. Each course has its own save (`kraken-isles.<id>.save.v1`).
 
 ## What a course can't change yet
 

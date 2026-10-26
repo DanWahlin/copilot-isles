@@ -251,11 +251,33 @@ other content.
 ## 6. Saves (step 3: done, see "Step 3 as built")
 
 - Settings, benchmark and battle-briefing stay global.
-- Per course: `copilot-isles.save.v1` → `copilot-isles.<course>.save.v1`, and the same for
-  `progress.v1`. `copilot-isles.course` remembers the last course for Continue.
-- **Migration:** at boot, if the old keys exist and `copilot-app`'s don't, copy them to `copilot-app`
-  and keep the old keys one release (a rollback still finds them), then delete. Export codes gain
-  `c: <course>`; a code without it is `copilot-app`.
+- Per course: `copilot-isles.save.v1` → `kraken-isles.<course>.save.v1`, and the same for
+  `progress.v1`. `kraken-isles.course` remembers the last course for Continue.
+- **Migration:** at boot, if the old keys exist and `copilot-app`'s don't, copy them to `copilot-app`,
+  then remove the old keys. Export codes gain `c: <course>`; a code without it is `copilot-app`.
+- **The game's new name (2026-10-26).** The game was "Copilot Isles"; now it's "Kraken Isles", and
+  every storage key moved from `copilot-isles.*` to `kraken-isles.*` (`src/game/storage-rename.ts`).
+  GitHub Pages keeps the same origin (`danwahlin.github.io`) at the new path, so the old keys are
+  still in the player's browser. At boot (`src/boot/main.ts`, before it reads a setting, and again in
+  `migrateSaves`), each old key's value goes to its new key only when the new key has none (newer
+  data stays), then the old key is removed, so a second start finds nothing to move. The keys:
+
+  | Old key                                          | New key                                         | Storage |
+  | ------------------------------------------------ | ----------------------------------------------- | ------- |
+  | `copilot-isles.settings.v1`                      | `kraken-isles.settings.v1`                      | local   |
+  | `copilot-isles.course`                           | `kraken-isles.course`                           | local   |
+  | `copilot-isles.<course>.save.v1`                 | `kraken-isles.<course>.save.v1`                 | local   |
+  | `copilot-isles.<course>.progress.v1`             | `kraken-isles.<course>.progress.v1`             | local   |
+  | `copilot-isles.benchmark.v1:<backend>:<gpu>`     | `kraken-isles.benchmark.v1:<backend>:<gpu>`     | local   |
+  | `copilot-isles.tracker.full`                     | `kraken-isles.tracker.full`                     | local   |
+  | `isles.battleBriefing.hidden`                    | `kraken-isles.battleBriefing.hidden`            | local   |
+  | `copilot-isles.apply-quality.v1`                 | `kraken-isles.apply-quality.v1`                 | session |
+  | `copilot-isles.save.v1`, `copilot-isles.progress.v1` (before course packs) | `kraken-isles.copilot-app.save.v1`, `…progress.v1` | local |
+
+  Any other `copilot-isles.*` key moves the same way. The keys from before course packs move last,
+  straight to the legacy course's new keys. The service worker's caches moved too
+  (`kraken-isles-static-…`, `-runtime-…`, `-course-…`); its activate step deletes every
+  `copilot-isles-*` cache.
 - Ids in saves (quests, pages, chests, quizzes, puzzles, labels, market jobs) never get renamed by a
   move: step 1 keeps every id.
 
@@ -320,7 +342,7 @@ Step 1 changes no save key.
 - World signs and props with course words (market signboards, the Settings alcoves, the crane's sign,
   the channel wheels' names).
 - `index.html` meta text, `boot/fallback.ts` link (they run before any pack); the game's name and the
-  chart's "The Copilot Isles" (decision D4).
+  chart's "The Kraken Isles" (decision D4).
 
 ### Step 1 as built
 
@@ -454,15 +476,16 @@ cabin briefing shows each line's whole text.
 **Course picker.** **New Voyage** opens **Choose a course** (`src/ui/screens/CourseSelect.tsx`) when
 players can choose more than one course (unlisted ones only with `?courses=all`; see §8): title, tagline, chapters charted of the course's chapters,
 minutes, voiced or captions, description, license and source link; arrow keys, the gamepad and taps
-choose. **Continue** resumes the last course played (`copilot-isles.course`). The chart, Logbook,
+choose. **Continue** resumes the last course played (`kraken-isles.course`). The chart, Logbook,
 credits (every listed course, its license and link) and boards read the active pack.
 
-**Saves (§6).** `src/game/save-keys.ts`: `copilot-isles.<course>.save.v1` and
-`copilot-isles.<course>.progress.v1`. At boot, if the old keys exist and copilot-app's don't, they're
-copied (never moved); this release also mirrors copilot-app's writes to the old keys, so a rollback
-finds current progress. Settings, benchmark and battle-briefing stay global. Export codes gain `c`; a
-code without it is copilot-app's. Tests: `src/game/save-keys.test.ts` (migration, mirror, rollback and
-roll-forward, import of old and new codes).
+**Saves (§6).** `src/game/save-keys.ts`: `kraken-isles.<course>.save.v1` and
+`kraken-isles.<course>.progress.v1`. At boot, if the old keys exist and copilot-app's don't, they're
+copied, then removed (the first release kept them and mirrored copilot-app's writes to them for a
+rollback; the rename to Kraken Isles ended the mirror). Settings, benchmark and battle-briefing stay
+global. Export codes gain `c`; a code without it is copilot-app's. Tests: `src/game/save-keys.test.ts`
+and `src/game/storage-rename.test.ts` (each key's move, newer data kept, one run, the moves in order,
+import of old and new codes).
 
 **Workflows and service worker.** `tools/course-pack/list.mjs` lists packs (`--github`, `--models`).
 `weekly-refresh.yml` runs a matrix over packs with a GitHub source (sync, drift, content check, voices or
@@ -618,7 +641,7 @@ less the new bindings (`acts`, `apart`, `TIER_OF`, `CATEGORY_OF`, `nextSail`), t
 
 Nothing course-specific; what's left is the game's own, by decision:
 
-- The game's name, "Copilot Isles", the chart's cartouche and the credits' disclaimer (decision D4).
+- The game's name, "Kraken Isles", the chart's cartouche and the credits' disclaimer (decision D4).
 - Chests' and bottles' spot ids (`C0.1`, `B0.1`…): where the game places them; what's in each is the
   course's, and the content check requires one per spot.
 - Puzzle save keys and chart label ids (`P0.1`…, `market`), and the catalog's line per pack
@@ -694,8 +717,8 @@ path), `npm run test:e2e`, `tools/flowtest.mjs`, and `npm run check:memory` (hea
   plugin) rather than binaries under `public/courses/<id>/`. Recommended.
 - **D3. Characters belong to the game** (look and name; Nell is Nell in every course); voices, lines and
   barks belong to the pack. Recommended. The alternative is per-course names.
-- **D4. The game's name** ("Copilot Isles", the chart's cartouche, `index.html`): keep as the game's brand,
-  or make the archipelago's name per course later. Keep for now.
+- **D4. The game's name** ("Kraken Isles", the chart's cartouche, `index.html`; "Copilot Isles" until
+  2026-10-26): keep as the game's brand, or make the archipelago's name per course later. Keep for now.
 - **D5. Saves keyed by course in step 3**, not step 1 (step 1 changes no save key). Recommended.
 
 ## 11. Learning systems (`learning.json`, `course.json` → `recap`)

@@ -1,11 +1,17 @@
-# Copilot Isles
+# Kraken Isles
+
+> Formerly Copilot Isles (renamed 2026-10-26).
 
 A pirate island adventure in the browser that teaches GitHub Copilot. Each island is one chapter of a
 course: pick the [GitHub Copilot app for Beginners](https://github.com/github/copilot-app-for-beginners)
 or the [GitHub Copilot CLI for Beginners](https://github.com/github/copilot-cli-for-beginners) course
 when you start a voyage.
 
-**▶ Play the early preview: https://danwahlin.github.io/copilot-isles/**
+**▶ Play the early preview: https://danwahlin.github.io/kraken-isles/**
+
+Source: https://github.com/DanWahlin/kraken-isles. The old address (`danwahlin.github.io/copilot-isles/`) was
+the game's address before the rename. Your saves and settings stay: the game moves them to its new
+storage keys when it starts.
 
 > **Unofficial project:** a personal project by Dan Wahlin. It isn't an official GitHub or Microsoft
 > product, and GitHub hasn't endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc.

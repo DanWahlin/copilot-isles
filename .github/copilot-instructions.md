@@ -1,4 +1,4 @@
-# Copilot Isles: contributor & agent instructions
+# Kraken Isles: contributor & agent instructions
 
 A browser 3D island adventure that teaches GitHub Copilot courses: **GitHub Copilot app for Beginners**
 (`github/copilot-app-for-beginners`) and **GitHub Copilot CLI for Beginners** (`github/copilot-cli-for-beginners`). Each chapter is an island.
@@ -58,7 +58,7 @@ Solutions LLC, MIT, <path>@<commit>`), and the full notice goes in `THIRD_PARTY_
   it asks the island's `story` for a condition or event by name (`src/game/story.ts`), and a puzzle
   reads its pack's `"quest"` (`puzzleQuest()`). Mechanics act on the game's own ids (`steer`, `channel`,
   `tavern`, `small`…), and a pack binds its ids to them with `"acts"`; `src/course/neutral.test.ts`
-  fails on a course id or word in code. Saves are per course (`copilot-isles.<course>.save.v1`).
+  fails on a course id or word in code. Saves are per course (`kraken-isles.<course>.save.v1`).
   Adding a course: docs/adding-a-course.md.
 - **Teaching accuracy:** every teaching line cites its course chapter/section. Don't invent app UI names.
 - **Accessibility:** respect reduced motion (PLAN §9), keep keyboard/gamepad/touch parity, and use ≥ 44 px touch targets.

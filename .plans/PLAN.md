@@ -1,4 +1,6 @@
-# Copilot Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
+# Kraken Isles: Game Concept & Plan (v0.3, approved + Grok Build review consensus applied)
+
+> Formerly Copilot Isles (renamed 2026-10-26).
 
 > Review history: [docs/reviews/2026-09-23-grok-build](../docs/reviews/2026-09-23-grok-build/README.md) · [delta review](../docs/reviews/2026-09-23-grok-build-delta/README.md) · [WebGPU-pivot review](../docs/reviews/2026-09-23-grok-build-pivot/README.md)
 
@@ -12,7 +14,7 @@
 
 | Topic | Decision |
 |---|---|
-| Title | **Copilot Isles** |
+| Title | **Kraken Isles** (renamed 2026-10-26; only the game's name changed, not the courses') |
 | Course basis | Public `github/copilot-app-for-beginners`, **8 chapters → 8 islands** |
 | Course content | **Planned, not built yet:** retrieve the course text and screenshots live at runtime, with a bundled snapshot fallback, plus a **weekly refresh automation** for content, screenshots, and voices (Dan, 2026-09-26). Today the game uses bundled copies. See §8 |
 | Framing | Captain & crew metaphor + a **Wandering Bard** who keeps the studio analogy |
@@ -26,9 +28,9 @@
 | Platforms | **Runs everywhere, WebGPU-first** (capability classes in **§15.1**, with the automatic WebGL2 backend as the fallback): desktop (keyboard/mouse + gamepad) **and tablets (touch) now**. Phones get the same technology **capped at the Medium feature set**, and **phone UX lands in Phase 2b**. **Performance floor: Intel UHD 620 at 30 fps**, plus a **Lite** preset for Chromebooks. Devices that can't run 3D get the **2D Chart & Logbook mode**. See §14 |
 | Rendering backend | **WebGPU-first: three.js `WebGPURenderer` + TSL** (one node shader language → WGSL on WebGPU, GLSL on the automatic **WebGL2 backend**). Compute features (FFT ocean, sims, volumetric clouds, GPU particles, GPU culling) run on WebGPU tiers, and WebGL2 gets non-compute paths. Decided 2026-09-23 after the Tidewater study. See **§15** |
 | Test hardware | **Emulated** on the M3 Max (locked render scale + scaled GPU budgets + CPU throttling), with **cloud real-device runs** for iPad/Android tablets. A **real UHD 620 check happens before public launch** (user decision; accepted risk in §11) |
-| Repository | `DanWahlin/copilot-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
+| Repository | `DanWahlin/kraken-isles` (**private**). GitHub Pages from a private repo needs a paid plan, and the published site is public either way |
 | Hosting | **GitHub Pages** |
-| Project folder | `~/Desktop/test/copilot-isles` |
+| Project folder | A local clone of `DanWahlin/kraken-isles` |
 | Deadline | None |
 | Music & sound | **Recorded CC0 music** (changed 2026-09-25 from procedural, after Dan A/B'd both): one streamed track per place, crossfaded. **Ambience and SFX use real CC0 field recordings** (Tidewater's 31 Freesound CC0 files + more), spatialized with HRTF and **lazy-loaded per island** (~5 MB). See §7 |
 | Floating flotsam | **Cut** (2026-10-02): loose crates and barrels adrift in a harbour read as junk, not life. Harbours get boats bobbing at their moorings and proper buoys instead (the "more life" pass). |
@@ -138,7 +140,7 @@ The course frames the app as a "desktop cockpit" where **humans stay in control 
 
 **Companion:** a clever **parrot** (name TBD) rides on your shoulder. It gives hints, recaps, and nudges, like Navi but less chatty.
 
-**Story frame (light):** A fog of *scattered evidence* has settled over the Copilot Isles ("where was I?" is literally a pain point in Chapter 01). Each island's guild keeps a **Captain's Seal**. Earn it by proving you can direct a crew wisely, and that island's **lighthouse** lights up, clearing the fog on the map and revealing the next island. Earn all 8 to become **Master Captain** and get a shareable certificate that links back to the course.
+**Story frame (light):** A fog of *scattered evidence* has settled over the Kraken Isles ("where was I?" is literally a pain point in Chapter 01). Each island's guild keeps a **Captain's Seal**. Earn it by proving you can direct a crew wisely, and that island's **lighthouse** lights up, clearing the fog on the map and revealing the next island. Earn all 8 to become **Master Captain** and get a shareable certificate that links back to the course.
 
 ---
 

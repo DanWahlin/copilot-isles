@@ -23,23 +23,23 @@ node tools/video/record.mjs --scenario=battle1 --quality=high
 node tools/video/record.mjs --recompress --out=<dir>
 ```
 
-| Flag                      | Default                  | What it does                                                                  |
-| ------------------------- | ------------------------ | ----------------------------------------------------------------------------- |
-| `--scenario=<id>[,<id>…]` | (required)               | Scenarios to film, in order. An unknown id prints the list.                   |
-| `--list`                  |                          | Prints the scenarios and their titles.                                        |
-| `--base=<url>`            | `http://127.0.0.1:5395`  | The dev server.                                                               |
-| `--tier=<tier>`           | `high`                   | Render tier (`lite`, `low`, `medium`, `high`, `ultra`).                       |
-| `--out=<dir>`             | `~/Movies/copilot-isles` | Where the videos go. Don't put them in the repo.                              |
-| `--quality=<quality>`     | `review`                 | Final encode quality (`review`, `high` or `master`).                          |
-| `--size=<w>x<h>`          | `1280x720`               | Viewport, screencast, raw clip, title card and sheet size (e.g. `1920x1080`). |
-| `--jpeg=<1–100>`          | `90`                     | The screencast's JPEG quality (`100` for finals).                             |
-| `--no-audio`              |                          | Video only (silent track).                                                    |
-| `--no-title`              |                          | No title card.                                                                |
-| `--keep`                  |                          | Keeps `<out>/.work/<id>/` (raw clip, PCM audio, `take.json`, title PNG).      |
-| `--refinish`              |                          | Rebuilds the MP4, sheet and index from a `--keep` run without filming again.  |
-| `--recompress`            |                          | Re-encodes every `<out>/*.mp4` to review quality in place; requires `--out`.  |
-| `--take-only`             |                          | Films and keeps the take (`take.json`, raw clip, PCM) with no MP4 (reels).    |
-| `--work=<dir>`            | `<out>/.work`            | Where the takes go (`<work>/<id>/`).                                          |
+| Flag                      | Default                 | What it does                                                                  |
+| ------------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| `--scenario=<id>[,<id>…]` | (required)              | Scenarios to film, in order. An unknown id prints the list.                   |
+| `--list`                  |                         | Prints the scenarios and their titles.                                        |
+| `--base=<url>`            | `http://127.0.0.1:5395` | The dev server.                                                               |
+| `--tier=<tier>`           | `high`                  | Render tier (`lite`, `low`, `medium`, `high`, `ultra`).                       |
+| `--out=<dir>`             | `~/Movies/kraken-isles` | Where the videos go. Don't put them in the repo.                              |
+| `--quality=<quality>`     | `review`                | Final encode quality (`review`, `high` or `master`).                          |
+| `--size=<w>x<h>`          | `1280x720`              | Viewport, screencast, raw clip, title card and sheet size (e.g. `1920x1080`). |
+| `--jpeg=<1–100>`          | `90`                    | The screencast's JPEG quality (`100` for finals).                             |
+| `--no-audio`              |                         | Video only (silent track).                                                    |
+| `--no-title`              |                         | No title card.                                                                |
+| `--keep`                  |                         | Keeps `<out>/.work/<id>/` (raw clip, PCM audio, `take.json`, title PNG).      |
+| `--refinish`              |                         | Rebuilds the MP4, sheet and index from a `--keep` run without filming again.  |
+| `--recompress`            |                         | Re-encodes every `<out>/*.mp4` to review quality in place; requires `--out`.  |
+| `--take-only`             |                         | Films and keeps the take (`take.json`, raw clip, PCM) with no MP4 (reels).    |
+| `--work=<dir>`            | `<out>/.work`           | Where the takes go (`<work>/<id>/`).                                          |
 
 ## Output
 
