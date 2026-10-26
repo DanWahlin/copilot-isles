@@ -109,14 +109,14 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         <h3>Music and voice</h3>
         <p>
           “Bamboo Tide”, “Island Reveal”, “Brass of the Storm”, “Misty Jungle Dusk” and “Salty Sway”, made for
-          Copilot Isles with Suno. “Medieval: The Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami,
+          Kraken Isles with Suno. “Medieval: The Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami,
           both CC0 on OpenGameArt. The character voices are AI-generated with Azure AI Speech and ElevenLabs.
           They aren’t real people.
         </p>
         <p>Seagull models by Poly by Google, CC BY 3.0 (poly.pizza).</p>
         <h3>About this project</h3>
         <p>
-          {`Copilot Isles is an unofficial, personal project. It isn’t an official GitHub or Microsoft product, and GitHub hasn’t endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc. The lessons come from the ${listed([...new Set(COURSES.map((c) => c.source.license))])}-licensed ${listed(COURSES.map((c) => c.title))} ${COURSES.length > 1 ? 'courses' : 'course'}.`}
+          {`Kraken Isles is an unofficial, personal project. It isn’t an official GitHub or Microsoft product, and GitHub hasn’t endorsed it. GitHub and GitHub Copilot are trademarks of GitHub, Inc. The lessons come from the ${listed([...new Set(COURSES.map((c) => c.source.license))])}-licensed ${listed(COURSES.map((c) => c.title))} ${COURSES.length > 1 ? 'courses' : 'course'}.`}
         </p>
       </div>
     </OverlayShell>

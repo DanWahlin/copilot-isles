@@ -17,9 +17,9 @@ async function expectTitleRenders(page: Page, url: string) {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 
   await page.goto(url);
-  await expect(page.locator('#loadTitle')).toHaveText('COPILOT ISLES');
+  await expect(page.locator('#loadTitle')).toHaveText('KRAKEN ISLES');
   await page.waitForFunction(() => Boolean(window.__isles), null, { timeout: BOOT_MS });
-  await expect(page.getByRole('heading', { name: 'COPILOT ISLES' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'KRAKEN ISLES' })).toBeVisible();
   await expect(page.locator('#loading')).toHaveCount(0, { timeout: FADE_MS });
 
   const info = await page.evaluate(() => window.__isles!.info());

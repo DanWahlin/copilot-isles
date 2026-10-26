@@ -27,7 +27,7 @@ if (!opt.reel) {
 }
 const reel = (await import(pathToFileURL(path.join(HERE, 'reels', `${opt.reel}.mjs`)).href)).default;
 const base = opt.base || 'http://127.0.0.1:5395';
-const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles', 'reels', reel.id));
+const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'kraken-isles', 'reels', reel.id));
 const work = path.join(out, '.work');
 const takesDir = path.join(work, 'takes');
 // Each reel's sheets in their own folder, so versions sharing an output folder keep theirs.

@@ -211,8 +211,8 @@ describe('course markdown with hostile input', () => {
     expect(safeImageSrc('./courses/copilot-app/course/ch00/a.webp')).toBe(
       './courses/copilot-app/course/ch00/a.webp',
     );
-    expect(safeImageSrc('/copilot-isles/courses/copilot-app/course/a.webp')).toBe(
-      '/copilot-isles/courses/copilot-app/course/a.webp',
+    expect(safeImageSrc('/kraken-isles/courses/copilot-app/course/a.webp')).toBe(
+      '/kraken-isles/courses/copilot-app/course/a.webp',
     );
     expect(safeImageSrc('/courses/../course/a.webp')).toBeNull();
     expect(safeImageSrc('/courses/copilot-app/voice/a.webp')).toBeNull();

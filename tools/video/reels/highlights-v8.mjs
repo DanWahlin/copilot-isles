@@ -1,4 +1,4 @@
-// v8 of the Copilot Isles highlight reel (kept for comparison; `highlights` is the current cut).
+// v8 of the Kraken Isles highlight reel (kept for comparison; `highlights` is the current cut).
 // 1080p, about three and a half minutes: the whole opening as
 // one take, from the title screen (music from the first second) to the first steps on Anchorage Cay
 // (Juno's full welcome in the cabin, the game's own parchment arrival card), then "Learn as You Play"
@@ -34,7 +34,7 @@ export default {
   version: 'v8',
   /** Its own page, so rebuilding v8 doesn't replace the current reel's index.html. */
   index: 'index-v8.html',
-  title: 'Copilot Isles · Highlights',
+  title: 'Kraken Isles · Highlights',
   lead: 'A highlight reel recorded live from the game (WebGPU, High tier, 1080p) with its own sound.',
   output: 'highlights-1080p-v8.mp4',
   size: '1920x1080',
@@ -241,7 +241,7 @@ export default {
       loudness: -20,
       // Over the first two fly-bys (steady through their crossfade), gone 1.5 s before Thousand-Bough.
       lowerThird: {
-        k: 'The Copilot Isles · Early preview',
+        k: 'The Kraken Isles · Early preview',
         t: 'Three islands charted, more on the way',
         // The island names and the next one (Keelhaven, Chapter 03) as the Chart and the game say them
         // (src/ui/chart/archipelago.ts, the Thousand-Bough quests' closing line).
@@ -277,7 +277,7 @@ export default {
       lowerThird: {
         layout: 'end',
         k: 'Early preview',
-        t: 'Copilot Isles',
+        t: 'Kraken Isles',
         // The title screen's tagline (src/ui/screens/TitleScreen.tsx).
         tag: 'Learn the GitHub Copilot app, one island at a time',
         b: 'Quizzes use real app screenshots, Logbook pages quote the course, and sessions use your own branch and issue.',

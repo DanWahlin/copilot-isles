@@ -1,4 +1,4 @@
-// v1 of the Copilot Isles highlight reel (kept for comparison; `highlights` is the current cut).
+// v1 of the Kraken Isles highlight reel (kept for comparison; `highlights` is the current cut).
 // 1080p, under two minutes: the opening as one take from the
 // title screen to the first steps on Anchorage Cay (Juno's welcome trimmed to its first and last
 // lines), then one highlight per scenario (each 10 s or less), every join a fade through black.
@@ -10,7 +10,7 @@ export default {
   version: 'v1',
   /** Its own page, so rebuilding v1 doesn't replace the current reel's index.html. */
   index: 'index-v1.html',
-  title: 'Copilot Isles · Highlights',
+  title: 'Kraken Isles · Highlights',
   lead: 'A highlight reel recorded live from the game (WebGPU, High tier, 1080p) with its own sound.',
   output: 'highlights-1080p.mp4',
   size: '1920x1080',

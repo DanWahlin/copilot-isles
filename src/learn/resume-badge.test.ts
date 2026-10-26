@@ -76,7 +76,7 @@ describe('the Seal card and the certificate', () => {
     expect(b.heading).toBe('Seal of One');
     expect(b.who).toBe('Captain Robin of The Gull');
     expect(b.text).toBe(
-      'Captain Robin of The Gull earned the Seal of One for Chapter 00 · One of A Course in Copilot Isles (2026-10-23). https://github.com/example-org/a-course',
+      'Captain Robin of The Gull earned the Seal of One for Chapter 00 · One of A Course in Kraken Isles (2026-10-23). https://github.com/example-org/a-course',
     );
     expect(b.seals.map((s) => s.held)).toEqual([true, false]);
   });
@@ -85,7 +85,7 @@ describe('the Seal card and the certificate', () => {
     const b = badgeData({ ...base, captain: null, kind: 'course', earned: ['Seal of One', 'Seal of Two'] });
     expect(b.heading).toBe('Voyage complete');
     expect(b.text).toBe(
-      'The captain of The Gull completed every charted chapter of A Course in Copilot Isles: Seal of One, Seal of Two (2026-10-23). https://github.com/example-org/a-course',
+      'The captain of The Gull completed every charted chapter of A Course in Kraken Isles: Seal of One, Seal of Two (2026-10-23). https://github.com/example-org/a-course',
     );
   });
 });

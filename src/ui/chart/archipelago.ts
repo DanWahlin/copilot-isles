@@ -10,7 +10,7 @@ const at = (x: number, y: number) => ({ x: x / ARCH_W, y: y / ARCH_H });
 /** The game's part of an island on the chart: its name, place, look and starting status. */
 type ChartPlace = Omit<ChartIsland, 'chapter' | 'minutes' | 'seal' | 'topics'>;
 
-/** The Copilot Isles, in voyage order (each one teaches a chapter of the course). */
+/** The Kraken Isles, in voyage order (each one teaches a chapter of the course). */
 const PLACES: readonly ChartPlace[] = [
   {
     id: 'anchorage',

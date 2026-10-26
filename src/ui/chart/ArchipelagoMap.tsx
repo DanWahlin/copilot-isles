@@ -184,7 +184,7 @@ function Rhumbs({ x, y }: { x: number; y: number }) {
 function Cartouche() {
   return (
     <g className="ci-cartouche" transform="translate(64 64)" aria-hidden="true">
-      <text className="title">The Copilot Isles</text>
+      <text className="title">The Kraken Isles</text>
       <text className="sub" y="22">
         Eight islands · one course
       </text>

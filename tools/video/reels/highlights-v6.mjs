@@ -1,4 +1,4 @@
-// v6 of the Copilot Isles highlight reel (kept for comparison; `highlights` is the current cut).
+// v6 of the Kraken Isles highlight reel (kept for comparison; `highlights` is the current cut).
 // 1080p, about three and a half minutes: the whole opening as
 // one take, from the title screen to the first steps on Anchorage Cay (Juno's full welcome in the
 // cabin), then "Learn as you play", then one highlight per puzzle or battle (15–20 s each, showing the
@@ -32,7 +32,7 @@ export default {
   version: 'v6',
   /** Its own page, so rebuilding v6 doesn't replace the current reel's index.html. */
   index: 'index-v6.html',
-  title: 'Copilot Isles · Highlights',
+  title: 'Kraken Isles · Highlights',
   lead: 'A highlight reel recorded live from the game (WebGPU, High tier, 1080p) with its own sound.',
   output: 'highlights-1080p-v6.mp4',
   size: '1920x1080',

@@ -38,7 +38,7 @@ if (opt.recompress && (typeof opt.out !== 'string' || !opt.out.trim())) {
   console.error('--recompress requires --out=<dir>');
   process.exit(2);
 }
-const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles'));
+const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'kraken-isles'));
 const workRoot = path.resolve(typeof opt.work === 'string' ? opt.work : path.join(out, '.work'));
 try {
   if (opt.size) setSize(String(opt.size));

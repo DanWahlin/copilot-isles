@@ -13,7 +13,7 @@ import { Recorder, finalize, launch, openDevPage, run, setJpegQuality, setSize }
 
 const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5395';
-const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'copilot-isles'));
+const out = path.resolve(opt.out || path.join(os.homedir(), 'Movies', 'kraken-isles'));
 const work = path.join(out, '.work', 'sync-check');
 if (opt.size) setSize(String(opt.size));
 if (opt.jpeg) setJpegQuality(opt.jpeg);
