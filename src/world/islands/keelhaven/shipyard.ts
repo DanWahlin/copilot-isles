@@ -4,7 +4,7 @@ import type { CircleObstacle } from '../../contracts';
 import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import type { MaterialKey, VillageKit } from '../../village/kit';
 import { beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from '../../village/pieces';
-import { halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
+import { BRIGANTINE_HALF_LENGTH, halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
 import { mulberry32 } from '../../../util/math';
 import { addVerandaHouse, type VerandaHouseInfo } from '../../village/veranda-house';
 import { FRAME, toWorld } from './layout';
@@ -667,7 +667,16 @@ export function stores(
 }
 
 /** Sails drying: canvas hung over a rope between two poles, sagging, and one spread on trestles. */
-export function sailsDrying(b: Buckets, u: number, v: number, y: number, len: number): void {
+export function sailsDrying(
+  b: Buckets,
+  u: number,
+  v: number,
+  y: number,
+  len: number,
+  cams?: CameraBlockerBox[],
+): void {
+  // The camera keeps out of the sheets (from their lowest hem to the line's posts' tops).
+  cams?.push({ ...at(u, y, v), hx: len / 2 + 0.15, hz: 0.25, rot: YAW_U, y0: y + 1, y1: y + 4.25 });
   const a = at(u - len / 2, y, v);
   const e = at(u + len / 2, y, v);
   for (const p of [a, e]) rod(b, 'wood', p, { x: p.x, y: y + 4.2, z: p.z }, 0.12, 6, YARD_PAINT.weathered);
@@ -697,6 +706,18 @@ export function sailsDrying(b: Buckets, u: number, v: number, y: number, len: nu
   }
 }
 
+/** A camera blocker round a hull (or its frames) at `scale`, its waterline middle at `o`, keel along u. */
+function hullBlocker(cams: CameraBlockerBox[], o: { u: number; y: number; v: number }, scale: number): void {
+  cams.push({
+    ...at(o.u, o.y, o.v),
+    hx: (BRIGANTINE_HALF_LENGTH + 0.4) * scale,
+    hz: halfBeamAt(0, 0.4) * 1.1 * scale,
+    rot: YAW_U,
+    y0: o.y + keelHeightAt(0) * scale - 0.2,
+    y1: o.y + sheerHeightAt(BRIGANTINE_HALF_LENGTH) * scale + 0.2,
+  });
+}
+
 /**
  * A ship's frames (keel, stem, sternpost and ribs, a few strakes low down) from the brigantine's
  * lines at `scale`, its origin (waterline, middle) at `o`, bow along +u (or −u with `flip`).
@@ -707,7 +728,9 @@ function hullFrames(
   scale: number,
   flip: boolean,
   strakes: number,
+  cams: CameraBlockerBox[],
 ): void {
+  hullBlocker(cams, o, scale);
   const dir = flip ? -1 : 1;
   const pu = (z: number) => o.u + dir * z * scale;
   const L = 11.4;
@@ -985,6 +1008,30 @@ function jibCrane(
     YARD_PAINT.rope,
   );
   out.circles.push({ x: p.x, z: p.z, r: 0.8, y0: y - 0.5, y1: y + 2, height: 2 });
+  // The camera keeps out of the post to its top, the jib and its brace.
+  const dx = jibEnd.x - p.x;
+  const dz = jibEnd.z - p.z;
+  const len = Math.hypot(dx, dz);
+  const rot = Math.atan2(-dz, dx);
+  out.cameraBoxes.push({ x: p.x, z: p.z, hx: 0.45, hz: 0.45, rot: 0, y0: y - 0.3, y1: y + h + 0.1 });
+  out.cameraBoxes.push({
+    x: p.x + dx * 0.5,
+    z: p.z + dz * 0.5,
+    hx: len / 2 + 0.2,
+    hz: 0.25,
+    rot,
+    y0: y + h - 1,
+    y1: y + h + 0.05,
+  });
+  out.cameraBoxes.push({
+    x: p.x + dx * 0.28,
+    z: p.z + dz * 0.28,
+    hx: len * 0.28,
+    hz: 0.2,
+    rot,
+    y0: y + h - 3.5,
+    y1: y + h - 0.4,
+  });
 }
 
 /** A bollard on a quay's edge. */
@@ -1189,7 +1236,28 @@ export function* buildShipyard(
   yield;
   // The docks: caissons, keel blocks, the hull's shores and staging in Dock 2, frames in Dock 3.
   const docks = CHAMBERS.filter((c) => c.name.startsWith('dock'));
-  for (const c of docks) caisson(b, out, c);
+  for (const c of docks) {
+    caisson(b, out, c);
+    // The camera keeps out of the dry docks' side and head walls (you walk their floors too).
+    const len = c.u1 - c.u0;
+    for (const v of [c.v0 - WALL / 2, c.v1 + WALL / 2])
+      out.cameraBoxes.push({
+        ...xzOf(c.u0 + len / 2, v),
+        hx: len / 2 + WALL,
+        hz: WALL / 2,
+        rot: YAW_U,
+        y0: c.floor - 0.5,
+        y1: c.top,
+      });
+    out.cameraBoxes.push({
+      ...xzOf(c.u1 + WALL / 2, (c.v0 + c.v1) / 2),
+      hx: WALL / 2,
+      hz: (c.v1 - c.v0) / 2,
+      rot: YAW_U,
+      y0: c.floor - 0.5,
+      y1: c.top,
+    });
+  }
   keelBlocks(b, DOCKS.u0 + 9, DOCKS.u1 - 9, DOCKS.v[1], DOCKS.floor, DOCKS.blocks);
   keelBlocks(b, DOCKS.u0 + 9, DOCKS.u1 - 9, DOCKS.v[2], DOCKS.floor, DOCKS.blocks);
   shoresAndStaging(b, docks[1]!, out.dockHull.y);
@@ -1200,7 +1268,10 @@ export function* buildShipyard(
     1,
     false,
     lite ? 1 : 3,
+    out.cameraBoxes,
   );
+  // The hull in Dock 2 (index.ts draws it at `dockHull`).
+  hullBlocker(out.cameraBoxes, { u: DOCKS.u0 + 20, y: out.dockHull.y, v: DOCKS.v[1] }, 1);
   yield;
   // The sheerlegs over the dock heads, cranes on the basin's quays.
   sheerlegs(b, out, yard);
@@ -1219,7 +1290,14 @@ export function* buildShipyard(
     ubox(b, 'wood', u, y + 0.02, s.v, 0.3, 0.16, 4.6, YARD_PAINT.weathered);
   }
   const slipKeel = s.topY - (s.u1 - (s.u1 - 14)) / 12 + 0.8;
-  hullFrames(b, { u: s.u1 - 14, y: slipKeel + 1.6 * 0.55, v: s.v }, 0.55, true, lite ? 1 : 5);
+  hullFrames(
+    b,
+    { u: s.u1 - 14, y: slipKeel + 1.6 * 0.55, v: s.v },
+    0.55,
+    true,
+    lite ? 1 : 5,
+    out.cameraBoxes,
+  );
   // The cradle's poppets under it.
   for (let u = s.u1 - 20; u <= s.u1 - 8; u += 3)
     ubox(b, 'wood', u, s.topY - (s.u1 - u) / 12 + 0.5, s.v, 0.4, 0.8, 3.4, YARD_PAINT.tar);
@@ -1243,13 +1321,29 @@ export function* buildShipyard(
   logPile(b, 118, -24, yard, 9, 13);
   logPile(b, 172, -38, yard, 8, 14);
   timberStack(b, 172, -84, yard, 6, 5, 15);
+  // The camera keeps out of the stacks and piles as drawn (the logs run past the walker's boxes).
+  for (const [u, v, lu, hz, top] of [
+    [84, -26, 7, 1.35, 0.27 + 6 * 0.17],
+    [108, -27, 6, 1.35, 0.27 + 4 * 0.17],
+    [118, -24, 9, 1.75, 1.8],
+    [172, -38, 8, 1.75, 1.8],
+    [172, -84, 6, 1.35, 0.27 + 5 * 0.17],
+  ] as const)
+    out.cameraBoxes.push({
+      ...xzOf(u, v),
+      hx: lu / 2 + 0.1,
+      hz,
+      rot: YAW_U,
+      y0: yard - 0.3,
+      y1: yard + top + 0.05,
+    });
   ropeCoil(b, 90, -33.5, yard);
   ropeCoil(b, 92, -33.2, yard, 0.36);
   ropeCoil(b, 140, -71, yard + 0.2);
   stores(b, 122, -31, yard, 16, out.cameraBoxes);
   stores(b, 60, -84, yard, 17, out.cameraBoxes);
-  sailsDrying(b, 160, -22.5, yard, 13);
-  if (!lite) sailsDrying(b, 34, -50, PADS.locks.y, 10);
+  sailsDrying(b, 160, -22.5, yard, 13, out.cameraBoxes);
+  if (!lite) sailsDrying(b, 34, -50, PADS.locks.y, 10, out.cameraBoxes);
   for (const [u, v] of [
     [84, -26],
     [108, -27],
@@ -1515,7 +1609,7 @@ function yardDressing(b: Buckets, out: ShipyardOut, lite: boolean): void {
   shed(b, out, 15.5, -73.5, PADS.locks.y, 5, 5, 3, YARD_PAINT.tar);
   stores(b, 15.5, -73.5, PADS.locks.y, 0x91, out.cameraBoxes);
   // A small boat on chocks in the boat shed.
-  hullFrames(b, { u: 43, y: PADS.locks.y + 0.9, v: -73.5 }, 0.26, false, lite ? 1 : 7);
+  hullFrames(b, { u: 43, y: PADS.locks.y + 0.9, v: -73.5 }, 0.26, false, lite ? 1 : 7, out.cameraBoxes);
   if (!lite) {
     offcuts(b, 38, -75.5, PADS.locks.y, 5, 9);
     ropeCoil(b, 20, -70.5, PADS.locks.y, 0.5);

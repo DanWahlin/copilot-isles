@@ -460,6 +460,9 @@ function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: nu
   lanternPaint(head.glass, 4.6);
   rod(b, 'metal', arm, { x: arm.x, y: arm.y - 0.3, z: arm.z }, 0.015, 3, YARD_PAINT.iron);
   out.circles.push({ x: p.x, z: p.z, r: 0.2, y0: g - 0.5, y1: g + 3.4, height: 3.4 });
+  // The camera keeps out of the lantern out on its arm, and the arm.
+  const mid = { x: (p.x + arm.x) / 2, z: (p.z + arm.z) / 2 };
+  out.cameraBoxes.push({ ...mid, hx: 0.5, hz: 0.2, rot: armYaw, y0: arm.y - 0.8, y1: arm.y + 0.15 });
 }
 
 /**
@@ -1031,6 +1034,15 @@ function marketStall(b: Buckets, out: ShipyardOut, u: number, v: number, face: U
     0.2,
   );
   out.colliders.push({ ...toWorld(u, v), hx: w / 2 + 0.1, hz: d / 2 + 0.1, rot: yaw, height: 1 });
+  // The camera keeps out of the counter and the wares under the awning, and out of the awning.
+  out.cameraBoxes.push({
+    ...toWorld(u, v),
+    hx: w / 2 + 0.15,
+    hz: d / 2 + 0.15,
+    rot: yaw,
+    y0: g - 0.3,
+    y1: g + 1.95,
+  });
   out.cameraBoxes.push({
     ...toWorld(u, v),
     hx: w / 2 + 0.3,
