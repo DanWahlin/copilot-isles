@@ -44,7 +44,9 @@ export function createSparkleMaterial(): MeshBasicNodeMaterial {
   const pulse = sin((world.time as AnyNode).mul(P.speed).add(p.x.mul(P.kx)).add(p.z.mul(P.kz)))
     .mul(P.amp)
     .add(P.base);
-  m.colorNode = (attribute('color', 'vec3') as AnyNode).mul(pulse).mul(float(1).sub(world.night.mul(P.night)));
+  m.colorNode = (attribute('color', 'vec3') as AnyNode)
+    .mul(pulse)
+    .mul(float(1).sub(world.night.mul(P.night)));
   return m;
 }
 
