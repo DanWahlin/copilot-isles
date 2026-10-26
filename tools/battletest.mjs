@@ -279,7 +279,7 @@ async function krakenBeat(page, res) {
  * `step()` for the fight loop (true while you hold the helm yourself) and `done()`.
  */
 function krakenWave(page, t0) {
-  let lure = false;
+  let lure = -1e9;
   let onYou = 0;
   const seen = new Set();
   const once = async (key, l, ok, wait = 0) => {
@@ -299,7 +299,9 @@ function krakenWave(page, t0) {
       await once('kraken-dodge', l, l.dodged > 0);
       await once('kraken-lure', l, l.taken > 0, 2500);
       await once('kraken-player-hit', l, l.playerHits > 0);
-      if (!lure && age > 8_000 && l.taken === 0) lure = await K(page, 'k.debugTell("lure")');
+      // A tell on a raider's course every 9 s from 8 s until one is led over it.
+      if (l.taken === 0 && age > 8_000 && age - lure > 9_000 && (await K(page, 'k.debugTell("lure")')))
+        lure = age;
       // Take the helm (a helm key) and hold her course over a tell on it.
       if (!onYou && age > 20_000 && l.playerHits === 0) {
         await tap(page, 'KeyW');

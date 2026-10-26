@@ -504,12 +504,22 @@ export class KrakenAct {
       const p = b.shipAt(0).dynamics.pose;
       placed = this.place(p, kind, 'intercept', 1);
     } else if (force === 'lure' || (!force && (this.tellCount + 1) % LURE_EVERY === 0)) {
+      // The raider holding her course best (the least turn), so the tell is where she'll really be.
       const you = b.shipAt(0).dynamics.pose;
-      for (let i = 1; i < b.shipCount && !placed; i++) {
+      let best = -1;
+      let steadiest = Infinity;
+      for (let i = 1; i < b.shipCount; i++) {
         if (b.shipState(i) !== 'afloat' || !this.hulls[i]!.catchable) continue;
-        const p = b.shipAt(i).dynamics.pose;
+        const d = b.shipAt(i).dynamics;
+        const p = d.pose;
         if (p.speed < 1.5 || Math.hypot(p.x - you.x, p.z - you.z) > 170) continue;
-        placed = this.place(p, kind, 'intercept', 1);
+        if (Math.abs(d.headingRate) < steadiest) {
+          steadiest = Math.abs(d.headingRate);
+          best = i;
+        }
+      }
+      if (best > 0) {
+        placed = this.place(b.shipAt(best).dynamics.pose, kind, 'intercept', 1);
         lure = placed;
       }
     }

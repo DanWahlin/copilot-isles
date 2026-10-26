@@ -34,8 +34,8 @@ async function krakenUntil(api, pred, ms) {
   return null;
 }
 
-/** Wave 2's beats, once each: a lure at 8 s (if none has come), your own course held over a tell at 20 s. */
-const forced = { lure: false, onYou: 0, marks: new Set() };
+/** Wave 2's beats: a lure from 8 s (until a raider is taken), your own course held over a tell at 20 s. */
+const forced = { lure: -1e9, onYou: 0, marks: new Set() };
 
 const ends = (api) =>
   api.S(async () => {
@@ -55,9 +55,9 @@ export default battleScenario({
   labelsSeen: false,
   reading: 3200,
   answered: 3500,
-  lullCut: { head: 3500, tail: 1500 },
+  lullCut: { head: 2500, tail: 1000 },
   // Waves 1 and 3 short; wave 2 (the kraken's) long enough to see it work.
-  fightCut: (wave) => (wave === 1 ? { head: 30_000, tail: 5_000 } : { head: 10_000, tail: 4_000 }),
+  fightCut: (wave) => (wave === 1 ? { head: 32_000, tail: 5_000 } : { head: 8_000, tail: 3_000 }),
   hurry: (wave, ms) => wave !== 1 || ms > 38_000,
   async duringFight(api, wave, ms) {
     if (wave !== 1) return false;
@@ -73,7 +73,9 @@ export default battleScenario({
         forced.marks.add(key);
         api.mark(key);
       }
-    if (!forced.lure && ms > 8_000 && l.taken === 0) forced.lure = await kraken(api, 'k.debugTell("lure")');
+    // A tell on a raider's course every 9 s from 8 s until one is led over it.
+    if (l.taken === 0 && ms > 8_000 && ms - forced.lure > 9_000 && (await kraken(api, 'k.debugTell("lure")')))
+      forced.lure = ms;
     if (!forced.onYou && ms > 20_000 && l.playerHits === 0) {
       // Take the helm (a helm key) and hold her course over a tell on it.
       await api.hold('KeyW', 200);
@@ -91,7 +93,7 @@ export default battleScenario({
     await krakenUntil(api, (k) => k.stage === 'approach', 10_000);
     api.mark('flagship');
     // The flagship's run in is trimmed a little; she still sails into it on camera.
-    await api.cutWhile(() => krakenUntil(api, (k) => k.wrap === 'grip', 40_000), { head: 9000, tail: 6000 });
+    await api.cutWhile(() => krakenUntil(api, (k) => k.wrap === 'grip', 40_000), { head: 7000, tail: 5000 });
     api.mark('taken');
     await krakenUntil(api, (k) => k.wrap === 'break', 30_000);
     api.mark('break');
@@ -115,7 +117,7 @@ export default battleScenario({
   },
   toward: async (api) => (await ends(api)).to,
   async afterWin(page, api) {
-    forced.lure = false;
+    forced.lure = -1e9;
     forced.onYou = 0;
     forced.marks.clear();
     // The win card's hold, then the night at sea (its dawn veil) into Keelhaven's morning.
