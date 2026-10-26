@@ -51,6 +51,9 @@ function markMaterial(): MeshBasicNodeMaterial {
   if (material) return material;
   const m = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: DoubleSide });
   m.name = 'kraken marks';
+  // Flat on the sea, so one pass does: three draws a transparent double-sided material in two (its
+  // back faces, then its front), which built two more shader sets (the battle's program cap).
+  m.forceSinglePass = true;
   m.colorNode = attribute('color', 'vec3');
   m.opacityNode = attribute('markAlpha', 'float');
   material = m;

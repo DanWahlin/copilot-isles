@@ -12,6 +12,7 @@ import { KrakenEncounter, type KrakenEvent } from '../kraken/encounter';
 import {
   HAZARD_SPECS,
   hazardImpactAt,
+  type HazardArea,
   type HazardHit,
   type HazardKind,
   type KrakenHull,
@@ -53,16 +54,28 @@ export interface KrakenActOptions {
   seed?: number;
 }
 
-/** Where the beat's evidence lies from your ship (m) and how far the flagship sails to reach it. */
-const EVIDENCE_RANGE = 85;
-const APPROACH = 46;
+/**
+ * Where the beat's evidence lies from your ship (m), and how far the flagship sails to it: she comes
+ * out of a fog bank about as far off as the raiders' (190 m), on a diagonal toward your side of it.
+ */
+const EVIDENCE_RANGE = 90;
+const APPROACH = 95;
+/** Her course's angle off the line from the evidence out to the fog (radians, either side). */
+const APPROACH_SKEW = 0.6;
 /** The evidence's radius (m): the shadow and the ring. */
 const EVIDENCE_RADIUS = 13;
 /** The fog forms over this long (s) before the flagship shows in it (as the battle's raiders). */
 const FLAGSHIP_REVEAL = 2.8;
-/** She's taken this close to the evidence (m), or after this long (s) whatever the wind does. */
-const TAKE_WITHIN = 10;
-const TAKE_AFTER = 13;
+/**
+ * The kraken starts to take her this far before the evidence (m), or after this long (s) whatever the
+ * wind does: its arms rise round her as she sails on into it (they slow her, `HELD_RISE`), and its
+ * grip stops her over it. Her sails stay set throughout, and so do her pieces'.
+ */
+const TAKE_WITHIN = 42;
+const TAKE_AFTER = 20;
+/** How fast its rising arms take her way off (share a second, up to `HELD_MAX`) before the grip. */
+const HELD_RISE = 0.09;
+const HELD_MAX = 0.75;
 /** The first tell of each wave's fight comes this long after the guns run out (s), then every GAP s. */
 const FIRST_TELL = 4;
 const GAP_MIN = 6.5;
@@ -155,7 +168,7 @@ export class KrakenAct {
       tier: o.tier,
       waves: o.waves,
       onSound: o.onSound,
-      timing: { tell: 1.5 },
+      timing: { tell: 1.5, riseGap: 0.7, arc: 3, hang: 1.8 },
     });
     // The flagship draws like the other raiders (a lighter brigantine with the raiders' livery).
     const flagship = createBrigantine({
@@ -227,15 +240,18 @@ export class KrakenAct {
     // Off the bow on either side; she crosses your view on her best point of sail, from the fog.
     let best = -Infinity;
     for (let k = 0; k < 8; k++) {
-      const off = (k % 2 === 0 ? 1 : -1) * (0.55 + 0.25 * Math.floor(k / 2));
+      const off = (k % 2 === 0 ? 1 : -1) * (0.5 + 0.2 * Math.floor(k / 2));
       const b = p.heading + off;
       const sx = p.x + Math.sin(b) * EVIDENCE_RANGE;
       const sz = p.z + Math.cos(b) * EVIDENCE_RANGE;
       for (let turn = -1; turn <= 1; turn += 2) {
-        const h = b + (turn * Math.PI) / 2;
+        // From beyond the evidence, toward your side of it.
+        const h = b + Math.PI + turn * APPROACH_SKEW;
         const qx = sx - Math.sin(h) * APPROACH;
         const qz = sz - Math.cos(h) * APPROACH;
-        if (!this.open(sx, sz) || !this.open(qx, qz)) continue;
+        const mx = (sx + qx) / 2;
+        const mz = (sz + qz) / 2;
+        if (!this.open(sx, sz) || !this.open(qx, qz) || !this.open(mx, mz)) continue;
         const score = pointOfSailCurve(Math.sin(h) * wind[0]! + Math.cos(h) * wind[1]!) - Math.abs(off) * 0.2;
         if (score > best) {
           best = score;
@@ -253,14 +269,14 @@ export class KrakenAct {
     const f = this.flagship;
     f.dynamics.setInput(HELM);
     f.restartMotion(qx, qz, s.heading);
-    f.dynamics.forwardSpeed = 5;
-    f.dynamics.pose.speed = 5;
+    f.dynamics.forwardSpeed = 6;
+    f.dynamics.pose.speed = 6;
     f.group.position.set(qx, 0, qz);
     f.group.rotation.set(0, s.heading, 0);
     f.group.visible = false;
     this.encounter.reducedMotion = world.reducedMotion.value > 0.5;
     this.encounter.showEvidence(s.x, s.z, EVIDENCE_RADIUS, 0.8);
-    this.battle.formFog(Math.atan2(qx - p.x, qz - p.z), Math.hypot(qx - p.x, qz - p.z) - 14, 0.5, t);
+    this.battle.formFog(Math.atan2(qx - p.x, qz - p.z), Math.hypot(qx - p.x, qz - p.z) - 16, 0.45, t);
     const l = this.o.hooks.lines;
     this.o.say(l.evidence);
     this.setStage('evidence', t);
@@ -319,6 +335,7 @@ export class KrakenAct {
     this.beatFrame(dt, t);
     this.stayFrame(t);
     this.fillHulls();
+    this.encounter.hazards.areas(this.battle.avoidAreas as HazardArea[]);
     this.encounter.update(dt, seaT, camera);
   }
 
@@ -339,7 +356,7 @@ export class KrakenAct {
       const dx = this.spot.x - p.x;
       const dz = this.spot.z - p.z;
       const along = dx * Math.sin(p.heading) + dz * Math.cos(p.heading);
-      if (age > 3) this.battle.thinFog(t);
+      if (age > 4) this.battle.thinFog(t);
       if (Math.hypot(dx, dz) < TAKE_WITHIN || along < 0 || age > TAKE_AFTER) {
         const quick = world.reducedMotion.value > 0.5;
         this.encounter.reducedMotion = quick;
@@ -347,10 +364,14 @@ export class KrakenAct {
         else this.skip();
       }
     } else if (this.stage === 'wrap') {
-      // She sails on until its arms close on her (from then it holds her).
-      if (age < this.encounter.beats.grip - 2) this.steerFlagship(dt);
-      else this.updateFlagship(dt);
+      // She sails on, slowed by its rising arms, until they close on her: from then it holds her.
+      if (age < this.encounter.beats.grip - 2) {
+        f.dynamics.held = Math.min(HELD_MAX, f.dynamics.held + dt * HELD_RISE);
+        this.steerFlagship(dt);
+      } else this.updateFlagship(dt);
       const phase = this.encounter.phase();
+      // The evidence gives way to what it was evidence of.
+      if (age >= this.encounter.beats.grip) this.encounter.fadeEvidence();
       if ((phase === 'withdraw' || phase === 'finale') && !this.log.flagshipTaken) {
         this.log.flagshipTaken = true;
         const l = this.o.hooks.lines;
@@ -556,7 +577,7 @@ export class KrakenAct {
   }
 }
 
-const dangers: { x: number; z: number; radius: number; heading: number; arc: number }[] = [];
+const dangers: HazardArea[] = [];
 
 /** The lookout's call for a tell at (x, z), by where it lies from your bow. */
 function tellCall(p: { x: number; z: number; heading: number }, x: number, z: number): string {

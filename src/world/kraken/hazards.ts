@@ -379,6 +379,13 @@ export class KrakenHazards {
     return h.stage === 'stand';
   }
 
+  /** Every hazard that's up (telling, striking or standing), its area written into `out`. */
+  areas(out: HazardArea[]): HazardArea[] {
+    out.length = 0;
+    for (const h of this.hazards) if (h.stage !== 'off') out.push(h.area);
+    return out;
+  }
+
   /** True when a hull touches a hazard that can hurt now. */
   hitsHull(bowX: number, bowZ: number, sternX: number, sternZ: number, halfBeam: number): boolean {
     for (const h of this.hazards)

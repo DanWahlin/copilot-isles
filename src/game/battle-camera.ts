@@ -299,10 +299,10 @@ export class BattleCamera {
         break;
       }
       case 'kraken': {
-        // High, astern of your ship on the line to it and off to one side: your ship in the corner,
-        // the evidence and what comes out of the sea beyond, nothing of your rigging in the way.
-        const back = Math.min(36, 20 + range * 0.15);
-        set(want, sx - ux * back + nx * 24, 16, sz - uz * back + nz * 24);
+        // Between your ship and what it's doing, off to one side and high: close enough to read the
+        // arms on the hull, your ship back over the camera's shoulder.
+        const d = Math.min(range * 0.65, 62);
+        set(want, this.fx - ux * d + nx * 22, 14, this.fz - uz * d + nz * 22);
         set(aim, this.fx, 4, this.fz);
         break;
       }

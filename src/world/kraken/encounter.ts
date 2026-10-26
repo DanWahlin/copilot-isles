@@ -435,7 +435,6 @@ export class KrakenEncounter {
   private readonly sound = { x: 0, y: 0, z: 0 };
   private readonly anchor = new Vector3();
   private anchorHeading = 0;
-  private trim = 0;
   private t = 0;
 
   private constructor(
@@ -643,9 +642,6 @@ export class KrakenEncounter {
     this.restorePieces(wreck);
     this.wreck = wreck;
     this.broke = false;
-    this.trim = ship.dynamics.control.trim;
-    // Evidence shown ahead of it hands over to the wrap's own.
-    this.fadeEvidence();
     this.begin('wrap');
     this.anchorFor(ship);
     this.kraken.group.position.copy(this.anchor);
@@ -733,8 +729,8 @@ export class KrakenEncounter {
   /**
    * The evidence on its own, before the kraken acts (a battle shows it and lets a ship sail into it):
    * bubbles, the shadow and the swirl under the water at (x, z), `radius` m across, with the danger
-   * ring at `ring` (0…1). It stays until a wrap starts (it hands over to the wrap's own), or until
-   * `fadeEvidence` or `reset`.
+   * ring at `ring` (0…1). It stays until `fadeEvidence` (a battle fades it once the arms close on the
+   * ship that sailed into it) or `reset`.
    */
   showEvidence(x: number, z: number, radius: number, ring = 0): void {
     this.evidenceMark ??= this.marks.acquire();
@@ -914,11 +910,10 @@ export class KrakenEncounter {
     if (wreck && this.mode === 'wrap') {
       wreck.ship.group.updateMatrixWorld(true);
       if (!this.broke) this.anchorFor(wreck.ship);
-      // Held: her way comes off as its arms close on her (her sails come in as the trim falls).
+      // Held: her way comes off as its arms close on her (her sails stay as they were).
       if (w >= b.grip - 2) {
-        this.trim = Math.max(0, this.trim - dt * 0.35);
-        HELD.trim = this.trim;
-        wreck.ship.dynamics.setInput(HELD);
+        const d = wreck.ship.dynamics;
+        d.held = Math.min(1, d.held + dt * 0.5);
       }
       const showPieces = w >= b.squeeze;
       wreck.ship.group.visible = !showPieces;
@@ -1567,7 +1562,6 @@ const CUE_GROAN = 4;
 const CUE_UNDER = 8;
 const CUE_DONE = 12;
 const CUE_FINALE = 13;
-const HELD = { trim: 0, rudder: 0 };
 /** How long (s) after a wrap's end it keeps the wreck (its arms withdrawn) before it lets go. */
 const WRAP_LINGER = 8;
 

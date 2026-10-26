@@ -354,6 +354,8 @@ const HINT_TURN: readonly (readonly string[])[] = [
   ],
 ];
 const HINT_FIRE = ['Your port guns bear: fire!', 'Your starboard guns bear: fire!', 'Both sides bear: fire!'];
+/** The helm hint while the kraken's evidence lies on your course. */
+const HINT_DODGE = ['◀ Turn to port: steer clear of the bubbles', 'Steer clear of the bubbles: turn to starboard ▶'];
 const CAPTION_BALL = 'Hit! Your hull takes a ball';
 const CAPTION_HIT = 'Hit!';
 const CAPTION_ARM = 'An arm strikes your hull!';
@@ -414,6 +416,11 @@ export class Battle {
   readonly assistHelm: RaiderHelm = { trim: 0, rudder: 0 };
   /** "Bring her round": your helmsman steers to the best broadside until you take the helm back. */
   assist = false;
+  /**
+   * Areas your helmsman steers clear of while he has the helm: the kraken's tells and arms, filled in
+   * place each frame by its driver (kraken-act.ts). The raiders don't read them.
+   */
+  readonly avoidAreas: { x: number; z: number; radius: number }[] = [];
   private hint = '';
   private hintTurn = 0;
   private tokenFree = 0;
@@ -712,7 +719,11 @@ export class Battle {
       const a = from + spread + (this.rand() - 0.5) * 0.3;
       const x = p.x + Math.sin(a) * SPAWN_RANGE;
       const z = p.z + Math.cos(a) * SPAWN_RANGE;
-      c.ship.dynamics.reset(x, z, Math.atan2(p.x - x, p.z - z));
+      // Under way out of the fog: her sails set before she's ever drawn (and nothing holds her).
+      c.helm.trim = 0.8;
+      c.helm.rudder = 0;
+      c.ship.dynamics.setInput(c.helm);
+      c.ship.restartMotion(x, z, Math.atan2(p.x - x, p.z - z));
       c.ship.setName(r.name);
       c.ship.setRig(r.kind);
       c.name = r.name;
@@ -839,6 +850,15 @@ export class Battle {
     v.hull = pl.hull / PLAYER_HULL;
     v.avoidX = v.avoidZ = 0;
     this.helmsman.steer(dt, v, this.assistHelm);
+    // Clear of the kraken's evidence first: he reads the signs (and the hint says which way).
+    const dodge = this.dodgeTurn(p);
+    if (dodge !== 0) {
+      this.assistHelm.rudder = dodge;
+      this.assistHelm.trim = 1;
+      this.hint = HINT_DODGE[dodge > 0 ? 0 : 1]!;
+      this.hintTurn = dodge;
+      return;
+    }
 
     const r = this.assistHelm.rudder;
     const turn = r > 0.25 ? 1 : r < -0.25 ? -1 : 0;
@@ -852,6 +872,30 @@ export class Battle {
       this.hintTurn = 0;
     } else if (dist > MAX_RANGE) this.hint = target.captions.close[turn === 1 ? 0 : turn === -1 ? 1 : 2]!;
     else this.hint = HINT_TURN[guns]![turn === 1 ? 0 : turn === -1 ? 1 : 2]!;
+  }
+
+  /**
+   * Which way to turn clear of the kraken's evidence on her course (1 to port, −1 to starboard, 0
+   * none): an area ahead of her bow, close enough to sail into, turns her away from its side.
+   */
+  private dodgeTurn(p: { x: number; z: number; heading: number }): number {
+    const sh = Math.sin(p.heading);
+    const ch = Math.cos(p.heading);
+    let turn = 0;
+    let nearest = Infinity;
+    for (const a of this.avoidAreas) {
+      const dx = a.x - p.x;
+      const dz = a.z - p.z;
+      const ahead = dx * sh + dz * ch;
+      // Her +x (port) side.
+      const side = dx * ch - dz * sh;
+      if (ahead < -a.radius * 0.5 || ahead > a.radius + 45 || Math.abs(side) > a.radius + 9) continue;
+      if (ahead < nearest) {
+        nearest = ahead;
+        turn = side > 0 ? -1 : 1;
+      }
+    }
+    return turn;
   }
 
   private breakOff(t: number): void {

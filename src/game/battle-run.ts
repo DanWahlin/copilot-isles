@@ -138,7 +138,8 @@ export class BattleRun {
   private async buildKraken(): Promise<KrakenAct | null> {
     const event = this.plan.events.find((e) => e.kind === 'kraken');
     const hooks = this.plan.kraken;
-    if (!event || !hooks) return null;
+    // ?nokraken: the battle without it (a census without it), like ?nowreck.
+    if (!event || !hooks || new URLSearchParams(location.search).has('nokraken')) return null;
     const { engine, cove, audio } = this.o;
     const { KrakenAct } = await import('../world/battle/kraken-act');
     const act = await KrakenAct.create({
