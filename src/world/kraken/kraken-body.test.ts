@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Box3, MeshStandardNodeMaterial } from 'three/webgpu';
+import { Box3, MeshStandardNodeMaterial, Vector3, type SkinnedMesh } from 'three/webgpu';
 import { createKrakenBody } from './kraken-body';
 
 describe('kraken body anatomy', () => {
@@ -26,12 +26,11 @@ describe('kraken body anatomy', () => {
 });
 
 describe('kraken body faces', () => {
-  it('winds its parts to face outward (only front faces are drawn): the eyes and the head', async () => {
-    const { SkinnedMesh, Vector3 } = await import('three/webgpu');
+  it('winds its parts to face outward (only front faces are drawn): the eyes and the head', () => {
     const body = createKrakenBody(new MeshStandardNodeMaterial(), 8);
-    let mesh: InstanceType<typeof SkinnedMesh> | null = null;
+    let mesh: SkinnedMesh | null = null;
     body.drawn.traverse((o) => {
-      if ((o as InstanceType<typeof SkinnedMesh>).isMesh) mesh = o as InstanceType<typeof SkinnedMesh>;
+      if ((o as SkinnedMesh).isMesh) mesh = o as SkinnedMesh;
     });
     const g = mesh!.geometry;
     const p = g.getAttribute('position');
