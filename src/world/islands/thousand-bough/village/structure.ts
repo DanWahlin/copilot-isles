@@ -752,6 +752,8 @@ function galleryAndBoardwalk(buckets: Buckets, out: StructureOut): void {
           6,
           PAINT.weathered,
         );
+        // The camera keeps out of the legs under it too, where you walk on the ground (issue 312).
+        out.cameraBoxes.push({ x: px, z: pz, hx: 0.1, hz: 0.1, rot: 0, y0: ground - 0.5, y1: y - 0.12 });
       }
       beam(
         buckets,

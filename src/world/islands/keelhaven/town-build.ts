@@ -1297,7 +1297,7 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
     const dv = v + nv * (half - 0.08);
     const g = ground(du, dv);
     const q = at(du, g, dv);
-    if (y - g > 0.2)
+    if (y - g > 0.2) {
       rod(
         b,
         'wood',
@@ -1307,6 +1307,10 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
         5,
         YARD_PAINT.weathered,
       );
+      // The rail posts below have a collider; the camera keeps out of the others too (issue 312).
+      if (k % 2 === 1)
+        out.cameraBoxes.push({ x: q.x, z: q.z, hx: 0.06, hz: 0.06, rot: 0, y0: g - 0.3, y1: y });
+    }
     // The rail: a post every other tread, a rope between.
     if (k % 2 === 0) {
       const top = { x: q.x, y: y + 1.0, z: q.z };
