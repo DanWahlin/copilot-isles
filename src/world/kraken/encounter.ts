@@ -1488,7 +1488,6 @@ function aimAt(shape: number, u: number): void {
   let px = 0;
   let py: number;
   let pz = 0;
-  let dx = 0;
   let dy = 0;
   let dz = 1;
   if (shape === SHAPE_BOW || shape === SHAPE_STERN) py = 0.15 + 4 * u;
@@ -1502,7 +1501,7 @@ function aimAt(shape: number, u: number): void {
   px = _ax.x;
   py = _ax.y;
   pz = _ax.z;
-  _ax.set(dx, dy, dz).transformDirection(_m);
+  _ax.set(0, dy, dz).transformDirection(_m);
   _axisAim.set(px, py, pz, _ax.x, _ax.y, _ax.z);
 }
 

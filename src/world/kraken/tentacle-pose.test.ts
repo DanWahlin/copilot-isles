@@ -190,7 +190,8 @@ describe('suckers face what the arm grips', () => {
       root.updateMatrixWorld(true);
       for (let i = 1; i < 15; i++) {
         poser.bones[i]!.getWorldPosition(a);
-        i + 1 < 15 ? poser.bones[i + 1]!.getWorldPosition(b) : b.copy(a);
+        if (i + 1 < 15) poser.bones[i + 1]!.getWorldPosition(b);
+        else b.copy(a);
         const mid = a.add(b).multiplyScalar(0.5);
         poser.suckerWorld(i, sk);
         to.set(-mid.x, cy - mid.y, 0).normalize();
