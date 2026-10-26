@@ -26,9 +26,22 @@ export function chapterShort(id: ChapterId): string {
   return COURSE_CHAPTERS.find((c) => c.id === id)?.short ?? id.slice(0, 2);
 }
 
-/** "Open in the course ↗" for a chapter: its README, at `anchor` when given. */
+/**
+ * The file a `SourceRef.chapter` names in the course's repository: a chapter's README
+ * (`00-setup/README.md`) or an appendix (`appendix:git-worktrees` → `appendices/git-worktrees.md`).
+ * `dir` is its folder, for its relative links and images.
+ */
+export function courseDoc(id: string): { dir: string; file: string; path: string } {
+  if (id.startsWith('appendix:')) {
+    const file = `${id.slice('appendix:'.length)}.md`;
+    return { dir: 'appendices', file, path: `appendices/${file}` };
+  }
+  return { dir: id, file: 'README.md', path: `${id}/README.md` };
+}
+
+/** "Open in the course ↗" for a chapter (or an appendix): its file, at `anchor` when given. */
 export function chapterUrl(id: string, anchor?: string): string {
-  return `${COURSE_BLOB}/${id}/README.md${anchor ? `#${anchor}` : ''}`;
+  return `${COURSE_BLOB}/${courseDoc(id).path}${anchor ? `#${anchor}` : ''}`;
 }
 
 /**

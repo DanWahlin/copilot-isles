@@ -82,6 +82,47 @@
         }
       }
     },
+    "appendices": {
+      "type": "object",
+      "description": "The appendices the pack's course.json names (`source.appendices`), by name: each one's file, title, hash and sections, like a chapter's, and the snapshotted chapters whose README links to it.",
+      "propertyNames": {
+        "$ref": "#/$defs/appendix"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "title", "hash", "sections", "linkedFrom"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^appendices/[a-z0-9-]+\\.md$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hash": {
+            "$ref": "#/$defs/hash"
+          },
+          "sections": {
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": {
+              "$ref": "#/$defs/anchor"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/section"
+            }
+          },
+          "linkedFrom": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/chapter"
+            }
+          }
+        }
+      }
+    },
     "glossary": {
       "type": "object",
       "additionalProperties": false,
@@ -193,6 +234,10 @@
           }
         }
       }
+    },
+    "appendix": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
     }
   }
 }

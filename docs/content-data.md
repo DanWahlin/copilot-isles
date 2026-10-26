@@ -94,7 +94,18 @@ so VS Code and other editors check your edit as you type and show each field's d
   session's **working** branch: it starts empty (`branch.example` is its placeholder), refuses
   `practice.branch` (the session's base branch) with `branch.base`, and `branch.skip` labels its Skip
   when a script asks. `**bold**` and `` `code` ``
-  render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in.
+  render as such; `{issue}`, `{issueTitle}`, `{branch}`, `{os}` and `{keys}` are filled in. A form's
+  `cites` names the course section each of its fields follows (a field's key → a `source`, like
+  `"hint": {"chapter": "appendix:git-worktrees", "anchor": "worktree-branch-and-session", "hash": …}`).
+  The content check resolves each one, and the drift report lists a field whose section changed.
+- **`source.appendices`**: the course's appendices the snapshot holds, by name (`["git-worktrees"]` is
+  `appendices/git-worktrees.md`). `npm run course:sync` copies each to `public/course/appendices/` and
+  locks its sections like a chapter's (`lock.json` → `appendices`, with `linkedFrom`: the snapshotted
+  chapters whose README links to it). Any `source` can then cite one: `"chapter": "appendix:<name>"`
+  (`npm run course:refs -- appendix:<name>` lists its anchors and hashes). The game shows an appendix's
+  sections as it shows a chapter's, live first and the snapshot when offline. In the browser, an
+  appendix's section titles load with the one chapter that uses it (its README links to it, or its
+  part's files cite it), or with the core when two chapters or none do (`src/course/split.ts`).
 - **`hooks`**: the voice lines and questions the game asks for by id, so it never names one itself:
   the cabin `briefing`; each island's `welcome` (`@nav` and `@starfish` mark where its `tips` go; they're
   left out when the tips are off), `welcomeBack` and `landing`; the `sail` line; `npcVoiced` (what an
@@ -390,8 +401,11 @@ change. The checks (tools/content/check.ts):
   chapter, with unique choices; `learned` lines only for quests with app tasks; `course.json`'s
   `recap.exclude` names quizzes.
 
-`src/learn/course/refs.test.ts` checks the snapshot against the lock section by section, and every
-`SourceRef` and course image against them.
+`src/learn/course/refs.test.ts` checks the snapshot against the lock section by section (the
+appendices too), and every `SourceRef` (the setup forms' `cites` too) and course image against them.
+The content check also fails on an appendix in `source.appendices` that the lock or the snapshot
+hasn't got, an appendix in the lock that isn't listed, and a setup form's `cites` key that isn't one
+of the form's words.
 
 ## How the workflows update and check the data
 

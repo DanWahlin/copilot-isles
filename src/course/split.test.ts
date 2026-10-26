@@ -6,7 +6,15 @@ import { activateCourse } from './load';
 import { assemblePack, type CoursePack, type PackFiles } from './pack';
 import { puzzleMaybe, puzzleOn, puzzleQuest } from './puzzles';
 import { isIslandId } from '../islands/registry';
-import { islandChapter, mergePackPart, puzzlePartChapter, splitPack, withoutIslandsAhead } from './split';
+import {
+  appendixChapter,
+  islandChapter,
+  mergePackPart,
+  puzzlePartChapter,
+  splitPack,
+  withoutIslandsAhead,
+} from './split';
+import type { CourseLock } from '../learn/course/lock';
 import { join } from 'node:path';
 
 const read = (id: string) => {
@@ -67,11 +75,57 @@ describe('course pack split (src/course/split.ts)', () => {
           const quests = /^quests\/(.+)\.json$/.exec(path)?.[1];
           if (puzzle) expect(puzzlePartChapter(meta, files, puzzle), path).toBe(chapter);
           else if (quests) expect(islandChapter(meta, quests), path).toBe(chapter);
-          else expect(path).toBe(`chapters/${chapter}.json`);
+          else if (path === 'lock.json') {
+            // Only the appendices this chapter alone uses.
+            const lock = part[path] as Pick<CourseLock, 'appendices'>;
+            expect(Object.keys(lock)).toEqual(['appendices']);
+            for (const name of Object.keys(lock.appendices!))
+              expect(appendixChapter(meta, files, name), name).toBe(chapter);
+          } else expect(path).toBe(`chapters/${chapter}.json`);
         }
       }
     });
   }
+});
+
+describe('appendices in the course parts (issue 285)', () => {
+  it('puts an appendix in the part of the one chapter that uses it, or in the core when two do', () => {
+    const { meta, files } = read('copilot-app');
+    const ch02 = '02-sessions-worktrees-context';
+    expect(appendixChapter(meta, files, 'git-worktrees')).toBe(ch02);
+    const { core, parts } = splitPack(meta, files, { trim: true });
+    expect((core['lock.json'] as CourseLock).appendices).toEqual({});
+    const trimmed = (parts[ch02]!['lock.json'] as CourseLock).appendices!['git-worktrees']!;
+    expect(trimmed.path).toBe('appendices/git-worktrees.md');
+    expect(trimmed.sections['worktree-branch-and-session']).toEqual({
+      title: 'Worktree, branch, and session',
+      level: 2,
+    });
+
+    // A quiz in Chapter 00 that cites it too: two chapters use it, so it goes in the core.
+    const ch00 = files['chapters/00-setup.json'] as { quizzes: { source: object }[] };
+    const cites = {
+      ...ch00,
+      quizzes: [
+        { ...ch00.quizzes[0], source: { chapter: 'appendix:git-worktrees', anchor: 'cleanup', hash: '0' } },
+        ...ch00.quizzes.slice(1),
+      ],
+    };
+    const both = { ...files, 'chapters/00-setup.json': cites };
+    expect(appendixChapter(meta, both, 'git-worktrees')).toBeNull();
+    const split = splitPack(meta, both, { trim: true });
+    expect(Object.keys((split.core['lock.json'] as CourseLock).appendices!)).toEqual(['git-worktrees']);
+    expect(split.parts[ch02]!['lock.json']).toBeUndefined();
+  });
+
+  it('merges two parts’ appendices into the lock, in either order', () => {
+    const core = { 'lock.json': { chapters: {}, appendices: { shared: 1 } } };
+    const a = { 'lock.json': { appendices: { a: 2 } } };
+    const b = { 'lock.json': { appendices: { b: 3 } } };
+    const want = { chapters: {}, appendices: { shared: 1, a: 2, b: 3 } };
+    expect(mergePackPart(mergePackPart(core, a), b)['lock.json']).toEqual(want);
+    expect(mergePackPart(mergePackPart(core, b), a)['lock.json']).toEqual(want);
+  });
 });
 
 describe('content ahead of its island (src/course/split.ts withoutIslandsAhead)', () => {

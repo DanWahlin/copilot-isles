@@ -5,7 +5,16 @@ import { describe, expect, it } from 'vitest';
 import { CHAPTERS, IMAGES, PAGES, QUIZZES } from '../content/index';
 import type { SourceRef } from '../types';
 import { COURSE_CHAPTERS, repoPath } from './chapters';
-import { chapterLock, glossaryLock, HASH_LENGTH, type CourseLock } from './lock';
+import { COURSE } from '../../course/catalog';
+import {
+  appendixLock,
+  chapterLock,
+  glossaryLock,
+  HASH_LENGTH,
+  linksAppendix,
+  lockDoc,
+  type CourseLock,
+} from './lock';
 
 /**
  * PLAN §8.3-8.4 guards: the bundled snapshot matches `courses/copilot-app/lock.json`, and every authored
@@ -26,6 +35,10 @@ function allRefs(): { where: string; ref: SourceRef }[] {
   for (const c of CHAPTERS)
     for (const [id, { source }] of Object.entries(c.cited ?? {}))
       out.push({ where: `cited ${id}`, ref: source });
+  for (const [form, copy] of Object.entries(COURSE.setup ?? {}))
+    if (copy && typeof copy === 'object')
+      for (const [field, ref] of Object.entries((copy as { cites?: Record<string, SourceRef> }).cites ?? {}))
+        out.push({ where: `setup ${form}.${field}`, ref });
   return out;
 }
 
@@ -49,6 +62,20 @@ describe('course snapshot and lock', () => {
     }
     const glossary = readFileSync(join(PUBLIC, 'course/GLOSSARY.md'), 'utf8');
     expect(glossaryLock(glossary, sha256)).toEqual(lock.glossary);
+  });
+
+  it('holds the appendices course.json names, each matching the lock and the chapters that link it', () => {
+    expect(Object.keys(lock.appendices ?? {})).toEqual([...(COURSE.source.appendices ?? [])]);
+    expect(lock.appendices?.['git-worktrees']).toBeDefined();
+    for (const [name, entry] of Object.entries(lock.appendices ?? {})) {
+      const md = readFileSync(join(PUBLIC, 'course', entry!.path), 'utf8');
+      const linked = Object.entries(lock.chapters)
+        .filter(([, c]) =>
+          linksAppendix(readFileSync(join(PUBLIC, 'course', c!.short, 'README.md'), 'utf8'), name),
+        )
+        .map(([id]) => id);
+      expect(appendixLock(md, name, linked, sha256, repoPath), name).toEqual(entry);
+    }
   });
 
   it('snapshots Chapters 00-02', () => {
@@ -82,7 +109,7 @@ describe('SourceRefs', () => {
     const refs = allRefs();
     expect(refs.length).toBeGreaterThan(100);
     for (const { where, ref } of refs) {
-      const chapter = lock.chapters[ref.chapter];
+      const chapter = lockDoc(lock, ref.chapter);
       expect(chapter, `${where}: ${ref.chapter} isn't in the snapshot`).toBeDefined();
       expect(chapter!.sections[ref.anchor], `${where}: #${ref.anchor} isn't in ${ref.chapter}`).toBeDefined();
       expect(ref.hash, where).toMatch(HASH);

@@ -77,10 +77,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["chapter", "anchor", "hash"],
-      "description": "The course section it comes from: chapter, README heading anchor, and the section's hash in lock.json (npm run course:refs).",
+      "description": "The course section it comes from: chapter (or `appendix:<name>`), heading anchor, and the section's hash in lock.json (npm run course:refs).",
       "properties": {
         "chapter": {
-          "$ref": "#/$defs/chapterId"
+          "$ref": "#/$defs/docId"
         },
         "anchor": {
           "type": "string",
@@ -279,6 +279,11 @@
           }
         }
       }
+    },
+    "docId": {
+      "type": "string",
+      "pattern": "^(\\d{2}-[a-z0-9-]+|appendix:[a-z0-9-]+)$",
+      "description": "A chapter folder, or `appendix:<name>` for an appendix the pack snapshots."
     }
   }
 }

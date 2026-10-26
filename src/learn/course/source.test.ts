@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { chapterUrl } from './chapters';
 import { parseCatalog } from './lock';
 import {
   courseRef,
@@ -148,5 +149,23 @@ describe('CourseSource', () => {
       title: 'Fleet Ops',
       url: 'https://github.com/github/copilot-app-for-beginners/blob/main/08-fleet-ops/README.md',
     });
+  });
+});
+
+describe('an appendix the snapshot holds (issue 285)', () => {
+  it('reads appendix:<name> from appendices/<name>.md, live or from the snapshot', async () => {
+    expect(snapshotUrl('appendices/git-worktrees.md')).toBe(`${SNAP}course/appendices/git-worktrees.md`);
+    expect(chapterUrl('appendix:git-worktrees', 'cleanup')).toBe(
+      'https://github.com/github/copilot-app-for-beginners/blob/main/appendices/git-worktrees.md#cleanup',
+    );
+    const calls = stubFetch('offline');
+    const r = await resolveSection('appendix:git-worktrees', 'worktree-branch-and-session');
+    expect(r.origin).toBe('snapshot');
+    expect(r.moved).toBe(false);
+    expect(r.section?.markdown).toContain('octocat-bookish-invention');
+    expect(calls).toEqual([`${RAW}appendices/git-worktrees.md`, `${SNAP}course/appendices/git-worktrees.md`]);
+    resetCourseSource();
+    stubFetch({ 'appendices/git-worktrees.md': snap('appendices/git-worktrees.md') });
+    expect((await resolveSection('appendix:git-worktrees', 'cleanup')).origin).toBe('live');
   });
 });

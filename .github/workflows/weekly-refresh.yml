@@ -5,7 +5,8 @@
 # path is courses/$COURSE/, and each pack gets its own PR.
 #
 #   1 Course check   compare upstream main with the pack's lock.json (no dependencies needed)
-#   2 Content        tools/course/sync.mjs: READMEs, GLOSSARY.md, LICENSE, sections, and hashes
+#   2 Content        tools/course/sync.mjs: READMEs, the appendices the pack names, GLOSSARY.md, LICENSE,
+#                    sections, and hashes
 #   3 Screenshots    the same run copies referenced images byte-for-byte (pinned ones are kept) and
 #                    saves upstream copies of changed pinned images for before/after montages
 #   4 Drift report   tools/course/drift.ts, including the UI-term check

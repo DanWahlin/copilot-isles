@@ -65,7 +65,8 @@ courses/
     voice/lines.json             every voice line: id, speaker, text (was tools/voice/lines.testcove.json)
     voice/cast.json              speaker → service, voice, model, prosody, fx (step 2)
     public/                      served as <base>courses/copilot-app/
-      course/                    the snapshot: READMEs, GLOSSARY, LICENSE, images (was public/course/)
+      course/                    the snapshot: READMEs, GLOSSARY, LICENSE, images (was public/course/),
+                                 and appendices/<name>.md for each name in source.appendices
       voice/                     <id>.webm/.m4a/.json, manifest.json, lipsync.json (was public/voice/testcove/)
     README.md                    what the pack is, its license, how to regenerate its data
 ```
@@ -86,7 +87,8 @@ courses/
     "ref": "main",
     "license": "MIT",
     "attribution": "GitHub Copilot app for Beginners, © GitHub, MIT",
-    "chapters": [{ "id": "00-setup", "short": "ch00", "title": "Setup" }, "… 8 chapters in all"]
+    "chapters": [{ "id": "00-setup", "short": "ch00", "title": "Setup" }, "… 8 chapters in all"],
+    "appendices": ["git-worktrees"]
   },
   "islands": [
     {
@@ -126,13 +128,16 @@ snapshot are static files fetched by URL.**
     `models`, `learning`, and the lock's chapter and section titles), and for each chapter its index
     (each quiz's id, type and section; each page's id, title, picture and section), its images,
     chests, glossary and Trials; for each island its tracker, quest list, `story` and `signs`; for
-    each puzzle its `mechanic`, `quest`, `steps`, `chapter` and `disabled`. A puzzle the game runs on
+    each puzzle its `mechanic`, `quest`, `steps`, `chapter` and `disabled`. An appendix's section
+    titles (`lock.json` → `appendices`) are in the core only when two chapters or none use it. A puzzle the game runs on
     every island (the Model Market, `SHARED_PUZZLES`) stays whole in the core. Built: 22.6 KB gz for
     `copilot-app`, 4.1 KB for `copilot-cli`; budget 48 KB each (13 KB shared and about 3.2 KB a
     chapter: eight chapters fit).
   - **A part per chapter**, a JSON file `assets/course-<id>-<chapter>-<hash>.json`: the chapter's
     quizzes, pages, `voiced` and `cited`, and its island's (`course.json` → `islands`) compass
-    targets, beats, scripts and barks, and its puzzles' content. Built: 13.7, 17.0 and 15.1 KB gz
+    targets, beats, scripts and barks, its puzzles' content, and the section titles of each appendix
+    that this chapter alone uses (its README links to it, or its part's files cite it:
+    `appendixChapter`; `mergePackPart` adds a part's appendices to the core's). Built: 13.7, 17.0 and 15.1 KB gz
     (chapters 00-02); budget 28 KB each, one row per part (`check:budgets` and `content:check` fail on
     a part without one). The browser's copy leaves out what the game never reads: the scripts'
     `notes`, the lock's hashes, terms and images, and each file's `$schema` and `$comment`.
@@ -184,7 +189,8 @@ all):
 
 - every file is valid against its schema, and no unknown file is in the pack;
 - every quote and `cited` text: quotes word for word in the section of **this pack's** snapshot;
-  every `{chapter, anchor, hash}` in **this pack's** `lock.json`; every pinned image's hash matches its file;
+  every `{chapter, anchor, hash}` in **this pack's** `lock.json` (a `chapter` of `appendix:<name>` is an
+  appendix the pack snapshots: `source.appendices`, issue 285); every pinned image's hash matches its file;
 - every voice id used anywhere (`say`, `line`, `voiced` keys, Gilda's lines, barks, tips) is in
   `voice/lines.json`, has `webm`, `m4a` and timings in `public/voice/`, and its manifest text matches;
 - every image id (`show`, page `image`, hotspot `image`) is in a chapter's `images`, and its file exists;
