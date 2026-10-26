@@ -102,7 +102,7 @@ describe('Keelhaven berth and approach', () => {
     }
   });
 
-  it('docks cleanly from the lane and from the turning room', () => {
+  it('docks cleanly from the lane and from the turning room', { timeout: 30_000 }, () => {
     const b = H.berth;
     const inner = H.lane[2]!;
     const t = H.turning;

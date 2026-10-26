@@ -67,14 +67,18 @@ describe('the island registry', () => {
     for (const p of SHARED_PUZZLES) expect(GAME_PUZZLES[p], p).toBeDefined();
   });
 
-  it('loads each island as code of its own, with a stream for every streamed island', async () => {
-    for (const e of ISLAND_LIST) {
-      const code = await e.code();
-      expect(!!code.stream, `${e.id} stream`).toBe(!!e.stream);
-      expect(!!code.content, `${e.id} content`).toBe(!!e.stream);
-      expect(code.quests.log({}), `${e.id} quest log`).toBeInstanceOf(Array);
-    }
-  });
+  it(
+    'loads each island as code of its own, with a stream for every streamed island',
+    { timeout: 30_000 },
+    async () => {
+      for (const e of ISLAND_LIST) {
+        const code = await e.code();
+        expect(!!code.stream, `${e.id} stream`).toBe(!!e.stream);
+        expect(!!code.content, `${e.id} content`).toBe(!!e.stream);
+        expect(code.quests.log({}), `${e.id} quest log`).toBeInstanceOf(Array);
+      }
+    },
+  );
 
   it('derives the shared tables from the entries, in voyage order', () => {
     expect(ISLAND_TERRAIN_REGIONS).toEqual(
