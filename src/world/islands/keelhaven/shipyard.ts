@@ -413,6 +413,15 @@ function mitreGate(
     const hinge = at(u, floor + h + 0.7, CANAL.v + side * half);
     const end = at(u + 5.5, floor + h + 0.75, CANAL.v + side * (half + 2.2));
     beam(b, 'wood', hinge, end, 0.36, 0.42, YARD_PAINT.weathered);
+    out.cameraBoxes.push({
+      x: (hinge.x + end.x) / 2,
+      z: (hinge.z + end.z) / 2,
+      hx: Math.hypot(end.x - hinge.x, end.z - hinge.z) / 2 + 0.3,
+      hz: 0.4,
+      rot: Math.atan2(-(end.z - hinge.z), end.x - hinge.x),
+      y0: hinge.y - 0.45,
+      y1: end.y + 0.45,
+    });
     // Its end painted white (seen down the flight), and a hand rail along the leaf's walkway.
     const tip = at(u + 5.2, floor + h + 0.75, CANAL.v + side * (half + 2.08));
     box(b, 'wood', tip.x, tip.y, tip.z, 0.42, 0.48, 0.42, YAW_U, YARD_PAINT.limewash);
@@ -518,6 +527,15 @@ export function shed(
   }
   ubox(b, 'wood', u, y + h + Math.sin(pitch) * slope * 0.5 + 0.14, v, lu + 1.3, 0.22, 0.22, YARD_PAINT.tar);
   for (const dv of [-lv / 2, lv / 2]) ubox(b, 'wood', u, y + h, v + dv, lu, 0.22, 0.2, YARD_PAINT.tar);
+  // The roof keeps the follow camera out (from its plates to its ridge).
+  out.cameraBoxes.push({
+    ...toWorld(u, v),
+    hx: (lu + 1.3) / 2,
+    hz: lv / 2 + 0.7,
+    rot: YAW_U,
+    y0: y + h - 0.2,
+    y1: y + h + Math.sin(pitch) * slope + 0.4,
+  });
 }
 
 /** A stack of sawn planks (crosswise courses on bearers) or logs, on the ground at (u, v). */

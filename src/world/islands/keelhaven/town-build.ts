@@ -195,6 +195,18 @@ function house(
     y0: base - 0.5,
     y1: top,
   });
+  // Its verandas' roofs (over head height) keep the camera out too.
+  const ov = info.out;
+  if (ov.front || ov.back || ov.left || ov.right)
+    out.cameraBoxes.push({
+      x: c.x,
+      z: c.z,
+      hx: h.w * 0.5 + Math.max(ov.left, ov.right) + 0.3,
+      hz: h.d * 0.5 + Math.max(ov.front, ov.back) + 0.3,
+      rot: yaw,
+      y0: base + 2.3,
+      y1: eave + 0.6,
+    });
   // Steps up to the door where the floor stands over the street.
   const rise = base - ground(housePoint(h, 0, h.d / 2 + 0.9).u, housePoint(h, 0, h.d / 2 + 0.9).v);
   const front = (k: number) => housePoint(h, 0, h.d / 2 + 0.25 + k);
@@ -332,6 +344,14 @@ function house(
         -side * 0.28,
       );
     }
+    out.cameraBoxes.push({
+      ...toWorld(mid.u, mid.v),
+      hx: 1.4,
+      hz: len / 2 + 0.3,
+      rot: yaw,
+      y0: yRoof - 0.45,
+      y1: yRoof + 0.45,
+    });
     stores(b, mid.u, mid.v, Math.max(g, low), seed + 7);
   } else if (rand() < 0.5) {
     const p = housePoint(h, -(h.w / 2 + 1.0), h.d / 2 - 0.5);

@@ -174,6 +174,14 @@ export function buildKeelhavenProps(b: Buckets, signs: SignSet | null, out: Ship
     rot: YAW_U,
     height: 0.75,
   });
+  out.cameraBoxes.push({
+    ...toWorld(173.4, DOCKS.v[0] - 6 + 2.85),
+    hx: 2,
+    hz: 3.6,
+    rot: YAW_U,
+    y0: yard,
+    y1: yard + 1.3,
+  });
   const lever = at(KEELHAVEN_SET.sluice.u, yard, KEELHAVEN_SET.sluice.v);
   ubox(
     b,
