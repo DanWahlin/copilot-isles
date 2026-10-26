@@ -278,6 +278,16 @@ other content.
   straight to the legacy course's new keys. The service worker's caches moved too
   (`kraken-isles-static-…`, `-runtime-…`, `-course-…`); its activate step deletes every
   `copilot-isles-*` cache.
+
+  **The old path (issue 321).** `https://danwahlin.github.io/copilot-isles/` and its `sw.js` now
+  return 404. A failed update doesn't unregister a service worker, so a browser that played there keeps
+  the old one. It answers a page load from the network first, so online it shows the 404. Offline it
+  falls back to its cache, but the new path's worker deletes `copilot-isles-*` caches, and the new
+  page unregisters every service worker whose scope is `/copilot-isles/` (`isOldScope`,
+  `src/boot/main.ts`). After one visit to the new path, the old build can't start again. Only a tab
+  of the old build that stayed open can still write `copilot-isles.*` keys. For that tab, the move
+  makes one exception to "newer data stays": when a course has a save under both names, the save with
+  the later `savedAt` wins, and its progress goes with it (a save and its progress stay a pair).
 - Ids in saves (quests, pages, chests, quizzes, puzzles, labels, market jobs) never get renamed by a
   move: step 1 keeps every id.
 

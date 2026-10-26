@@ -17,7 +17,7 @@ import {
 import { installDebug } from '../engine/debug';
 import { prepareAudioContext } from '../audio/early-context';
 import { TIER_NAMES, TIER_ORDER } from '../engine/tier-info';
-import { browserStorage, renameStorageKeys } from '../game/storage-rename';
+import { browserStorage, isOldScope, renameStorageKeys } from '../game/storage-rename';
 import type { Tier } from '../world/contracts';
 
 const stage = (p: number, msg: string) => window.__load?.(p, msg);
@@ -282,6 +282,12 @@ function registerServiceWorker(): void {
     void navigator.serviceWorker.register('./sw.js').catch((err: unknown) => {
       console.warn('Service worker registration failed', err);
     });
+    // The old path's (Copilot Isles) service worker stays registered after its sw.js went 404, and
+    // offline it can still start the old build. Unregister it (issue 321).
+    void navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => Promise.all(regs.filter((r) => isOldScope(r.scope)).map((r) => r.unregister())))
+      .catch(() => undefined);
   }, 0);
 }
 
