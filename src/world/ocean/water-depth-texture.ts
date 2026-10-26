@@ -158,6 +158,14 @@ export function addWaterDepthTile(tile: WaterDepthTile): void {
   if (!tiles.includes(tile)) tiles.push(tile);
 }
 
+/**
+ * Every lent tile's texture (an island's warm uploads them all: with two islands lent, the ocean binds
+ * the nearest, so the other's first use would upload it mid-voyage).
+ */
+export function lentWaterDepthTextures(): DataTexture[] {
+  return tiles.map((t) => t.texture);
+}
+
 /** Takes an island's tile back and frees its GPU copy. */
 export function removeWaterDepthTile(tile: WaterDepthTile): void {
   const i = tiles.indexOf(tile);

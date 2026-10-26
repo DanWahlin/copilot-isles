@@ -333,6 +333,11 @@ export interface ApronRect extends UvRect {
 
 /** The apron's cells (m): its rectangles' edges fall on this grid. */
 const APRON_CELL = 0.5;
+/**
+ * How far (m) the apron reaches in under a wall's coping from its outer face: no gap at the wall's
+ * foot on the cell grid, for the eye or the walker (the coping's deck is higher, so it's walked on).
+ */
+const APRON_TUCK = 0.3;
 
 /**
  * The works' apron: every flat pad's ground outside the chambers' walls, as rectangles in the cove
@@ -369,14 +374,15 @@ export function* worksApronSteps(): Generator<void, readonly ApronRect[], void> 
       const ua = u0 + i * APRON_CELL;
       const uc = ua + APRON_CELL / 2;
       const vc = va + APRON_CELL / 2;
-      // A cell is apron if its middle and corners are flat at one level and clear of every wall.
+      // A cell is apron if its middle and corners are flat at one level and outside the walls (up to
+      // `APRON_TUCK` under them).
       let y: number | null = null;
       let ok = true;
       for (const [du, dv] of CELL_TAPS) {
         const pu = uc + du * APRON_CELL;
         const pv = vc + dv * APRON_CELL;
         const h = padFlatAt(pu, pv);
-        if (h === null || (y !== null && h !== y) || nearestChamber(pu, pv).d < WALL - 1e-6) {
+        if (h === null || (y !== null && h !== y) || nearestChamber(pu, pv).d < WALL - APRON_TUCK) {
           ok = false;
           break;
         }

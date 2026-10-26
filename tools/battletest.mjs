@@ -421,6 +421,16 @@ async function skip() {
   await page.waitForTimeout(2500);
   // Docking at Port Meridian is shut while the raiders are out.
   await shot(page, 'skip-before');
+  // Battle 3: watch for the night at sea from the skip on (it passes in a few seconds).
+  if (BATTLE === 3)
+    await page.evaluate(() => {
+      window.__sawDawn = false;
+      const look = () => {
+        if (document.querySelector('.hud-dawn.show')) window.__sawDawn = true;
+        else requestAnimationFrame(look);
+      };
+      look();
+    });
   await page.click('.bh-skip');
   await page.waitForTimeout(800);
   const s = await snap(page);
@@ -435,7 +445,7 @@ async function skip() {
   if (BATTLE === 3) {
     // A skip settles the battle at once: the night passes at sea all the same.
     const veil = await page
-      .waitForFunction(() => document.querySelector('.hud-dawn.show'), null, { timeout: 20_000 })
+      .waitForFunction(() => window.__sawDawn, null, { timeout: 20_000 })
       .then(() => true)
       .catch(() => false);
     if (!veil) fail('(skip) no "next morning" after battle 3 was skipped');
