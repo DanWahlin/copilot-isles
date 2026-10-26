@@ -49,6 +49,8 @@ export class BattleCamera {
    */
   follow = true;
   private hasFocus = false;
+  /** How far the held shot stands back from its focus (m), toward your ship; 0 its own choice. */
+  private holdDistance = 0;
   private focusX = 0;
   private focusZ = 0;
   /** The follow view's direction (heading convention), eased at a capped turn rate. */
@@ -101,8 +103,9 @@ export class BattleCamera {
    * Holds a shot on a moving focus (a mid-battle event: the kraken's beat), called each frame while it
    * lasts: it starts like a beat, then follows (x, z) and stays until the calls stop.
    */
-  hold(kind: BattleBeat, x: number, z: number): void {
+  hold(kind: BattleBeat, x: number, z: number, distance = 0): void {
     if (!this.enabled) return;
+    this.holdDistance = distance;
     if (this.shot === kind && this.now < this.shotUntil) {
       this.fx = x;
       this.fz = z;
@@ -299,9 +302,10 @@ export class BattleCamera {
         break;
       }
       case 'kraken': {
-        // Between your ship and what it's doing, off to one side and high: close enough to read the
-        // arms on the hull, your ship back over the camera's shoulder.
-        const d = Math.min(range * 0.65, 62);
+        // On the line from your ship to what it's doing, off to one side and high: from behind your
+        // ship while the evidence and the flagship show (the fog well beyond), then closer, to read
+        // the arms on the hull (the distance its driver holds it at).
+        const d = this.holdDistance > 0 ? this.holdDistance : Math.min(range * 0.65, 62);
         set(want, this.fx - ux * d + nx * 22, 14, this.fz - uz * d + nz * 22);
         set(aim, this.fx, 4, this.fz);
         break;

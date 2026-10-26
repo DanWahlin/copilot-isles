@@ -1,7 +1,11 @@
 // Sea battle 3, "Trust the Evidence" (the passage from Thousand-Bough Isle to Keelhaven): Chapters 00-02
 // done off camera, the chart to Thousand-Bough, aboard and out toward Keelhaven until the lookout calls
-// sails, then the three waves fought with the real controls (the first question answered wrong), the win
-// card, and the night passing at sea into Keelhaven's morning.
+// sails, then the three waves fought with the real controls (the first question answered wrong). After
+// wave 1 the kraken: the evidence on the sea, the raiders' flagship sailing straight over it and taken.
+// Wave 2 with the kraken still there: its tells, your helmsman steering clear (a dodge), a tell on a
+// raider's course (a lure: she's taken), and one you hold your course over (a hit). Wave 3 short, the
+// kraken going back down, the win card, and the night passing at sea into Keelhaven's morning. About
+// three minutes (long stretches trimmed).
 import { ashore, questsDone } from '../game.mjs';
 import { battleScenario } from './battle-1.mjs';
 
@@ -12,6 +16,27 @@ const QUESTS = [
 ];
 
 /** The passage's two moorings (`ISLANDS`). */
+/** Battle 3's kraken, as the debug API has it. */
+const kraken = (api, js) =>
+  api.S((code) => {
+    const k = window.__dev.session().debug.battleRun()?.kraken;
+    return k ? new Function('k', `return ${code}`)(k) : null;
+  }, js);
+
+/** Waits (up to `ms`) for the kraken's log to pass `pred`. */
+async function krakenUntil(api, pred, ms) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    const l = await kraken(api, '({ ...k.log, stage: k.stage, wrap: k.encounter.phase() })');
+    if (l && pred(l)) return l;
+    await api.pause(250);
+  }
+  return null;
+}
+
+/** Wave 2's beats, once each: a lure at 8 s (if none has come), your own course held over a tell at 20 s. */
+const forced = { lure: false, onYou: 0, marks: new Set() };
+
 const ends = (api) =>
   api.S(async () => {
     const { ISLANDS } = await import('/src/game/islands.ts');
@@ -28,6 +53,47 @@ export default battleScenario({
     'Three waves of raiders at dusk. Fire when the evidence agrees, answer the bosun between waves, and sail on into the next morning.',
   chapter: 'Questions from Course Chapter 02 · Sessions, Worktrees & Context',
   labelsSeen: false,
+  reading: 3200,
+  // Waves 1 and 3 short; wave 2 (the kraken's) long enough to see it work.
+  fightCut: (wave) => (wave === 1 ? { head: 36_000, tail: 6_000 } : { head: 13_000, tail: 6_000 }),
+  hurry: (wave, ms) => wave !== 1 || ms > 38_000,
+  async duringFight(api, wave, ms) {
+    if (wave !== 1) return false;
+    const l = await kraken(api, '({ ...k.log })');
+    if (!l) return false;
+    for (const [key, ok] of [
+      ['kraken tell', l.tells > 0],
+      ['dodge', l.dodged > 0],
+      ['lure', l.taken > 0],
+      ['hit', l.playerHits > 0],
+    ])
+      if (ok && !forced.marks.has(key)) {
+        forced.marks.add(key);
+        api.mark(key);
+      }
+    if (!forced.lure && ms > 8_000 && l.taken === 0) forced.lure = await kraken(api, 'k.debugTell("lure")');
+    if (!forced.onYou && ms > 20_000 && l.playerHits === 0) {
+      // Take the helm (a helm key) and hold her course over a tell on it.
+      await api.hold('KeyW', 200);
+      if (await kraken(api, 'k.debugTell("onYou")')) forced.onYou = Date.now();
+    }
+    return forced.onYou > 0 && Date.now() - forced.onYou < 8_000;
+  },
+  async afterReward(page, api, wave) {
+    if (wave !== 0) return;
+    // The kraken's beat: the evidence, the flagship sailing over it, taken. Played whole.
+    const l = await krakenUntil(api, (k) => k.stage === 'evidence', 10_000);
+    if (!l) return api.log('no kraken beat after wave 1');
+    api.mark('evidence');
+    await krakenUntil(api, (k) => k.stage === 'approach', 10_000);
+    api.mark('flagship');
+    await krakenUntil(api, (k) => k.wrap === 'grip', 40_000);
+    api.mark('taken');
+    await krakenUntil(api, (k) => k.wrap === 'break', 30_000);
+    api.mark('break');
+    await krakenUntil(api, (k) => k.stage === 'stay', 40_000);
+    api.mark('it stays');
+  },
   async board(page, api) {
     await questsDone(api, QUESTS);
     await ashore(page, api, 'thousand-bough', 'tamsin');
@@ -45,6 +111,9 @@ export default battleScenario({
   },
   toward: async (api) => (await ends(api)).to,
   async afterWin(page, api) {
+    forced.lure = false;
+    forced.onYou = 0;
+    forced.marks.clear();
     // The win card's hold, then the night at sea (its dawn veil) into Keelhaven's morning.
     const veil = await api.waitFor(() => !!document.querySelector('.hud-dawn.show'), null, 30_000);
     if (!veil) api.log('no next morning after the win');

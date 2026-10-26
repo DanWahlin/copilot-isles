@@ -58,7 +58,7 @@ export interface KrakenActOptions {
  * Where the beat's evidence lies from your ship (m), and how far the flagship sails to it: she comes
  * out of a fog bank about as far off as the raiders' (190 m), on a diagonal toward your side of it.
  */
-const EVIDENCE_RANGE = 90;
+const EVIDENCE_RANGE = 75;
 const APPROACH = 95;
 /** Her course's angle off the line from the evidence out to the fog (radians, either side). */
 const APPROACH_SKEW = 0.6;
@@ -73,6 +73,9 @@ const FLAGSHIP_REVEAL = 2.8;
  */
 const TAKE_WITHIN = 42;
 const TAKE_AFTER = 20;
+/** The beat's camera: this far behind your ship while the evidence shows, this far from the wreck after. */
+const BEHIND = 12;
+const WRAP_VIEW = 55;
 /** How fast its rising arms take her way off (share a second, up to `HELD_MAX`) before the grip. */
 const HELD_RISE = 0.09;
 const HELD_MAX = 0.75;
@@ -86,6 +89,8 @@ const STAND = 4;
 const LURE_EVERY = 3;
 /** Your hull takes this share of a hazard's damage (HAZARD_SPECS): harder than the guns, still fair. */
 const PLAYER_DAMAGE = 0.5;
+/** A standing arm brushing her hull: a quarter (it's the strike that hurts). */
+const STANDING_DAMAGE = 0.25;
 /** Tells keep this far (m) from another hazard that's up. */
 const TELL_SPACING = 30;
 
@@ -296,7 +301,7 @@ export class KrakenAct {
     f.group.visible = false;
     this.encounter.reducedMotion = world.reducedMotion.value > 0.5;
     this.encounter.showEvidence(s.x, s.z, EVIDENCE_RADIUS, 0.8);
-    this.battle.formFog(Math.atan2(qx - p.x, qz - p.z), Math.hypot(qx - p.x, qz - p.z) - 16, 0.45, t);
+    this.battle.formFog(Math.atan2(qx - p.x, qz - p.z), Math.hypot(qx - p.x, qz - p.z) - 16, 0.32, t);
     const l = this.o.hooks.lines;
     this.o.say(l.evidence);
     this.setStage('evidence', t);
@@ -314,19 +319,25 @@ export class KrakenAct {
     this.endBeat();
   }
 
-  /** Where the camera looks while the beat plays (the evidence, the flagship, the wreck). */
-  focus(out: { x: number; z: number }): boolean {
+  /**
+   * Where the camera looks while the beat plays (the evidence, the flagship, the wreck), and how far
+   * back from it (`d`, m): from behind your ship at first, then in close for the wrap.
+   */
+  focus(out: { x: number; z: number; d: number }): boolean {
     if (!this.playing) return false;
+    const you = this.battle.shipAt(0).dynamics.pose;
     if (this.stage === 'wrap') {
       this.encounter.wreckPosition(_p);
       out.x = _p.x;
       out.z = _p.z;
+      out.d = Math.min(WRAP_VIEW, Math.hypot(_p.x - you.x, _p.z - you.z) + BEHIND);
       return true;
     }
     const g = this.flagship.group;
-    const w = this.stage === 'approach' ? 0.5 : 0;
+    const w = this.stage === 'approach' ? 0.35 : 0;
     out.x = this.spot.x + (g.position.x - this.spot.x) * w;
     out.z = this.spot.z + (g.position.z - this.spot.z) * w;
+    out.d = Math.hypot(out.x - you.x, out.z - you.z) + BEHIND;
     return true;
   }
 
@@ -590,7 +601,7 @@ export class KrakenAct {
     if (i === 0) {
       for (let k = 0; k < this.hazardIds.length; k++)
         if (this.hazardIds[k] === h.hazardId) this.hazardHit[k] = 1;
-      b.strikeFromBelow(0, h.damage * PLAYER_DAMAGE, h.x, h.z, t);
+      b.strikeFromBelow(0, h.damage * (h.strike ? PLAYER_DAMAGE : STANDING_DAMAGE), h.x, h.z, t);
       this.log.playerHits++;
       this.sayOnce(this.o.hooks.lines.hit);
       return;

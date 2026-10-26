@@ -683,3 +683,10 @@
 :root.reduced-motion .bh-pennant {
   transition: none;
 }
+
+/* The crew's voiced lines in a battle (battle 3's kraken): under the hull and wave box at the top,
+   clear of the powder rows, the helm hint and the captions at the bottom. */
+body:has(.bh.show) .hud-subtitle {
+  top: 6.4rem;
+  bottom: auto;
+}

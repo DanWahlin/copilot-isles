@@ -73,7 +73,7 @@ export class BattleRun {
   private navHeld = false;
   private wasDirecting = false;
   private readonly snap = emptyBattleSnapshot();
-  private readonly focusAt = { x: 0, z: 0 };
+  private readonly focusAt = { x: 0, z: 0, d: 0 };
   private readonly look = { x: 0, y: 3, z: 0 };
   private readonly dcam = { x: 0, y: 0, z: 0 };
   private readonly dtarget = { x: 0, y: 0, z: 0 };
@@ -357,7 +357,7 @@ export class BattleRun {
     director.setFocus(b.focus(this.focusAt), this.focusAt.x, this.focusAt.z);
     // The kraken's beat holds its own shot on what it's doing (the evidence, the flagship, the wreck).
     if (b.phase === 'event' && this.kraken?.focus(this.focusAt))
-      director.hold('kraken', this.focusAt.x, this.focusAt.z);
+      director.hold('kraken', this.focusAt.x, this.focusAt.z, this.focusAt.d);
     director.update(dt, t, p.x, p.z, p.heading, this.look, this.dcam, this.dtarget);
     const directing = this.started && director.directing && b.phase !== 'idle';
     if (directing) {
