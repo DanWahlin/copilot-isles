@@ -316,6 +316,8 @@ const INTRO_HOLD_MS = 1600;
 const ARRIVAL_CARD_ONLY = 3.4;
 /** How often (s) the session looks for a puzzle that's ready for its chart label. */
 const LABEL_CHECK_EVERY = 0.25;
+/** How much further into the evening's light (0-1) you sail back before the morning's hold lets go. */
+const TURN_BACK = 0.1;
 /** …or the chart label, which has more to read (docs/specs/LOWER-THIRDS.md). */
 const ARRIVAL_LABEL_ONLY = 7;
 const cardOnlySeconds = (plan: IslandArrival) => (plan.label ? ARRIVAL_LABEL_ONLY : ARRIVAL_CARD_ONLY);
@@ -629,6 +631,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   let passageHold: PassageHold | null = null;
   let morningCut = false;
+  /** The evening island's light where the morning came (a battle can end deep in it). */
+  let eveningAt = 0;
   /** The night passing at sea (`nightAtSea`): seconds into it, and its two islands' light. */
   let nightPassing: { t: number; from: IslandId; to: IslandId } | null = null;
   /**
@@ -1811,6 +1815,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
     const morning = nextMorningFrom(island);
     passageHold = morning ? { hold: island, skip: morning } : null;
+    eveningAt = 0;
     storyEvent('anchorage', 'setSail', quests(), setQuest);
     contents.get(island)?.onBoard?.();
     audio?.music.setIsland('harbour');
@@ -2766,12 +2771,17 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             if (passageHold && !morningCut) {
               const ahead = islandLight(passageHold.skip, pose.x, pose.z);
               const here = islandLight(passageHold.hold, pose.x, pose.z);
-              // The evening holds until the next island's light is the stronger, and while a battle on
-              // the passage is on (its win hands over to the night at sea), then the morning holds until
-              // you're there, or until you turn back into the evening's light.
+              // The evening holds until the next island's light is the stronger; with a battle on the
+              // passage, until the battle ends (its win card hands over to the night at sea). Then the
+              // morning holds until you're there, or until you turn back into the evening's light past
+              // where the morning came.
               const evening = nextMorningFrom(passageHold.hold) === passageHold.skip;
-              if (evening && ahead > 0 && ahead >= here && !battles.current) void nextMorning();
-              else if (!evening && (here >= 1 || ahead > here)) passageHold = null;
+              const run = battles.current;
+              if (evening && (run ? run.settled : ahead > 0 && ahead >= here)) {
+                eveningAt = here;
+                void nextMorning();
+              } else if (!evening && (here >= 1 || (ahead > here && ahead > eveningAt + TURN_BACK)))
+                passageHold = null;
             }
             passageSky(pose.x, pose.z, sailSky, passageHold);
             if (nightPassing) {
