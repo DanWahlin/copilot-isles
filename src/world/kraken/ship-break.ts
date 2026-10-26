@@ -64,7 +64,13 @@ export function cutShip(
   ship.updateMatrixWorld(true);
   _inv.copy(ship.matrixWorld).invert();
   const bounds = [-Infinity, ...cuts, Infinity];
-  const parts: { material: Material; lines: boolean; geometry: BufferGeometry; shadow: boolean; after: Drawn }[][] = [];
+  const parts: {
+    material: Material;
+    lines: boolean;
+    geometry: BufferGeometry;
+    shadow: boolean;
+    after: Drawn;
+  }[][] = [];
   for (let k = 0; k < bounds.length - 1; k++) parts.push([]);
   ship.traverseVisible((object) => {
     const mesh = object as Mesh;
@@ -80,7 +86,8 @@ export function cutShip(
       const g = lines
         ? clipLines(source, bounds[k]!, bounds[k + 1]!)
         : clipTriangles(source, bounds[k]!, bounds[k + 1]!);
-      if (g) parts[k]!.push({ material, lines, geometry: g, shadow: mesh.castShadow, after: drawnHook(mesh) });
+      if (g)
+        parts[k]!.push({ material, lines, geometry: g, shadow: mesh.castShadow, after: drawnHook(mesh) });
     }
     source.dispose();
   });

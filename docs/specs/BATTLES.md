@@ -93,6 +93,37 @@ brings the passage's "next morning" (ISLAND-03 W.12). Same loop and rewards as �
 - **When.** The first time you sail from Thousand-Bough toward Keelhaven with the Seal of Thousand-Bough.
   Required, with **Skip battle**, as in §2.0.
 
+#### The kraken (Dan's design, 2026-10-26): "Trust the Evidence"
+
+Raiders ignore the evidence and the kraken takes them. Then you fight on, dodge the kraken, and lead
+raiders into it. The plan's `events` hook holds it: `KEELHAVEN_BATTLE.events` is
+`[{ afterWave: 1, kind: 'kraken' }]`, and `src/world/battle/kraken-act.ts` (its own chunk, loaded by
+`battle-run.ts` only for a plan with the event) plays it on the prototype's `KrakenEncounter`.
+
+| Beat | What happens | Code |
+|---|---|---|
+| **The evidence** (after wave 1's question) | The battle holds in phase `event`: no raiders, your guns held (the powder rows dim). 90 m off your bow the sea shows the evidence: bubbles, a dark shadow, a swirl and the orange danger ring. Juno calls it (`b3.juno.evidence`). | `KrakenAct.begin`, `KrakenEncounter.showEvidence` |
+| **The flagship** | The raiders' flagship (the course's name, `kraken.flagship`) comes out of a fog bank about 190 m off, sails set, and sails straight over the evidence (`b3.juno.flagship`). | `KrakenAct.steerFlagship` |
+| **Taken** | The full wrap and break with its finale (about 40 s; reduced motion: the quick wrap, about 14 s). The arms rising round her take her way off, and the grip stops her over the evidence; her sails stay set through the wrap, and her two halves keep them. Wingman says why (`b3.wingman.taken`). The battle camera holds a `kraken` shot on it (`BattleCamera.hold`). **Skip** (the HUD button, E or the gamepad's A) ends it at once. | `wrapAndBreak(flagship, { finale })`, `ShipDynamics.held` |
+| **It stays** (waves 2 and 3) | Wingman: lead the raiders over the bubbles (`b3.wingman.stays`). Every 6.5–9.5 s of a fight a tell rises: near your ship (ahead and off your line, so turning away clears it) or, every third, on a raider's course (a lure). It shows 2.6–2.8 s of evidence, then an arm slams (14 m) or sweeps (24 m arc) and hits **any ship** in its area. A raider it strikes is taken (the quick wrap, `b3.juno.lured`) and leaves her stores; your hull takes half the hazard's damage (slam 17, sweep 11, a standing arm 3; halved again in calm seas), and the base repairs still help. The helm hint (and your helmsman, while he has the helm) steers clear of the bubbles. | `KrakenAct.tell`, `Battle.strikeFromBelow`, `Battle.take` |
+| **It retreats** | When the last raider is gone (the last wave's lull), it goes back down (`b3.juno.retreat`). The question, the win card and the next morning follow as before. | `KrakenEncounter.retreat` |
+
+- **The lesson tie.** The evidence ("That's evidence: something's down there"), Wingman's "A confident
+  guess isn't proof", and the win card ("The raiders sailed on a confident guess. You read the
+  evidence, and Keelhaven lies ahead.") echo *"A confident response from Copilot isn't the same as
+  validated software"* (03 §Core Concept: Trust the Evidence). The lines are the course pack's
+  (`hooks.battles["passage-thousand-bough-keelhaven"].kraken`, `voice/lines.json`, cited in
+  `chapters/03-development-workflows.json` → `voiced`); no app UI is named. The waves' questions stay
+  N2.1–N2.3.
+- **Sail state.** A ship is drawn with the sails her helm has from her first frame: the canvas starts
+  at rest with her dynamics, `restartMotion` places it at once, and `update` moves it no faster than
+  the crew can haul (`SAIL_RATE`). Each draw of the canvas (and of a broken ship's pieces) counts a
+  jump (`Brigantine.sailJumps`); `src/world/ship/sail-state.test.ts` and `tools/battletest.mjs` hold it
+  at 0.
+- **Budgets.** It adds four shader stages (the kraken's skinned vertex and lit fragment, the tell
+  marks' pair; the marks draw in one pass, `forceSinglePass`). `?nokraken` plays battle 3 without it
+  (a census without it).
+
 ### 2.1 Keelhaven (later): "Trust the Evidence"
 
 - **The enemy.** Fog raiders whose ships carry the names of habits the chapter warns about, painted on

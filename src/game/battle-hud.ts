@@ -364,7 +364,7 @@ export class BattleHud {
           ? `Wave ${s.wave} of ${s.waves} beaten`
           : s.phase === 'lull' || s.phase === 'question'
             ? `Wave ${s.wave + 1} of ${s.waves} beaten`
-          : `Wave ${s.wave + 1} of ${s.waves} · ${s.raidersLeft} ${s.raidersLeft === 1 ? 'raider' : 'raiders'} left`;
+            : `Wave ${s.wave + 1} of ${s.waves} · ${s.raidersLeft} ${s.raidersLeft === 1 ? 'raider' : 'raiders'} left`;
     const bits: string[] = [];
     if (s.doubleShot) bits.push('Double-shotted');
     if (s.stores.powder) bits.push('Dry powder');

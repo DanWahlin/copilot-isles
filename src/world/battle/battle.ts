@@ -166,25 +166,10 @@ export type BattleSound = 'cannon' | 'whiz' | 'timber' | 'splash' | 'groan' | 's
  * world position.
  */
 export type BattleBeat =
-  | 'intro'
-  | 'broadside'
-  | 'incoming'
-  | 'strike'
-  | 'clear'
-  | 'won'
-  | 'breakoff'
-  | 'kraken';
+  'intro' | 'broadside' | 'incoming' | 'strike' | 'clear' | 'won' | 'breakoff' | 'kraken';
 
 export type BattlePhase =
-  | 'idle'
-  | 'intro'
-  | 'fight'
-  | 'lull'
-  | 'question'
-  | 'event'
-  | 'breakoff'
-  | 'won'
-  | 'skipped';
+  'idle' | 'intro' | 'fight' | 'lull' | 'question' | 'event' | 'breakoff' | 'won' | 'skipped';
 
 /** A ship's part in the battle: `taken` is a raider the kraken has (out of the fight, still afloat). */
 export type ShipState = 'idle' | 'afloat' | 'struck' | 'taken' | 'gone';
@@ -355,7 +340,10 @@ const HINT_TURN: readonly (readonly string[])[] = [
 ];
 const HINT_FIRE = ['Your port guns bear: fire!', 'Your starboard guns bear: fire!', 'Both sides bear: fire!'];
 /** The helm hint while the kraken's evidence lies on your course. */
-const HINT_DODGE = ['◀ Turn to port: steer clear of the bubbles', 'Steer clear of the bubbles: turn to starboard ▶'];
+const HINT_DODGE = [
+  '◀ Turn to port: steer clear of the bubbles',
+  'Steer clear of the bubbles: turn to starboard ▶',
+];
 const CAPTION_BALL = 'Hit! Your hull takes a ball';
 const CAPTION_HIT = 'Hit!';
 const CAPTION_ARM = 'An arm strikes your hull!';

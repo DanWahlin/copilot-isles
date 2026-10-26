@@ -114,7 +114,16 @@ export class KrakenAct {
   readonly flagship: Brigantine;
   stage: Stage = 'off';
   /** What happened, for the debug API and the tests. */
-  readonly log = { tells: 0, dodges: 0, lures: 0, playerHits: 0, taken: 0, flagshipTaken: false };
+  readonly log = {
+    tells: 0,
+    dodges: 0,
+    /** Tells near your ship that struck without touching her. */
+    dodged: 0,
+    lures: 0,
+    playerHits: 0,
+    taken: 0,
+    flagshipTaken: false,
+  };
   private readonly o: KrakenActOptions;
   private readonly battle: Battle;
   private readonly rand: () => number;
@@ -135,6 +144,9 @@ export class KrakenAct {
   /** The hazards up and when each goes down (battle clock), by slot. */
   private readonly hazardIds = new Int32Array(4);
   private readonly hazardDown = new Float32Array(4);
+  /** Whether each one was placed near your ship, and whether it hit her. */
+  private readonly hazardDodge = new Uint8Array(4);
+  private readonly hazardHit = new Uint8Array(4);
   /** The raider it's taking (battle ship index, −1 none). */
   private takenIdx = -1;
   private readonly said = new Set<string>();
@@ -155,7 +167,15 @@ export class KrakenAct {
     for (let i = 0; i < o.battle.shipCount; i++) {
       const id = `ship${i}`;
       this.ids.push(id);
-      this.hulls.push({ id, bowX: 0, bowZ: 0, sternX: 0, sternZ: 0, halfBeam: halfBeamAt(0, 1), catchable: false });
+      this.hulls.push({
+        id,
+        bowX: 0,
+        bowZ: 0,
+        sternX: 0,
+        sternZ: 0,
+        halfBeam: halfBeamAt(0, 1),
+        catchable: false,
+      });
       this.preparedRig.push(null);
     }
     encounter.setHulls(this.hullList);
@@ -441,6 +461,7 @@ export class KrakenAct {
     for (let k = 0; k < this.hazardIds.length; k++)
       if (this.hazardIds[k]! > 0 && t >= this.hazardDown[k]!) {
         this.encounter.hazards.down(this.hazardIds[k]!);
+        if (this.hazardDodge[k] && !this.hazardHit[k]) this.log.dodged++;
         this.hazardIds[k] = 0;
       }
     if (phase !== 'fight' || t < this.nextTellAt) return;
@@ -453,13 +474,25 @@ export class KrakenAct {
     this.tell(t);
   }
 
+  /**
+   * Tests and the video: a tell now, on a raider's course (`lure`), near your ship (`dodge`), or on
+   * your course where you'll be when it lands (`onYou`: hold her steady and it hits). False if none fits.
+   */
+  debugTell(aim: 'lure' | 'dodge' | 'onYou'): boolean {
+    if (this.stage !== 'stay' || this.battle.phase !== 'fight') return false;
+    return this.tell(this.now, aim);
+  }
+
   /** The next tell: on a raider's course every third time (when one sails toward it), else near you. */
-  private tell(t: number): void {
+  private tell(t: number, force?: 'lure' | 'dodge' | 'onYou'): boolean {
     const b = this.battle;
-    const kind: HazardKind = this.rand() < 0.5 ? 'slam' : 'sweep';
+    const kind: HazardKind = force === 'onYou' ? 'slam' : this.rand() < 0.5 ? 'slam' : 'sweep';
     let placed = false;
     let lure = false;
-    if ((this.tellCount + 1) % LURE_EVERY === 0) {
+    if (force === 'onYou') {
+      const p = b.shipAt(0).dynamics.pose;
+      placed = this.place(p, kind, 'intercept', 1);
+    } else if (force === 'lure' || (!force && (this.tellCount + 1) % LURE_EVERY === 0)) {
       const you = b.shipAt(0).dynamics.pose;
       for (let i = 1; i < b.shipCount && !placed; i++) {
         if (b.shipState(i) !== 'afloat' || !this.hulls[i]!.catchable) continue;
@@ -469,14 +502,14 @@ export class KrakenAct {
         lure = placed;
       }
     }
-    if (!placed) {
+    if (!placed && force !== 'lure' && force !== 'onYou') {
       const side = this.rand() < 0.5 ? 1 : -1;
       const p = b.shipAt(0).dynamics.pose;
       placed = this.place(p, kind, 'dodge', side) || this.place(p, kind, 'dodge', -side);
     }
-    if (!placed) return;
+    if (!placed) return false;
     const id = this.encounter.hazardAt(tellPlan);
-    if (id <= 0) return;
+    if (id <= 0) return false;
     this.tellCount++;
     this.log.tells++;
     if (lure) this.log.lures++;
@@ -486,8 +519,11 @@ export class KrakenAct {
         const spec = HAZARD_SPECS[kind];
         this.hazardIds[k] = id;
         this.hazardDown[k] = t + hazardImpactAt(spec) + spec.danger + spec.follow + STAND;
+        this.hazardDodge[k] = lure || force === 'onYou' ? 0 : 1;
+        this.hazardHit[k] = 0;
         break;
       }
+    return true;
   }
 
   /** Plans a tell for `p` into `tellPlan`; false when it'd be off open water or on another hazard. */
@@ -552,6 +588,8 @@ export class KrakenAct {
     const i = this.ids.indexOf(h.shipId);
     if (i < 0 || b.shipState(i) !== 'afloat') return;
     if (i === 0) {
+      for (let k = 0; k < this.hazardIds.length; k++)
+        if (this.hazardIds[k] === h.hazardId) this.hazardHit[k] = 1;
       b.strikeFromBelow(0, h.damage * PLAYER_DAMAGE, h.x, h.z, t);
       this.log.playerHits++;
       this.sayOnce(this.o.hooks.lines.hit);

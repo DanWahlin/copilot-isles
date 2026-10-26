@@ -450,7 +450,8 @@ export class KrakenHazards {
 
   /** Sends hazard `id` down (its standing arm withdraws, freeing it for the next hazard). */
   down(id: number): void {
-    for (const h of this.hazards) if (h.id === id && h.stage !== 'off' && h.downAt === Infinity) h.downAt = h.age;
+    for (const h of this.hazards)
+      if (h.id === id && h.stage !== 'off' && h.downAt === Infinity) h.downAt = h.age;
   }
 
   /** How many hazards are up (telling, striking or standing). */

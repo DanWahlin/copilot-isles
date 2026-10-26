@@ -11,7 +11,10 @@
 //   on its own fixed sea, today's Breeze, and the harbour must show the setting's)
 //   [--battle=3] (battle 3, "Trust the Evidence": Chapters 00-02 done, the chart to Thousand-Bough Isle,
 //   then out toward Keelhaven; its peak must stay at or under 140 programs with Keelhaven in memory, its
-//   end must bring the passage's "next morning", and you dock at Keelhaven)
+//   end must bring the passage's "next morning", and you dock at Keelhaven). Battle 3's kraken: after
+//   wave 1 the evidence and the flagship taken (its beat), then in wave 2 a tell near you, a dodge, a
+//   lure (a raider led over a tell and taken) and a hit on your hull, and its retreat after the last
+//   raider; no ship's sails may jump (`sailJumps`). --nokraken plays it without (a census without it).
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
 import { passLearningPauses } from './lib/learning-cards.mjs';
 
@@ -20,7 +23,8 @@ const base = opt.base || 'http://localhost:5301';
 const out = opt.out || '/tmp/shots/battle';
 const tier = opt.tier || 'high';
 const tag = `${opt.webgl ? 'gl' : 'gpu'}-${tier}`;
-const url = `${base}/?debug&tier=${tier}${opt.webgl ? '&webgl' : ''}`;
+// --nokraken: battle 3 without its kraken (its census without it).
+const url = `${base}/?debug&tier=${tier}${opt.webgl ? '&webgl' : ''}${opt.nokraken ? '&nokraken' : ''}`;
 const BATTLE = Number(opt.battle ?? 1);
 if (BATTLE !== 1 && BATTLE !== 3) throw new Error('--battle=1 or --battle=3');
 // Battle 3 has an island on each side of its passage in memory: its peak keeps room for the next.
@@ -231,6 +235,93 @@ async function waitPhase(page, phases, ms = 60_000) {
   return snap(page);
 }
 
+// ---- Battle 3's kraken -----------------------------------------------------------------------
+const K = (page, js) => S(page, `(() => { const k = s.debug.battleRun().kraken; return ${js}; })()`);
+const krakenLog = (page) => K(page, 'k ? { ...k.log, stage: k.stage, wrap: k.encounter.phase() } : null');
+
+/** After wave 1: the evidence, the flagship sailing into it and taken, then wave 2 out of the fog. */
+async function krakenBeat(page, res) {
+  const s = await waitPhase(page, ['event'], 10_000);
+  if (s?.phase !== 'event') return fail(`no kraken beat after wave 1 (${s?.phase})`);
+  await page.waitForTimeout(1800);
+  await shot(page, 'kraken-evidence');
+  await sample(page, 'kraken evidence');
+  const t0 = Date.now();
+  const until = async (pred, ms) => {
+    while (Date.now() - t0 < ms) {
+      const l = await krakenLog(page);
+      if (l && pred(l)) return l;
+      await page.waitForTimeout(250);
+    }
+    return krakenLog(page);
+  };
+  await until((l) => l.stage === 'approach', 10_000);
+  await page.waitForTimeout(4000);
+  await shot(page, 'kraken-flagship');
+  const grip = await until((l) => l.wrap === 'grip' || l.wrap === 'squeeze', 50_000);
+  if (grip?.wrap !== 'grip' && grip?.wrap !== 'squeeze')
+    fail(`the kraken never gripped the flagship (${JSON.stringify(grip)})`);
+  await page.waitForTimeout(2500);
+  await shot(page, 'kraken-taken');
+  await sample(page, 'kraken taken');
+  await until((l) => l.wrap === 'under' || l.wrap === 'withdraw', 30_000);
+  await shot(page, 'kraken-broken');
+  const after = await waitPhase(page, ['intro', 'fight'], 70_000);
+  if (after?.phase !== 'intro' && after?.phase !== 'fight')
+    fail(`wave 2 never came after the kraken (${after?.phase})`);
+  res.kraken = { beatSeconds: Math.round((Date.now() - t0) / 1000) + 2, beat: await krakenLog(page) };
+  if (!res.kraken.beat?.flagshipTaken) fail('the flagship was never taken');
+}
+
+/**
+ * Wave 2 with the kraken: your helmsman steers clear of its tells (a dodge); a tell on a raider's
+ * course (she's led over it and taken: a lure); then you hold your course over one (a hit). Returns
+ * `step()` for the fight loop (true while you hold the helm yourself) and `done()`.
+ */
+function krakenWave(page, t0) {
+  let lure = false;
+  let onYou = 0;
+  const seen = new Set();
+  const once = async (key, l, ok, wait = 0) => {
+    if (seen.has(key) || !ok) return;
+    seen.add(key);
+    if (wait) await page.waitForTimeout(wait);
+    await shot(page, key);
+    if (key === 'kraken-tell') await sample(page, 'kraken tell');
+  };
+  return {
+    done: () => Date.now() - t0 > 45_000,
+    async step() {
+      const age = Date.now() - t0;
+      const l = await krakenLog(page);
+      if (!l) return false;
+      await once('kraken-tell', l, l.tells > 0, 1500);
+      await once('kraken-dodge', l, l.dodged > 0);
+      await once('kraken-lure', l, l.taken > 0, 2500);
+      await once('kraken-player-hit', l, l.playerHits > 0);
+      if (!lure && age > 8_000 && l.taken === 0) lure = await K(page, 'k.debugTell("lure")');
+      // Take the helm (a helm key) and hold her course over a tell on it.
+      if (!onYou && age > 20_000 && l.playerHits === 0) {
+        await tap(page, 'KeyW');
+        if (await K(page, 'k.debugTell("onYou")')) onYou = Date.now();
+      }
+      return onYou > 0 && Date.now() - onYou < 8_000;
+    },
+  };
+}
+
+/** After the last raider: the kraken goes back down before the win card. */
+async function krakenRetreat(page, res) {
+  await page.waitForTimeout(2000);
+  const l = await krakenLog(page);
+  if (l?.stage !== 'gone') fail(`the kraken didn't retreat after the last raider (${l?.stage})`);
+  await shot(page, 'kraken-retreat');
+  res.kraken = { ...(res.kraken ?? {}), retreat: l };
+  const w2 = res.kraken.wave2 ?? {};
+  for (const k of ['tells', 'dodged', 'taken', 'playerHits'])
+    if (!(w2[k] > 0)) fail(`no kraken ${k} in wave 2 (${JSON.stringify(w2)})`);
+}
+
 // ---- Play battle 1 to the end ---------------------------------------------------------------
 async function play() {
   const page = await voyage();
@@ -270,15 +361,20 @@ async function play() {
     let hit = false;
     let struck = false;
     const t0 = Date.now();
+    // Battle 3's kraken through wave 2: a while to see it work before the raiders are hurried.
+    const kraken = BATTLE === 3 && wave === 1 && !opt.nokraken;
+    const kr = kraken ? krakenWave(page, t0) : null;
     while (Date.now() - t0 < 150_000) {
       const s = await snap(page);
       if (!s || s.phase !== 'fight') break;
-      if (!s.assist) await page.keyboard.press('KeyR');
+      const holding = kr ? await kr.step() : false;
+      if (!s.assist && !holding) await page.keyboard.press('KeyR');
       // Hurry the raiders along a little (each still has to be hit to strike).
-      await S(
-        page,
-        's.debug.battleRun().battle.raiders().forEach((r, i) => s.debug.battleRun().battle.debugHull(i, 14))',
-      );
+      if (!kr || kr.done())
+        await S(
+          page,
+          's.debug.battleRun().battle.raiders().forEach((r, i) => s.debug.battleRun().battle.debugHull(i, 14))',
+        );
       if (s.bears[0] || s.bears[1]) {
         const before = await S(page, 's.debug.battleRun().battle.raiders().map((r) => r.hull)');
         await page.keyboard.press('Space');
@@ -302,7 +398,9 @@ async function play() {
         }
       } else await page.waitForTimeout(400);
     }
+    if (kr) res.kraken = { ...(res.kraken ?? {}), wave2: await krakenLog(page) };
     const s = await waitPhase(page, ['lull', 'question'], 30_000);
+    if (BATTLE === 3 && !opt.nokraken && wave === waves - 1) await krakenRetreat(page, res);
     res.waves.push({
       wave: wave + 1,
       fired,
@@ -346,9 +444,19 @@ async function play() {
     await page.waitForTimeout(150);
     await page.keyboard.press('KeyE');
     await page.waitForTimeout(800);
+    if (BATTLE === 3 && !opt.nokraken && wave === 0) await krakenBeat(page, res);
   }
   const won = await waitPhase(page, ['won'], 20_000);
   if (won?.phase !== 'won') fail(`the battle wasn't won (${won?.phase})`);
+  if (BATTLE === 3) {
+    // Every ship's sails, the flagship's and the broken hulls' pieces too: never one state, then another.
+    const jumps = await S(
+      page,
+      '[...s.debug.battleRun().battle.ships(), ...(s.debug.battleRun().kraken ? [s.debug.battleRun().kraken.flagship] : [])].map((sh) => sh.sailJumps)',
+    );
+    res.sailJumps = jumps;
+    if (jumps.some((j) => j > 0)) fail(`sails jumped: ${JSON.stringify(jumps)}`);
+  }
   await page.waitForTimeout(2500);
   await shot(page, 'won');
   await sample(page, 'won');
