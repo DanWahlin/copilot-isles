@@ -98,7 +98,8 @@ class SmoothBuilder {
       for (let i = 0; i < seg; i++) {
         const a = first + j * seg + i;
         const b = first + j * seg + ((i + 1) % seg);
-        this.index.push(a, a + seg, b, b, a + seg, b + seg);
+        // Wound to face out (the material draws front faces only).
+        this.index.push(a, b, a + seg, b, b + seg, a + seg);
       }
   }
 
@@ -174,9 +175,13 @@ function buildBody(): { geometry: BufferGeometry; bones: Bone[] } {
       const th = (i / SEGMENTS) * Math.PI * 2;
       surface(j, th, p);
       // The face, the throat and the underside are pale (the arms' sucker side), the back dark.
-      const face =
-        Math.min(1, Math.max(0, Math.cos(th) * 1.3) ** 1.5 + Math.max(0, -p.y - 1.5) / 2) *
-        (p.y < CREASE ? 1 : Math.max(0, 1 - (p.y - CREASE) / 1.4));
+      // Pale only low on the face (round the eyes and under them) and on the throat.
+      const front = Math.max(0, Math.cos(th));
+      const face = Math.min(
+        1,
+        front ** 2 * (p.y < EYE_Y + 0.6 ? 1 : Math.max(0, 1 - (p.y - EYE_Y - 0.6) / 1.2)) +
+          Math.max(0, -p.y - 1.8) / 1.5,
+      );
       for (let c = 0; c < 3; c++) mixed[c] = pink[c]! + (light[c]! - pink[c]!) * face;
       const w = p.y > CREASE + 0.6 ? 1 : p.y > CREASE - 0.6 ? (p.y - CREASE + 0.6) / 1.2 : 0;
       B.vertex(p, MANTLE, w, mixed);
@@ -215,14 +220,15 @@ function buildBody(): { geometry: BufferGeometry; bones: Bone[] } {
     q.setFromUnitVectors(Z, n);
     B.color(hex).blob(p.addScaledVector(n, 0.04), size, size * 0.9, size * 0.35, MANTLE, 10, 4, q);
   }
-  // Big eyes, old and calm: glowing amber, a dark slit pupil and a glint, in a dark lid. Each rides
-  // its own bone.
+  // Big eyes, old and calm: glowing amber, a dark slit pupil and a glint, in a dark socket. Each eye
+  // rides its own bone.
   const eyes: [number, Vector3][] = [
     [EYE_L, new Vector3(1.95, EYE_Y, 2.4)],
     [EYE_R, new Vector3(-1.95, EYE_Y, 2.4)],
   ];
   for (const [bone, e] of eyes) {
-    B.color(KRAKEN_COLORS.backDark).blob(new Vector3(e.x, e.y, e.z - 0.12), 1.36, 1.42, 1.18, bone, 16, 10);
+    // The socket's dark rim stays put (on the body); the eye turns inside it.
+    B.color(KRAKEN_COLORS.backDark).blob(new Vector3(e.x, e.y, e.z - 0.55), 1.38, 1.44, 1.1, BODY, 16, 10);
     B.color(KRAKEN_COLORS.eye).blob(new Vector3(e.x, e.y, e.z + 0.06), 1.2, 1.26, 1.14, bone, 16, 10);
     B.color(KRAKEN_COLORS.pupil).blob(new Vector3(e.x, e.y, e.z + 1.17), 0.24, 0.8, 0.16, bone, 12, 6);
     B.color(KRAKEN_COLORS.glint).blob(

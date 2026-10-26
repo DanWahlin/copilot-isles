@@ -228,8 +228,8 @@ const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
   standNear: [13, -15, 14],
 };
 /** How far round the surfaced body its arms rise (m), and how tall they stand there. */
-const RING = 9.5;
-const RING_HEIGHT = 9;
+const RING = 11.5;
+const RING_HEIGHT = 7.5;
 /** Where the kraken lies beside a ship it wraps (her frame), and how deep its body is. */
 const ANCHOR = { x: 15, z: -1.5, depth: -11 } as const;
 /** The ship's one cut: she tears in two between the fore and main masts. */
@@ -832,9 +832,9 @@ export class KrakenEncounter {
     arm.poser.base(_p);
     _o.copy(arm.outward).transformDirection(this.kraken.body.root.matrixWorld);
     // It leans toward the ship it's after (or out from its body), its tip hooked over.
-    let lx = 0;
-    let lz = 1;
-    if (this.wreck) {
+    let lx: number;
+    let lz: number;
+    if (this.wreck && !finaleArm) {
       const sp = this.wreck.ship.group.position;
       lx = sp.x - _a.x;
       lz = sp.z - _a.z;
@@ -847,6 +847,8 @@ export class KrakenEncounter {
     lz /= ll;
     const sway = (this.t / tm.swayPeriod) * Math.PI * 2 + s.sway;
     s.stand.clear();
+    // Round its own body they curl outward a little; beside a ship their tips hook over toward her.
+    const curl = this.wreck && !finaleArm ? 0.8 : 0.3;
     standPath(
       s.stand,
       _p.x,
@@ -863,7 +865,7 @@ export class KrakenEncounter {
       tm.swayAmp,
       lx,
       lz,
-      0.8,
+      curl,
     );
     s.stand.build();
     arm.poser.pose(s.stand, 1);

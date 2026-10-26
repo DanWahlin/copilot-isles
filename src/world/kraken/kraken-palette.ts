@@ -16,7 +16,7 @@ export interface KrakenSwatch {
 /** sRGB colours the game draws the kraken in. */
 export const KRAKEN_COLORS = {
   /** The outer side of the arms and the top of the mantle (a touch lighter than its darkest, so it reads on the sea). */
-  back: 0x2c625a,
+  back: 0x306a62,
   /** The arms' back stripe and the mottled spots. */
   backDark: 0x1f4d4a,
   /** The inner, sucker side and the belly. */

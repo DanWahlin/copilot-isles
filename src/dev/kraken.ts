@@ -121,6 +121,8 @@ const lastStrike = { act: '', clearance: NaN, hit: false };
 /** The dodge's helm: 0 on course, ±1 turned away (set at the call: from the telling event). */
 let dodgeTurn = 0;
 let dodgeAway = 0;
+/** When the helm goes over (s into the scenario). */
+let turnAt = Infinity;
 /** The last hazard told (the dodge camera leans toward it). */
 const hazardSeen = { x: 0, z: 0, w: 0 };
 kraken.on((e) => {
@@ -134,7 +136,8 @@ kraken.on((e) => {
     );
   // Your helmsman reads the evidence and turns away at the call.
   if (e.type === 'telling' && (e.act === 'slam' || e.act === 'sweep') && scenario === 'dodge') {
-    dodgeTurn = dodgeAway;
+    // The helm goes over as the evidence builds, about when the arm breaks the water.
+    turnAt = st + HAZARD_SPECS[e.act].tell * 0.9;
     hazardSeen.x = e.x;
     hazardSeen.z = e.z;
     hazardSeen.w = 1;
@@ -262,6 +265,7 @@ function setup(): void {
   st = 0;
   fired.clear();
   dodgeTurn = 0;
+  turnAt = Infinity;
   deckCam = false;
   hazardSeen.w = 0;
   lastStrike.act = '';
@@ -297,6 +301,10 @@ function advance(dt: number, t: number): void {
     if (once('wrap', 3)) kraken.wrapAndBreak(flagship);
   } else if (scenario === 'dodge') {
     // On course; at the lookout's call, hard over away from the evidence, then back on course.
+    if (st >= turnAt) {
+      dodgeTurn = dodgeAway;
+      turnAt = Infinity;
+    }
     steer(mine, COURSE + dodgeTurn * 0.8, 0.8);
     if (once('slam', 2)) placeHazard('slam', 1);
     if (once('calm', 13)) dodgeTurn = 0;

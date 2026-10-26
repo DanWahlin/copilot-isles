@@ -1,9 +1,9 @@
-// The kraken prototype (devpages/kraken.html), for review: a raider at rest, the kraken's tell
-// (bubbles and a shadow), its rise beside her, three arms round her hull and foremast, the squeeze,
-// the break, the pieces pulled apart and sinking, and the kraken going back under; then a distant
-// sighting from your deck (ambient: a group of tentacles far off).
+// The kraken prototype (devpages/kraken.html), for review: a raider at rest; the kraken's evidence
+// (bubbles and a great shadow), tips breaking the surface beside her, arms rising slowly round her one
+// or two at a time, one arcing high over her deck and hanging there, the grip, the squeeze, the tear
+// in two, the halves dragged under in a burst of foam, the arms withdrawing, and its body and eyes
+// surfacing behind the wreck before it sinks. Each beat is marked.
 const ready = (page) => page.waitForFunction(() => window.__kraken?.ready, null, { timeout: 240_000 });
-const phase = (page) => page.evaluate(() => window.__kraken.stats());
 
 export default {
   id: 'kraken-scene',
@@ -11,11 +11,11 @@ export default {
   code: 'Prototype',
   title: 'The Kraken',
   island: 'Open sea · dev page',
-  who: 'a raider, and a sighting far off',
+  who: 'a raider at rest',
   subtitle:
-    'The kraken tells, rises, wraps a raider, breaks her apart and goes back under. Then a distant sighting.',
+    'Slow and heavy: it tells, rises round her, grips, squeezes, tears her in two and goes back under.',
   chapter: 'Prototype for review · not in the game yet',
-  titleFrame: 14,
+  titleFrame: 20,
 
   async open(page, { base, tier }) {
     await page.goto(`${base}/devpages/kraken.html?shot&wait&scenario=wreck&tier=${tier}`, {
@@ -36,34 +36,17 @@ export default {
 
   async play(page, api) {
     await page.evaluate(() => window.__kraken.play());
-    api.mark('tell');
-    // The whole scene, to the kraken's last arm going under.
-    for (const [name, until] of [
-      ['rise', 6.5],
-      ['reach', 9.5],
-      ['coil', 12.5],
-      ['squeeze', 16.2],
-      ['break', 19.5],
-      ['apart', 22],
-      ['sink', 26],
-      ['retreat', 29.5],
-    ]) {
-      await page.waitForFunction((u) => window.__kraken.stats().time >= u, until, { timeout: 60_000 });
-      api.mark(name);
+    let last = '';
+    // Each phase as it starts, to the end of the finale.
+    for (;;) {
+      const s = await page.evaluate(() => window.__kraken.stats());
+      if (s.phase !== last) {
+        last = s.phase;
+        api.mark(s.phase);
+      }
+      if (s.time > 56 || (s.time > 30 && s.phase === 'none')) break;
+      await api.pause(200);
     }
-    await page.waitForFunction(() => window.__kraken.stats().time >= 31.5, null, { timeout: 30_000 });
-    api.mark('distant sighting');
-    await page.evaluate(() => {
-      const K = window.__kraken;
-      K.restart('sightings');
-      K.deckLook(Math.PI / 2, 0.02);
-      K.sight('group', 380);
-    });
-    await page.waitForFunction(() => window.__kraken.stats().sighting, null, { timeout: 10_000 });
-    await api.pause(7600);
-    const s = await phase(page);
-    api.log(
-      `sighting ${JSON.stringify(s.sighting?.kind)}; hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`,
-    );
+    api.log(`hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`);
   },
 };

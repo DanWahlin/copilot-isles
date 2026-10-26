@@ -1,10 +1,11 @@
 // The kraken prototype's battle beats (devpages/kraken.html): the raiders' flagship taken under sail
-// mid-fight, with your ship sailing alongside; then a hazard dodge, where the kraken's evidence
-// (bubbles, a shadow, a swirl and the danger ring) comes before a slam and a sweep, your helmsman
-// turns away at the lookout's call, and both strike just clear of your hull.
+// mid-fight, seen from your ship; a hazard dodge, where the kraken's evidence (bubbles, a shadow, a
+// swirl and the danger ring) comes before a slow wind-up and a fast slam, then a sweep, your helmsman
+// turning away at the call and both striking just clear of your hull; and a distant sighting from
+// your deck (ambient sea life: no fight).
 const ready = (page) => page.waitForFunction(() => window.__kraken?.ready, null, { timeout: 240_000 });
 const until = (page, s) =>
-  page.waitForFunction((u) => window.__kraken.stats().time >= u, s, { timeout: 90_000 });
+  page.waitForFunction((u) => window.__kraken.stats().time >= u, s, { timeout: 120_000 });
 
 export default {
   id: 'kraken-battle',
@@ -12,10 +13,10 @@ export default {
   code: 'Prototype',
   title: 'The Kraken in Battle',
   island: 'Open sea · dev page',
-  who: 'the flagship taken mid-fight, then a hazard dodge',
+  who: 'the flagship taken mid-fight, a hazard dodge, a distant sighting',
   subtitle: 'Read the evidence (bubbles, a shadow, a swirl) and turn away before the tentacle strikes.',
   chapter: 'Prototype for review · not in the game yet',
-  titleFrame: 16,
+  titleFrame: 22,
 
   async open(page, { base, tier }) {
     await page.goto(`${base}/devpages/kraken.html?shot&wait&scenario=fight&tier=${tier}`, {
@@ -37,13 +38,21 @@ export default {
   async play(page, api) {
     await page.evaluate(() => window.__kraken.play());
     api.mark('flagship fight');
-    await until(page, 28.5);
+    await until(page, 41);
     api.mark('hazard dodge');
     await page.evaluate(() => window.__kraken.restart('dodge'));
-    await until(page, 24);
+    await until(page, 25.5);
     const s = await page.evaluate(() => window.__kraken.stats());
-    api.log(
-      `last strike ${JSON.stringify(s.strike)}; hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`,
-    );
+    api.log(`last strike ${JSON.stringify(s.strike)}`);
+    api.mark('distant sighting');
+    await page.evaluate(() => {
+      const K = window.__kraken;
+      K.restart('sightings');
+      K.deckLook(Math.PI / 2, 0.02);
+      K.sight('group', 260);
+    });
+    await page.waitForFunction(() => window.__kraken.stats().sighting, null, { timeout: 10_000 });
+    await api.pause(12000);
+    api.log(`hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`);
   },
 };

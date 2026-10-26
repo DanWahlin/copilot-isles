@@ -314,11 +314,13 @@ export class Kraken {
  * does). Shared by every kraken, so it's one shader (and its shadow) whatever it's made of.
  */
 function createKrakenMaterial(): MeshStandardNodeMaterial {
-  const m = new MeshStandardNodeMaterial({ roughness: 0.5, metalness: 0 });
+  // Rough enough that the sky's sheen doesn't wash the dark back out to a pale blue.
+  const m = new MeshStandardNodeMaterial({ roughness: 0.72, metalness: 0 });
   m.name = 'kraken';
   const vc = attribute('color', 'vec3');
   m.colorNode = vc;
-  m.emissiveNode = vc.mul(smoothstep(KRAKEN_GLOW_RED, 0.99, vc.x)).mul(2.2);
+  // A soft glow: strong enough to read and bloom a little, not so strong it whites out to cream.
+  m.emissiveNode = vc.mul(smoothstep(KRAKEN_GLOW_RED, 0.99, vc.x)).mul(0.6);
   return m;
 }
 
