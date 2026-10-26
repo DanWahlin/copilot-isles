@@ -3,6 +3,7 @@ import { world } from '../uniforms';
 import type { SplashPool } from '../battle/fx';
 import type { Tier, WaveSampler } from '../contracts';
 import { Kraken, poseFreeArm, type KrakenArm } from './kraken';
+import { AxisAim } from './tentacle-pose';
 import type { MarkState, TellMarks } from './tell-marks';
 import { freeStance, heavy, type FreeStance } from './arm-paths';
 
@@ -266,6 +267,7 @@ export interface HazardEvents {
 }
 
 const _p = new Vector3();
+const _strikeAim = new AxisAim();
 const smooth = (x: number) => {
   const t = Math.min(1, Math.max(0, x));
   return t * t * (3 - 2 * t);
@@ -632,7 +634,8 @@ export class KrakenHazards {
     const ez = _p.z + hc * 2.5;
     const phase = (this.t / 7) * Math.PI * 2 + k * 1.7;
     poseFreeArm(arm, ex, ez, this.waves.heightAt(ex, ez, this.t), h.stance, phase, 0.9, hs, hc);
-    if (arm.weight > 0) arm.poser.pose(arm.path, arm.weight);
+    // Striking, its suckers face down onto the water where it lands.
+    if (arm.weight > 0) arm.poser.pose(arm.path, arm.weight, _strikeAim.set(h.area.x, -8, h.area.z, 0, 0, 0));
   }
 
   /** The slam lands (or the sweep starts): a ring of spray, and a plume where it hits. */

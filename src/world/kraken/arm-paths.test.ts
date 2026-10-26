@@ -6,7 +6,6 @@ import {
   RIG_CLEARANCE,
   WRAP_SPOTS,
   clearOfMasts,
-  deckArc,
   heavy,
   hullCoil,
   mastCoil,
@@ -48,12 +47,38 @@ describe('wrap shapes keep clear of the rig', () => {
     }
   });
 
-  it('the arc over the deck and the grips over the rail miss the masts', () => {
-    for (const rise of [0.2, 0.6, 1]) {
-      const p = new Points();
-      deckArc(p, rise, 1);
-      expect(clearOfMasts(p)).toBe(true);
-    }
+  it('the arc over the deck (a tall free J across her bow) and the grips over the rail miss the masts', () => {
+    // From where the highest arm rises (her kraken side, by the forecastle), across her, as it comes
+    // over (bow) and hangs (a sway). Its route under the water is left out.
+    for (const bow of [0.15, 0.45, 0.7])
+      for (const phase of [0, 1.6, 3.2, 4.8]) {
+        const p = new Points(64);
+        standPath(
+          p,
+          15,
+          -10,
+          WRAP_SPOTS.arc,
+          -1,
+          0,
+          6.5,
+          7.5,
+          0,
+          20,
+          40,
+          phase,
+          0.45,
+          -1,
+          0,
+          0.6,
+          bow,
+          0,
+          0,
+          7,
+        );
+        const over = new Points(64);
+        for (let i = 4; i < p.n; i++) over.push(p.xyz[i * 3]!, p.xyz[i * 3 + 1]!, p.xyz[i * 3 + 2]!);
+        expect(clearOfMasts(over)).toBe(true);
+      }
     for (const z of [WRAP_SPOTS.gripFore, WRAP_SPOTS.gripAft]) {
       const p = new Points();
       railGrip(p, z, 1);
@@ -98,19 +123,22 @@ function bentness(
   scale: number,
   phase: number,
   back: number,
+  baseY = -18,
 ): { bend: number; shown: number } {
   const lengths = BONES.map((l) => l * scale);
   const armLength = lengths.reduce((a, b) => a + b, 0);
   const path = new CurvePath(24, 5);
   const j = new Float32Array((lengths.length + 1) * 3);
-  // As the game does: posed again with a longer route if the bones ran off its end.
+  // As the game does (`poseFreeArm`): the route's length refit to the chain, the best try kept.
   let slack = 0;
-  for (let tries = 0; tries < 3; tries++) {
+  let best = 0;
+  let bestErr = Infinity;
+  const build = (sl: number) => {
     path.clear();
     standPath(
       path,
       12,
-      -18,
+      baseY,
       0,
       -1,
       0,
@@ -126,12 +154,22 @@ function bentness(
       stance.curl,
       stance.bow,
       back,
-      slack,
+      sl,
+      lengths[0],
     );
     path.build();
-    const fit = followPath(path, lengths, j);
-    if (fit > -0.4 && fit < 0.05) break;
-    slack += fit > 0 ? fit + 0.1 : fit + 0.15;
+    return followPath(path, lengths, j);
+  };
+  for (let tries = 0; tries < 6; tries++) {
+    const fit = build(slack);
+    const err = fit > 0 ? fit * 3 : -fit;
+    if (err < bestErr) {
+      bestErr = err;
+      best = slack;
+    }
+    if (fit > -0.3 && fit < 0.05) break;
+    slack += fit > 0 ? fit + 0.1 : fit * 0.9;
+    if (tries === 5) build(best);
   }
   for (const v of j) if (!Number.isFinite(v)) return { bend: NaN, shown: 0 };
   // From where the chain leaves the water (the bone crossing the surface, cut at it) to its tip.
@@ -175,27 +213,42 @@ describe('a free arm is never a spike', () => {
     ['tall', () => freeStance(stance, 19, 1, 0)],
     ['withdraw', (u) => freeStance(stance, 14, 1, u)],
     ['finale', (u) => freeStance(stance, 10, heavy(Math.min(1, u * 2)), Math.max(0, u * 2 - 1))],
+    // The moments it breaks the surface and slips under, sampled closely.
+    ['surfacing', (u) => freeStance(stance, 13, heavy(u * 0.45), 0)],
+    ['going under', (u) => freeStance(stance, 14, 1, 0.7 + 0.3 * u)],
+    // A distant sighting's tall arm (its gentler J and curl).
+    [
+      'sighting',
+      (u) => {
+        const st = freeStance(stance, 34, Math.min(1, u * 3), Math.max(0, u * 3 - 2));
+        st.curl -= 0.1;
+        st.bow -= 0.3;
+        return st;
+      },
+    ],
   ];
   for (const [name, at] of states)
     it(`stays curved through its ${name}: at least 15 % off its root-to-tip line, no NaN`, () => {
       let seen = 0;
       for (const scale of [1.75, 2.2])
         for (const back of [0, 0.8])
-          for (let f = 0; f <= 240; f++) {
-            const u = Math.floor(f / 8) / 30;
+          for (let f = 0; f <= 480; f++) {
+            const u = Math.floor(f / 16) / 30;
             // A slow wave travels along it (its sway's phase): every moment of it, at each step.
-            const phase = (f % 8) * (Math.PI / 4);
+            const phase = (f % 16) * (Math.PI / 8);
             const st = at(u);
             if (st.len < 0.05) continue;
-            const { bend, shown } = bentness(st, scale, phase, back);
+            // From a deep body (beside a ship) and a surfaced one (its sockets just under the water).
+            const { bend, shown } = bentness(st, scale, phase, back, f % 2 ? -4 : -18);
             expect(Number.isNaN(bend)).toBe(false);
             // Over the water by the two tip bones or more: a curve, never a straight cone (one
             // bone can't bend; it's the tip just breaking the water, or slipping under).
             if (shown < (BONES[13]! + BONES[14]!) * scale) continue;
             seen++;
-            expect(bend, `${name} u=${u.toFixed(2)} scale=${scale} back=${back}`).toBeGreaterThanOrEqual(
-              0.15,
-            );
+            expect(
+              bend,
+              `${name} u=${u.toFixed(2)} scale=${scale} back=${back} phase=${phase.toFixed(2)} len=${st.len.toFixed(1)} shown=${shown.toFixed(1)}`,
+            ).toBeGreaterThanOrEqual(0.15);
           }
       expect(seen).toBeGreaterThan(20);
     });

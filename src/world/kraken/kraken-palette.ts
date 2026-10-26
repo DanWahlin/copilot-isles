@@ -78,7 +78,7 @@ hexToLinear(KRAKEN_COLORS.sucker, C.sucker);
 hexToLinear(KRAKEN_COLORS.suckerRim, C.suckerRim);
 
 /** The tentacle's sucker side in its mesh's own frame (the suckers' mean normal). */
-const SUCKER_SIDE = [0, -0.998, 0.06] as const;
+export const SUCKER_SIDE = [0, -0.998, 0.06] as const;
 
 function smooth(e0: number, e1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));

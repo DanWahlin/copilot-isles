@@ -148,35 +148,16 @@ export function railGrip(out: Points, z: number, press: number): void {
 }
 
 /**
- * A high, slow arc over the forecastle from the kraken's side (`rise` 0…1 how far over it has come;
- * `breathe` a slow rise and fall while it hangs at the top). Forward of the fore yards and sails.
- */
-export function deckArc(out: Points, rise: number, breathe: number): void {
-  const z = WRAP_SPOTS.arc;
-  const beam = halfBeamAt(z, 2);
-  const deck = deckHeightAt(z);
-  const top = deck + 11 + breathe;
-  const steps = 10;
-  for (let s = 1; s <= steps; s++) {
-    const f = (s / steps) * rise;
-    const a = Math.PI * f;
-    // Up from the kraken's side (x = beam + 2) and over toward the far side.
-    const x = (beam + 2) * Math.cos(a);
-    const y = deck + 2 + (top - deck - 2) * Math.sin(a) * (0.75 + 0.25 * rise);
-    out.push(x, y, z - 0.6 * Math.sin(a));
-  }
-}
-
-/**
  * An arm standing up out of the sea, from its base `b` (under the water) along the bottom to beneath
  * where it breaks the surface (`ex`, `ez`), then `len` metres of it over the water as a free arm
  * (`freeArm`: always bent, never straight). An arm longer than that route tucks the rest into a
  * deeper loop under the surface, so `len` sets how much of it shows. `lean` (unit xz) is the way it
  * bends (toward its prey, or out from its body); `phase` moves a slow wave along it, `wave` sizes
- * it; `curl` (−0.3…1.2) hooks its tip, `bow` (−0.3…1) bends the whole arm over, and `back` (0…1) makes
+ * it; `curl` (−0.3…1) curls its tip (loosely), `bow` (−0.3…1) bends the whole arm over, and `back` (0…1) makes
  * it an S: out away from `lean` low down, its tip hooked back over toward it. `slack` lengthens the
  * route by what the bones cut off its bends (a pose that ran off the end is posed again with it), so
- * the arm never runs off its end in a straight stub.
+ * the arm never runs off its end in a straight stub. `lead` is the arm's first bone's length (its
+ * route's first leg).
  */
 export function standPath(
   out: PointSink,
@@ -198,16 +179,18 @@ export function standPath(
   bow = 0,
   back = 0,
   slack = 0,
+  lead = 3,
 ): void {
   out.push(bx, by, bz);
-  // Out and down from its socket, then along under the water to below where it rises.
-  const p1x = bx + ox * 3;
-  const p1z = bz + oz * 3;
-  const p1y = by - 1.2;
+  // Out and down from its socket (as far as its first bone, which lies along this leg rather than
+  // cutting the corner after it), then along under the water to below where it rises.
+  const p1x = bx + ox * lead;
+  const p1z = bz + oz * lead;
+  const p1y = by - 0.4 * lead;
   out.push(p1x, p1y, p1z);
   const reach = Math.hypot(ex - p1x, ez - p1z);
-  // The loop under the surface is a wide U past where it rises (a hairpin would have its bones cut
-  // across it): `W` beyond the rise, along the way it came.
+  // The loop under the surface is a wide U (`loopOffset`), along the way it came: a hairpin would
+  // have its bones cut across it.
   let dx = ox;
   let dz = oz;
   if (reach > 0.1) {
@@ -217,27 +200,27 @@ export function standPath(
   const dl = Math.hypot(dx, dz) || 1;
   dx /= dl;
   dz /= dl;
-  const W = LOOP_WIDTH;
-  const first = Math.hypot(p1x - bx, 1.2, p1z - bz);
+  const first = Math.hypot(p1x - bx, by - p1y, p1z - bz);
   // How much of the arm can show: what's left after the shortest way up (a shallow loop). An arm
   // that can't reach its whole curve shows less of it, still curled at its tip, never a straight stub.
   // `slack`: what the bones use up cutting across the route's bends.
   const want = armLength + slack;
-  const above = Math.max(0, Math.min(len, want - loopRoute(first, reach, sea - p1y, 2.5)));
+  const above = Math.max(0, Math.min(len, want - loopRoute(first, reach, sea - p1y, 2.5, lead)));
   // How deep the loop goes to take up the arm's spare length (the route grows with its depth).
   let lo = 2.5;
   let hi = 2.5;
-  if (loopRoute(first, reach, sea - p1y, lo) + above < want) {
+  if (loopRoute(first, reach, sea - p1y, lo, lead) + above < want) {
     hi = 8;
-    while (loopRoute(first, reach, sea - p1y, hi) + above < want && hi < 200) hi *= 2;
+    while (loopRoute(first, reach, sea - p1y, hi, lead) + above < want && hi < 200) hi *= 2;
     for (let k = 0; k < 24; k++) {
       const mid = (lo + hi) / 2;
-      if (loopRoute(first, reach, sea - p1y, mid) + above < want) lo = mid;
+      if (loopRoute(first, reach, sea - p1y, mid, lead) + above < want) lo = mid;
       else hi = mid;
     }
   }
   const depth = (lo + hi) / 2;
-  out.push(ex + dx * W, sea - depth, ez + dz * W);
+  const off = loopOffset(sea - p1y, depth, lead);
+  out.push(ex + dx * off, sea - depth, ez + dz * off);
   out.push(ex, sea - 1.5, ez);
   if (above <= 0.05) return;
   // A short arm is all tip: a hook, not an S.
@@ -245,12 +228,24 @@ export function standPath(
   freeArm(out, ex, ez, sea, above, armLength, phase, wave, leanX, leanZ, curl, bow, s);
 }
 
-/** How far past where it rises an arm's loop under the water reaches (m): a U, not a hairpin. */
-const LOOP_WIDTH = 2.5;
+/**
+ * The route under the water (m) with its loop `depth` deep; `drop` is the sea over its first bend,
+ * `lead` the arm's first bone (the loop is as wide as that, so its bones can't jump across it).
+ */
+function loopRoute(first: number, reach: number, drop: number, depth: number, lead: number): number {
+  const off = loopOffset(drop, depth, lead);
+  return first + Math.hypot(reach + off, drop - depth) + Math.hypot(off, depth - 1.5) + 1.5;
+}
 
-/** The route under the water (m) with its loop `depth` deep; `drop` is the sea over its first bend. */
-function loopRoute(first: number, reach: number, drop: number, depth: number): number {
-  return first + Math.hypot(reach + LOOP_WIDTH, drop - depth) + Math.hypot(LOOP_WIDTH, depth - 1.5) + 1.5;
+/**
+ * How far past where it rises (m) the loop's bottom lies: a U past it, as wide as the arm's first
+ * bone, when the loop dips below the arm's first bend (narrower, its bones would jump across it and
+ * never take up its length); short of it when the loop is shallow (else it's a hairpin just under
+ * the surface, which the bones cut across).
+ */
+function loopOffset(drop: number, depth: number, lead: number): number {
+  const below = Math.min(1, Math.max(0, (depth - drop) / 5));
+  return Math.max(2.5, lead) * (2 * below - 1);
 }
 
 /**
@@ -267,11 +262,12 @@ export function reachOver(
   ez: number,
   sea: number,
   armLength: number,
+  lead = 3,
 ): number {
-  const p1x = bx + ox * 3;
-  const p1z = bz + oz * 3;
-  const first = Math.hypot(p1x - bx, 1.2, p1z - bz);
-  return armLength - loopRoute(first, Math.hypot(ex - p1x, ez - p1z), sea - (by - 1.2), 2.5);
+  const p1x = bx + ox * lead;
+  const p1z = bz + oz * lead;
+  const first = Math.hypot(p1x - bx, 0.4 * lead, p1z - bz);
+  return armLength - loopRoute(first, Math.hypot(ex - p1x, ez - p1z), sea - (by - 0.4 * lead), 2.5, lead);
 }
 
 /** How many points a free arm's part over the water takes. */
@@ -279,10 +275,13 @@ export const FREE_ARM_STEPS = 12;
 
 /**
  * A free arm's part over the water, from where it breaks the surface (`ex`, `sea`, `ez`), `len`
- * metres along it. It's drawn by its bend, not its points: the angle from upright grows along it (a
- * J toward `lean`, `bow` more), its tip hooks (`curl`), and a slow wave travels from its root to its
- * tip (`phase`, `wave`) with a smaller one across; `back` bends it away first (an S). Its curvature is capped by the arm's bone length
- * near its tip (`armLength`), so the curve-follow can lay the bones along it. It is never straight.
+ * metres along it. It's drawn by its bend, not its points: a tall, gently curving column that leans
+ * toward `lean` (more with `bow`), a long slow S travelling up it (`phase`, `wave`) with a smaller
+ * sway across, and a loose, open curl only in its last fifth (`curl`), outward along its lean, never
+ * a tight hook back over itself. A short arm (just breaking the water, or going under) is mostly its
+ * tip: it droops forward, open. `back` bends it away first (an S toward a ship). Its curvature is
+ * capped by the arm's bone length near its tip (`armLength`), so the curve-follow can lay the bones
+ * along it. It is never straight.
  */
 export function freeArm(
   out: PointSink,
@@ -303,13 +302,15 @@ export function freeArm(
   const ds = len / steps;
   // The tentacle's tip bones are about 4.6 % of its length: no bend tighter than a radius a bone
   // can still lie along (the curve-follow needs a bone shorter than the bend's diameter).
-  const turnMax = ds / (armLength * 0.038);
-  // The J is stronger than the wave, so the wave never straightens it.
-  const bend = 0.95 + 1.1 * bow;
-  const hook = 1.4 + 2.6 * curl;
-  const sway = 0.15 + 0.13 * wave;
-  // A short arm (a tip breaking the water, or one going down) is mostly hook.
-  const hookFrom = 0.3 * Math.min(1, len / 14);
+  const turnMax = ds / (armLength * 0.055);
+  // How tall it stands: a short arm is all tip.
+  const k = Math.min(1, len / 14);
+  const bend = (0.9 + 0.85 * bow) * k + 2.15 * (1 - k);
+  // A long S: low down it leans away, higher up toward `lean` (an arm toward a ship more so).
+  const sBy = (0.55 + 0.25 * back) * Math.sqrt(k);
+  const curlAt = 1 - (0.2 * k + 0.5 * (1 - k));
+  const curlBy = 0.35 + 0.75 * curl;
+  const sway = 0.12 + 0.07 * wave;
   const sx = -leanZ;
   const sz = leanX;
   let x = ex;
@@ -318,14 +319,14 @@ export function freeArm(
   let th = 0;
   for (let s = 1; s <= steps; s++) {
     const u = (s - 0.5) / steps;
-    const tip = u > hookFrom ? ((u - hookFrom) / (1 - hookFrom)) ** 1.6 : 0;
+    const tip = u > curlAt ? (u - curlAt) / (1 - curlAt) : 0;
     const want =
       bend * u +
-      hook * tip -
-      back * 0.8 * Math.sin(Math.PI * Math.min(1, u / 0.8)) +
-      sway * u * Math.sin(Math.PI * 1.7 * u - phase);
+      curlBy * tip * tip * (3 - 2 * tip) -
+      sBy * Math.sin(Math.PI * 2 * u) +
+      sway * Math.sqrt(u) * Math.sin(Math.PI * 1.4 * u - phase);
     th += Math.min(turnMax, Math.max(-turnMax, want - th));
-    const across = 0.55 * sway * u * Math.sin(Math.PI * 1.3 * u - phase * 0.8 + 1.3);
+    const across = 0.5 * sway * u * Math.sin(Math.PI * 1.1 * u - phase * 0.8 + 1.3);
     const c = Math.cos(across);
     const h = Math.sin(th) * c;
     x += (leanX * h + sx * Math.sin(across)) * ds;
@@ -344,16 +345,16 @@ export interface FreeStance {
 
 /**
  * How a free arm stands at `height` (its full length over the water): `rise` 0 → 1 as it comes up
- * (its tip leads, curled, and unrolls as it lifts), `withdraw` 0 → 1 as it goes (it curls up and
- * bows over, and slides back under in an arc).
+ * (its tip leads, loose and drooping, and the arm lifts in a soft curve; the curl grows a little as
+ * it reaches), `withdraw` 0 → 1 as it goes (it bows over and slides back under in an arc).
  */
 export function freeStance(out: FreeStance, height: number, rise: number, withdraw: number): FreeStance {
   const r = Math.min(1, Math.max(0, rise));
   const w = Math.min(1, Math.max(0, withdraw));
-  // A hooked tip breaks the water at once (a stub would read as a spike), and is the last to go.
+  // The tip breaks the water at once (a stub would read as a spike), and is the last to go.
   out.len = height * Math.max(0, rise) ** 0.7 * (1 - w) ** 0.7;
-  out.curl = 0.3 + 0.7 * (1 - r) ** 1.5 + 0.5 * w;
-  out.bow = 0.1 + 0.9 * ease(w);
+  out.curl = 0.15 + 0.25 * r + 0.35 * w;
+  out.bow = 0.2 * (1 - r) + 0.9 * ease(w);
   return out;
 }
 

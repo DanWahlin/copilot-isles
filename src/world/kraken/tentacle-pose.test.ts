@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Bone, Group, Vector3 } from 'three/webgpu';
-import { ChainPoser, CurvePath, followPath } from './tentacle-pose';
+import { BRIGANTINE_MASTS } from '../ship/brigantine-rig';
+import { Points, WRAP_SPOTS, hullCoil, mastCoil, standPath } from './arm-paths';
+import { AxisAim, ChainPoser, CurveAim, CurvePath, followPath } from './tentacle-pose';
 
 /** A chain like the Quaternius tentacle's: 15 bones along +y, shorter toward the tip, under a scaled root. */
 function makeChain(scale = 1.6) {
@@ -142,5 +144,131 @@ describe('ChainPoser', () => {
     poser.pose(path, 0.5);
     const half = worldJoints(bones, root);
     expect(half.every((p) => Number.isFinite(p.x + p.y + p.z))).toBe(true);
+  });
+});
+
+describe('suckers face what the arm grips', () => {
+  /** A 15-bone chain along +y (the tentacle's lengths, ×2), its suckers on each bone's −z side. */
+  const chain = () => {
+    const root = new Group();
+    const L = [3.4, 1.4, 1.4, 1.3, 1.3, 1.5, 1.5, 1.0, 1.0, 1.1, 1.1, 1.0, 1.0, 0.9, 0.9].map((l) => l * 2);
+    const bones: Bone[] = [];
+    let parent: Group | Bone = root;
+    for (let i = 0; i < 15; i++) {
+      const b = new Bone();
+      b.position.set(0, i === 0 ? 0 : L[i - 1]!, 0);
+      parent.add(b);
+      bones.push(b);
+      parent = b;
+    }
+    const poser = new ChainPoser(bones, new Vector3(0, L[14]!, 0));
+    const s = new Float32Array(45);
+    for (let i = 0; i < 15; i++) s[i * 3 + 2] = -1;
+    poser.setSuckers(s);
+    poser.measure(root);
+    return { root, poser };
+  };
+  const sk = new Vector3();
+  const to = new Vector3();
+  const a = new Vector3();
+  const b = new Vector3();
+
+  it('round a hull coil, every bone on it turns its suckers to her centre line', () => {
+    for (const loose of [0, 0.5, 1]) {
+      const pts = new Points(64);
+      hullCoil(pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, loose, 0.5);
+      const path = new CurvePath(64, 4);
+      for (let i = 0; i < pts.n; i++) path.push(pts.xyz[i * 3]!, pts.xyz[i * 3 + 1]!, pts.xyz[i * 3 + 2]!);
+      path.build();
+      const { root, poser } = chain();
+      root.position.set(pts.xyz[0]!, pts.xyz[1]!, pts.xyz[2]!);
+      root.updateMatrixWorld(true);
+      const cy = 0.15 + 4 * loose;
+      const aim = new AxisAim().set(0, cy, 0, 0, 0, 1);
+      // Posed a few frames (the pose turns from the last one), as in play.
+      for (let f = 0; f < 3; f++) poser.pose(path, 1, aim);
+      root.updateMatrixWorld(true);
+      for (let i = 1; i < 15; i++) {
+        poser.bones[i]!.getWorldPosition(a);
+        i + 1 < 15 ? poser.bones[i + 1]!.getWorldPosition(b) : b.copy(a);
+        const mid = a.add(b).multiplyScalar(0.5);
+        poser.suckerWorld(i, sk);
+        to.set(-mid.x, cy - mid.y, 0).normalize();
+        expect(sk.dot(to), `loose ${loose} bone ${i}`).toBeGreaterThan(0.5);
+      }
+    }
+  });
+
+  it('round the foremast too', () => {
+    const pts = new Points(64);
+    mastCoil(pts, 0.3, 0.5);
+    // Up to the coil from below (its thick first half), then round the mast, as in play.
+    const path = new CurvePath(64, 4);
+    path.push(pts.xyz[0]! + 4, pts.xyz[1]! - 24, pts.xyz[2]!);
+    for (let i = 0; i < pts.n; i++) path.push(pts.xyz[i * 3]!, pts.xyz[i * 3 + 1]!, pts.xyz[i * 3 + 2]!);
+    path.build();
+    const { root, poser } = chain();
+    root.position.set(pts.xyz[0]! + 4, pts.xyz[1]! - 24, pts.xyz[2]!);
+    root.updateMatrixWorld(true);
+    const mz = BRIGANTINE_MASTS.fore.z;
+    const aim = new AxisAim().set(0, 0, mz, 0, 1, 0);
+    for (let f = 0; f < 3; f++) poser.pose(path, 1, aim);
+    // The arm's thinner half: in play that's what coils the mast (its long first bones are under
+    // the water, on the way there, and they're longer than the coil is wide).
+    for (let i = 7; i < 14; i++) {
+      poser.bones[i]!.getWorldPosition(a);
+      poser.bones[i + 1]!.getWorldPosition(b);
+      const mid = a.add(b).multiplyScalar(0.5);
+      poser.suckerWorld(i, sk);
+      to.set(-mid.x, 0, mz - mid.z).normalize();
+      expect(sk.dot(to), `bone ${i}`).toBeGreaterThan(0.5);
+    }
+  });
+
+  it('a free arm shows its suckers on the inside of its curve, its curled tip too', () => {
+    for (const [phase, back] of [
+      [0, 0],
+      [1.3, 0.8],
+      [2.6, 0],
+      [4.4, 0.8],
+    ] as const) {
+      const { root, poser } = chain();
+      root.position.set(12, -18, 0);
+      root.updateMatrixWorld(true);
+      const armLength = poser.lengths.reduce((x, y) => x + y, 0);
+      const path = new CurvePath(24, 5);
+      standPath(path, 12, -18, 0, -1, 0, 0, 0, 0, 14, armLength, phase, 0.9, -1, 0, 0.4, 0, back);
+      path.build();
+      const aim = new CurveAim().set(-1, 0);
+      for (let f = 0; f < 3; f++) poser.pose(path, 1, aim);
+      const side = new Vector3(0, 0, -1);
+      let seen = 0;
+      const J = poser.joints;
+      for (let i = 1; i < 15; i++) {
+        a.set(J[i * 3]!, J[i * 3 + 1]!, J[i * 3 + 2]!);
+        if (a.y < 0.5) continue;
+        b.set(J[(i + 1) * 3]!, J[(i + 1) * 3 + 1]!, J[(i + 1) * 3 + 2]!);
+        const along = b.clone().sub(a).normalize();
+        // The arm's plane is lean (−x) and up: its inside is along × across.
+        const inside = along
+          .clone()
+          .cross(side.set(0, 0, -1))
+          .normalize();
+        poser.suckerWorld(i, sk);
+        expect(sk.dot(inside), `phase ${phase} bone ${i}`).toBeGreaterThan(0.5);
+        seen++;
+      }
+      expect(seen).toBeGreaterThan(3);
+      // Its tip curls toward the suckers' side (the inside), not back over its back.
+      const n = poser.joints;
+      const k = 14;
+      const bend = new Vector3(
+        n[(k + 1) * 3]! - 2 * n[k * 3]! + n[(k - 1) * 3]!,
+        n[(k + 1) * 3 + 1]! - 2 * n[k * 3 + 1]! + n[(k - 1) * 3 + 1]!,
+        n[(k + 1) * 3 + 2]! - 2 * n[k * 3 + 2]! + n[(k - 1) * 3 + 2]!,
+      );
+      poser.suckerWorld(13, sk);
+      if (bend.length() > 0.05) expect(sk.dot(bend.normalize())).toBeGreaterThan(0);
+    }
   });
 });

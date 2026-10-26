@@ -22,8 +22,8 @@ import { plainShadowColor } from '../../engine/shadow-color';
 import type { Tier } from '../contracts';
 import { shareSkinning } from '../characters/shared-skinning';
 import { createKrakenBody, type KrakenBody } from './kraken-body';
-import { KRAKEN_GLOW_RED, recolourTentacle } from './kraken-palette';
-import { ChainPoser, CurvePath } from './tentacle-pose';
+import { KRAKEN_GLOW_RED, SUCKER_SIDE, recolourTentacle } from './kraken-palette';
+import { ChainPoser, CurveAim, CurvePath, followPath } from './tentacle-pose';
 import { standPath, type FreeStance } from './arm-paths';
 
 export type TentacleClip = 'Tentacle_Idle' | 'Tentacle_Attack' | 'Tentacle_Attack2' | 'Tentacle_Poke';
@@ -84,11 +84,43 @@ export const KRAKEN_ARM_SCALES: readonly number[] = [1.75, 2.2, 2.0, 2.1, 1.9, 2
 
 /** The sockets with arms per tier: Lite's four are the ones that face the prey, and one behind. */
 const _base = new Vector3();
+/** A free arm's suckers face the inside of its curve. */
+const _freeAim = new CurveAim();
+const _axis = new Vector3();
+const _skin = new Matrix4();
+
+/**
+ * Each bone's sucker side in its own frame: the tentacle's sucker side (`SUCKER_SIDE`, the mesh's
+ * own space, from its suckers' normals) through the bind pose (the bind matrix, then each bone's
+ * inverse), so the poser can turn the suckers toward what an arm grips.
+ */
+function suckerAxes(rig: Object3D, bones: readonly Bone[]): Float32Array {
+  let mesh: SkinnedMesh | null = null;
+  rig.traverse((o) => {
+    if ((o as SkinnedMesh).isSkinnedMesh && !mesh) mesh = o as SkinnedMesh;
+  });
+  const out = new Float32Array(bones.length * 3);
+  const m = mesh as SkinnedMesh | null;
+  if (!m) return out;
+  for (let i = 0; i < bones.length; i++) {
+    const k = m.skeleton.bones.indexOf(bones[i]!);
+    if (k < 0) continue;
+    _skin.multiplyMatrices(m.skeleton.boneInverses[k]!, m.bindMatrix);
+    _axis.set(SUCKER_SIDE[0], SUCKER_SIDE[1], SUCKER_SIDE[2]).transformDirection(_skin);
+    out[i * 3] = _axis.x;
+    out[i * 3 + 1] = _axis.y;
+    out[i * 3 + 2] = _axis.z;
+  }
+  return out;
+}
 
 /**
  * Poses `arm` as a free arm (never straight): from its root under the water to where it breaks the
  * surface at (`ex`, `ez`), then bent as `stance` says (`freeStance`), a slow wave along it (`phase`,
- * `wave`), leaning toward (`leanX`, `leanZ`), an S with `back`. Blend a path pose over it after.
+ * `wave`), leaning toward (`leanX`, `leanZ`), an S with `back`, its suckers on the inside of its
+ * curve. `ox`, `oz` is the way it leaves its socket (default: toward where it rises); `path` the one
+ * to build (default its own); `weight` blends it over the arm's pose now. Blend a path pose over it
+ * after.
  */
 export function poseFreeArm(
   arm: KrakenArm,
@@ -101,52 +133,94 @@ export function poseFreeArm(
   leanX: number,
   leanZ: number,
   back = 0,
+  path: CurvePath = arm.free,
+  ox = NaN,
+  oz = NaN,
+  weight = 1,
 ): void {
+  if (weight <= 0) return;
   arm.poser.base(_base);
-  let ox = ex - _base.x;
-  let oz = ez - _base.z;
-  const d = Math.hypot(ox, oz);
-  if (d > 1e-3) {
-    ox /= d;
-    oz /= d;
-  } else {
-    ox = leanX;
-    oz = leanZ;
+  if (Number.isNaN(ox)) {
+    ox = ex - _base.x;
+    oz = ez - _base.z;
+    const d = Math.hypot(ox, oz);
+    if (d > 1e-3) {
+      ox /= d;
+      oz /= d;
+    } else {
+      ox = leanX;
+      oz = leanZ;
+    }
   }
-  const path = arm.free;
+  _freeAim.set(leanX, leanZ);
+  // Bones cut across the route's bends, so the chain can end short of its route's end (missing its
+  // curled tip) or run off it (a straight stub): refit the route's length to the chain, keeping the
+  // best try (ending a little short is better than running off).
   let slack = 0;
-  // Bones cut across the route's bends and use up more of it than their length: if the arm ran off
-  // its end (a straight stub), lengthen the route by that much and pose it again.
-  for (let tries = 0; tries < 3; tries++) {
-    path.clear();
-    standPath(
-      path,
-      _base.x,
-      _base.y,
-      _base.z,
-      ox,
-      oz,
-      ex,
-      ez,
-      sea,
-      stance.len,
-      arm.length,
-      phase,
-      wave,
-      leanX,
-      leanZ,
-      stance.curl,
-      stance.bow,
-      back,
-      slack,
-    );
-    path.build();
-    arm.poser.pose(path, 1);
-    const fit = arm.poser.overflow;
-    // Ran off its end (a straight stub), or ended well short of it (its hooked tip missed): refit.
-    if (fit > -0.4 && fit < 0.05) break;
-    slack += fit > 0 ? fit + 0.1 : fit + 0.15;
+  let best = 0;
+  let bestErr = Infinity;
+  for (let tries = 0; tries < FIT_TRIES; tries++) {
+    buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, slack);
+    const fit = followPath(path, arm.poser.lengths, _fitJoints);
+    const err = fit > 0 ? fit * 3 : -fit;
+    if (err < bestErr) {
+      bestErr = err;
+      best = slack;
+    }
+    if (fit > -0.3 && fit < 0.05) {
+      arm.poser.pose(path, weight, _freeAim);
+      return;
+    }
+    slack += fit > 0 ? fit + 0.1 : fit * 0.9;
   }
+  buildFree(arm, path, ex, ez, sea, stance, phase, wave, leanX, leanZ, back, ox, oz, best);
+  arm.poser.pose(path, weight, _freeAim);
+}
+
+const _fitJoints = new Float32Array(16 * 3);
+
+const FIT_TRIES = 6;
+
+function buildFree(
+  arm: KrakenArm,
+  path: CurvePath,
+  ex: number,
+  ez: number,
+  sea: number,
+  stance: Readonly<FreeStance>,
+  phase: number,
+  wave: number,
+  leanX: number,
+  leanZ: number,
+  back: number,
+  ox: number,
+  oz: number,
+  slack: number,
+): void {
+  path.clear();
+  standPath(
+    path,
+    _base.x,
+    _base.y,
+    _base.z,
+    ox,
+    oz,
+    ex,
+    ez,
+    sea,
+    stance.len,
+    arm.length,
+    phase,
+    wave,
+    leanX,
+    leanZ,
+    stance.curl,
+    stance.bow,
+    back,
+    slack,
+    arm.poser.lengths[0]!,
+  );
+  path.build();
 }
 
 export function krakenSockets(tier: Tier): readonly number[] {
@@ -266,6 +340,7 @@ export class Kraken {
       actions.Tentacle_Idle.time = (i * 0.37) % actions.Tentacle_Idle.getClip().duration;
       actions.Tentacle_Idle.timeScale = speed * (0.85 + (i % 3) * 0.12);
       const poser = new ChainPoser(bones, tip);
+      poser.setSuckers(suckerAxes(rig, bones));
       this.arms.push({
         index: i,
         root,
@@ -433,6 +508,10 @@ const _bone = new Matrix4();
  * toward its bone's line (in the bind pose) by a factor that falls from 1 at the base to 0.55 from
  * the middle on. Same vertex layout, so the same shader; made once and shared.
  */
+/** The slim arm's section: narrower across, deeper through its sucker side (rounder). */
+const ROUND_X = 0.9;
+const ROUND_Y = 1.12;
+
 function slimTentacle(t: TentacleSource): BufferGeometry {
   if (t.slim) return t.slim;
   const mesh = t.mesh;
@@ -450,6 +529,8 @@ function slimTentacle(t: TentacleSource): BufferGeometry {
   slots.forEach((s, j) => chainOf.set(s, j));
   const g = t.geometry.clone();
   const pos = g.getAttribute('position');
+  const nrm = g.getAttribute('normal') as BufferAttribute | undefined;
+  const n = new Vector3();
   const idx = g.getAttribute('skinIndex');
   const wt = g.getAttribute('skinWeight');
   const v = new Vector3();
@@ -474,9 +555,21 @@ function slimTentacle(t: TentacleSource): BufferGeometry {
     const u = Math.min(1, Math.max(0, v.clone().sub(a).dot(seg) / len2));
     along.copy(a).addScaledVector(seg, u);
     const x = best + u;
-    const f = x < 3 ? 1 : x > 7 ? 0.55 : 1 - 0.45 * ((x - 3) / 4);
-    v.sub(along).multiplyScalar(f).add(along);
+    // A gentle taper (even girth reads round, not a thin strap), and a rounder section: the kit's
+    // tube is about 1.25 times as wide (x) as it is deep (y, its sucker side).
+    const f = x < 3 ? 1 : x > 8 ? 0.74 : 1 - 0.26 * ((x - 3) / 5);
+    v.sub(along);
+    v.x *= f * ROUND_X;
+    v.y *= f * ROUND_Y;
+    v.z *= f;
+    v.add(along);
     pos.setXYZ(i, v.x, v.y, v.z);
+    if (nrm) {
+      // Normals through the section's own stretch (the inverse of it).
+      n.fromBufferAttribute(nrm, i);
+      n.set(n.x / ROUND_X, n.y / ROUND_Y, n.z).normalize();
+      nrm.setXYZ(i, n.x, n.y, n.z);
+    }
   }
   g.computeBoundingSphere();
   t.slim = g;

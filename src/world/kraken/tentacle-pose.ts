@@ -167,7 +167,12 @@ export function followPath(path: CurvePath, lengths: ArrayLike<number>, out: Flo
       s0 = 0;
     }
     if (!found) {
-      off += L;
+      // How much of this bone the path lacks: all of it once off the end, else what its end misses.
+      if (seg >= n && off > 0) off += L;
+      else {
+        const j = (n - 1) * 3;
+        off += Math.max(0, L - Math.hypot(p[j]! - px, p[j + 1]! - py, p[j + 2]! - pz));
+      }
       // Off the end: straight on along the last segment's direction.
       let dx = 1,
         dy = 0,
@@ -237,6 +242,66 @@ const _cur = new Vector3();
 const _tgt = new Vector3();
 const _pos = new Vector3();
 const _scale = new Vector3();
+const _want = new Vector3();
+const _sk = new Vector3();
+const _twist = new Vector3();
+const _qt = new Quaternion();
+
+/**
+ * Which way an arm's sucker side should face at a point on it (`out`, world, any length): the poser
+ * twists each bone about its own length so its suckers turn that way.
+ */
+export interface SuckerAim {
+  aim(px: number, py: number, pz: number, out: Vector3): void;
+}
+
+/**
+ * Suckers toward a line (a ship's centre line, a mast) or, with no direction, a point: an arm that
+ * grips grips with its suckers.
+ */
+export class AxisAim implements SuckerAim {
+  readonly point = new Vector3();
+  readonly dir = new Vector3();
+
+  set(px: number, py: number, pz: number, dx: number, dy: number, dz: number): this {
+    this.point.set(px, py, pz);
+    this.dir.set(dx, dy, dz);
+    const l = this.dir.length();
+    if (l > 1e-6) this.dir.multiplyScalar(1 / l);
+    return this;
+  }
+
+  aim(px: number, py: number, pz: number, out: Vector3): void {
+    out.set(this.point.x - px, this.point.y - py, this.point.z - pz);
+    // Toward the nearest point on the line, not along it.
+    out.addScaledVector(this.dir, -out.dot(this.dir));
+  }
+}
+
+/**
+ * Suckers to the inside of a free arm's curve: it bends (and its tip curls) toward `lean` (unit,
+ * horizontal), in the plane of `lean` and up, so its inside at a point is along `lean` rotated by how
+ * far the arm has turned there. The poser passes the point; the bone's own direction gives the turn.
+ */
+export class CurveAim implements SuckerAim {
+  readonly lean = new Vector3(0, 0, 1);
+  /** The bone direction at the point being aimed (set by the poser before each `aim`). */
+  readonly along = new Vector3(0, 1, 0);
+
+  set(leanX: number, leanZ: number): this {
+    const l = Math.hypot(leanX, leanZ) || 1;
+    this.lean.set(leanX / l, 0, leanZ / l);
+    return this;
+  }
+
+  aim(_px: number, _py: number, _pz: number, out: Vector3): void {
+    // The plane's normal (across the arm's way), then the inside: along × across (upright, it's `lean`).
+    _side.set(-this.lean.z, 0, this.lean.x);
+    out.crossVectors(this.along, _side);
+    if (out.lengthSq() < 1e-8) out.copy(this.lean);
+  }
+}
+const _side = new Vector3();
 
 /**
  * Poses a bone chain along a path (curve follow): each bone turns, by the smallest rotation from
@@ -255,6 +320,8 @@ export class ChainPoser {
   readonly joints: Float32Array;
   /** How much of the chain ran off its path's end in the last `pose` (m), or minus the path left past its tip. */
   overflow = 0;
+  /** Each bone's sucker side in its own frame (unit; `setSuckers`), or null: no twist. */
+  private suckers: Float32Array | null = null;
 
   /** `tip` is the end's offset in the last bone's frame (its `_end` joint). */
   constructor(bones: readonly Bone[], tip: Vector3) {
@@ -274,6 +341,19 @@ export class ChainPoser {
     }
   }
 
+  /** Each bone's sucker side in its own frame (unit xyz per bone): `pose` can then twist them to an aim. */
+  setSuckers(local: Float32Array): void {
+    this.suckers = local;
+  }
+
+  /** Bone `i`'s sucker side in world space now (after a pose), into `out`. */
+  suckerWorld(i: number, out: Vector3): Vector3 {
+    const s = this.suckers;
+    if (!s) return out.set(0, 0, 0);
+    this.bones[i]!.getWorldQuaternion(_qw);
+    return out.set(s[i * 3]!, s[i * 3 + 1]!, s[i * 3 + 2]!).applyQuaternion(_qw);
+  }
+
   /** World lengths from the chain's world scale (call once it's placed and scaled). */
   measure(root: Object3D): void {
     root.updateWorldMatrix(true, true);
@@ -290,7 +370,11 @@ export class ChainPoser {
     return out.copy(b.position).applyMatrix4(b.parent!.matrixWorld);
   }
 
-  pose(path: CurvePath, weight: number): void {
+  /**
+   * Lays the chain along `path` by `weight`; with `aim`, each bone also turns about its length so
+   * its sucker side faces where `aim` says.
+   */
+  pose(path: CurvePath, weight: number, aim: SuckerAim | null = null): void {
     if (weight <= 0 || path.count < 1) return;
     const w = Math.min(1, weight);
     this.overflow = followPath(path, this.lengths, this.joints);
@@ -312,6 +396,23 @@ export class ChainPoser {
         _tgt.multiplyScalar(1 / d);
         _qd.setFromUnitVectors(_cur, _tgt);
         _qp.multiplyQuaternions(_qd, _qw);
+        const su = this.suckers;
+        if (aim && su) {
+          // Twist about the bone so its suckers face the aim (at the bone's middle).
+          const mx = (_pos.x + J[(i + 1) * 3]!) / 2;
+          const my = (_pos.y + J[(i + 1) * 3 + 1]!) / 2;
+          const mz = (_pos.z + J[(i + 1) * 3 + 2]!) / 2;
+          if (aim instanceof CurveAim) aim.along.copy(_tgt);
+          aim.aim(mx, my, mz, _want);
+          _sk.set(su[i * 3]!, su[i * 3 + 1]!, su[i * 3 + 2]!).applyQuaternion(_qp);
+          _want.addScaledVector(_tgt, -_want.dot(_tgt));
+          _sk.addScaledVector(_tgt, -_sk.dot(_tgt));
+          if (_want.lengthSq() > 1e-8 && _sk.lengthSq() > 1e-8) {
+            const ang = Math.atan2(_twist.crossVectors(_sk, _want).dot(_tgt), _sk.dot(_want));
+            _qt.setFromAxisAngle(_tgt, ang);
+            _qp.premultiply(_qt);
+          }
+        }
         _pqInv.copy(_pq).invert();
         _qp.premultiply(_pqInv);
         if (w >= 1) b.quaternion.copy(_qp);

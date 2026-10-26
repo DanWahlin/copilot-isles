@@ -5,11 +5,11 @@ import type { BattleSound } from '../battle/battle';
 import { SplashPool, SplinterPool, fxBudget } from '../battle/fx';
 import type { WaveSampler } from '../contracts';
 import type { Brigantine } from '../ship';
-import { BRIGANTINE_HALF_LENGTH, halfBeamAt, sheerHeightAt } from '../ship/lines';
+import { BRIGANTINE_HALF_LENGTH, deckHeightAt, halfBeamAt, sheerHeightAt } from '../ship/lines';
+import { BRIGANTINE_MASTS } from '../ship/brigantine-rig';
 import {
   Points,
   WRAP_SPOTS,
-  deckArc,
   ease,
   heavy,
   hullCoil,
@@ -33,9 +33,9 @@ import {
   type TellPlan,
   type TellTarget,
 } from './hazards';
-import { Kraken, type KrakenArm } from './kraken';
+import { Kraken, poseFreeArm, type KrakenArm } from './kraken';
 import { cutShip, type ShipPieces } from './ship-break';
-import { CurvePath } from './tentacle-pose';
+import { AxisAim, CurvePath } from './tentacle-pose';
 import { TellMarks, type MarkState } from './tell-marks';
 
 /**
@@ -348,6 +348,13 @@ const _a = new Vector3();
 const _o = new Vector3();
 const _look = new Vector3();
 const _b = new Vector3();
+/** Where an arm's suckers face: the inside of a free arm's curve, or what a gripping arm holds. */
+const _axisAim = new AxisAim();
+const _ax = new Vector3();
+/** The arc's free pose (its length, curl and bow set as it comes over). */
+const _arcStance: FreeStance = { len: 0, curl: 0, bow: 0 };
+/** How much of the highest arm arcs over her deck (m along it). */
+const ARC_LENGTH = 20;
 const _pts = new Points(64);
 const _stance: FreeStance = { len: 0, curl: 0, bow: 0 };
 
@@ -983,11 +990,10 @@ export class KrakenEncounter {
     const frame = this.mode === 'wrap' ? this.frameFor(s.role, w) : null;
     if (this.mode === 'wrap' && !finaleArm) {
       const e = EMERGE[s.role];
-      // The emergence point stays with the ship until she breaks; then where she broke.
+      // Where it breaks the water moves with the ship, and once she's torn, with the half it holds
+      // (it rises beside her as it drags her down, not stretched straight from where she broke).
       frame!.updateWorldMatrix(true, false);
-      _a.set(e[0], 0, e[1]).applyMatrix4(
-        this.broke ? this.wreck!.ship.group.matrixWorld : frame!.matrixWorld,
-      );
+      _a.set(e[0], 0, e[1]).applyMatrix4(frame!.matrixWorld);
       height = e[2];
     } else {
       // Round the body (the surfaced kraken, or the finale), out along its socket.
@@ -1030,38 +1036,21 @@ export class KrakenEncounter {
     lx /= ll;
     lz /= ll;
     const sway = (this.t / tm.swayPeriod) * Math.PI * 2 + s.sway;
-    let slack = 0;
-    // Posed again with a longer route if its bones ran off the end (they cut across its bends).
-    for (let tries = 0; tries < 3; tries++) {
-      s.stand.clear();
-      standPath(
-        s.stand,
-        _p.x,
-        _p.y,
-        _p.z,
-        _o.x,
-        _o.z,
-        _a.x,
-        _a.z,
-        sea,
-        h,
-        arm.length,
-        sway,
-        tm.swayAmp,
-        lx,
-        lz,
-        _stance.curl,
-        _stance.bow,
-        nearShip ? 0.8 : 0,
-        slack,
-      );
-      s.stand.build();
-      arm.poser.pose(s.stand, 1);
-      const fit = arm.poser.overflow;
-      // Ran off its end (a straight stub), or ended well short of it (its hooked tip missed): refit.
-      if (fit > -0.4 && fit < 0.05) break;
-      slack += fit > 0 ? fit + 0.1 : fit + 0.15;
-    }
+    poseFreeArm(
+      arm,
+      _a.x,
+      _a.z,
+      sea,
+      _stance,
+      sway,
+      tm.swayAmp,
+      lx,
+      lz,
+      nearShip ? 0.8 : 0,
+      s.stand,
+      _o.x,
+      _o.z,
+    );
     if (this.mode !== 'wrap' || finaleArm || !frame) return;
     // Its role's shape over the ship, blended in slowly (and out as it withdraws).
     const order = RISE_ORDER.indexOf(s.role) % 3;
@@ -1069,26 +1058,37 @@ export class KrakenEncounter {
     const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
     const release = (1 - out) * (1 - letGo);
     if (s.role === 'mast') {
-      // The highest arm: a slow arc high over the deck, a hang, then down round the foremast.
+      // The highest arm: a slow, tall J over the forecastle (forward of the fore yards and sails),
+      // its suckers down toward the deck, a hang, then down round the foremast.
       const arc = heavy((w - b.arc) / tm.arc, a, o);
       const wArc = ease((w - b.arc + 0.5) / (tm.arc * 0.5)) * release;
       if (wArc > 0) {
-        this.shipPath(
-          s,
-          s.target,
-          frame,
-          _a,
+        // Across her, at the arc's station: her −x (from the kraken's side over to the far one).
+        _ax.set(-1, 0, 0).transformDirection(frame.matrixWorld);
+        _arcStance.len = ARC_LENGTH;
+        _arcStance.curl = 0.35 + 0.25 * Math.max(0, arc);
+        _arcStance.bow = 0.15 + 0.55 * Math.max(0, arc) + 0.05 * Math.sin(this.t * 0.5);
+        poseFreeArm(
+          arm,
+          _a.x,
+          _a.z,
           sea,
-          SHAPE_ARC,
-          Math.max(0.05, arc),
-          Math.sin(this.t * 0.5) * 0.6,
+          _arcStance,
+          sway,
+          tm.swayAmp * 0.5,
+          _ax.x,
+          _ax.z,
+          0,
+          s.target,
+          _o.x,
+          _o.z,
+          wArc,
         );
-        arm.poser.pose(s.target, wArc);
       }
       const wMast = ease((w - b.grip) / (tm.grip * 0.6)) * release;
       if (wMast > 0) {
         this.shipPath(s, s.target2, frame, _a, sea, SHAPE_MAST, 1 - Math.min(1, Math.max(0, grip)), squeeze);
-        arm.poser.pose(s.target2, wMast);
+        arm.poser.pose(s.target2, wMast, _axisAim);
       }
       return;
     }
@@ -1108,7 +1108,7 @@ export class KrakenEncounter {
         Math.min(1, Math.max(0.05, over)),
         squeeze,
       );
-      arm.poser.pose(s.target, wPull);
+      arm.poser.pose(s.target, wPull, _axisAim);
       return;
     }
     const wGrip = ease((w - b.grip - order * 0.6) / (tm.grip * 0.45)) * release;
@@ -1119,7 +1119,7 @@ export class KrakenEncounter {
     else if (s.role === 'gripFore') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FORE, squeeze, 0);
     else if (s.role === 'gripAft') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_AFT, squeeze, 0);
     else this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FAR, squeeze, 0);
-    arm.poser.pose(s.target, wGrip);
+    arm.poser.pose(s.target, wGrip, _axisAim);
   }
 
   /**
@@ -1138,6 +1138,7 @@ export class KrakenEncounter {
   ): void {
     frame.updateWorldMatrix(true, false);
     _m.copy(frame.matrixWorld);
+    aimAt(shape, u);
     const arm = s.arm;
     arm.poser.base(_b);
     shapePoints(shape, u, v);
@@ -1145,8 +1146,9 @@ export class KrakenEncounter {
     let above = shapeLength(e, sea);
     // An arc that's more than the arm can reach comes over less far (it still curves, all of it on
     // the arm), never a straight reach toward a shape it can't get to.
-    if (shape === SHAPE_ARC || shape === SHAPE_PULL_NEAR || shape === SHAPE_PULL_FAR) {
-      const avail = reachOver(_b.x, _b.y, _b.z, _o.x, _o.z, e.x, e.z, sea, arm.length) * 0.95;
+    if (shape === SHAPE_PULL_NEAR || shape === SHAPE_PULL_FAR) {
+      const avail =
+        reachOver(_b.x, _b.y, _b.z, _o.x, _o.z, e.x, e.z, sea, arm.length, arm.poser.lengths[0]!) * 0.95;
       for (let k = 0; k < 3 && above > avail && u > 0.06; k++) {
         u = Math.max(0.05, (u * avail) / above);
         shapePoints(shape, u, v);
@@ -1154,7 +1156,28 @@ export class KrakenEncounter {
       }
     }
     path.clear();
-    standPath(path, _b.x, _b.y, _b.z, _o.x, _o.z, e.x, e.z, sea, above, arm.length, 0, 0, 0, 1, 0, 0, 0);
+    standPath(
+      path,
+      _b.x,
+      _b.y,
+      _b.z,
+      _o.x,
+      _o.z,
+      e.x,
+      e.z,
+      sea,
+      above,
+      arm.length,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      arm.poser.lengths[0]!,
+    );
     // Under the water only: then the shape.
     path.ctrlCount = Math.min(path.ctrlCount, 4);
     for (let i = 0; i < _pts.n; i++) {
@@ -1445,7 +1468,6 @@ const HELD = { trim: 0, rudder: 0 };
 function span(w: number, a: number, z: number): number {
   return clamp01((w - a) / Math.max(0.001, z - a));
 }
-const SHAPE_ARC = 0;
 const SHAPE_MAST = 1;
 const SHAPE_BOW = 2;
 const SHAPE_STERN = 3;
@@ -1454,13 +1476,40 @@ const SHAPE_GRIP_AFT = 5;
 const SHAPE_GRIP_FAR = 6;
 const SHAPE_PULL_NEAR = 7;
 const SHAPE_PULL_FAR = 8;
+const WRAP_SPOTS_FORE_Z = BRIGANTINE_MASTS.fore.z;
 
 /** The ship's hull material (the caps are its planking). */
+/**
+ * What an arm in a wrap shape grips, as a line its suckers face (`_axisAim`, through `_m`, the ship's
+ * frame): a hull coil her centre line through the coil's middle, the mast coil the foremast, and an
+ * arm over her rail or deck a line under her deck (its suckers down on the deck and in at the hull).
+ */
+function aimAt(shape: number, u: number): void {
+  let px = 0;
+  let py: number;
+  let pz = 0;
+  let dx = 0;
+  let dy = 0;
+  let dz = 1;
+  if (shape === SHAPE_BOW || shape === SHAPE_STERN) py = 0.15 + 4 * u;
+  else if (shape === SHAPE_MAST) {
+    py = 0;
+    pz = WRAP_SPOTS_FORE_Z;
+    dy = 1;
+    dz = 0;
+  } else py = deckHeightAt(0) - 3;
+  _ax.set(px, py, pz).applyMatrix4(_m);
+  px = _ax.x;
+  py = _ax.y;
+  pz = _ax.z;
+  _ax.set(dx, dy, dz).transformDirection(_m);
+  _axisAim.set(px, py, pz, _ax.x, _ax.y, _ax.z);
+}
+
 /** A wrap shape's points (ship-local) into `_pts`. */
 function shapePoints(shape: number, u: number, v: number): void {
   _pts.clear();
-  if (shape === SHAPE_ARC) deckArc(_pts, u, v);
-  else if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
+  if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
   else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
   else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
   else if (shape === SHAPE_PULL_NEAR) pullArc(_pts, WRAP_SPOTS.pullAft, u, v);
