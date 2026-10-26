@@ -503,7 +503,7 @@ describe('terrain skins', () => {
 
 describe('terrain memory (issue 316)', () => {
   const C = TERRAIN_CHUNK_SIZE;
-  it('keeps masks and light as 16-bit fractions and the index 16-bit on WebGPU', () => {
+  it('keeps masks and light as bytes and the index 16-bit on WebGPU', () => {
     const data = roughData({ minX: 0, maxX: C * 2, minZ: 0, maxZ: C, cell: 4 }, 3);
     data.masks.fill(255);
     data.ao.fill(128);
@@ -511,11 +511,11 @@ describe('terrain memory (issue 316)', () => {
     for (const g of terrain.geometries()) {
       const mask = g.getAttribute('terrainMask');
       const light = g.getAttribute('terrainLight');
-      expect(mask.array).toBeInstanceOf(Uint16Array);
+      expect(mask.array).toBeInstanceOf(Uint8Array);
       expect(mask.normalized).toBe(true);
       // getX reads the fraction (three scales a normalized attribute's accessors).
       expect(mask.getX(0)).toBe(1);
-      expect(light.getX(0)).toBeCloseTo(128 / 255, 4);
+      expect(light.getX(0)).toBe(128 / 255);
       const index = g.getIndex()!;
       expect(index.array).toBeInstanceOf(Uint16Array);
       expect(index).toBeInstanceOf(Index16Attribute);

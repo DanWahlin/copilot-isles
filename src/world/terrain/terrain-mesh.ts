@@ -885,12 +885,14 @@ function pushVertex(
 }
 
 /**
- * A vertex's masks and baked light (0-1) as 16-bit fractions (`unorm16`): half a float's memory,
- * and the shader reads the same vec4 (steps of 1/65535, far under a colour step). Issue 316.
+ * A vertex's masks and baked light (0-1) as bytes read as fractions (`unorm8`), a quarter of a
+ * float's memory: they're baked as bytes, so a vertex on the bake's grid keeps its value exactly,
+ * and one between (a finer level's, or a coarse level's filtered mean) moves under half a step. The
+ * shader reads the same vec4. Issue 316.
  */
-function unorm16(values: readonly number[], itemSize: number): BufferAttribute {
-  const array = new Uint16Array(values.length);
-  for (let i = 0; i < values.length; i++) array[i] = Math.round(clamp(values[i]!, 0, 1) * 65535);
+function unorm8(values: readonly number[], itemSize: number): BufferAttribute {
+  const array = new Uint8Array(values.length);
+  for (let i = 0; i < values.length; i++) array[i] = Math.round(clamp(values[i]!, 0, 1) * 255);
   return new BufferAttribute(array, itemSize, true);
 }
 
@@ -1032,8 +1034,8 @@ function* buildChunkGeometry(
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setAttribute('terrainMask', unorm16(masks, 4));
-  geometry.setAttribute('terrainLight', unorm16(lights, 4));
+  geometry.setAttribute('terrainMask', unorm8(masks, 4));
+  geometry.setAttribute('terrainLight', unorm8(lights, 4));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
   keepIndexUint16(geometry);
@@ -1099,8 +1101,8 @@ export function* buildTerrainSkin(
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setAttribute('terrainMask', unorm16(masks, 4));
-  geometry.setAttribute('terrainLight', unorm16(lights, 4));
+  geometry.setAttribute('terrainMask', unorm8(masks, 4));
+  geometry.setAttribute('terrainLight', unorm8(lights, 4));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
   keepIndexUint16(geometry);
@@ -1425,7 +1427,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     for (const [name, size, first, end] of MORPHED) {
       const attribute = set.geometry.getAttribute(name);
       const array = attribute.array;
-      // The masks and light are 16-bit fractions (`unorm16`): round, so the eased level ends on its own.
+      // The masks and light are bytes (`unorm8`): round, so the eased level ends on its own values.
       const whole = !(array instanceof Float32Array);
       for (let c = first; c < end; c++, channel++)
         for (let i = 0; i < count; i++) {
