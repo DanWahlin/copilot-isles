@@ -160,8 +160,8 @@ const SHOTS: Record<string, readonly [number[], number[]]> = {
     [6, 4, 0],
   ],
   tell: [
-    [-30, 10, 34],
-    [12, 2, 0],
+    [-8, 24, 30],
+    [15, 0, -1],
   ],
   rise: [
     [-30, 8, 36],
@@ -321,17 +321,23 @@ function frameCamera(dt: number): void {
   if (!director) return;
   const k = snapCamera ? 1 : 1 - Math.exp(-dt * 0.9);
   snapCamera = false;
-  if (scenario === 'wreck' || scenario === 'fight') {
+  if (scenario === 'wreck') {
     const [p, l] = SHOTS[kraken.phase()] ?? SHOTS.none!;
     kraken.wreckPosition(at);
     if (kraken.phase() === 'none') at.copy(flagship.group.position).setY(0);
-    // In the fight the shots turn with the flagship's course, and stand off on your side.
-    const h = scenario === 'fight' ? flagship.dynamics.pose.heading : 0;
-    const s = Math.sin(h);
-    const c = Math.cos(h);
-    const far = scenario === 'fight' ? 1.25 : 1;
-    camGoal.set(at.x + (p[0]! * c + p[2]! * s) * far, p[1]! * far, at.z + (-p[0]! * s + p[2]! * c) * far);
-    lookGoal.set(at.x + l[0]! * c + l[2]! * s, l[1]!, at.z - l[0]! * s + l[2]! * c);
+    camGoal.set(at.x + p[0]!, p[1]!, at.z + p[2]!);
+    lookGoal.set(at.x + l[0]!, l[1]!, at.z + l[2]!);
+  } else if (scenario === 'fight') {
+    // From beyond your ship, high, looking past her at the flagship: what you'd see in the fight.
+    kraken.wreckPosition(at);
+    if (kraken.phase() === 'none') at.copy(flagship.group.position).setY(0);
+    // Off your ship's quarter, so she's in the corner of the frame and her rigging isn't in the way.
+    const m = mine.group.position;
+    const dx = at.x - m.x;
+    const dz = at.z - m.z;
+    const d = Math.hypot(dx, dz) || 1;
+    camGoal.set(m.x - (dx / d) * 26 + (dz / d) * 24, 17, m.z - (dz / d) * 26 - (dx / d) * 24);
+    lookGoal.set(at.x, 4, at.z);
   } else if (scenario === 'dodge') {
     // Astern and above your ship, looking ahead along her course.
     const g = mine.group;

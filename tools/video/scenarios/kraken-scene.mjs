@@ -46,12 +46,12 @@ export default {
       ['break', 19.5],
       ['apart', 22],
       ['sink', 26],
-      ['retreat', 31.5],
+      ['retreat', 29.5],
     ]) {
       await page.waitForFunction((u) => window.__kraken.stats().time >= u, until, { timeout: 60_000 });
       api.mark(name);
     }
-    await page.waitForFunction(() => window.__kraken.stats().time >= 34, null, { timeout: 30_000 });
+    await page.waitForFunction(() => window.__kraken.stats().time >= 31.5, null, { timeout: 30_000 });
     api.mark('distant sighting');
     await page.evaluate(() => {
       const K = window.__kraken;
@@ -60,7 +60,7 @@ export default {
       K.sight('group', 380);
     });
     await page.waitForFunction(() => window.__kraken.stats().sighting, null, { timeout: 10_000 });
-    await api.pause(9000);
+    await api.pause(7600);
     const s = await phase(page);
     api.log(
       `sighting ${JSON.stringify(s.sighting?.kind)}; hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`,
