@@ -140,6 +140,48 @@
         ["tb-flume", [2010, 36, -1596], [2008, 21, -1626], "Flume Terrace tiles and gates"],
         ["tb-crown", [2035, 58, -1530], [2010, 51, -1556], "Crown Deck, beacon, rail"]
       ]
+    },
+    {
+      "id": "keelhaven",
+      "flag": "keelhaven",
+      "name": "Keelhaven",
+      "home": false,
+      "terrain": "keelhaven-terrain",
+      "silhouette": "keelhaven-silhouette",
+      "budget": {
+        "box": [3560, -2140, 4080, -1680],
+        "named": [
+          ["quay", "quay"],
+          ["town", 3796.6, -1766.7],
+          ["square", 3883.8, -1748.4],
+          ["yard", 3960.8, -1792.1],
+          ["locks", 3890.0, -1847.8],
+          ["light", 3709.0, -2084.4, 44]
+        ]
+      },
+      "decks": [
+        [3739.2, -1806.9, 2.2],
+        [3707.0, -1830.6, 2.2],
+        [3793.6, -1978.7, 20.6],
+        [3751.8, -2030.6, 33.4],
+        [3717.4, -2065.1, 42.7]
+      ],
+      "perf": {
+        "keelhaven": {
+          "quay": true
+        },
+        "kh-town": {
+          "at": [3796.6, -1766.7, 0.96]
+        }
+      },
+      "flicker": [
+        ["kh-quay", [3694.2, 10, -1777.4], [3739.2, 2.2, -1806.9], "Old Town quay, bollards, course board"],
+        ["kh-town", [3737.6, 16, -1734.8], [3830, 4, -1758], "town street, verandas, roofs"],
+        ["kh-square", [3850.6, 12, -1826.5], [3883.8, 4.5, -1748.4], "square paving, Evidence Board, bridge"],
+        ["kh-yard", [3929.3, 26, -1869.1], [3943.8, 5, -1811.3], "basin copings, caissons, docks"],
+        ["kh-locks", [3850.6, 14, -1826.5], [3890, 3.5, -1847.8], "lock gates, copings, steps"],
+        ["kh-light", [3765.5, 60, -2105.9], [3709, 46, -2084.4], "Gate Light, keeper's house, stair"]
+      ]
     }
   ]
 }

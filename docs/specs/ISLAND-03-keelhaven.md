@@ -266,7 +266,7 @@ and the rock cut. No pure white except foam, the falls and the Gate Light.
 - **Light on the flutes:** bake `sunGolden` and `sunMorning` for this sun. The steep-light smoothing in
   the bake uses a radius of 4–6 m for Keelhaven (today 14 m), so the flutes keep their own shadows.
 - **The passage (O3):** Thousand-Bough is at dusk (17.77 h). The sky holds that dusk until battle 3
-  ends. Then it fades for 3 s to Keelhaven's sky (§2.4) as you round the North Head ("Next morning"). Reduced
+  ends (as wired: the night passes at sea when the battle is settled, W.12). Then it fades for 3 s to Keelhaven's sky (§2.4) as you round the North Head ("Next morning"). Reduced
   motion uses a plain cross-fade. `passageSky` gets a rule for this pair: hours go forward only, by the
   cut, never back through the afternoon.
 - **Night:** with Sky & Time at night, the lock lamps, the tavern windows and the Gate Light follow the
@@ -1118,8 +1118,8 @@ Seal).
 | `kh.juno.arrive.02` | Juno | They say nothing leaves this yard on a confident guess. Every hull proves itself first. | `[§core-concept-trust-the-evidence]` |
 | `wingman.kh.01` | Wingman | Wrecks on the reef! I'm staying well clear of the reef. | flavour |
 | `wingman.kh.02` | Wingman | Two circuits here, Captain: the drydocks in the cove, then the locks out to sea. | `[§learning-objectives]` |
-| `wingman.kh.03` | Wingman | Lost? Follow the compass, or head for the Gate Light on the North Head. | nav |
-| `wingman.starfish.keelhaven` | Wingman | Five starfish on Keelhaven. One's up by the falls, if you fancy a walk. | nav |
+| `wingman.kh.03` | Wingman | Your tasks are in the top left, and the compass up top shows the way, all the way to the Gate Light. | nav |
+| `wingman.starfish.keelhaven` | Wingman | And five starfish are hidden around Keelhaven. Your count's in the top right. | nav |
 | `kh.lyra.01` | Lyra | Captain! A musician doesn't keep the first take just because it's finished. | `[§from-the-studio-from-take-to-final-mix]` |
 | `kh.lyra.02` | Lyra | They record, listen, adjust and record again. That's the inner loop: make a change, then inspect the evidence. | `[§from-the-studio-…]` |
 | `kh.lyra.03` | Lyra | Then the producer tracks the brief, the feedback, the quality checks and the final approval. | `[§from-the-studio-…]` |
@@ -1687,16 +1687,16 @@ below. Use the world package's positions (`src/world/islands/keelhaven/`): the w
 to the south of the river, the shipyard and the locks to the north, and the Gate Light to a lower bench of
 the North Head. The names and the order of the stops stay as in §3 and §4.
 
-| Id | Place (anchor) |
-|---|---|
-| `npc:lyra_keel`, `npc:hester`, `npc:dory`, `npc:cass`, `npc:barty`, `npc:stroud`, `npc:arlo`, `npc:ottoline` | the NPC's anchor |
-| `ring:post`, `ring:stack`, `ring:slate`, `ring:caisson`, `ring:lookout` | `ringPost`, `ringStack`, `ringSlate`, `ringCaisson`, `ringLookout` |
-| `flight:ledger` | `ledgers` |
-| `flight:bell` | the main slipway's bell (a new anchor at the slipway head) |
-| `flight:slate`, `flight:gate1`, `flight:petition` | `lock1Slate`, `gate1`, `petitionMast` |
-| `flight:lamps` | the lamp post of the lock that runs (Lock 1 in part 1, Lock 2 in part 2) |
-| `flight:note`, `flight:redLamp`, `flight:barge` | the two hulls in Lock 2, and `barge` |
-| `flight:gate2`, `flight:seaGate` | `gate2`, the Sea Gate |
+| Id | Place (anchor) | As built (cove frame u, v) |
+|---|---|---|
+| `npc:lyra_keel`, `npc:hester`, `npc:dory`, `npc:cass`, `npc:barty`, `npc:stroud`, `npc:arlo`, `npc:ottoline` | the NPC's anchor | `anchors.ts`: Lyra (16.6, 73) on the tavern porch, Hester (108, 19.7) by the Evidence Board, Dory (170, -76) and Cass (170, -58) at the dock heads, Barty (92, -21.5), Stroud (60, -46) by the ledgers, Arlo (26, -47.5) above Lock 2, Ottoline (-222, -151) at the Gate Light (y 44) |
+| `ring:post`, `ring:stack`, `ring:slate`, `ring:caisson`, `ring:lookout` | `ringPost`, `ringStack`, `ringSlate`, `ringCaisson`, `ringLookout` | `circuit.ts` `CIRCUIT_SPOTS.ring`: the post at Drydock 2's head (168.6, -62.4), the stack (150, -54) and the slate (134, -54) on the copings toward the basin, the caisson across the mouth (125, -61), the lookout on the far side (146, -68.2) |
+| `flight:ledger` | `ledgers` | (57.6, -48), at the Issues ledger |
+| `flight:bell` | the main slipway's bell (a new anchor at the slipway head) | (49.6, -31.2) |
+| `flight:slate`, `flight:gate1`, `flight:petition` | `lock1Slate`, `gate1`, `petitionMast` | (66, -50.8) and (55.6, -50.8) on the yard by Lock 1; the mast on the terrace by the pound (44, -48.2) |
+| `flight:lamps` | the lamp post of the lock that runs (Lock 1 in part 1, Lock 2 in part 2) | across from Lock 1's lamp (58.5, -50.8) in part 1, Lock 2's (21, -50.4) in part 2 |
+| `flight:note`, `flight:redLamp`, `flight:barge` | the two hulls in Lock 2, and `barge` | (30, -50.4) and (23, -50.4) above Lock 2; the barge's station on the cut's coping (7, -53.8) |
+| `flight:gate2`, `flight:seaGate` | `gate2`, the Sea Gate | (18.6, -50.4) by Lock 2's lower gate; the Sea Gate's station on the cut's coping (-18, -53.8), the gate at u -24 |
 
 `ring:*` and `flight:*` match by prefix. Only the station that waits for the player is usable, so the
 compass points to it.
@@ -1783,3 +1783,26 @@ upstream without the old sidebar).
 **Done (2026-10-25, branch `danwahlin-course-refresh-fusion`, issue row 320):** the snapshot is `f24b521`;
 the six screenshots are unpinned; **Toggle Panel**, **Query filter mode** with a `repo:` term, and "If the
 **Review plan** box stays open, select **Continue**" are in the pages and app cards; H3.1 and H3.2 are in.
+
+### W.12 As wired (branch `danwahlin-keelhaven-wiring`)
+
+The wiring follows W.1–W.11 with these changes. The places are in W.5.
+
+| Part | As wired | Code |
+|---|---|---|
+| The `circuit` mechanic | The rules are pure (`LapRun`: `pass`, `choose`, `backTo`; `petitionReady`; `gateDark`). Each station waits at its place as an interaction (`ring:<place>`, `flight:<place>`) that is usable only while it is the station that waits, so the compass points to it. A station opens on the island's choice card. A wrong pick turns its lamp red, shows its reason and sends the hull back to the latest station at `backTo`. A `backTo` with no station before the pick (the repair barge) keeps the hull at the station. The save keeps the lap and the station. | `src/game/puzzles/circuit/` |
+| The stage | Each station has a lamp on a post (the island's `LampSet`: one glow mesh, colours set in place, no new shader). The next station's lamp blinks. Your hull moves down the flight with part 1 (to the basin's canal mouth, into Lock 1 as it fills, down with its water, then into the pound, where it waits). The two pull-request hulls stay in Lock 2. The Stats Check hull heels when its gauge is filed down. The three hulls are the dock hull at half size. | `src/game/keelhaven-circuits.ts`, `src/world/islands/keelhaven/circuit.ts`, `lamps.ts` |
+| W.2 `searchHullDown`, `prHullsDown` | Your hull waits in the pound (u 44), not in the basin; the pull-request hulls stay in Lock 2. Lock 2 is too narrow for a third hull, and the cut is the sea's. | `keelhaven-circuits.ts` `settle` |
+| The Sea Gate | New: shut mitre leaves across the cut's mouth at u -24. The cut's walls are as high as Lock 2's (3.6), so the terrace runs level along both; the steps between their copings went with the step. | `shipyard.ts`, `works.ts` |
+| `kh-ring`, `kh-flight` | Frame the circuit's first station and say its `intro` (unvoiced). | `keelhaven-circuits.ts` |
+| `kh-seal` | The Gate Light kindles white-gold, every lock lamp turns green from Lock 2 up to the basin, and the ring's lamps light. There's no beam sweep yet, and the tavern's bell doesn't ring. | `keelhaven-circuits.ts` `seal` |
+| `kh-retake` | Plays the re-take on the choice card. There's no Songbook in the game: Salty Sway is the island's theme. | `keelhaven-session.ts` |
+| `kh-sounding` | Dory's planks: one tap each on the choice card, then the sluice. Drydock 1 doesn't flood visibly (its water is static). | `keelhaven-session.ts` |
+| The Gate Light's path | The stair up the North Head (`GATE_PATH`) in place of a rock cut: tread by tread, no step over 0.4 m (`gate-stair.ts`). | `gate-stair.ts`, `town-build.ts` |
+| Walk surfaces | The works' apron (below) is walked as it's drawn. A wall with no apron behind it has a 1.4 m strip past its back. The gates' walkways have their fences a body's width out. | `shipyard.ts` |
+| The ground at the works | Every terrain level pins its vertices in the works (the terrain's `pin`, `worksPin`): a chamber's floor inside it, under its walls and, on a pad, out to `floorMargin(step)` past them; the pad's level on the rest of a flat pad; just under the sea under the cut's arms. So no level puts a bank in a chamber, a saw-tooth at a wall's foot or a prefiltered trench round it. The ramp from floor to pad lies past the walls, under the **apron**: a flat skin of ground 3 cm over each pad (the terrain's `skin`, drawn in its material, one more draw, no new shader), outside the walls (`worksApron`). The apron reaches 0.9 m in under the walls' copings, so no gap opens at a wall's foot on its 0.5 m cell grid; it's walked as drawn. The cut's banks are a pad of their own (u -14 to 10, level with the terrace); past them the cut's arms stand in the sea (their wall feet pinned 1.8 m under it). No coast foam within 3 m of a wall, and the ocean's depth tile reads the cut's floor to 5 m past its walls (`worksSeaFloor`), so its ~3 m texels draw no shallows along them. | `works.ts`, `apron.ts`, `terrain-mesh.ts`, `coast-foam.ts`, `depth-tile.ts` |
+| The inner loop's barge | Moored on the cut's far side (v −2.4 from its middle), so the hulls pass and the station's camera on the near coping sees her over the wall; her skipper stands on her deck. | `circuit.ts`, `anchors.ts` |
+| The ocean's island tiles | An island's warm uploads every lent tile (`lentWaterDepthTextures`): with Thousand-Bough and Keelhaven both lent, the ocean binds the nearer, and Keelhaven's tile uploaded mid-passage (a hitch in battle 3). | `island-warm.ts`, `water-depth-texture.ts` |
+| Signs and stands | A board on one post has a board each side of it with the words on both (the ledgers' name boards, the lock lamps' brass plates); two-post boards have their posts past their ends. The ledgers' lecterns and books tilt to you on the yard side. The Lock Flight's slate has its diff in chalk (a file's line, a red minus, green pluses) on its face to you, its legs behind. The ring's tally gear (an upright spoked wheel with its tally board, two chalk marks) stands at the plank stack. | `props.ts`, `circuit.ts`, `shipyard.ts` |
+| Lamps | Every lamp's cap sits on its glass with an iron collar over the seam (`lampHead`; the station posts' caps floated 14 cm over it). | `lamps.ts` |
+| Battle 3 | As §9.1. The "next morning" comes when the battle is settled (its win card's hold is over, or it's skipped), wherever you are; the morning then holds until you're there, or until you sail back past where it came. With no battle (fought, skipped or jumped), it comes where Keelhaven's light is the stronger. Juno's opening bark isn't a line yet: the title card is the battle's chart label. | `session.ts`, `battle-run.ts` (`settled`), `battle.ts` |

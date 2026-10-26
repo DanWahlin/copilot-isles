@@ -323,6 +323,24 @@
             "raiders": ["Max Effort", "Overthought"]
           }
         ]
+      },
+      "passage-thousand-bough-keelhaven": {
+        "chapter": "02",
+        "won": "The raiders are back in the fog. Keelhaven lies ahead.",
+        "waves": [
+          {
+            "quiz": "N2.1",
+            "raiders": ["Shared Deck", "Muddy Main"]
+          },
+          {
+            "quiz": "N2.2",
+            "raiders": ["Whole Library", "Every Issue"]
+          },
+          {
+            "quiz": "N2.3",
+            "raiders": ["Port Jam", "Same Lookout"]
+          }
+        ]
       }
     }
   },

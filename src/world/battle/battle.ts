@@ -40,11 +40,24 @@ export interface WaveSpec {
   quiz: string;
 }
 
+/**
+ * Something that happens in a battle between its waves (a game mechanic, not course words): the hook a
+ * later mid-battle event plugs into (the planned kraken, after this battle's branch). No battle has one
+ * yet, and the battle doesn't act on them.
+ */
+export interface BattleEvent {
+  /** After which wave (1-based) it happens. */
+  afterWave: number;
+  kind: 'kraken';
+}
+
 /** A battle: where it's fought, its waves, and the line on the win card. */
 export interface BattlePlan {
   id: string;
+  /** Its mid-battle events (`BattleEvent`), in wave order; none yet. */
+  events: readonly BattleEvent[];
   /** The course chapter it recaps. */
-  chapter: '00' | '01';
+  chapter: '00' | '01' | '02';
   title: string;
   waves: readonly WaveSpec[];
   /** The win card's line (player copy). */
@@ -61,12 +74,14 @@ function plan(
   id: string,
   title: string,
   kinds: readonly (readonly RaiderSpec['kind'][])[],
+  events: readonly BattleEvent[] = [],
 ): BattlePlan {
   // A course without this battle (it doesn't use the passage's islands) gets an empty plan: the
   // passage's destination isn't open in that course, so the battle never starts.
   const h = c.hooks.battles[id] ?? { chapter: '', won: '', waves: [] };
   return {
     id,
+    events,
     chapter: h.chapter as BattlePlan['chapter'],
     title,
     waves: kinds.map((wave, w) => ({
@@ -100,12 +115,30 @@ const meridianPassage = (c: CourseMeta) =>
   ]);
 export let MERIDIAN_BATTLE: BattlePlan = meridianPassage(COURSE);
 
-export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+/**
+ * Battle 3, "Trust the Evidence": the passage from Thousand-Bough Isle to Keelhaven, three waves, each
+ * with the course's quiz (its `hooks.battles`; docs/specs/BATTLES.md §2.0c, §2.1).
+ */
+const keelhavenPassage = (c: CourseMeta) =>
+  plan(c, 'passage-thousand-bough-keelhaven', 'Thousand-Bough Isle → Keelhaven', [
+    ['cutter', 'cutter'],
+    ['brigantine', 'cutter'],
+    ['brigantine', 'cutter'],
+  ]);
+export let KEELHAVEN_BATTLE: BattlePlan = keelhavenPassage(COURSE);
+
+export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE, KEELHAVEN_BATTLE];
 onCourseSelected((c) => {
   PASSAGE_BATTLE = passage(c);
   MERIDIAN_BATTLE = meridianPassage(c);
-  BATTLE_PLANS = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+  KEELHAVEN_BATTLE = keelhavenPassage(c);
+  BATTLE_PLANS = [PASSAGE_BATTLE, MERIDIAN_BATTLE, KEELHAVEN_BATTLE];
 });
+
+/** The plan's events after wave `wave` (1-based). */
+export function eventsAfter(p: BattlePlan, wave: number): readonly BattleEvent[] {
+  return p.events.filter((e) => e.afterWave === wave);
+}
 
 /** Battle 1's waves (kept for callers that only need the waves). */
 export const PASSAGE_WAVES: readonly WaveSpec[] = PASSAGE_BATTLE.waves;

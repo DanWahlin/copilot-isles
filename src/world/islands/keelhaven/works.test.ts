@@ -4,7 +4,19 @@ import type { VillageKit } from '../../village/kit';
 import { keelhavenHeight, keelhavenTerrainWater } from './height';
 import { toWorld } from './layout';
 import { buildShipyard } from './shipyard';
-import { BERTH, CHAMBERS, PADS, QUAY, inWorks } from './works';
+import {
+  BERTH,
+  CHAMBERS,
+  PADS,
+  QUAY,
+  WALL,
+  floorMargin,
+  inWorks,
+  padFlatAt,
+  wallFaceDistance,
+  worksApron,
+  worksPin,
+} from './works';
 
 const groundAt = (u: number, v: number) => {
   const p = toWorld(u, v);
@@ -62,5 +74,40 @@ describe("Keelhaven's harbour works", () => {
     expect(out.shipObstacles.length).toBeGreaterThan(10);
     expect(Number.isFinite(out.dockHull.y)).toBe(true);
     expect(inWorks(BERTH.u, BERTH.v)).toBe(false);
+  });
+
+  it('pins every terrain level in the works: floors in the chambers and under their walls, pads level', () => {
+    for (const c of CHAMBERS) {
+      const mid = toWorld((c.u0 + c.u1) / 2, (c.v0 + c.v1) / 2);
+      for (const step of [1, 2, 4, 8, 16]) expect(worksPin(mid.x, mid.z, step), c.name).toBe(c.floor);
+      // Under its wall (the middle of the wall's width).
+      const wall = toWorld((c.u0 + c.u1) / 2, c.v1 + WALL / 2);
+      const w = worksPin(wall.x, wall.z, 1);
+      expect(w === c.floor || w === -1.8, c.name).toBe(true);
+    }
+    // The yard well clear of every wall keeps its pad's level, on every level of detail.
+    const yard = toWorld(100, -21);
+    for (const step of [1, 2, 4, 8, 16]) expect(worksPin(yard.x, yard.z, step)).toBe(PADS.yard.y);
+    // Off the works it pins nothing.
+    const town = toWorld(60, 40);
+    expect(worksPin(town.x, town.z, 4)).toBeNull();
+    // A coarse level keeps the floor far enough out that no triangle reaches from the floor to the pad.
+    for (const step of [1, 2, 4, 8])
+      expect(WALL + floorMargin(step)).toBeGreaterThanOrEqual(step * Math.SQRT2);
+  });
+
+  it('lays the apron on flat pad only, outside the walls (tucked a little under them)', () => {
+    const rects = worksApron();
+    expect(rects.length).toBeGreaterThan(10);
+    for (const r of rects) {
+      for (const [u, v] of [
+        [r.u0 + 0.01, r.v0 + 0.01],
+        [r.u1 - 0.01, r.v1 - 0.01],
+        [(r.u0 + r.u1) / 2, (r.v0 + r.v1) / 2],
+      ] as const) {
+        expect(padFlatAt(u, v), `${u}, ${v}`).toBe(r.y);
+        expect(wallFaceDistance(u, v), `${u}, ${v}`).toBeGreaterThan(-0.91);
+      }
+    }
   });
 });

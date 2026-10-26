@@ -78,10 +78,12 @@ describe('content ahead of its island (src/course/split.ts withoutIslandsAhead)'
   it('leaves out the chapter, quests, puzzles and learning rows of an island the game hasn’t got', () => {
     const { meta, files } = read('copilot-app');
     const split = splitPack(meta, files, { trim: true });
-    const ahead = meta.islands.filter((i) => !isIslandId(i.island));
+    // A game without Keelhaven yet (as before its wiring): its written chapter is content ahead.
+    const has = (id: string) => id !== 'keelhaven' && isIslandId(id);
+    const ahead = meta.islands.filter((i) => !has(i.island));
     const written = ahead.filter((i) => files[`chapters/${i.chapter}.json`]);
     expect(written.length).toBeGreaterThan(0);
-    const game = withoutIslandsAhead(meta, split, isIslandId);
+    const game = withoutIslandsAhead(meta, split, has);
     const pack = assemblePack(meta, game.core);
     for (const i of written) {
       expect(Object.keys(game.parts)).not.toContain(i.chapter);
@@ -94,7 +96,7 @@ describe('content ahead of its island (src/course/split.ts withoutIslandsAhead)'
     const quests = new Set(Object.values(pack.quests).flatMap((q) => q.quests.map((d) => d.id)));
     for (const p of Object.values(pack.puzzles)) if (p.quest) expect(quests.has(p.quest), p.id).toBe(true);
     // The islands the game has keep everything.
-    for (const i of meta.islands.filter((x) => isIslandId(x.island)))
+    for (const i of meta.islands.filter((x) => has(x.island)))
       expect(Object.keys(pack.quests)).toContain(i.island);
   });
 

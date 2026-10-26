@@ -3,13 +3,30 @@ import type { BoxCollider } from '../../../game/collision';
 import type { CircleObstacle } from '../../contracts';
 import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import type { MaterialKey, VillageKit } from '../../village/kit';
-import { beam, box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
-import { halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
+import { beam, box, cone, lanternPaint, makeBuckets, rod, rope, type Buckets } from '../../village/pieces';
+import { BRIGANTINE_HALF_LENGTH, halfBeamAt, keelHeightAt, sheerHeightAt } from '../../ship/lines';
 import { mulberry32 } from '../../../util/math';
-import { addVerandaHouse } from '../../village/veranda-house';
+import { addVerandaHouse, type VerandaHouseInfo } from '../../village/veranda-house';
 import { FRAME, toWorld } from './layout';
 import { keelhavenHeight } from './height';
-import { BERTH, CANAL, CHAMBERS, DOCKS, GATES, PADS, QUAY, SLIPWAY, WALL, type Chamber } from './works';
+import {
+  BERTH,
+  CANAL,
+  CHAMBERS,
+  DOCKS,
+  GATES,
+  PADS,
+  QUAY,
+  SEA_GATE_U,
+  SLIPWAY,
+  WALL,
+  padFlatAt,
+  worksApronSteps,
+  type Chamber,
+} from './works';
+import { APRON_LIFT } from './apron';
+import { lineDeck, uvDeck, type WalkDeck } from './decks';
+import { LAMP_LOOKS, lampHead, type LampLook, type LampPiece } from './lamps';
 
 /**
  * Keelhaven's shipyard and harbour (spec §3.4-§3.7, in the merged cove frame): the stone-walled
@@ -59,6 +76,25 @@ export interface ShipyardOut {
   dockHull: { x: number; y: number; z: number; heading: number };
   /** The ship's berth along the quay (world), its heading (bow to the cove's mouth). */
   berth: { x: number; z: number; heading: number };
+  /** The walk surfaces over the ground: copings, caissons, gate walkways, the quay, steps and stairs. */
+  decks: WalkDeck[];
+  /** The glass of the lamps that change (lamps.ts `LampSet`): out of the buckets, by lamp. */
+  lamps: LampPiece[];
+}
+
+/** A lamp's glass for `out.lamps` under `key`: `make` builds it with the pieces into a scratch bucket. */
+export function lampGlass(
+  out: ShipyardOut,
+  key: string,
+  look: LampLook,
+  make: (b: Buckets) => BufferGeometry,
+): void {
+  const scratch = makeBuckets();
+  const geo = make(scratch);
+  const c = geo.getAttribute('color');
+  const p = LAMP_LOOKS[look];
+  for (let i = 0; i < c.count; i++) c.setXYZ(i, p[0], p[1], p[2]);
+  out.lamps.push({ key, geo });
 }
 
 /** The frame's axes as a yaw: a box's local x along u, its local z along v. */
@@ -168,7 +204,8 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
         if (r1 >= s.to - 0.01 && !openTo(c, c.u1 + 1.5, s.v - s.out * 1)) r1 += WALL;
       }
       const len = r1 - r0e;
-      if (len < 0.3) continue;
+      // An end wall's run can be one sample at a corner shared with the next chamber: no stub there.
+      if (len < (s.along === 'v' ? 1 : 0.3)) continue;
       const mid = (r0e + r1) / 2;
       const off = (s.out * WALL) / 2;
       const u = s.along === 'v' ? s.u + off : mid;
@@ -194,9 +231,20 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
         s.along === 'v' ? len : WALL + 0.16,
         YARD_PAINT.paving,
       );
+      // Walked over its width, and over a strip outside it where no works apron is (the ground off a
+      // pad can dip at the wall's back on a coarse tier's grid).
+      const back = s.along === 'v' ? [s.u + s.out * (WALL + 0.7), mid] : [mid, s.v + s.out * (WALL + 0.7)];
+      const apron = padFlatAt(back[0]!, back[1]!) === null ? APRON : 0;
+      const du = s.along === 'v' ? (s.out * apron) / 2 : 0;
+      const dv = s.along === 'v' ? 0 : (s.out * apron) / 2;
+      const hu = (s.along === 'v' ? WALL + 0.16 + apron : len) / 2;
+      const hv = (s.along === 'v' ? len : WALL + 0.16 + apron) / 2;
+      out.decks.push(uvDeck(cu + du - hu, cu + du + hu, cv + dv - hv, cv + dv + hv, top, false));
       // A rail along the inner edge, posts every 2.4 m (not on the cut's low quay walls, nor the basin's
       // quay faces, where boats tie up).
-      if (c.name !== 'basin' && c.name !== 'cut') railAlong(b, out, c, s, r0, r1raw, top);
+      // The canal's rails leave a gap at each gate's hinge, where you step onto its walkway.
+      if (c.name !== 'basin' && c.name !== 'cut')
+        for (const [a, e] of railRuns(c, s.along, r0, r1raw)) railAlong(b, out, c, s, a, e, top);
     }
   }
   // The docks' altars: three steps down each side, for the shores and the shipwrights.
@@ -216,7 +264,41 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
           0.55 + 0.02 * k,
           YARD_PAINT.stone,
         );
+        // The camera keeps out of each step, from its face back to the wall.
+        const depth = 0.35 + (2 - k) * 0.55 + 0.3;
+        out.cameraBoxes.push({
+          ...xzOf((c.u0 + c.u1) / 2 + 0.6, (side < 0 ? c.v0 : c.v1) - (side * depth) / 2),
+          hx: (c.u1 - c.u0 - 1.2) / 2,
+          hz: depth / 2,
+          rot: YAW_U,
+          y0: c.floor - 0.3,
+          y1: y,
+        });
       }
+}
+
+/** How far (m) a chamber wall's walk surface reaches past its back. */
+const APRON = 1.4;
+
+/** Where a gate's walkway meets a canal wall (u): a gap in the wall's rail from `GATE_GAP[0]` to `[1]` m past it. */
+const GATE_GAP = [-0.45, 0.95] as const;
+/** The gates in order along u (`railRuns` walks them so). */
+const GATES_UP = [...GATES].sort((x, y) => x - y);
+
+/** A side's rail runs, `r0` to `r1`, split round the canal gates' hinges (the docks' sides are whole). */
+function railRuns(c: Chamber, along: 'u' | 'v', r0: number, r1: number): [number, number][] {
+  if (along !== 'u' || c.name.startsWith('dock')) return [[r0, r1]];
+  const runs: [number, number][] = [];
+  let a = r0;
+  for (const g of GATES_UP) {
+    const g0 = g + GATE_GAP[0];
+    const g1 = g + GATE_GAP[1];
+    if (g1 <= a || g0 >= r1) continue;
+    if (g0 - a > 0.3) runs.push([a, g0]);
+    a = Math.max(a, g1);
+  }
+  if (r1 - a > 0.3) runs.push([a, r1]);
+  return runs;
 }
 
 /** A rail of posts and a top rail along a wall's inner edge, and the walker's fence along it. */
@@ -252,6 +334,8 @@ function railAlong(
     rot: s.along === 'v' ? YAW_U + Math.PI / 2 : YAW_U,
     y0: top - 0.45,
     y1: top + 1.3,
+    // The camera passes over the rail itself (its pad still keeps the near plane off it).
+    eyeTop: top + H + 0.05,
     height: H,
   });
   void c;
@@ -262,10 +346,18 @@ function railAlong(
  * a walkway on top), their balance beams over the coping, the sluice paddles' posts, and a blank
  * board for the lock's sign on the upstream gate.
  */
-function mitreGate(b: Buckets, u: number, floor: number, top: number, upstreamTop: number): void {
+function mitreGate(
+  b: Buckets,
+  out: ShipyardOut,
+  u: number,
+  floor: number,
+  top: number,
+  upstreamTop: number,
+): void {
   const half = CANAL.half;
   const point = 1.6;
   const leafLen = Math.hypot(half, point);
+  // Each leaf turns by −side × tilt: from its hinge on the wall at u to the mitre at u + point.
   const tilt = Math.atan2(point, half);
   const h = Math.min(top, upstreamTop) + 0.3 - floor;
   for (const side of [-1, 1]) {
@@ -274,7 +366,7 @@ function mitreGate(b: Buckets, u: number, floor: number, top: number, upstreamTo
     // A leaf, turned so it runs from its hinge at the wall to the mitre in the middle: tarred and wet
     // low down, weathered silver timber over the water, so it reads against the dark chamber.
     const wet = Math.min(h - 0.4, 1.6);
-    ubox(b, 'wood', uc, floor + wet / 2, v, 0.5, wet, leafLen, YARD_PAINT.tar, side * tilt);
+    ubox(b, 'wood', uc, floor + wet / 2, v, 0.5, wet, leafLen, YARD_PAINT.tar, -side * tilt);
     ubox(
       b,
       'wood',
@@ -285,11 +377,11 @@ function mitreGate(b: Buckets, u: number, floor: number, top: number, upstreamTo
       h - wet,
       leafLen,
       YARD_PAINT.silver,
-      side * tilt,
+      -side * tilt,
     );
     // Its cross-planks on the downstream face (the timber's ribs, a pale line every 0.9 m).
     for (let y = floor + wet + 0.4; y < floor + h - 0.2; y += 0.9)
-      ubox(b, 'wood', uc - 0.3, y, v, 0.08, 0.22, leafLen * 0.98, YARD_PAINT.oak, side * tilt);
+      ubox(b, 'wood', uc - 0.3, y, v, 0.08, 0.22, leafLen * 0.98, YARD_PAINT.oak, -side * tilt);
     for (let k = 0; k < 4; k++)
       ubox(
         b,
@@ -301,14 +393,48 @@ function mitreGate(b: Buckets, u: number, floor: number, top: number, upstreamTo
         0.16,
         leafLen * 0.96,
         YARD_PAINT.iron,
-        side * tilt,
+        -side * tilt,
       );
     // The walkway plank on top of the leaf.
-    ubox(b, 'wood', uc, floor + h + 0.06, v, 0.8, 0.12, leafLen, YARD_PAINT.silver, side * tilt);
+    ubox(b, 'wood', uc, floor + h + 0.06, v, 0.8, 0.12, leafLen, YARD_PAINT.silver, -side * tilt);
+    const walk = floor + h + 0.12;
+    out.decks.push(lineDeck([u, CANAL.v + side * half, walk], [u + point, CANAL.v, walk], 0.5, true));
+    // The walker's fences down both edges of the walkway (the hand rail and the drop), a body's width
+    // out so the walker's middle stays on the plank, stopping short of the mitre so you can turn onto
+    // the other leaf.
+    for (const edge of [-0.8, 0.8]) {
+      const nu = (half / leafLen) * side * edge;
+      const nv = (point / leafLen) * edge;
+      const m = at(
+        uc + nu - (point / leafLen) * 0.3,
+        0,
+        CANAL.v + (side * half) / 2 + nv + side * (half / leafLen) * 0.3,
+      );
+      out.colliders.push({
+        x: m.x,
+        z: m.z,
+        hx: 0.05,
+        hz: leafLen / 2 - 0.35,
+        rot: YAW_U - side * tilt,
+        y0: walk - 0.6,
+        y1: walk + 1.2,
+        eyeTop: walk + 1.1,
+        height: 1.1,
+      });
+    }
     // The balance beam: from the leaf's hinge back over the coping, at hand height.
     const hinge = at(u, floor + h + 0.7, CANAL.v + side * half);
     const end = at(u + 5.5, floor + h + 0.75, CANAL.v + side * (half + 2.2));
     beam(b, 'wood', hinge, end, 0.36, 0.42, YARD_PAINT.weathered);
+    out.cameraBoxes.push({
+      x: (hinge.x + end.x) / 2,
+      z: (hinge.z + end.z) / 2,
+      hx: Math.hypot(end.x - hinge.x, end.z - hinge.z) / 2 + 0.3,
+      hz: 0.4,
+      rot: Math.atan2(-(end.z - hinge.z), end.x - hinge.x),
+      y0: hinge.y - 0.45,
+      y1: end.y + 0.45,
+    });
     // Its end painted white (seen down the flight), and a hand rail along the leaf's walkway.
     const tip = at(u + 5.2, floor + h + 0.75, CANAL.v + side * (half + 2.08));
     box(b, 'wood', tip.x, tip.y, tip.z, 0.42, 0.48, 0.42, YAW_U, YARD_PAINT.limewash);
@@ -324,19 +450,49 @@ function mitreGate(b: Buckets, u: number, floor: number, top: number, upstreamTo
   }
 }
 
-/** A post with a lamp (red, or green for the open way), its glass glowing at night. */
-function lockLamp(b: Buckets, u: number, v: number, y: number, colour: 'red' | 'green'): void {
+/**
+ * A post with a lamp (red, or green for the open way), its glass glowing at night. The glass is a
+ * lamp of the island's lamp set (`lock:<i>`, upstream first): the circuits run it, and the Seal turns
+ * every one green.
+ */
+function lockLamp(
+  b: Buckets,
+  out: ShipyardOut,
+  key: string,
+  u: number,
+  v: number,
+  y: number,
+  colour: 'red' | 'green',
+): void {
   const p = at(u, y, v);
   rod(b, 'wood', p, { x: p.x, y: y + 3.2, z: p.z }, 0.11, 6, YARD_PAINT.tar);
   box(b, 'wood', p.x, y + 3.25, p.z, 0.6, 0.1, 0.12, YAW_U + Math.PI / 2, YARD_PAINT.tar);
-  const g = box(b, 'glow', p.x, y + 3.0, p.z, 0.26, 0.34, 0.26, YAW_U, 0xffffff);
-  const c = colour === 'red' ? [5.2, 1.1, 0.6] : [0.9, 4.6, 1.3];
-  const attr = g.getAttribute('color');
-  for (let i = 0; i < attr.count; i++) attr.setXYZ(i, c[0]!, c[1]!, c[2]!);
-  cone(b, 'metal', p.x, y + 3.17, p.z, 0.24, 0.2, 6, YARD_PAINT.iron);
-  // A blank brass plate on the post (its words come from the course pack later).
-  box(b, 'metal', p.x, y + 1.5, p.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
+  lampGlass(
+    out,
+    key,
+    colour === 'red' ? 'notReady' : 'ready',
+    (s) =>
+      lampHead(b, s, {
+        x: p.x,
+        y: y + 3.0,
+        z: p.z,
+        w: 0.26,
+        h: 0.34,
+        yaw: YAW_U,
+        capR: 0.24,
+        capH: 0.2,
+        capColour: YARD_PAINT.iron,
+      }).glass,
+  );
+  // A brass plate each side of the post, clear of it (props.ts letters both from the course pack).
+  for (const side of [1, -1]) {
+    const q = at(u + side * LAMP_PLATE_OFF, y, v);
+    box(b, 'metal', q.x, y + 1.5, q.z, 0.04, 0.28, 0.42, YAW_U, 0xb8923e);
+  }
 }
+
+/** How far (u) a lock lamp's plates stand off its post's middle: post 0.11, a gap, half a plate. */
+export const LAMP_PLATE_OFF = 0.11 + 0.012 + 0.02;
 
 /** A gabled, open-sided shed (posts, a ridge, two roof slopes of planks), long along u. */
 export function shed(
@@ -384,6 +540,15 @@ export function shed(
   }
   ubox(b, 'wood', u, y + h + Math.sin(pitch) * slope * 0.5 + 0.14, v, lu + 1.3, 0.22, 0.22, YARD_PAINT.tar);
   for (const dv of [-lv / 2, lv / 2]) ubox(b, 'wood', u, y + h, v + dv, lu, 0.22, 0.2, YARD_PAINT.tar);
+  // The roof keeps the follow camera out (from its plates to its ridge).
+  out.cameraBoxes.push({
+    ...toWorld(u, v),
+    hx: (lu + 1.3) / 2,
+    hz: lv / 2 + 0.7,
+    rot: YAW_U,
+    y0: y + h - 0.2,
+    y1: y + h + Math.sin(pitch) * slope + 0.4,
+  });
 }
 
 /** A stack of sawn planks (crosswise courses on bearers) or logs, on the ground at (u, v). */
@@ -452,14 +617,36 @@ export function ropeCoil(b: Buckets, u: number, v: number, y: number, r = 0.42):
   );
 }
 
-/** Casks and crates in a loose group. */
-export function stores(b: Buckets, u: number, v: number, y: number, seed: number): void {
+/** A camera blocker round each propped shutter of a veranda house (they stand out up to a metre). */
+export function shadeBlockers(info: VerandaHouseInfo, cams: CameraBlockerBox[]): void {
+  for (const h of info.shades)
+    cams.push({
+      x: h.x,
+      z: h.z,
+      hx: h.half,
+      hz: h.depth + 0.05,
+      rot: Math.atan2(-h.az, h.ax),
+      y0: h.y0 - 0.1,
+      y1: h.y1 + 0.1,
+    });
+}
+
+/** Casks and crates in a loose group (each keeps the camera out when `cams` is given). */
+export function stores(
+  b: Buckets,
+  u: number,
+  v: number,
+  y: number,
+  seed: number,
+  cams?: CameraBlockerBox[],
+): void {
   const rand = mulberry32(seed);
   for (let i = 0; i < 6; i++) {
     const du = (rand() - 0.5) * 3.2;
     const dv = (rand() - 0.5) * 2.4;
     if (rand() < 0.55) {
       const p = at(u + du, y, v + dv);
+      cams?.push({ x: p.x, z: p.z, hx: 0.38, hz: 0.38, rot: 0, y0: y - 0.3, y1: y + 0.95 });
       rod(b, 'wood', p, { x: p.x, y: y + 0.9, z: p.z }, 0.34, 8, YARD_PAINT.weathered, 0.3);
       rod(
         b,
@@ -482,12 +669,24 @@ export function stores(b: Buckets, u: number, v: number, y: number, seed: number
     } else {
       const s = 0.7 + rand() * 0.4;
       ubox(b, 'wood', u + du, y + s / 2, v + dv, s, s, s, YARD_PAINT.silver, rand() * 0.8);
+      // A box round the crate at any turn (half its diagonal).
+      const q = at(u + du, y, v + dv);
+      cams?.push({ x: q.x, z: q.z, hx: s * 0.71, hz: s * 0.71, rot: 0, y0: y - 0.3, y1: y + s + 0.05 });
     }
   }
 }
 
 /** Sails drying: canvas hung over a rope between two poles, sagging, and one spread on trestles. */
-export function sailsDrying(b: Buckets, u: number, v: number, y: number, len: number): void {
+export function sailsDrying(
+  b: Buckets,
+  u: number,
+  v: number,
+  y: number,
+  len: number,
+  cams?: CameraBlockerBox[],
+): void {
+  // The camera keeps out of the sheets (from their lowest hem to the line's posts' tops).
+  cams?.push({ ...at(u, y, v), hx: len / 2 + 0.15, hz: 0.25, rot: YAW_U, y0: y + 1, y1: y + 4.25 });
   const a = at(u - len / 2, y, v);
   const e = at(u + len / 2, y, v);
   for (const p of [a, e]) rod(b, 'wood', p, { x: p.x, y: y + 4.2, z: p.z }, 0.12, 6, YARD_PAINT.weathered);
@@ -517,6 +716,18 @@ export function sailsDrying(b: Buckets, u: number, v: number, y: number, len: nu
   }
 }
 
+/** A camera blocker round a hull (or its frames) at `scale`, its waterline middle at `o`, keel along u. */
+function hullBlocker(cams: CameraBlockerBox[], o: { u: number; y: number; v: number }, scale: number): void {
+  cams.push({
+    ...at(o.u, o.y, o.v),
+    hx: (BRIGANTINE_HALF_LENGTH + 0.4) * scale,
+    hz: halfBeamAt(0, 0.4) * 1.1 * scale,
+    rot: YAW_U,
+    y0: o.y + keelHeightAt(0) * scale - 0.2,
+    y1: o.y + sheerHeightAt(BRIGANTINE_HALF_LENGTH) * scale + 0.2,
+  });
+}
+
 /**
  * A ship's frames (keel, stem, sternpost and ribs, a few strakes low down) from the brigantine's
  * lines at `scale`, its origin (waterline, middle) at `o`, bow along +u (or −u with `flip`).
@@ -527,7 +738,9 @@ function hullFrames(
   scale: number,
   flip: boolean,
   strakes: number,
+  cams: CameraBlockerBox[],
 ): void {
+  hullBlocker(cams, o, scale);
   const dir = flip ? -1 : 1;
   const pu = (z: number) => o.u + dir * z * scale;
   const L = 11.4;
@@ -630,7 +843,7 @@ function shoresAndStaging(b: Buckets, c: Chamber, hullY: number): void {
 }
 
 /** A caisson: the floating timber-and-iron gate across a dock's mouth, its top a walkway. */
-function caisson(b: Buckets, c: Chamber): void {
+function caisson(b: Buckets, out: ShipyardOut, c: Chamber): void {
   const w = c.v1 - c.v0;
   const h = c.top - c.floor;
   ubox(
@@ -657,6 +870,7 @@ function caisson(b: Buckets, c: Chamber): void {
       YARD_PAINT.iron,
     );
   ubox(b, 'wood', c.u0 + 1.0, c.top - 0.08, (c.v0 + c.v1) / 2, 2.1, 0.14, w + 0.3, YARD_PAINT.silver);
+  out.decks.push(uvDeck(c.u0 - 0.05, c.u0 + 2.05, c.v0 - 0.15, c.v1 + 0.15, c.top - 0.01, true));
 }
 
 /**
@@ -670,6 +884,22 @@ function sheerlegs(b: Buckets, out: ShipyardOut, y: number): void {
     rod(b, 'wood', f, head, 0.42, 8, YARD_PAINT.weathered, 0.3);
     box(b, 'stone', f.x, y + 0.3, f.z, 1.6, 0.6, 1.6, YAW_U, YARD_PAINT.stone);
     out.circles.push({ x: f.x, z: f.z, r: 0.9, y0: y - 0.5, y1: y + 4, height: 4 });
+    // The camera keeps out of the leg: a short box for each stretch of it, up to the head.
+    const n = 10;
+    for (let k = 0; k < n; k++) {
+      const t = (k + 0.5) / n;
+      const y0 = f.y + (head.y - f.y) * (k / n);
+      const y1 = f.y + (head.y - f.y) * ((k + 1) / n);
+      out.cameraBoxes.push({
+        x: f.x + (head.x - f.x) * t,
+        z: f.z + (head.z - f.z) * t,
+        hx: 0.45 + Math.hypot(head.x - f.x, head.z - f.z) / n / 2,
+        hz: 0.45 + Math.hypot(head.x - f.x, head.z - f.z) / n / 2,
+        rot: 0,
+        y0: y0 - 0.45,
+        y1: y1 + 0.45,
+      });
+    }
   }
   const anchor = at(186, ground(186, DOCKS.v[1]) + 0.4, DOCKS.v[1]);
   rope(b, { x: head.x, y: head.y + 0.3, z: head.z }, anchor, 0.8, 0.06, YARD_PAINT.rope, 8);
@@ -705,12 +935,71 @@ function sheerlegs(b: Buckets, out: ShipyardOut, y: number): void {
   );
   box(b, 'wood', hook.x, hook.y + 0.6, hook.z, 0.5, 0.8, 0.3, YAW_U, YARD_PAINT.tar);
   box(b, 'metal', hook.x, hook.y, hook.z, 0.12, 0.6, 0.12, YAW_U, YARD_PAINT.iron);
-  // The capstan that hauls the falls, by the legs' feet.
-  const cap = at(176, y, DOCKS.v[1]);
-  rod(b, 'wood', cap, { x: cap.x, y: y + 1.0, z: cap.z }, 0.45, 10, YARD_PAINT.tar, 0.38);
-  for (const a of [0, Math.PI / 2])
-    box(b, 'wood', cap.x, y + 0.85, cap.z, 3.2, 0.12, 0.12, YAW_U + a, YARD_PAINT.weathered);
-  out.circles.push({ x: cap.x, z: cap.z, r: 0.6, y0: y - 0.5, y1: y + 1.2, height: 1.2 });
+  // The capstan that hauls the falls, between the legs' feet: a waisted drum with the fall's turns
+  // on it, a round head with four bars standing out of it, on a low timber base.
+  const cap = at(174, y, DOCKS.v[1]);
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y, z: cap.z },
+    { x: cap.x, y: y + 0.12, z: cap.z },
+    0.75,
+    10,
+    YARD_PAINT.weathered,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.12, z: cap.z },
+    { x: cap.x, y: y + 0.6, z: cap.z },
+    0.42,
+    10,
+    YARD_PAINT.tar,
+    0.32,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.6, z: cap.z },
+    { x: cap.x, y: y + 0.92, z: cap.z },
+    0.32,
+    10,
+    YARD_PAINT.tar,
+    0.4,
+  );
+  rod(
+    b,
+    'wood',
+    { x: cap.x, y: y + 0.92, z: cap.z },
+    { x: cap.x, y: y + 1.12, z: cap.z },
+    0.5,
+    10,
+    YARD_PAINT.weathered,
+  );
+  rod(
+    b,
+    'rope',
+    { x: cap.x, y: y + 0.4, z: cap.z },
+    { x: cap.x, y: y + 0.66, z: cap.z },
+    0.38,
+    10,
+    YARD_PAINT.rope,
+  );
+  for (let k = 0; k < 4; k++) {
+    const a = YAW_U + (k * Math.PI) / 2 + Math.PI / 4;
+    const r0 = 0.45;
+    const r1 = 1.5;
+    rod(
+      b,
+      'wood',
+      { x: cap.x + Math.cos(a) * r0, y: y + 1.02, z: cap.z - Math.sin(a) * r0 },
+      { x: cap.x + Math.cos(a) * r1, y: y + 1.0, z: cap.z - Math.sin(a) * r1 },
+      0.045,
+      5,
+      YARD_PAINT.oak,
+    );
+  }
+  out.circles.push({ x: cap.x, z: cap.z, r: 0.8, y0: y - 0.5, y1: y + 1.2, height: 1.2 });
 }
 
 /** A timber jib crane on a post: a braced jib, its fall and hook, a winch at its foot. */
@@ -745,6 +1034,30 @@ function jibCrane(
     YARD_PAINT.rope,
   );
   out.circles.push({ x: p.x, z: p.z, r: 0.8, y0: y - 0.5, y1: y + 2, height: 2 });
+  // The camera keeps out of the post to its top, the jib and its brace.
+  const dx = jibEnd.x - p.x;
+  const dz = jibEnd.z - p.z;
+  const len = Math.hypot(dx, dz);
+  const rot = Math.atan2(-dz, dx);
+  out.cameraBoxes.push({ x: p.x, z: p.z, hx: 0.45, hz: 0.45, rot: 0, y0: y - 0.3, y1: y + h + 0.1 });
+  out.cameraBoxes.push({
+    x: p.x + dx * 0.5,
+    z: p.z + dz * 0.5,
+    hx: len / 2 + 0.2,
+    hz: 0.25,
+    rot,
+    y0: y + h - 1,
+    y1: y + h + 0.05,
+  });
+  out.cameraBoxes.push({
+    x: p.x + dx * 0.28,
+    z: p.z + dz * 0.28,
+    hx: len * 0.28,
+    hz: 0.2,
+    rot,
+    y0: y + h - 3.5,
+    y1: y + h - 0.4,
+  });
 }
 
 /** A bollard on a quay's edge. */
@@ -783,6 +1096,7 @@ function quay(b: Buckets, out: ShipyardOut): void {
   // The head: a round-ended pier head, two courses.
   const len = q.u1 - q.u0;
   ubox(b, 'paving', (q.u0 + q.u1) / 2, q.top - 0.1, q.v, len + 0.2, 0.2, q.half * 2 + 0.2, YARD_PAINT.paving);
+  out.decks.push(uvDeck(q.u0 - 0.1, q.u1 + 0.1, q.v - q.half - 0.1, q.v + q.half + 0.1, q.top, false));
   // Fenders down the north face every 6 m, and a rubbing timber along it.
   const face = q.v - q.half - 0.18;
   ubox(b, 'wood', (q.u0 + q.u1) / 2 - 10, q.top - 0.55, face, len - 30, 0.32, 0.3, YARD_PAINT.tar);
@@ -802,14 +1116,27 @@ function quay(b: Buckets, out: ShipyardOut): void {
   // A lamp at the head, a crane and stores at the root.
   const lamp = at(q.u0 + 1.5, q.top, q.v);
   rod(b, 'wood', lamp, { x: lamp.x, y: q.top + 4.2, z: lamp.z }, 0.14, 6, YARD_PAINT.tar);
-  const g = box(b, 'glow', lamp.x, q.top + 4.0, lamp.z, 0.3, 0.4, 0.3, YAW_U, 0xffffff);
-  lanternPaint(g);
-  cone(b, 'metal', lamp.x, q.top + 4.2, lamp.z, 0.27, 0.22, 6, YARD_PAINT.iron);
+  const lampTop = lampHead(b, b, {
+    x: lamp.x,
+    y: q.top + 4.0,
+    z: lamp.z,
+    w: 0.3,
+    h: 0.4,
+    yaw: YAW_U,
+    capR: 0.27,
+    capH: 0.22,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(lampTop.glass);
   jibCrane(b, out, q.u1 - 16, q.v + 2, q.top, -Math.PI / 2 - 0.4, 7);
-  stores(b, q.u1 - 10, q.v + 1.5, q.top, 0x51);
+  stores(b, q.u1 - 10, q.v + 1.5, q.top, 0x51, out.cameraBoxes);
   ropeCoil(b, q.u0 + 18, q.v - 2.6, q.top);
   ropeCoil(b, q.u0 + 42, q.v - 2.6, q.top, 0.36);
-  // Steps down to the beach at its root.
+  // Steps down to the beach at its root (walked as a ramp to the sand).
+  const sand = ground(q.u1 + 2.6, q.v);
+  out.decks.push(
+    uvDeck(q.u1, q.u1 + 2.6, q.v - q.half, q.v + q.half, q.top, false, Math.min(q.top, sand + 0.05)),
+  );
   for (let k = 0; k < 4; k++) {
     const y = q.top - 0.25 - k * 0.38;
     const g0 = ground(q.u1 + 1 + k * 0.6, q.v);
@@ -829,7 +1156,7 @@ function quay(b: Buckets, out: ShipyardOut): void {
 }
 
 /** Two breakwater arms flanking the cut's mouth into the cove. */
-function cutMouth(b: Buckets): void {
+function cutMouth(b: Buckets, out: ShipyardOut): void {
   for (const side of [-1, 1]) {
     const v = CANAL.v + side * (CANAL.half + WALL + 1.2);
     for (let u = -40; u < -26; u += 7) {
@@ -837,13 +1164,24 @@ function cutMouth(b: Buckets): void {
       ubox(b, 'stone', u + 3.5, (bed + 2.0) / 2, v, 7, 2.0 - bed, 3, YARD_PAINT.stone);
     }
     ubox(b, 'paving', -33, 2.1, v, 14.2, 0.2, 3.2, YARD_PAINT.paving);
+    out.decks.push(uvDeck(-40.1, -25.9, v - 1.6, v + 1.6, 2.2, false));
   }
 }
 
 /** Stone steps up a towpath where the copings step down (u: the step's foot, rising toward +u). */
-function steps(b: Buckets, u: number, v: number, y0: number, y1: number, width: number): void {
+function steps(
+  b: Buckets,
+  out: ShipyardOut,
+  u: number,
+  v: number,
+  y0: number,
+  y1: number,
+  width: number,
+): void {
   const n = Math.max(1, Math.round((y1 - y0) / 0.3));
   const rise = (y1 - y0) / n;
+  // Walked as a ramp from the step's foot to its top tread.
+  out.decks.push(uvDeck(u, u + n * 0.36, v - width / 2, v + width / 2, y0, false, y1));
   for (let k = 0; k < n; k++) {
     const y = y0 + rise * (k + 1);
     ubox(
@@ -877,9 +1215,14 @@ export function* buildShipyard(
     shipObstacles: [],
     dockHull: { ...at(DOCKS.u0 + 20, DOCKS.floor + DOCKS.blocks + 2.75, DOCKS.v[1]), heading: HEADING_U },
     berth: { x: berth.x, z: berth.z, heading: HEADING_U + Math.PI },
+    decks: [],
+    lamps: [],
   };
   CHAMBERS.forEach((c, i) => chamberWalls(b, out, c, i));
   yield;
+  // The works' apron (the terrain's skin over the pads, apron.ts) is walked as it's drawn.
+  for (const r of yield* worksApronSteps())
+    out.decks.push(uvDeck(r.u0, r.u1, r.v0, r.v1, r.y + APRON_LIFT, false));
   const yard = PADS.yard.y;
   // The lock flight's gates (upstream first), its lamps and its towpath steps.
   const tops = CHAMBERS.filter((c) => !c.name.startsWith('dock') && c.name !== 'basin');
@@ -887,15 +1230,60 @@ export function* buildShipyard(
     const down = tops.find((c) => Math.abs(c.u1 - u) < 0.01);
     const up = CHAMBERS.find((c) => Math.abs(c.u0 - u) < 0.01 && !c.name.startsWith('dock'));
     if (!down) return;
-    mitreGate(b, u, down.floor, down.top, up?.top ?? down.top);
-    lockLamp(b, u + 3, CANAL.v - CANAL.half - WALL + 0.4, down.top, i % 2 ? 'green' : 'red');
+    mitreGate(b, out, u, down.floor, down.top, up?.top ?? down.top);
+    lockLamp(
+      b,
+      out,
+      `lock:${i}`,
+      u + 3,
+      CANAL.v - CANAL.half - WALL + 0.4,
+      down.top,
+      i % 2 ? 'green' : 'red',
+    );
   });
-  steps(b, 50.2, CANAL.v + CANAL.half + WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
-  steps(b, 50.2, CANAL.v - CANAL.half - WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
+  // The Sea Gate across the cut's mouth, shut, and steps down from Lock 2's copings to the cut's.
+  const cutIndex = CHAMBERS.findIndex((c) => c.name === 'cut');
+  const cut = CHAMBERS[cutIndex]!;
+  const lock2Index = CHAMBERS.findIndex((c) => c.name === 'lock2');
+  mitreGate(b, out, SEA_GATE_U, cut.floor, cut.top, cut.top);
+  // (Only if the cut's copings are lower than Lock 2's.)
+  for (const side of CHAMBERS[lock2Index]!.top - cut.top > 0.1 ? [1, -1] : [])
+    steps(
+      b,
+      out,
+      cut.u1 - 1.8,
+      CANAL.v + side * (CANAL.half + WALL / 2),
+      cut.top + cutIndex * 0.012,
+      CHAMBERS[lock2Index]!.top + lock2Index * 0.012,
+      WALL - 0.2,
+    );
+  steps(b, out, 50.2, CANAL.v + CANAL.half + WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
+  steps(b, out, 50.2, CANAL.v - CANAL.half - WALL / 2, PADS.locks.y + 0.2, yard + 0.2, WALL - 0.2);
   yield;
   // The docks: caissons, keel blocks, the hull's shores and staging in Dock 2, frames in Dock 3.
   const docks = CHAMBERS.filter((c) => c.name.startsWith('dock'));
-  for (const c of docks) caisson(b, c);
+  for (const c of docks) {
+    caisson(b, out, c);
+    // The camera keeps out of the dry docks' side and head walls (you walk their floors too).
+    const len = c.u1 - c.u0;
+    for (const v of [c.v0 - WALL / 2, c.v1 + WALL / 2])
+      out.cameraBoxes.push({
+        ...xzOf(c.u0 + len / 2, v),
+        hx: len / 2 + WALL,
+        hz: WALL / 2,
+        rot: YAW_U,
+        y0: c.floor - 0.5,
+        y1: c.top,
+      });
+    out.cameraBoxes.push({
+      ...xzOf(c.u1 + WALL / 2, (c.v0 + c.v1) / 2),
+      hx: WALL / 2,
+      hz: (c.v1 - c.v0) / 2,
+      rot: YAW_U,
+      y0: c.floor - 0.5,
+      y1: c.top,
+    });
+  }
   keelBlocks(b, DOCKS.u0 + 9, DOCKS.u1 - 9, DOCKS.v[1], DOCKS.floor, DOCKS.blocks);
   keelBlocks(b, DOCKS.u0 + 9, DOCKS.u1 - 9, DOCKS.v[2], DOCKS.floor, DOCKS.blocks);
   shoresAndStaging(b, docks[1]!, out.dockHull.y);
@@ -906,7 +1294,10 @@ export function* buildShipyard(
     1,
     false,
     lite ? 1 : 3,
+    out.cameraBoxes,
   );
+  // The hull in Dock 2 (index.ts draws it at `dockHull`).
+  hullBlocker(out.cameraBoxes, { u: DOCKS.u0 + 20, y: out.dockHull.y, v: DOCKS.v[1] }, 1);
   yield;
   // The sheerlegs over the dock heads, cranes on the basin's quays.
   sheerlegs(b, out, yard);
@@ -925,7 +1316,14 @@ export function* buildShipyard(
     ubox(b, 'wood', u, y + 0.02, s.v, 0.3, 0.16, 4.6, YARD_PAINT.weathered);
   }
   const slipKeel = s.topY - (s.u1 - (s.u1 - 14)) / 12 + 0.8;
-  hullFrames(b, { u: s.u1 - 14, y: slipKeel + 1.6 * 0.55, v: s.v }, 0.55, true, lite ? 1 : 5);
+  hullFrames(
+    b,
+    { u: s.u1 - 14, y: slipKeel + 1.6 * 0.55, v: s.v },
+    0.55,
+    true,
+    lite ? 1 : 5,
+    out.cameraBoxes,
+  );
   // The cradle's poppets under it.
   for (let u = s.u1 - 20; u <= s.u1 - 8; u += 3)
     ubox(b, 'wood', u, s.topY - (s.u1 - u) / 12 + 0.5, s.v, 0.4, 0.8, 3.4, YARD_PAINT.tar);
@@ -937,6 +1335,9 @@ export function* buildShipyard(
   ubox(b, 'stone', 152, yard + 1.6, -27, 6, 3.2, 5, YARD_PAINT.stone);
   ubox(b, 'wood', 152, yard + 3.35, -27, 6.6, 0.3, 5.6, YARD_PAINT.tar);
   ubox(b, 'stone', 154, yard + 4.6, -28.5, 1.2, 3.2, 1.2, YARD_PAINT.wetStone);
+  out.colliders.push({ ...xzOf(152, -27), hx: 3.1, hz: 2.6, rot: YAW_U, height: 3.5 });
+  out.cameraBoxes.push({ ...xzOf(152, -27), hx: 3.4, hz: 2.9, rot: YAW_U, y0: yard - 0.5, y1: yard + 3.6 });
+  out.cameraBoxes.push({ ...xzOf(154, -28.5), hx: 0.7, hz: 0.7, rot: YAW_U, y0: yard, y1: yard + 6.3 });
   // The steam box: a long timber box on trestles by the saw shed, its boiler at one end.
   ubox(b, 'wood', 66, yard + 1.2, -36, 10, 0.8, 0.9, YARD_PAINT.tar);
   const boiler = at(60, yard, -36);
@@ -949,13 +1350,29 @@ export function* buildShipyard(
   logPile(b, 118, -24, yard, 9, 13);
   logPile(b, 172, -38, yard, 8, 14);
   timberStack(b, 172, -84, yard, 6, 5, 15);
+  // The camera keeps out of the stacks and piles as drawn (the logs run past the walker's boxes).
+  for (const [u, v, lu, hz, top] of [
+    [84, -26, 7, 1.35, 0.27 + 6 * 0.17],
+    [108, -27, 6, 1.35, 0.27 + 4 * 0.17],
+    [118, -24, 9, 1.75, 1.8],
+    [172, -38, 8, 1.75, 1.8],
+    [172, -84, 6, 1.35, 0.27 + 5 * 0.17],
+  ] as const)
+    out.cameraBoxes.push({
+      ...xzOf(u, v),
+      hx: lu / 2 + 0.1,
+      hz,
+      rot: YAW_U,
+      y0: yard - 0.3,
+      y1: yard + top + 0.05,
+    });
   ropeCoil(b, 90, -33.5, yard);
   ropeCoil(b, 92, -33.2, yard, 0.36);
   ropeCoil(b, 140, -71, yard + 0.2);
-  stores(b, 122, -31, yard, 16);
-  stores(b, 60, -84, yard, 17);
-  sailsDrying(b, 160, -22.5, yard, 13);
-  if (!lite) sailsDrying(b, 34, -50, PADS.locks.y, 10);
+  stores(b, 122, -31, yard, 16, out.cameraBoxes);
+  stores(b, 60, -84, yard, 17, out.cameraBoxes);
+  sailsDrying(b, 160, -22.5, yard, 13, out.cameraBoxes);
+  if (!lite) sailsDrying(b, 34, -50, PADS.locks.y, 10, out.cameraBoxes);
   for (const [u, v] of [
     [84, -26],
     [108, -27],
@@ -965,7 +1382,7 @@ export function* buildShipyard(
   yield;
   // The gatehouse by the lower lock (the lock keeper's: a stone ground floor, a timber upper storey).
   const gate = at(26, PADS.locks.y, -74.5);
-  addVerandaHouse(b, kit, {
+  const gatehouse = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 4 },
     storeys: 2,
     origin: { x: gate.x, y: gate.y, z: gate.z },
@@ -992,9 +1409,10 @@ export function* buildShipyard(
     y0: gate.y - 0.5,
     y1: gate.y + 6.5,
   });
+  shadeBlockers(gatehouse, out.cameraBoxes);
   // The mould loft at the yard's inland corner, where the hulls' lines are drawn out full size.
   const loft = at(169.5, yard, -28.5);
-  addVerandaHouse(b, kit, {
+  const mouldLoft = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 8 },
     storeys: 2,
     origin: { x: loft.x, y: loft.y, z: loft.z },
@@ -1021,6 +1439,7 @@ export function* buildShipyard(
     y0: loft.y - 0.5,
     y1: loft.y + 7,
   });
+  shadeBlockers(mouldLoft, out.cameraBoxes);
   // The yard's blank sign boards: over the yard gate, and at each dock's head.
   signBoard(b, 54, -24, yard, 2.6);
   for (const v of DOCKS.v) signBoard(b, DOCKS.u1 + 2.6, v + 4, yard, 1.6);
@@ -1028,7 +1447,7 @@ export function* buildShipyard(
   yardDressing(b, out, lite);
   yield;
   quay(b, out);
-  cutMouth(b);
+  cutMouth(b, out);
   return out;
 }
 
@@ -1217,9 +1636,9 @@ function yardDressing(b: Buckets, out: ShipyardOut, lite: boolean): void {
   // (On the terrace's north strip: the south strip is the towpath down to the beach, kept clear.)
   shed(b, out, 43, -73.5, PADS.locks.y, 9, 5.5, 3.4, YARD_PAINT.weathered);
   shed(b, out, 15.5, -73.5, PADS.locks.y, 5, 5, 3, YARD_PAINT.tar);
-  stores(b, 15.5, -73.5, PADS.locks.y, 0x91);
+  stores(b, 15.5, -73.5, PADS.locks.y, 0x91, out.cameraBoxes);
   // A small boat on chocks in the boat shed.
-  hullFrames(b, { u: 43, y: PADS.locks.y + 0.9, v: -73.5 }, 0.26, false, lite ? 1 : 7);
+  hullFrames(b, { u: 43, y: PADS.locks.y + 0.9, v: -73.5 }, 0.26, false, lite ? 1 : 7, out.cameraBoxes);
   if (!lite) {
     offcuts(b, 38, -75.5, PADS.locks.y, 5, 9);
     ropeCoil(b, 20, -70.5, PADS.locks.y, 0.5);
@@ -1232,7 +1651,8 @@ function xzOf(u: number, v: number): { x: number; z: number } {
 
 /** A blank board on two posts (its words are painted from the course pack later). */
 export function signBoard(b: Buckets, u: number, v: number, y: number, w: number): void {
-  for (const dv of [-w / 2, w / 2]) {
+  // The posts stand just past the board's ends, so neither crosses its words on either face.
+  for (const dv of [-(w / 2 + 0.19), w / 2 + 0.19]) {
     const p = at(u, y, v + dv);
     rod(b, 'wood', p, { x: p.x, y: y + 2.4, z: p.z }, 0.08, 6, YARD_PAINT.tar);
   }

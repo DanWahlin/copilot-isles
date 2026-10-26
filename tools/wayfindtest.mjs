@@ -6,11 +6,11 @@
 //  2. Every sea lane the chart joins has deep water for the brigantine along it and to either side.
 //  3. One sitting: board at Anchorage, sail to Port Meridian (the compass's route, followed with the
 //     helm), dock, and the gangway's "Board your ship" is there on Meridian's quay; the same on to
-//     Thousand-Bough; and after a chart jump back. Each time the compass ashore points at the gangway
+//     Thousand-Bough, and on to Keelhaven once its Seal is won; and after a chart jump back. Each time the compass ashore points at the gangway
 //     once the step says to board, and every quest step of every island has a compass target.
 //  4. In irons by Port Meridian's harbour, Wingman's tacking tip plays once a voyage.
 // node tools/wayfindtest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--only=legs,sea,sitting,tack]
-//                            [--webgl] [--verbose]
+//                            [--islands=<id,…>] [--webgl] [--verbose]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 import { ISLAND_IDS, OPEN_FLAGS, STREAMED } from './lib/islands.mjs';
@@ -21,6 +21,8 @@ const out = opt.out || 'tmp/shots/wayfind';
 mkdirSync(out, { recursive: true });
 const only = opt.only ? String(opt.only).split(',') : ['legs', 'sea', 'sitting', 'tack'];
 const tag = opt.webgl ? 'gl' : 'gpu';
+/** `--islands=keelhaven,…`: walk only these islands' legs. */
+const islands = opt.islands ? String(opt.islands).split(',') : ISLAND_IDS;
 
 const browser = await launchChrome();
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -76,7 +78,7 @@ let hitchesChecked = null;
 
 // ---- 1. Walking legs --------------------------------------------------------------------------
 if (only.includes('legs')) {
-  for (const id of ISLAND_IDS) {
+  for (const id of islands) {
     await ashore(id);
     const r = await S(async (id) => {
       const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
@@ -320,6 +322,21 @@ if (only.includes('sitting')) {
         await mark('boarded at Thousand-Bough');
         await arrive('thousand-bough', berths['thousand-bough']);
         await mark('docked at Thousand-Bough again');
+        // Thousand-Bough's Seal: the compass sends you on to Keelhaven (the next morning on the way).
+        const tb = await pack('thousand-bough');
+        await quests(tb.filter((q) => !q.optional).map((q) => [q.id, 'done']));
+        await page.waitForTimeout(400);
+        if (await boardByKeys('thousand-bough-sealed')) {
+          h = await hud();
+          if (!/Keelhaven/.test(h.name))
+            fail(`sailing from Thousand-Bough sealed: compass on "${h.compass}"`);
+          await arrive('keelhaven', berths.keelhaven);
+          await mark('docked at Keelhaven');
+          await boardByKeys('keelhaven');
+          await mark('boarded at Keelhaven');
+          await arrive('keelhaven', berths.keelhaven);
+          await mark('docked at Keelhaven again');
+        }
       }
     }
   }

@@ -73,6 +73,9 @@ export class Hud {
   private readonly toastEl: HTMLDivElement;
   private readonly help: HTMLDivElement;
   private readonly fadeEl: HTMLDivElement;
+  private readonly dawnEl: HTMLDivElement;
+  private readonly dawnCaption: HTMLDivElement;
+  private dawnShown = -1;
   private readonly term: HTMLDivElement;
   private readonly termTitle: HTMLSpanElement;
   private readonly termBody: HTMLDivElement;
@@ -141,6 +144,8 @@ export class Hud {
     this.toastEl = el('div', 'hud-toast');
     this.help = el('div', 'hud-help');
     this.fadeEl = el('div', 'hud-fade');
+    this.dawnEl = el('div', 'hud-dawn');
+    this.dawnCaption = text('div', 'hud-dawn-caption', '');
     this.term = el('div', 'hud-term');
     const bar = el('div', 'hud-term-bar');
     bar.append(el('i', ''), el('i', ''), el('i', ''));
@@ -211,6 +216,8 @@ export class Hud {
       this.cine,
       this.label.el,
       this.label.live,
+      this.dawnEl,
+      this.dawnCaption,
       this.fadeEl,
     );
     parent.append(this.root);
@@ -467,6 +474,21 @@ export class Hud {
     this.termBody.replaceChildren(
       ...lines.map((l) => text('div', l.tone ? `t-${l.tone}` : '', l.text || '\u00a0')),
     );
+  }
+
+  /**
+   * A dim dawn-coloured veil over the world (0-1, set each frame) with a small caption at its height:
+   * the night passing at sea between two islands' light (not a black cut).
+   */
+  setDawn(amount: number, caption: string): void {
+    const a = Math.round(amount * 100) / 100;
+    if (a === this.dawnShown) return;
+    this.dawnShown = a;
+    this.dawnEl.style.opacity = String(a);
+    this.dawnEl.classList.toggle('show', a > 0);
+    this.dawnCaption.classList.toggle('show', a > 0);
+    if (this.dawnCaption.textContent !== caption) this.dawnCaption.textContent = caption;
+    this.dawnCaption.style.opacity = String(Math.max(0, Math.min(1, (a - 0.3) / 0.3)));
   }
 
   /** Fades the screen to (or from) black; resolves when the fade finishes. */

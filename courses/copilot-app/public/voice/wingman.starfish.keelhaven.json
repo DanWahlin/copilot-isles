@@ -1,77 +1,72 @@
 {
   "id": "wingman.starfish.keelhaven",
   "speaker": "Wingman",
-  "text": "Five starfish on Keelhaven. One's up by the falls, if you fancy a walk.",
+  "text": "And five starfish are hidden around Keelhaven. Your count's in the top right.",
   "words": [
     {
-      "word": "Five",
+      "word": "And",
       "start": 0,
-      "end": 0.32
+      "end": 0.256
+    },
+    {
+      "word": "five",
+      "start": 0.256,
+      "end": 0.72
     },
     {
       "word": "starfish",
-      "start": 0.32,
-      "end": 0.933
+      "start": 0.72,
+      "end": 1.42
     },
     {
-      "word": "on",
-      "start": 0.933,
-      "end": 1.12
+      "word": "are",
+      "start": 1.42,
+      "end": 1.634
+    },
+    {
+      "word": "hidden",
+      "start": 1.634,
+      "end": 1.897
+    },
+    {
+      "word": "around",
+      "start": 1.897,
+      "end": 2.293
     },
     {
       "word": "Keelhaven",
-      "start": 1.12,
-      "end": 2.49
+      "start": 2.293,
+      "end": 3.28
     },
     {
-      "word": "One's",
-      "start": 2.49,
-      "end": 3.013
+      "word": "Your",
+      "start": 3.28,
+      "end": 3.653
     },
     {
-      "word": "up",
-      "start": 3.013,
-      "end": 3.147
-    },
-    {
-      "word": "by",
-      "start": 3.147,
-      "end": 3.24
-    },
-    {
-      "word": "the",
-      "start": 3.24,
-      "end": 3.44
-    },
-    {
-      "word": "falls",
-      "start": 3.44,
+      "word": "count's",
+      "start": 3.653,
       "end": 4.053
     },
     {
-      "word": "if",
+      "word": "in",
       "start": 4.053,
       "end": 4.18
     },
     {
-      "word": "you",
+      "word": "the",
       "start": 4.18,
-      "end": 4.307
+      "end": 4.3
     },
     {
-      "word": "fancy",
-      "start": 4.307,
-      "end": 4.68
+      "word": "top",
+      "start": 4.3,
+      "end": 4.547
     },
     {
-      "word": "a",
-      "start": 4.68,
-      "end": 4.8
-    },
-    {
-      "word": "walk",
-      "start": 4.8,
-      "end": 5.05
+      "word": "right",
+      "start": 4.547,
+      "end": 4.797
     }
   ]
 }

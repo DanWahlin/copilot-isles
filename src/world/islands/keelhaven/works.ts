@@ -43,8 +43,13 @@ export const WALL = 2.4;
 export const PADS = {
   /** The lock terrace: the lower lock, the pound and the towpath down to the beach. */
   locks: { u0: 10, u1: 52, v0: -78, v1: -42, y: 3.4, blend: 6 },
+  /**
+   * The cut's banks, level with the terrace, out over the beach to the sea (past them its walls stand
+   * in the sea up to the Sea Gate).
+   */
+  cut: { u0: -14, u1: 10, v0: -74, v1: -46, y: 3.4, blend: 6 },
   /** The yard: the basin, the docks, the sheerlegs and the workshops (levelled after the terrace). */
-  yard: { u0: 52, u1: 176, v0: -90, v1: -20, y: 5, blend: 7 },
+  yard: { u0: 52, u1: 176, v0: -93, v1: -20, y: 5, blend: 7 },
   /** The Gate Light's bench on the North Head's ridge (town.ts `GATE_LIGHT`). */
   light: { u0: -240, u1: -218, v0: -166, v1: -140, y: 44, blend: 7 },
 } as const satisfies Record<string, Pad>;
@@ -81,8 +86,9 @@ export const CHAMBERS: readonly Chamber[] = [
   canal('pound', 36, 52, 0.9, 3.6, 2.6),
   // The lower lock stands emptied to the cove's level: the flight's two waters show either side of its gate.
   canal('lock2', 16, 36, -0.4, 3.6, 0.7),
-  // The cut from the lower gates to the cove: at sea level (the sea's own water).
-  canal('cut', -26, 16, -2.2, 2.2, null),
+  // The cut from the lower gates to the cove: at sea level (the sea's own water), its walls as high as
+  // Lock 2's, so the terrace runs level along both to the beach.
+  canal('cut', -26, 16, -2.2, 3.6, null),
   ...DOCKS.v.map((v, i) => ({
     name: `dock${i + 1}`,
     u0: DOCKS.u0,
@@ -98,6 +104,8 @@ export const CHAMBERS: readonly Chamber[] = [
 
 /** Where the canal's gates stand (u), each pair of mitre leaves across the canal, upstream first. */
 export const GATES = [72, 52, 36, 16] as const;
+/** The Sea Gate: shut mitre leaves across the cut's mouth (practice hulls aren't merged). */
+export const SEA_GATE_U = -24;
 export { CANAL };
 
 /**
@@ -105,13 +113,16 @@ export { CANAL };
  * the ship lies along its north face, bow to the cove's mouth.
  */
 export const QUAY = { u0: -98, u1: 8, v: 60, half: 4.5, top: 2.2 } as const;
-/** The ship's berth (cove frame) and the side it lies on (its port side to the quay). */
-export const BERTH = { u: -70, v: QUAY.v - QUAY.half - 4.65 - 3.3 } as const;
+/**
+ * The ship's berth (cove frame): her middle 4.65 m off the quay's face, as at Thousand-Bough (the
+ * gangway's foot then lands on the deck), port side to the quay.
+ */
+export const BERTH = { u: -66, v: QUAY.v - QUAY.half - 4.65 } as const;
 /** The berth's dredged pocket: the cove's floor taken down to `depth` alongside the quay. */
 export const BERTH_POCKET = {
   u0: -104,
   u1: -26,
-  v0: BERTH.v - 10,
+  v0: QUAY.v - QUAY.half - 17.95,
   v1: QUAY.v,
   depth: -5.6,
   blend: 12,
@@ -242,3 +253,201 @@ export function worksPadAt(x: number, z: number): number {
   for (const p of Object.values(PADS) as Pad[]) w = Math.max(w, 1 - smoothstep(0, 3, outside(p, F.u, F.v)));
   return w;
 }
+
+/**
+ * The pad (u, v) lies flat on, if any: inside one pad and clear of every other pad's blend (unless it's
+ * at the same level), the slipway's ramp and the berth's pocket. Its y, or null.
+ */
+export function padFlatAt(u: number, v: number): number | null {
+  // In the carve's order: a pad (u, v) is inside sets the level; another's blend after it bends it.
+  let y = NaN;
+  for (const p of Object.values(PADS) as Pad[]) {
+    const d = outside(p, u, v);
+    if (d === 0) y = p.y;
+    else if (d < p.blend && y !== p.y) y = NaN;
+  }
+  if (Number.isNaN(y)) return null;
+  const s = SLIPWAY;
+  if (outside({ u0: s.u0, u1: s.u1, v0: s.v - s.half, v1: s.v + s.half }, u, v) < 4) return null;
+  if (outside(BERTH_POCKET, u, v) < BERTH_POCKET.blend) return null;
+  return y;
+}
+
+/** The chamber nearest (u, v) (0 inside it) and how far (m) it is. */
+function nearestChamber(u: number, v: number): { c: Chamber; d: number } {
+  let best = CHAMBERS[0]!;
+  let bd = Infinity;
+  for (const c of CHAMBERS) {
+    const d = outside(c, u, v);
+    if (d < bd) {
+      bd = d;
+      best = c;
+    }
+  }
+  NEAREST.c = best;
+  NEAREST.d = bd;
+  return NEAREST;
+}
+const NEAREST: { c: Chamber; d: number } = { c: CHAMBERS[0]!, d: 0 };
+
+/** How far under the sea (m) the ground under the cut's arms is pinned (`worksPin`). */
+const SEA_SKIRT = -1.8;
+
+/**
+ * How far past a wall's outer face a terrain level with vertices `step` m apart keeps the chamber's
+ * floor: so far that no triangle reaches from a vertex in the chamber to one at the pad's level, which
+ * would stand out of the chamber's floor or water as a bank. The ramp up to the pad then lies past the
+ * wall, under the works' apron (`worksApron`). Capped for the coarsest far levels.
+ */
+export function floorMargin(step: number): number {
+  return Math.min(10, Math.max(0, step * Math.SQRT2 - WALL + 0.05));
+}
+
+/**
+ * The height every terrain level's vertex takes in the works, or null to keep the baked ground
+ * (`TerrainMeshOptions.pin`): a chamber's floor inside it, under its walls and, on the apron, out to
+ * `floorMargin(step)` past them; the pad's own level on the rest of a flat pad. So no level of detail
+ * puts a bank in a chamber, a saw-tooth along a wall's foot or a prefiltered trench round it; the
+ * ramp from floor to pad is under the walls and the apron, which hides it.
+ */
+export function worksPin(x: number, z: number, step: number): number | null {
+  toFrame(x, z, F);
+  const { u, v } = F;
+  if (u < -50 || u > 200 || v < -110 || v > -10) return null;
+  const { c, d } = nearestChamber(u, v);
+  const pad = padFlatAt(u, v);
+  if (d < WALL) {
+    // Under a sea-level chamber's walls where no pad is (the cut's arms past its banks): just under
+    // the sea, so the ground neither stands out of the water inside nor drops into a trench outside.
+    if (d > 0 && pad === null && c.water === null && c.floor < 0) return SEA_SKIRT;
+    return c.floor;
+  }
+  if (pad === null) return null;
+  return d < WALL + floorMargin(step) ? c.floor : pad;
+}
+
+/** A flat rectangle of the works' apron (cove frame) at `y`. */
+export interface ApronRect extends UvRect {
+  readonly y: number;
+}
+
+/** The apron's cells (m): its rectangles' edges fall on this grid. */
+const APRON_CELL = 0.5;
+/**
+ * How far (m) the apron reaches in under a wall's coping from its outer face: more than a cell, so on
+ * the cell grid its edge always lies under the coping (which reaches 0.08 past the face) and leaves
+ * no gap at the wall's foot, for the eye or the walker (the coping's deck is higher, so it's walked on).
+ */
+const APRON_TUCK = 0.9;
+
+/**
+ * The works' apron: every flat pad's ground outside the chambers' walls, as rectangles in the cove
+ * frame, each a little over its pad (a flat skin of ground in the terrain's own look). It covers the
+ * ramp the terrain makes from a chamber's floor up to the pad past its walls (`worksPin`), whatever
+ * the level of detail.
+ */
+export function worksApron(): readonly ApronRect[] {
+  const steps = worksApronSteps();
+  let r = steps.next();
+  while (!r.done) r = steps.next();
+  return r.value;
+}
+
+let apron: readonly ApronRect[] | null = null;
+
+/** `worksApron` a few rows a step (it takes ~0.1 s whole), made once and kept. */
+export function* worksApronSteps(): Generator<void, readonly ApronRect[], void> {
+  if (apron) return apron;
+  const u0 = -50;
+  const u1 = 190;
+  const v0 = -110;
+  const v1 = -10;
+  const nu = Math.round((u1 - u0) / APRON_CELL);
+  const nv = Math.round((v1 - v0) / APRON_CELL);
+  // Each row's runs of cells at one level, then rows with the same runs merged into rectangles.
+  const open = new Map<string, ApronRect & { rows: number }>();
+  const done: ApronRect[] = [];
+  for (let j = 0; j < nv; j++) {
+    const va = v0 + j * APRON_CELL;
+    const runs: { a: number; b: number; y: number }[] = [];
+    let run: { a: number; b: number; y: number } | null = null;
+    for (let i = 0; i < nu; i++) {
+      const ua = u0 + i * APRON_CELL;
+      const uc = ua + APRON_CELL / 2;
+      const vc = va + APRON_CELL / 2;
+      // A cell is apron if its middle and corners are flat at one level and outside the walls (up to
+      // `APRON_TUCK` under them).
+      let y: number | null = null;
+      let ok = true;
+      for (const [du, dv] of CELL_TAPS) {
+        const pu = uc + du * APRON_CELL;
+        const pv = vc + dv * APRON_CELL;
+        const h = padFlatAt(pu, pv);
+        if (h === null || (y !== null && h !== y) || nearestChamber(pu, pv).d < WALL - APRON_TUCK) {
+          ok = false;
+          break;
+        }
+        y = h;
+      }
+      if (ok && run && run.y === y && run.b === i) run.b = i + 1;
+      else {
+        if (run) runs.push(run);
+        run = ok ? { a: i, b: i + 1, y: y! } : null;
+      }
+    }
+    if (run) runs.push(run);
+    const keys = new Set<string>();
+    for (const r of runs) {
+      const key = `${r.a}:${r.b}:${r.y}`;
+      keys.add(key);
+      const o = open.get(key);
+      if (o) {
+        (o as { v1: number }).v1 = va + APRON_CELL;
+        o.rows++;
+      } else
+        open.set(key, {
+          u0: u0 + r.a * APRON_CELL,
+          u1: u0 + r.b * APRON_CELL,
+          v0: va,
+          v1: va + APRON_CELL,
+          y: r.y,
+          rows: 1,
+        });
+    }
+    for (const [key, o] of open)
+      if (!keys.has(key)) {
+        done.push({ u0: o.u0, u1: o.u1, v0: o.v0, v1: o.v1, y: o.y });
+        open.delete(key);
+      }
+    if ((j & 15) === 15) yield;
+  }
+  for (const o of open.values()) done.push({ u0: o.u0, u1: o.u1, v0: o.v0, v1: o.v1, y: o.y });
+  apron = done;
+  return done;
+}
+const CELL_TAPS = [
+  [0, 0],
+  [-0.5, -0.5],
+  [0.5, -0.5],
+  [-0.5, 0.5],
+  [0.5, 0.5],
+] as const;
+
+/** How far (m) cove frame (u, v) lies from the nearest chamber's outer wall face (negative inside). */
+export function wallFaceDistance(u: number, v: number): number {
+  return nearestChamber(u, v).d - WALL;
+}
+
+/**
+ * The sea's floor for the ocean's depth colour round the cut (the one chamber that holds the sea): its
+ * floor inside it, under its walls and a few metres past them, so the ocean's coarse depth tile (a
+ * texel is ~3 m) doesn't read a shoal of saw-teeth along its walls. Null elsewhere (the bake's floor).
+ */
+export function worksSeaFloor(x: number, z: number): number | null {
+  toFrame(x, z, F);
+  if (F.u < -60 || F.u > 40 || F.v < -90 || F.v > -30) return null;
+  const { c, d } = nearestChamber(F.u, F.v);
+  return c.water === null && c.floor < 0 && d < WALL + SEA_FLOOR_PAST ? c.floor : null;
+}
+/** How far (m) past the cut's walls the ocean reads its floor (a texel and a half of its depth tile). */
+const SEA_FLOOR_PAST = 5;

@@ -121,6 +121,20 @@ export class WaterStrips {
     this.dropped = 0;
   }
 
+  /** Quads laid since `begin`. */
+  get count(): number {
+    return this.quads;
+  }
+
+  /** Moves quads `from`..`to` (level ones: a lock's water) to height `y` in place, with no rebuild. */
+  setLevel(from: number, to: number, y: number): void {
+    for (let i = from * 4; i < to * 4; i++) this.pos[i * 3 + 1] = y;
+    const attr = this.geo.getAttribute('position') as BufferAttribute;
+    attr.clearUpdateRanges();
+    attr.addUpdateRange(from * 12, (to - from) * 12);
+    attr.needsUpdate = true;
+  }
+
   /**
    * A quad from corners a (start, left), b (start, right), c (end, left), d (end, right), with the
    * flow running from the start edge (`v0`) to the end edge (`v1`). `u0`..`u1` is how far across the

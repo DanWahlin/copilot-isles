@@ -48,6 +48,20 @@ const PACK_DEFS = [
       'packs/testcove/rocks/**',
     ],
   },
+  {
+    id: 'keelhaven/critical',
+    include: [
+      'packs/keelhaven/terrain.bin',
+      'packs/keelhaven/terrain.json',
+      'packs/testcove/terrain-textures/**',
+      'packs/testcove/rocks/**',
+    ],
+  },
+  {
+    // The opening's 3D chart reads only this coarse copy of Keelhaven's terrain (spec O7).
+    id: 'keelhaven/chart',
+    include: ['packs/keelhaven/chart.bin', 'packs/keelhaven/chart.json'],
+  },
 ];
 
 function toPosix(path) {

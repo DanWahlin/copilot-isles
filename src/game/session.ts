@@ -28,13 +28,27 @@ import { seaState } from '../world/ocean/sea-state';
 import { windAt } from '../world/wind';
 import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
+import { ShipCameraBlockers } from './ship-camera';
 import { Residency, type ResidencyDecision } from './residency';
 import { footprintDistance } from '../world/islands/footprint';
 import { Dialogue } from './dialogue';
 import { FootstepPuffs } from './footstep-puffs';
 import { FollowCamera, SAIL_RIG, WALK_RIG, type CameraShot } from './follow-camera';
 import { arrivalFlight, arrivalKeys, type IslandArrival, type IslandId } from './arrivals';
-import { ISLANDS, islandAt, openIslands, passageSky, type IslandBerth } from './islands';
+import {
+  ISLANDS,
+  islandAt,
+  islandLight,
+  nextMorningFrom,
+  nightAtSea,
+  nightAtSeaSeconds,
+  NIGHT_AT_SEA,
+  openIslands,
+  otherLight,
+  passageSky,
+  type IslandBerth,
+  type PassageHold,
+} from './islands';
 import { PassageBattles } from './passage-battles';
 import type { BattleRun } from './battle-run';
 
@@ -303,6 +317,8 @@ const INTRO_HOLD_MS = 1600;
 const ARRIVAL_CARD_ONLY = 3.4;
 /** How often (s) the session looks for a puzzle that's ready for its chart label. */
 const LABEL_CHECK_EVERY = 0.25;
+/** How much further into the evening's light (0-1) you sail back before the morning's hold lets go. */
+const TURN_BACK = 0.1;
 /** …or the chart label, which has more to read (docs/specs/LOWER-THIRDS.md). */
 const ARRIVAL_LABEL_ONLY = 7;
 const cardOnlySeconds = (plan: IslandArrival) => (plan.label ? ARRIVAL_LABEL_ONLY : ARRIVAL_CARD_ONLY);
@@ -426,6 +442,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   for (const b of village.cameraBlockers) world.addCameraBox(b);
   for (const b of cove.wreck.cameraBlockers) world.addCameraBox(b);
   for (const b of sites.colliders.camera) world.addCameraBox(b);
+  // The moored ship: the follow camera keeps out of her hull and rig while you're ashore.
+  const shipCams = new ShipCameraBlockers(world);
 
   const hud = new Hud(o.hudParent);
   await hud.loadSubtitles(o.voiceManifest ?? `${courseVoiceBase()}manifest.json`);
@@ -609,6 +627,42 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   // A save away from Anchorage wakes to that island's sky (Anchorage keeps the page's own time).
   if (island !== 'anchorage') applySky(berth.sky);
   const sailSky = { hours: 0, azimuth: 0 };
+  /**
+   * A held passage sky (spec ISLAND-03 O3): out of an island's evening toward one whose light is the
+   * next morning, the evening holds until the "next morning" cut, then the morning holds until you're
+   * there. Null on every other passage.
+   */
+  let passageHold: PassageHold | null = null;
+  let morningCut = false;
+  /** The evening island's light where the morning came (a battle can end deep in it). */
+  let eveningAt = 0;
+  /** The night passing at sea (`nightAtSea`): seconds into it, and its two islands' light. */
+  let nightPassing: { t: number; from: IslandId; to: IslandId } | null = null;
+  /**
+   * The "next morning": the night passes at sea under a dim dawn veil while the sun sets and rises
+   * (no black frame); with reduced motion, a plain fade.
+   */
+  const nextMorning = async (): Promise<void> => {
+    const hold = passageHold;
+    if (!hold || morningCut || nextMorningFrom(hold.hold) !== hold.skip) return;
+    morningCut = true;
+    if (worldUniforms.reducedMotion.value <= 0.5) {
+      nightPassing = { t: 0, from: hold.hold, to: hold.skip };
+      return;
+    }
+    await hud.fade(true, 300);
+    if (passageHold === hold) passageHold = { hold: hold.skip, skip: hold.hold };
+    hud.toast('Next morning', 2.4);
+    await hud.fade(false, 300);
+    morningCut = false;
+  };
+  /** Ends the night at sea at once (you went ashore or travelled): the veil goes. */
+  const endNightPassing = () => {
+    if (!nightPassing) return;
+    nightPassing = null;
+    morningCut = false;
+    hud.setDawn(0, '');
+  };
   /** Anchorage's gangway stays up until the christening; elsewhere you can always board. */
   const canBoard = () => (island === 'anchorage' ? storyHolds('anchorage', 'gangwayDown', quests()) : true);
   const plankTop = new Vector3();
@@ -1762,6 +1816,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     ironsFor = 0;
     ironsNudged = false;
     hud.toast('Raise the sails with W. Steer with A and D.', 4);
+    const morning = nextMorningFrom(island);
+    passageHold = morning ? { hold: island, skip: morning } : null;
+    eveningAt = 0;
     storyEvent('anchorage', 'setSail', quests(), setQuest);
     contents.get(island)?.onBoard?.();
     audio?.music.setIsland('harbour');
@@ -1824,6 +1881,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
    */
   async function disembark(to: IslandBerth = dockTo): Promise<void> {
     mode = 'transition';
+    passageHold = null;
+    endNightPassing();
     input.enabled = false;
     await hud.fade(true);
     battles.leftShip(cam);
@@ -2615,6 +2674,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         gangwayDown = mode === 'walk' && shipDocked() && canBoard();
         // An island's mooring lines only run to the hull while she's tied up at its berth.
         const moored = mode !== 'sail' && mode !== 'docking' && shipDocked();
+        if (moored) shipCams.place(dyn.pose.x, ship.group.position.y, dyn.pose.z, dyn.pose.heading);
+        else shipCams.park();
         for (let i = 0; i < contentList.length; i++)
           contentList[i]!.moored?.(moored && island === contentIds[i]);
         ship.setGangway(gangwayDown ? plank.foot : null);
@@ -2711,7 +2772,37 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           cam.update(dt, camera, s, tmp, pose.heading, Math.abs(dyn.forwardSpeed) > 0.5, world, t);
           // The light shifts with the passage (the sky only refreshes once the sun has really moved).
           if (openIslands().length > 1) {
-            passageSky(pose.x, pose.z, sailSky);
+            if (passageHold && otherLight(passageHold, pose.x, pose.z)) passageHold = null;
+            if (passageHold && !morningCut) {
+              const ahead = islandLight(passageHold.skip, pose.x, pose.z);
+              const here = islandLight(passageHold.hold, pose.x, pose.z);
+              // The evening holds until the next island's light is the stronger; with a battle on the
+              // passage, until the battle ends (its win card hands over to the night at sea). Then the
+              // morning holds until you're there, or until you turn back into the evening's light past
+              // where the morning came.
+              const evening = nextMorningFrom(passageHold.hold) === passageHold.skip;
+              const run = battles.current;
+              if (evening && (run ? run.settled : ahead > 0 && ahead >= here)) {
+                eveningAt = here;
+                void nextMorning();
+              } else if (!evening && (here >= 1 || (ahead > here && ahead > eveningAt + TURN_BACK)))
+                passageHold = null;
+            }
+            passageSky(pose.x, pose.z, sailSky, passageHold);
+            if (nightPassing) {
+              const n = nightPassing;
+              n.t += dt;
+              const veil = nightAtSea(n.t, ISLANDS[n.from].sky, ISLANDS[n.to].sky, sailSky);
+              hud.setDawn(veil, 'Next morning');
+              // From daybreak on, the morning's light holds until you're there.
+              if (n.t > NIGHT_AT_SEA.sink && passageHold?.hold === n.from)
+                passageHold = { hold: n.to, skip: n.from };
+              if (n.t >= nightAtSeaSeconds) {
+                endNightPassing();
+                // The morning exactly (the sky skips a change under a hundredth of an hour).
+                engine.clock.set(sailSky.hours, sailSky.azimuth);
+              }
+            }
             if (
               Math.abs(engine.clock.hours - sailSky.hours) > 0.01 ||
               Math.abs(engine.clock.azimuth - sailSky.azimuth) > 0.3
@@ -2784,6 +2875,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** Fast travel: to another island, your ship comes too (moored at its berth). */
   async function travel(x: number, z: number, heading: number): Promise<void> {
     if (mode === 'transition') return;
+    passageHold = null;
+    endNightPassing();
     if (arrival && arrival.phase !== 'done') await endArrival('cut');
     dialogue.cancel();
     wingman?.landNow();

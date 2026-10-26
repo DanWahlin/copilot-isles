@@ -12,9 +12,9 @@ when you start a voyage.
 
 ## What you'll do
 
-- **Sail between islands.** Three are playable so far: Anchorage Cay (Chapter 00 · Setup), Port
-  Meridian (01 · Tour the App) and Thousand-Bough Isle (02 · Sessions, Worktrees & Context).
-  Keelhaven (Chapter 03) is next.
+- **Sail between islands.** Four are playable so far: Anchorage Cay (Chapter 00 · Setup), Port
+  Meridian (01 · Tour the App), Thousand-Bough Isle (02 · Sessions, Worktrees & Context) and
+  Keelhaven (03 · Dev & GitHub Workflows). Guildcrest (Chapter 04) is next.
 - **Solve puzzles that use the concept.** For example, pick Interactive, Plan or Autopilot for each
   order, or give each crew its own worktree.
 - **Take quizzes on real screenshots of the app**, fight sea battles with review questions between

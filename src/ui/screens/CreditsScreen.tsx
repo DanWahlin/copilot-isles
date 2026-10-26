@@ -108,10 +108,10 @@ export function CreditsScreen({ bridge }: { bridge: GameBridge }) {
         )}
         <h3>Music and voice</h3>
         <p>
-          “Bamboo Tide”, “Island Reveal”, “Brass of the Storm” and “Misty Jungle Dusk”, made for Copilot Isles
-          with Suno. “Medieval: The Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami, both CC0 on
-          OpenGameArt. The character voices are AI-generated with Azure AI Speech and ElevenLabs. They aren’t
-          real people.
+          “Bamboo Tide”, “Island Reveal”, “Brass of the Storm”, “Misty Jungle Dusk” and “Salty Sway”, made for
+          Copilot Isles with Suno. “Medieval: The Bard’s Tale” by RandomMind and “Sunset Plains” by Yoiyami,
+          both CC0 on OpenGameArt. The character voices are AI-generated with Azure AI Speech and ElevenLabs.
+          They aren’t real people.
         </p>
         <p>Seagull models by Poly by Google, CC BY 3.0 (poly.pizza).</p>
         <h3>About this project</h3>

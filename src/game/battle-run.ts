@@ -322,6 +322,11 @@ export class BattleRun {
     }
   }
 
+  /** Skipped, or won and the win card's hold is over: what comes after the battle can start. */
+  get settled(): boolean {
+    return this.ended === 'skipped' || (this.ended === 'won' && this.t - this.endedAt > WON_HOLD);
+  }
+
   /** Whether the battle's done with: ended, and the struck hulls have gone under (s). */
   spent(after = 20): boolean {
     return !!this.ended && this.t - this.endedAt > (this.ended === 'skipped' ? 4 : after);

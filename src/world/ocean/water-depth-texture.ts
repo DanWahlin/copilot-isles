@@ -115,11 +115,14 @@ export function waterDepthPlaceholder(): DataTexture {
 
 /**
  * Builds an island's tile from its baked terrain (bilinear over the bake's own grid), a few rows a
- * step; run it with the island's `breathe`. Outside the bake the floor is the deep floor.
+ * step; run it with the island's `breathe`. Outside the bake the floor is the deep floor. `floorAt` puts
+ * the island's own floor where the bake's 2 m grid can't hold it (a lock's walls: the sea in a cut reads
+ * deep to its walls, not a saw-tooth of shallows).
  */
 export function* waterDepthTileFromTerrain(
   data: TerrainBakeData,
   name: string,
+  floorAt: ((x: number, z: number) => number | null) | null = null,
 ): Generator<void, WaterDepthTile, void> {
   const out = new Float32Array(TILE_SIZE * TILE_SIZE);
   const { nx, nz, heights, cell } = data;
@@ -136,7 +139,10 @@ export function* waterDepthTileFromTerrain(
       const i = iz * nx + ix;
       const a = heights[i]! + (heights[i + 1]! - heights[i]!) * tx;
       const b = heights[i + nx]! + (heights[i + nx + 1]! - heights[i + nx]!) * tx;
-      out[row * TILE_SIZE + col] = a + (b - a) * tz;
+      const pinned = floorAt
+        ? floorAt(data.minX + (col / (TILE_SIZE - 1)) * spanX, data.minZ + (row / (TILE_SIZE - 1)) * spanZ)
+        : null;
+      out[row * TILE_SIZE + col] = pinned ?? a + (b - a) * tz;
     }
     if ((row & 31) === 31) yield;
   }
@@ -156,6 +162,14 @@ export function* waterDepthTileFromTerrain(
  */
 export function addWaterDepthTile(tile: WaterDepthTile): void {
   if (!tiles.includes(tile)) tiles.push(tile);
+}
+
+/**
+ * Every lent tile's texture (an island's warm uploads them all: with two islands lent, the ocean binds
+ * the nearest, so the other's first use would upload it mid-voyage).
+ */
+export function lentWaterDepthTextures(): DataTexture[] {
+  return tiles.map((t) => t.texture);
 }
 
 /** Takes an island's tile back and frees its GPU copy. */

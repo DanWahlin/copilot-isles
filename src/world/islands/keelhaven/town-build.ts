@@ -2,12 +2,26 @@ import { BufferAttribute, BufferGeometry, Color } from 'three/webgpu';
 import { HOUSE_STOREY_HEIGHT, type HouseSide } from '../../village/house-builder';
 import type { MaterialKey, VillageKit } from '../../village/kit';
 import { box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
+import { lampHead } from './lamps';
 import { addVerandaHouse, tintFor } from '../../village/veranda-house';
 import { mulberry32 } from '../../../util/math';
 import { keelhavenHeight } from './height';
-import { GATE_PATH, GATE_PATH_HALF } from './works';
-import { FRAME, toWorld, type Uv } from './layout';
-import { YARD_PAINT, at, ground, ropeCoil, stores, ubox, YAW_U, type ShipyardOut } from './shipyard';
+import { GATE_PATH_HALF } from './works';
+import { GATE_TREAD, gateStairTreads } from './gate-stair';
+import { FRAME, toFrame, toWorld, type Uv } from './layout';
+import { lineDeck, type WalkDeck } from './decks';
+import {
+  YARD_PAINT,
+  at,
+  ground,
+  lampGlass,
+  ropeCoil,
+  shadeBlockers,
+  stores,
+  ubox,
+  YAW_U,
+  type ShipyardOut,
+} from './shipyard';
 import {
   BOARD,
   BRIDGE,
@@ -40,6 +54,24 @@ const AWNINGS = [
 ] as const;
 
 const pick = <T>(list: readonly T[], r: number): T => list[Math.floor(r * list.length)]!;
+
+const DF = { u: 0, v: 0 };
+
+/** A veranda's deck (world, `VerandaHouseInfo.decks`) as a walk deck in the cove frame. */
+function verandaDeck(d: {
+  x: number;
+  z: number;
+  ax: number;
+  az: number;
+  half: number;
+  width: number;
+  y: number;
+}): WalkDeck {
+  toFrame(d.x, d.z, DF);
+  const au = d.ax * FRAME.axis.x + d.az * FRAME.axis.z;
+  const av = d.ax * FRAME.across.x + d.az * FRAME.across.z;
+  return { u: DF.u, v: DF.v, au, av, half: d.half, width: d.width, y0: d.y, y1: d.y, wood: true };
+}
 
 /** A heading (yaw) whose local −z (a house's front) faces cove-frame direction `face`. */
 function faceYaw(face: Uv): number {
@@ -132,6 +164,7 @@ function house(
   });
   for (const p of info.posts)
     out.circles.push({ x: p.x, z: p.z, r: 0.14, y0: low - 0.5, y1: base + 3, height: 3 });
+  for (const d of info.decks) out.decks.push(verandaDeck(d));
   const top = info.top;
   const eave = base + h.storeys * HOUSE_STOREY_HEIGHT;
   if (tavern) {
@@ -163,6 +196,19 @@ function house(
     y0: base - 0.5,
     y1: top,
   });
+  // Its verandas' roofs (over head height) keep the camera out too.
+  const ov = info.out;
+  if (ov.front || ov.back || ov.left || ov.right)
+    out.cameraBoxes.push({
+      x: c.x,
+      z: c.z,
+      hx: h.w * 0.5 + Math.max(ov.left, ov.right) + 0.3,
+      hz: h.d * 0.5 + Math.max(ov.front, ov.back) + 0.3,
+      rot: yaw,
+      y0: base + 2.3,
+      y1: eave + 0.6,
+    });
+  shadeBlockers(info, out.cameraBoxes);
   // Steps up to the door where the floor stands over the street.
   const rise = base - ground(housePoint(h, 0, h.d / 2 + 0.9).u, housePoint(h, 0, h.d / 2 + 0.9).v);
   const front = (k: number) => housePoint(h, 0, h.d / 2 + 0.25 + k);
@@ -187,9 +233,18 @@ function house(
   const porch = h.porch.front > 0;
   const lamp = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.28);
   const lp = at(lamp.u, base + (porch && h.storeys === 1 ? 2.05 : 2.5), lamp.v);
-  const glow = box(b, 'glow', lp.x, lp.y, lp.z, 0.2, 0.28, 0.2, yaw, 0xffffff);
-  lanternPaint(glow, 4.2);
-  cone(b, 'metal', lp.x, lp.y + 0.14, lp.z, 0.18, 0.15, 6, YARD_PAINT.iron);
+  const head = lampHead(b, b, {
+    x: lp.x,
+    y: lp.y,
+    z: lp.z,
+    w: 0.2,
+    h: 0.28,
+    yaw,
+    capR: 0.18,
+    capH: 0.15,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.2);
   const wall = at(
     housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.02).u,
     lp.y + 0.35,
@@ -291,10 +346,18 @@ function house(
         -side * 0.28,
       );
     }
-    stores(b, mid.u, mid.v, Math.max(g, low), seed + 7);
+    out.cameraBoxes.push({
+      ...toWorld(mid.u, mid.v),
+      hx: 1.4,
+      hz: len / 2 + 0.3,
+      rot: yaw,
+      y0: yRoof - 0.45,
+      y1: yRoof + 0.45,
+    });
+    stores(b, mid.u, mid.v, Math.max(g, low), seed + 7, out.cameraBoxes);
   } else if (rand() < 0.5) {
     const p = housePoint(h, -(h.w / 2 + 1.0), h.d / 2 - 0.5);
-    stores(b, p.u, p.v, ground(p.u, p.v), seed + 9);
+    stores(b, p.u, p.v, ground(p.u, p.v), seed + 9, out.cameraBoxes);
   }
   // Nets drying on a frame by the houses near the beach.
   if (h.u < 60 && rand() < 0.5) {
@@ -383,11 +446,23 @@ function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: nu
   rod(b, 'wood', { x: p.x, y: g - 0.3, z: p.z }, { x: p.x, y: g + 3.4, z: p.z }, 0.09, 6, YARD_PAINT.tar);
   const arm = { x: p.x + Math.cos(armYaw) * 0.7, y: g + 3.3, z: p.z - Math.sin(armYaw) * 0.7 };
   rod(b, 'wood', { x: p.x, y: g + 3.3, z: p.z }, arm, 0.04, 4, YARD_PAINT.tar);
-  const glow = box(b, 'glow', arm.x, arm.y - 0.45, arm.z, 0.22, 0.3, 0.22, armYaw, 0xffffff);
-  lanternPaint(glow, 4.6);
-  cone(b, 'metal', arm.x, arm.y - 0.3, arm.z, 0.2, 0.16, 6, YARD_PAINT.iron);
+  const head = lampHead(b, b, {
+    x: arm.x,
+    y: arm.y - 0.45,
+    z: arm.z,
+    w: 0.22,
+    h: 0.3,
+    yaw: armYaw,
+    capR: 0.2,
+    capH: 0.16,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.6);
   rod(b, 'metal', arm, { x: arm.x, y: arm.y - 0.3, z: arm.z }, 0.015, 3, YARD_PAINT.iron);
   out.circles.push({ x: p.x, z: p.z, r: 0.2, y0: g - 0.5, y1: g + 3.4, height: 3.4 });
+  // The camera keeps out of the lantern out on its arm, and the arm.
+  const mid = { x: (p.x + arm.x) / 2, z: (p.z + arm.z) / 2 };
+  out.cameraBoxes.push({ ...mid, hx: 0.5, hz: 0.2, rot: armYaw, y0: arm.y - 0.8, y1: arm.y + 0.15 });
 }
 
 /**
@@ -498,6 +573,11 @@ function footbridge(b: Buckets, out: ShipyardOut): void {
       k % 5 ? YARD_PAINT.silver : YARD_PAINT.oak,
     );
   }
+  for (let k = 0; k < 8; k++) {
+    const va = v0 + (k / 8) * (v1 - v0);
+    const vb = v0 + ((k + 1) / 8) * (v1 - v0);
+    out.decks.push(lineDeck([u, va, yAt(va) + 0.04], [u, vb, yAt(vb) + 0.04], half - 0.1, true));
+  }
   for (const s of [-1, 1]) {
     let prev: { x: number; y: number; z: number } | null = null;
     for (let k = 0; k <= 6; k++) {
@@ -549,8 +629,8 @@ function repaint(g: BufferGeometry, key: MaterialKey, hex: number, k = 1): Buffe
 /**
  * The Gate Light: the island's landmark, where the Trial is held. A tall tapering tower in white and
  * red bands on the North Head's bench (it reads from the quay and from the sea off the cove's mouth),
- * a corbelled gallery with an iron rail, the lantern room's glass (bright warm white: by day it
- * catches the sun, by night it's the light) under a brass dome and vane, slit windows up the tower,
+ * a corbelled gallery with an iron rail, the lantern room's glass (faint until the Seal kindles it
+ * white-gold) under a brass dome and vane, slit windows up the tower,
  * its door, and the keeper's house beside it.
  */
 function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean): void {
@@ -632,30 +712,23 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
     'plaster',
     0xc4382a,
   );
-  const glass = rod(
-    b,
-    'glow',
-    { x: p.x, y: top + 1.3, z: p.z },
-    { x: p.x, y: top + 5.1, z: p.z },
-    lr,
-    seg,
-    0xffffff,
+  // The glass and the lens inside: a lamp of the island's lamp set (`gateLight`), faint until the Seal
+  // kindles it white-gold (bright enough to read by day: the glow material shows its paint at 0.18).
+  lampGlass(out, 'gateLight', 'banked', (s) =>
+    rod(s, 'glow', { x: p.x, y: top + 1.3, z: p.z }, { x: p.x, y: top + 5.1, z: p.z }, lr, seg, 0xffffff),
   );
-  const col = glass.getAttribute('color');
-  // Bright enough to read warm white by day (the glow material shows its paint at 0.18 in daylight).
-  for (let i = 0; i < col.count; i++) col.setXYZ(i, 6.2, 5.8, 4.6);
-  // The lens inside, brighter still.
-  const lens = rod(
-    b,
-    'glow',
-    { x: p.x, y: top + 2.0, z: p.z },
-    { x: p.x, y: top + 4.2, z: p.z },
-    0.9,
-    lite ? 8 : 12,
-    0xffffff,
-    0.75,
+  lampGlass(out, 'gateLight', 'banked', (s) =>
+    rod(
+      s,
+      'glow',
+      { x: p.x, y: top + 2.0, z: p.z },
+      { x: p.x, y: top + 4.2, z: p.z },
+      0.9,
+      lite ? 8 : 12,
+      0xffffff,
+      0.75,
+    ),
   );
-  lanternPaint(lens, 7.5);
   for (let k = 0; k < (lite ? 6 : 10); k++) {
     const a = (k / (lite ? 6 : 10)) * Math.PI * 2;
     const q = { x: p.x + Math.cos(a) * (lr + 0.02), z: p.z + Math.sin(a) * (lr + 0.02) };
@@ -728,7 +801,7 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
   out.cameraBoxes.push({ x: p.x, z: p.z, hx: r0, hz: r0, rot: 0, y0: foot, y1: top + 8 });
   // The keeper's house beside it.
   const k = at(L.keeper.u, L.y, L.keeper.v);
-  addVerandaHouse(b, kit, {
+  const keeper = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 4 },
     storeys: 1,
     origin: { x: k.x, y: L.y, z: k.z },
@@ -746,7 +819,21 @@ function gateLight(b: Buckets, kit: VillageKit, out: ShipyardOut, lite: boolean)
     lite,
     groundAt: (x, z) => keelhavenHeight(x, z),
   });
-  out.colliders.push({ x: k.x, z: k.z, hx: 3.2, hz: 2.2, rot: faceYaw({ u: 1, v: 0 }), height: 5 });
+  const keeperYaw = faceYaw({ u: 1, v: 0 });
+  out.colliders.push({ x: k.x, z: k.z, hx: 3.2, hz: 2.2, rot: keeperYaw, height: 5 });
+  // The camera stays out of its walls, roof and veranda roof (it stands on the headland's path).
+  out.cameraBoxes.push({ x: k.x, z: k.z, hx: 3.35, hz: 2.35, rot: keeperYaw, y0: L.y - 0.5, y1: keeper.top });
+  out.cameraBoxes.push({
+    x: k.x,
+    z: k.z,
+    hx: 3.3,
+    hz: 2 + keeper.out.front + 0.3,
+    rot: keeperYaw,
+    y0: L.y + 2.3,
+    y1: L.y + HOUSE_STOREY_HEIGHT + 0.6,
+  });
+  shadeBlockers(keeper, out.cameraBoxes);
+  for (const d of keeper.decks) out.decks.push(verandaDeck(d));
 }
 
 /** A washing line between two posts, shirts and sheets on it. */
@@ -947,6 +1034,15 @@ function marketStall(b: Buckets, out: ShipyardOut, u: number, v: number, face: U
     0.2,
   );
   out.colliders.push({ ...toWorld(u, v), hx: w / 2 + 0.1, hz: d / 2 + 0.1, rot: yaw, height: 1 });
+  // The camera keeps out of the counter and the wares under the awning, and out of the awning.
+  out.cameraBoxes.push({
+    ...toWorld(u, v),
+    hx: w / 2 + 0.15,
+    hz: d / 2 + 0.15,
+    rot: yaw,
+    y0: g - 0.3,
+    y1: g + 1.95,
+  });
   out.cameraBoxes.push({
     ...toWorld(u, v),
     hx: w / 2 + 0.3,
@@ -1153,84 +1249,77 @@ function barrels(b: Buckets, out: ShipyardOut, u: number, v: number, seed: numbe
  * to the light. The ground isn't cut for it (the far terrain levels can't hold a narrow bench).
  */
 function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
-  const step = lite ? 2.8 : 1.4;
+  const step = GATE_TREAD;
   const half = GATE_PATH_HALF * 0.5;
-  let run = 0;
-  let next = 0;
+  const treads = gateStairTreads();
   let nextLamp = 30;
-  let k = 0;
   let prevRail: { x: number; y: number; z: number } | null = null;
-  // The treads only climb: over a gully they bridge on taller posts (a dip read as a sag in the stair).
-  let climb = -Infinity;
-  for (let i = 0; i + 1 < GATE_PATH.length; i++) {
-    const a = GATE_PATH[i]!;
-    const e = GATE_PATH[i + 1]!;
-    const len = Math.hypot(e[0] - a[0], e[1] - a[1]);
-    const tu = (e[0] - a[0]) / len;
-    const tv = (e[1] - a[1]) / len;
-    // Across, toward the drop (the side whose ground is lower).
-    const mu = (a[0] + e[0]) / 2;
-    const mv = (a[1] + e[1]) / 2;
-    const side = ground(mu - tv * 5, mv + tu * 5) < ground(mu + tv * 5, mv - tu * 5) ? 1 : -1;
-    const nu = -tv * side;
-    const nv = tu * side;
+  for (let k = 0; k < treads.length; k++) {
+    const { u, v, y, tu, tv, nu, nv, s } = treads[k]!;
     const dx = tu * FRAME.axis.x + tv * FRAME.across.x;
     const dz = tu * FRAME.axis.z + tv * FRAME.across.z;
     const yaw = Math.atan2(-dz, dx);
-    for (let t = next - run; t < len; t += step) {
-      const u = a[0] + tu * (t + step / 2);
-      const v = a[1] + tv * (t + step / 2);
-      // The tread stands on the slope's high edge and over the ground on its line.
-      const high = ground(u - nu * half, v - nv * half);
-      const along = (t + step / 2) / len;
-      const profile = a[2] + (e[2] - a[2]) * Math.min(1, along);
-      climb = Math.max(climb, Math.max(high, ground(u, v), profile) + 0.14);
-      const y = climb;
-      const c = at(u, y, v);
-      box(
+    const c = at(u, y, v);
+    box(
+      b,
+      'wood',
+      c.x,
+      y - 0.04,
+      c.z,
+      step + 0.03,
+      0.08,
+      half * 2,
+      yaw,
+      k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
+    );
+    // Walked tread by tread, with a fence along its drop edge (the rope rail).
+    out.decks.push(
+      lineDeck(
+        [u - (tu * step) / 2, v - (tv * step) / 2, y],
+        [u + (tu * step) / 2, v + (tv * step) / 2, y],
+        half,
+        true,
+      ),
+    );
+    const fence = at(u + nu * (half - 0.04), 0, v + nv * (half - 0.04));
+    out.colliders.push({
+      x: fence.x,
+      z: fence.z,
+      hx: step / 2 + 0.02,
+      hz: 0.06,
+      rot: yaw,
+      y0: y - 0.6,
+      y1: y + 1.1,
+      height: 1,
+    });
+    // A bearer under it, and a post down to the ground at its drop edge.
+    const du = u + nu * (half - 0.08);
+    const dv = v + nv * (half - 0.08);
+    const g = ground(du, dv);
+    const q = at(du, g, dv);
+    if (y - g > 0.2)
+      rod(
         b,
         'wood',
-        c.x,
-        y - 0.04,
-        c.z,
-        step + 0.03,
-        0.08,
-        half * 2,
-        yaw,
-        k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
+        { x: q.x, y: g - 0.3, z: q.z },
+        { x: q.x, y: y - 0.08, z: q.z },
+        0.07,
+        5,
+        YARD_PAINT.weathered,
       );
-      // A bearer under it, and a post down to the ground at its drop edge.
-      const du = u + nu * (half - 0.08);
-      const dv = v + nv * (half - 0.08);
-      const g = ground(du, dv);
-      const q = at(du, g, dv);
-      if (y - g > 0.2)
-        rod(
-          b,
-          'wood',
-          { x: q.x, y: g - 0.3, z: q.z },
-          { x: q.x, y: y - 0.08, z: q.z },
-          0.07,
-          5,
-          YARD_PAINT.weathered,
-        );
-      // The rail: a post every other tread, a rope between.
-      if (k % (lite ? 2 : 2) === 0) {
-        const top = { x: q.x, y: y + 1.0, z: q.z };
-        rod(b, 'wood', { x: q.x, y: y - 0.08, z: q.z }, top, 0.05, 5, YARD_PAINT.weathered);
-        out.circles.push({ x: q.x, z: q.z, r: 0.1, y0: g - 0.5, y1: y + 1, height: y + 1 - g });
-        if (prevRail && !lite && Math.hypot(top.x - prevRail.x, top.z - prevRail.z) < 4)
-          rope(b, prevRail, top, 0.1, 0.02, YARD_PAINT.rope, 4);
-        prevRail = top;
-      }
-      if (run + t >= nextLamp) {
-        nextLamp = run + t + 40;
-        lampPost(b, out, u - nu * (half + 0.5), v - nv * (half + 0.5), armYaw(nu, nv));
-      }
-      k++;
-      next = run + t + step;
+    // The rail: a post every other tread, a rope between.
+    if (k % 2 === 0) {
+      const top = { x: q.x, y: y + 1.0, z: q.z };
+      rod(b, 'wood', { x: q.x, y: y - 0.08, z: q.z }, top, 0.05, 5, YARD_PAINT.weathered);
+      out.circles.push({ x: q.x, z: q.z, r: 0.1, y0: g - 0.5, y1: y + 1, height: y + 1 - g });
+      if (prevRail && !lite && Math.hypot(top.x - prevRail.x, top.z - prevRail.z) < 4)
+        rope(b, prevRail, top, 0.1, 0.02, YARD_PAINT.rope, 4);
+      prevRail = top;
     }
-    run += len;
+    if (s >= nextLamp) {
+      nextLamp = s + 40;
+      lampPost(b, out, u - nu * (half + 0.5), v - nv * (half + 0.5), armYaw(nu, nv));
+    }
   }
 }
 
@@ -1287,7 +1376,7 @@ export function* buildTown(
   barrels(b, out, SQUARE.u1 - 2.5, SQUARE.v0 + 2.5, 0x5b1);
   barrels(b, out, SQUARE.u0 + 2, SQUARE.v1 - 2, 0x5b2);
   if (!lite) barrels(b, out, SQUARE.u0 + 6.5, SQUARE.v0 + 2, 0x5b3);
-  stores(b, SQUARE.u1 + 2.6, SQUARE.v0 + 4, ground(SQUARE.u1 + 2.6, SQUARE.v0 + 4), 0x5a1);
+  stores(b, SQUARE.u1 + 2.6, SQUARE.v0 + 4, ground(SQUARE.u1 + 2.6, SQUARE.v0 + 4), 0x5a1, out.cameraBoxes);
   ropeCoil(b, SQUARE.u0 + 1.5, SQUARE.v0 + 6, ground(SQUARE.u0 + 1.5, SQUARE.v0 + 6));
   // Lanterns at its corners.
   for (const [u, v] of [

@@ -5,6 +5,7 @@ import type { CoveScene } from '../world/cove-scene';
 import { skipSunShadowsWhereOff } from '../world/sky/cached-sun-shadow';
 import type { CreatedTerrain } from '../world/terrain/terrain-mesh';
 import { ISLAND_REGISTRY } from '../islands/registry';
+import { lentWaterDepthTextures } from '../world/ocean/water-depth-texture';
 import type { StreamedIsland } from './session';
 
 /** Compiles one object for the post's scene pass (`post.compileObject`). */
@@ -116,7 +117,7 @@ export function warmIsland(o: {
     return Promise.resolve();
   }
   stream.hold(true);
-  return warmLate({
+  const warm = warmLate({
     engine: o.engine,
     cove,
     roots: [...own, ...setup.roots],
@@ -126,7 +127,12 @@ export function warmIsland(o: {
     terrain: stream.terrain,
     // The harbour mirror only draws round Anchorage's harbour: an island far from it isn't reflected.
     reflected: ISLAND_REGISTRY[id].stream?.reflected ?? true,
-  }).finally(() => {
+  });
+  // The ocean's island tiles, uploaded inside the warm's excuse (it began as warmLate was called): the
+  // ocean binds only the nearest, so an island lent beside another (Keelhaven beside Thousand-Bough)
+  // would otherwise upload its tile when you sail past the halfway mark.
+  for (const t of lentWaterDepthTextures()) o.engine.renderer.initTexture(t);
+  return warm.finally(() => {
     if (live()) {
       stream.hold(false);
       setup.reveal();

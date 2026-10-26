@@ -186,6 +186,20 @@
         "hash": "b74b93cb51b2"
       }
     },
+    "battle:passage-thousand-bough-keelhaven": {
+      "game": "battle",
+      "k": "The Passage to Keelhaven · Sea Battle",
+      "t": "Trust the Evidence",
+      "b": "Between waves, the bosun asks about Thousand-Bough: a new worktree, the smallest useful context, a port for each preview.",
+      "ch": "02",
+      "c": "Key takeaways",
+      "chLine": "Questions from Course Chapter 02",
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "key-takeaways",
+        "hash": "f1ddff6b1420"
+      }
+    },
     "arrival:keelhaven": {
       "game": "arrival",
       "k": "Keelhaven · Landfall",

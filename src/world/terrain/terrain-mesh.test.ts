@@ -443,3 +443,59 @@ describe('merged far blocks', () => {
     });
   }
 });
+
+describe('terrain skins', () => {
+  it('builds a flat skin facing up whichever way round its corners go', async () => {
+    const { buildTerrainSkin } = await import('./terrain-mesh');
+    const data = {
+      minX: 0,
+      maxX: 8,
+      minZ: 0,
+      maxZ: 8,
+      cell: 2,
+      nx: 5,
+      nz: 5,
+      heights: new Float32Array(25),
+      normals: new Float32Array(75).fill(0).map((_, i) => (i % 3 === 1 ? 1 : 0)),
+      ao: new Uint8Array(25),
+      sunMorning: new Uint8Array(25),
+      sunGolden: new Uint8Array(25),
+      rim: new Uint8Array(25),
+      masks: new Uint8Array(100),
+      shoreline: [],
+      hash: 'test',
+    } as unknown as Parameters<typeof buildTerrainSkin>[0];
+    for (const corners of [
+      [
+        [1, 1],
+        [5, 1],
+        [5, 5],
+        [1, 5],
+      ],
+      [
+        [1, 1],
+        [1, 5],
+        [5, 5],
+        [5, 1],
+      ],
+    ] as const) {
+      const steps = buildTerrainSkin(data, { cell: 2, quads: [{ corners, y: 3 }] });
+      let r = steps.next();
+      while (!r.done) r = steps.next();
+      const g = r.value!;
+      const p = g.getAttribute('position');
+      const idx = g.getIndex()!;
+      for (let t = 0; t < idx.count; t += 3) {
+        const [a, b, c] = [idx.getX(t), idx.getX(t + 1), idx.getX(t + 2)];
+        const ux = p.getX(b) - p.getX(a);
+        const uz = p.getZ(b) - p.getZ(a);
+        const vx = p.getX(c) - p.getX(a);
+        const vz = p.getZ(c) - p.getZ(a);
+        // The face normal's y: (b - a) × (c - a).
+        expect(uz * vx - ux * vz).toBeGreaterThan(0);
+        expect(p.getY(a)).toBe(3);
+      }
+      g.dispose();
+    }
+  });
+});

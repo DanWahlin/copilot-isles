@@ -327,4 +327,15 @@ export function hulkDressing(b: Buckets, out: ShipyardOut, lite: boolean): void 
     y0: ground(c),
     y1: c.y + 3.5,
   });
+  // The camera keeps out of the stair, from its foot to the deck.
+  const sm = P(halfBeamAt(zs, 0) + 0.6 + 1.7, 0, zs);
+  out.cameraBoxes.push({
+    x: sm.x,
+    z: sm.z,
+    hx: 1.9,
+    hz: 0.7,
+    rot: heading,
+    y0: ground(sm) - 0.4,
+    y1: topY + 0.15,
+  });
 }
