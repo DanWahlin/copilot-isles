@@ -27,7 +27,7 @@ export const LAMP_LOOKS = {
   /** The Gate Light's lantern before the Seal: lit glass, but faint. */
   banked: [1.6, 1.5, 1.3],
   /** White-gold: the Gate Light kindled. */
-  kindled: [7.4, 6.8, 5.0],
+  kindled: [7.8, 5.9, 2.6],
 } as const;
 export type LampLook = keyof typeof LAMP_LOOKS;
 
