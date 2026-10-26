@@ -747,7 +747,7 @@
       },
       {
         "show": "shared/app-github-copilot-app",
-        "caption": "Then add your fork to the app, starting from the **New** view. This picture’s from an older app version, where **Sessions** was called **Projects**."
+        "caption": "Then add your fork to the app, starting from the **New** view."
       },
       {
         "say": "ezra.fork.02"
@@ -757,7 +757,7 @@
       },
       {
         "show": "ch00/app-add-project",
-        "caption": "**+** next to **Sessions** → **Add GitHub repository**, then pick your fork, `{fork}`. In this older picture, **Sessions** still reads **Projects**."
+        "caption": "**+** next to **Sessions** → **Add GitHub repository**, then pick your fork, `{fork}`."
       },
       {
         "say": "ezra.fork.03"

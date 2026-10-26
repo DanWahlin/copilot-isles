@@ -39,17 +39,19 @@ export const QUOTE_KEYS = [
   'noGuarantee',
   'auto',
   'autoAside',
-  'autoHidden',
+  'autoLevels',
+  'autoMore',
   'retry',
   'noSpecific',
   'vary',
 ] as const;
 export type QuoteKey = (typeof QUOTE_KEYS)[number];
 /**
- * The stallholder's lines the game plays, by what they're for: `keep` is a quick look right-sized with
- * a bigger model on its default (or low) effort, `hardAuto` a hard job right-sized with Auto (and a nudge
- * to choose a model and more effort), and `early` what a keeper says before the course's model lesson
- * (`lesson.taught` in the market's puzzle file).
+ * The stallholder's lines the game plays, by what they're for: `auto` is said when you pick the house
+ * special, `keep` is a quick look right-sized with a bigger model on its default (or low) effort,
+ * `overAuto` a quick look with the house special above its first level (overspent), `hardAuto` a hard
+ * job right-sized with the house special above its first level, and `early` what a keeper says before
+ * the course's model lesson (`lesson.taught` in the market's puzzle file).
  */
 export const GILDA_KEYS = [
   'hello',
@@ -59,6 +61,7 @@ export const GILDA_KEYS = [
   'fair',
   'keep',
   'overEffort',
+  'overAuto',
   'short',
   'hardAuto',
   'done',
@@ -107,6 +110,16 @@ export interface GildaLineData {
  */
 export type KeeperLinesData = Readonly<Record<GildaKey | 'bye', GildaLineData>>;
 
+/**
+ * The house special (the app's own pick, sold beside the models): its price, and its own effort levels,
+ * lowest first. The first level is its base: right-sized for a quick look, short of a hard job; any
+ * higher level overspends on a quick look and is right-sized for a hard job.
+ */
+export interface HouseData {
+  price: number;
+  levels: readonly { id: string; label: string; price: number }[];
+}
+
 export interface MarketData {
   categories: readonly {
     id: ModelCategoryId;
@@ -116,7 +129,7 @@ export interface MarketData {
     tagline: string;
   }[];
   efforts: readonly { id: EffortId; label: string; price: number }[];
-  autoPrice: number;
+  house: HouseData;
   maxPrice: number;
   sizes: Readonly<Record<JobSizeId, JobSizeData>>;
   board: { size: number; perFamily: number };

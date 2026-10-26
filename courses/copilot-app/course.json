@@ -216,13 +216,13 @@
       "label": "Your model",
       "title": "Change your model",
       "ask": "Which **model** did you pick?",
-      "intro": "For this exercise the course says you can keep **Auto** or your current model. What does your model control show?",
+      "intro": "For this exercise the course says: if **Copilot Fusion** is selected, keep **Standard**. Otherwise, select an available model. What does your model control show?",
       "uses": "Your Logbook will note it on the Try the controls page.",
       "field": "Your model control",
       "choices": {
         "auto": {
-          "label": "Auto",
-          "note": "the app chooses"
+          "label": "Copilot Fusion",
+          "note": "at Standard"
         },
         "current": {
           "label": "My current model",
@@ -237,7 +237,7 @@
       "read": "Your model:",
       "names": {
         "none": "the model you chose",
-        "auto": "Auto",
+        "auto": "Copilot Fusion",
         "current": "your current model",
         "other": "the model you picked"
       }
@@ -328,34 +328,148 @@
   },
   "legacySaves": true,
   "migrations": {
-    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; Suri's gate lever (Actions) follows Bo, then Pim and Pol's briefing (`brief`) and the crane, so the old first step (`start`, Pim and Pol before the lever) goes to `actions` (or `brief` if the lever's already pulled), and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues; app 1.1.30 dropped More (Edit sidebar...) and named Projects Sessions, so the More page became Sessions and chats. taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
+    "$comment": "quests: Nell's chest step is gone (the palette's next); Bo's old gear check (Q0.5) folded into Q0.4 (finished counts, half-done replays Bo); a save that stopped between tasks gets the next one; Suri's gate lever (Actions) follows Bo, then Pim and Pol's briefing (`brief`) and the crane, so the old first step (`start`, Pim and Pol before the lever) goes to `actions` (or `brief` if the lever's already pulled), and a save waiting at the crane whose mill gate lever was never pulled goes back to its Actions step. renamed: app 1.1.26 made Local repository Current checkout and split My work into Pull requests and Issues; app 1.1.30 dropped More (Edit sidebar...) and named Projects Sessions, so the More page became Sessions and chats; the 2026-10-25 course replaced Auto with Copilot Fusion (its glossary term). taught: the 2026-10-02 sync added Tool permissions (Rhea) and Context window (Oren), and the Lost Letters teach Settings.",
     "quests": [
-      { "when": { "Q0.2": "chest" }, "set": { "Q0.2": "palette" } },
-      { "when": { "Q0.5": "done", "Q0.4": { "not": "done" } }, "set": { "Q0.4": "done" } },
-      { "when": { "Q0.5": { "not": [null, "done"] }, "Q0.4": "done" }, "set": { "Q0.4": "start" } },
-      { "when": { "Q0.3": "done", "Q0.4": null }, "set": { "Q0.4": "start" } },
-      { "when": { "Q0.4": "done", "Q0.7": null }, "set": { "Q0.7": "actions" } },
-      { "when": { "Q0.7": "start", "$workflowsOn": true }, "set": { "Q0.7": "brief" } },
-      { "when": { "Q0.7": "start" }, "set": { "Q0.7": "actions" } },
-      { "when": { "Q0.7": "crane", "$workflowsOn": false }, "set": { "Q0.7": "actions" } },
-      { "when": { "Q0.7": "done", "Q0.8": null }, "set": { "Q0.8": "start" } },
-      { "when": { "Q0.7": "done", "Q0.6": null }, "set": { "Q0.6": "start" } },
-      { "when": { "Q0.8": "done", "Q0.9": null }, "set": { "Q0.9": "start" } },
-      { "when": { "Q0.8": "done", "Q0.10": null }, "set": { "Q0.10": "start" } },
-      { "when": { "Q0.10": "done", "Q0.11": null }, "set": { "Q0.11": "start" } }
+      {
+        "when": {
+          "Q0.2": "chest"
+        },
+        "set": {
+          "Q0.2": "palette"
+        }
+      },
+      {
+        "when": {
+          "Q0.5": "done",
+          "Q0.4": {
+            "not": "done"
+          }
+        },
+        "set": {
+          "Q0.4": "done"
+        }
+      },
+      {
+        "when": {
+          "Q0.5": {
+            "not": [null, "done"]
+          },
+          "Q0.4": "done"
+        },
+        "set": {
+          "Q0.4": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.3": "done",
+          "Q0.4": null
+        },
+        "set": {
+          "Q0.4": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.4": "done",
+          "Q0.7": null
+        },
+        "set": {
+          "Q0.7": "actions"
+        }
+      },
+      {
+        "when": {
+          "Q0.7": "start",
+          "$workflowsOn": true
+        },
+        "set": {
+          "Q0.7": "brief"
+        }
+      },
+      {
+        "when": {
+          "Q0.7": "start"
+        },
+        "set": {
+          "Q0.7": "actions"
+        }
+      },
+      {
+        "when": {
+          "Q0.7": "crane",
+          "$workflowsOn": false
+        },
+        "set": {
+          "Q0.7": "actions"
+        }
+      },
+      {
+        "when": {
+          "Q0.7": "done",
+          "Q0.8": null
+        },
+        "set": {
+          "Q0.8": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.7": "done",
+          "Q0.6": null
+        },
+        "set": {
+          "Q0.6": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.8": "done",
+          "Q0.9": null
+        },
+        "set": {
+          "Q0.9": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.8": "done",
+          "Q0.10": null
+        },
+        "set": {
+          "Q0.10": "start"
+        }
+      },
+      {
+        "when": {
+          "Q0.10": "done",
+          "Q0.11": null
+        },
+        "set": {
+          "Q0.11": "start"
+        }
+      }
     ],
     "renamed": {
       "local-repository": ["current-checkout"],
       "my-work": ["pull-requests", "issues"],
       "pg1.my-work": ["pg1.pull-requests", "pg1.issues", "pg1.sessions-chats"],
-      "pg1.more": ["pg1.sessions-chats"]
+      "pg1.more": ["pg1.sessions-chats"],
+      "auto-model": ["copilot-fusion"]
     },
-    "taught": { "Q1.5": ["tool-permissions"], "Q1.6": ["context-window"], "Q1.7": ["settings"] }
+    "taught": {
+      "Q1.5": ["tool-permissions"],
+      "Q1.6": ["context-window"],
+      "Q1.7": ["settings"]
+    }
   },
   "recap": {
     "questions": 2,
     "exclude": ["K2.5", "K2.6", "K2.7", "K2.8", "K3.9"],
     "minGapMinutes": 20,
-    "reward": { "doubloons": 3, "starfish": 1 }
+    "reward": {
+      "doubloons": 3,
+      "starfish": 1
+    }
   }
 }

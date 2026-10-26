@@ -1,0 +1,117 @@
+{
+  "id": "mer.mina.dashboards",
+  "speaker": "Mina",
+  "text": "And Dashboards shows your GitHub work as a board of widgets. The practice items show up in Pulls created and Issues assigned.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0.0471659,
+      "end": 0.247625
+    },
+    {
+      "word": "Dashboards",
+      "start": 0.247625,
+      "end": 0.790083
+    },
+    {
+      "word": "shows",
+      "start": 0.790083,
+      "end": 1.061333
+    },
+    {
+      "word": "your",
+      "start": 1.061333,
+      "end": 1.17925
+    },
+    {
+      "word": "GitHub",
+      "start": 1.17925,
+      "end": 1.615583
+    },
+    {
+      "word": "work",
+      "start": 1.615583,
+      "end": 1.933958
+    },
+    {
+      "word": "as",
+      "start": 1.933958,
+      "end": 2.040083
+    },
+    {
+      "word": "a",
+      "start": 2.040083,
+      "end": 2.122625
+    },
+    {
+      "word": "board",
+      "start": 2.122625,
+      "end": 2.417458
+    },
+    {
+      "word": "of",
+      "start": 2.417458,
+      "end": 2.535375
+    },
+    {
+      "word": "widgets",
+      "start": 2.535375,
+      "end": 3.927583
+    },
+    {
+      "word": "The",
+      "start": 3.927583,
+      "end": 4.057291
+    },
+    {
+      "word": "practice",
+      "start": 4.057291,
+      "end": 4.505416
+    },
+    {
+      "word": "items",
+      "start": 4.505416,
+      "end": 4.906375
+    },
+    {
+      "word": "show",
+      "start": 4.906375,
+      "end": 5.130416
+    },
+    {
+      "word": "up",
+      "start": 5.130416,
+      "end": 5.3545
+    },
+    {
+      "word": "in",
+      "start": 5.3545,
+      "end": 5.507791
+    },
+    {
+      "word": "Pulls",
+      "start": 5.507791,
+      "end": 5.837958
+    },
+    {
+      "word": "created",
+      "start": 5.837958,
+      "end": 6.392208
+    },
+    {
+      "word": "and",
+      "start": 6.392208,
+      "end": 6.510125
+    },
+    {
+      "word": "Issues",
+      "start": 6.510125,
+      "end": 6.852125
+    },
+    {
+      "word": "assigned",
+      "start": 6.852125,
+      "end": 7.102125
+    }
+  ]
+}

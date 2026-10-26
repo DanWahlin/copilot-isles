@@ -1,0 +1,92 @@
+{
+  "id": "desmond.market.over.auto",
+  "speaker": "Desmond",
+  "text": "A higher Fusion level for a quick look? Standard would have done it, and cost you less.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.126
+    },
+    {
+      "word": "higher",
+      "start": 0.126,
+      "end": 0.469
+    },
+    {
+      "word": "Fusion",
+      "start": 0.469,
+      "end": 0.947
+    },
+    {
+      "word": "level",
+      "start": 0.947,
+      "end": 1.36
+    },
+    {
+      "word": "for",
+      "start": 1.36,
+      "end": 1.68
+    },
+    {
+      "word": "a",
+      "start": 1.68,
+      "end": 1.8
+    },
+    {
+      "word": "quick",
+      "start": 1.8,
+      "end": 2.064
+    },
+    {
+      "word": "look",
+      "start": 2.064,
+      "end": 2.729
+    },
+    {
+      "word": "Standard",
+      "start": 2.729,
+      "end": 4.12
+    },
+    {
+      "word": "would",
+      "start": 4.12,
+      "end": 4.352
+    },
+    {
+      "word": "have",
+      "start": 4.352,
+      "end": 4.528
+    },
+    {
+      "word": "done",
+      "start": 4.528,
+      "end": 4.8
+    },
+    {
+      "word": "it",
+      "start": 4.8,
+      "end": 5.18
+    },
+    {
+      "word": "and",
+      "start": 5.18,
+      "end": 5.664
+    },
+    {
+      "word": "cost",
+      "start": 5.664,
+      "end": 5.98
+    },
+    {
+      "word": "you",
+      "start": 5.98,
+      "end": 6.256
+    },
+    {
+      "word": "less",
+      "start": 6.256,
+      "end": 6.506
+    }
+  ]
+}

@@ -5,93 +5,93 @@
   "words": [
     {
       "word": "A",
-      "start": 0.052625,
-      "end": 0.131583
+      "start": 0,
+      "end": 0.144
     },
     {
       "word": "worktree's",
-      "start": 0.131583,
-      "end": 0.697375
+      "start": 0.144,
+      "end": 0.76
     },
     {
       "word": "a",
-      "start": 0.697375,
-      "end": 0.776333
+      "start": 0.76,
+      "end": 0.88
     },
     {
       "word": "booth",
-      "start": 0.776333,
-      "end": 1.421041
+      "start": 0.88,
+      "end": 1.88
     },
     {
       "word": "the",
-      "start": 1.421041,
-      "end": 1.565791
+      "start": 1.88,
+      "end": 2.032
     },
     {
       "word": "same",
-      "start": 1.565791,
-      "end": 1.89475
+      "start": 2.032,
+      "end": 2.256
     },
     {
       "word": "song",
-      "start": 1.89475,
-      "end": 2.460541
+      "start": 2.256,
+      "end": 2.74
     },
     {
       "word": "but",
-      "start": 2.460541,
-      "end": 2.802625
+      "start": 2.74,
+      "end": 2.84
     },
     {
       "word": "its",
-      "start": 2.802625,
-      "end": 2.986833
+      "start": 2.84,
+      "end": 3
     },
     {
       "word": "own",
-      "start": 2.986833,
-      "end": 3.276333
+      "start": 3,
+      "end": 3.189
     },
     {
       "word": "folder",
-      "start": 3.276333,
-      "end": 3.736833
+      "start": 3.189,
+      "end": 3.64
     },
     {
       "word": "and",
-      "start": 3.736833,
-      "end": 3.947375
+      "start": 3.64,
+      "end": 3.829
     },
     {
       "word": "branch",
-      "start": 3.947375,
-      "end": 4.684208
+      "start": 3.829,
+      "end": 4.64
     },
     {
       "word": "so",
-      "start": 4.684208,
-      "end": 5.10525
+      "start": 4.64,
+      "end": 4.853
     },
     {
       "word": "parallel",
-      "start": 5.10525,
-      "end": 5.631583
+      "start": 4.853,
+      "end": 5.344
     },
     {
       "word": "work",
-      "start": 5.631583,
-      "end": 6.052625
+      "start": 5.344,
+      "end": 5.64
     },
     {
       "word": "doesn't",
-      "start": 6.052625,
-      "end": 6.407875
+      "start": 5.64,
+      "end": 5.98
     },
     {
       "word": "collide",
-      "start": 6.407875,
-      "end": 6.657875
+      "start": 5.98,
+      "end": 6.23
     }
   ]
 }

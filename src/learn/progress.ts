@@ -34,6 +34,8 @@ export interface MarketHire {
   /** The model's name (null for Auto). */
   model: string | null;
   effort: 'low' | 'default' | 'high' | null;
+  /** The house special's effort level (its id in the pack), for an `AUTO_HIRE` (older saves: none). */
+  level?: string | null;
   paid: number;
 }
 
@@ -315,6 +317,7 @@ function parseHire(v: unknown): MarketHire | null {
     category: h.category,
     model: typeof h.model === 'string' ? h.model : null,
     effort: EFFORTS.includes(h.effort as 'low') ? (h.effort as MarketHire['effort']) : null,
+    level: typeof h.level === 'string' ? h.level : null,
     paid: typeof h.paid === 'number' && h.paid >= 0 ? Math.floor(h.paid) : 0,
   };
 }

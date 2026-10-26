@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/market.schema.json",
-  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines (and `practiced`, hers alone) and the other stalls' keepers' own version of each, and a goodbye (`keepers`, by island). `sizes.*.quotes` are course sentences every work order of that size shows after its job's `why`. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
+  "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines (and `practiced`, hers alone) and the other stalls' keepers' own version of each, and a goodbye (`keepers`, by island). `sizes.*.quotes` are course sentences every work order of that size shows after its job's `why`. `house` is the house special (Copilot Fusion) and its own effort levels, lowest first. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
   "categories": [
     {
       "id": "Lightweight",
@@ -41,7 +41,26 @@
       "price": 1
     }
   ],
-  "autoPrice": 1,
+  "house": {
+    "price": 1,
+    "levels": [
+      {
+        "id": "standard",
+        "label": "Standard",
+        "price": 0
+      },
+      {
+        "id": "high",
+        "label": "High",
+        "price": 1
+      },
+      {
+        "id": "max",
+        "label": "Max",
+        "price": 2
+      }
+    ]
+  },
   "maxPrice": 4,
   "sizes": {
     "quick": {
@@ -70,61 +89,67 @@
       "text": "Models differ in capabilities, speed, and usage cost.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "effort": {
       "text": "Higher effort can help with complex problems, but can take longer.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "quick": {
-      "text": "For a repository tour or a short explanation, keep **Auto** or the current model and its default reasoning effort.",
+      "text": "For a repository tour or a short explanation, use **Copilot Fusion** at **Standard**, or keep your current model and its default reasoning effort.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "hard": {
-      "text": "For a difficult bug or a change across several files, consider a model suited to complex coding and a higher effort level.",
+      "text": "For a difficult bug or a change across several files, consider a higher Fusion effort level or a model suited to complex coding.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "noGuarantee": {
       "text": "Higher effort does not guarantee a correct answer.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "auto": {
-      "text": "With **Auto**, the Copilot app chooses a model for your task and shows which model it selected in the conversation, alongside a short explanation of why it made that choice.",
+      "text": "**Copilot Fusion** appears in the model control, but it is not a single model. It selects models and a workflow for each request, then returns one response.",
       "chapter": "01-tour-the-app",
-      "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "anchor": "copilot-fusion",
+      "hash": "8338257de5eb"
     },
     "autoAside": {
-      "text": "This is different from **Autopilot**, which controls how independently the agent works.",
+      "text": "Copilot Fusion is different from **Autopilot**. Fusion controls how models handle your request. Autopilot controls how independently the agent works.",
       "chapter": "01-tour-the-app",
-      "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "anchor": "copilot-fusion",
+      "hash": "8338257de5eb"
     },
-    "autoHidden": {
-      "text": "If the **Auto** switch is on, these settings are hidden. Turn it off to see them.",
+    "autoLevels": {
+      "text": "These levels guide Copilot Fusion's model choices. They are not the reasoning settings of one fixed model.",
       "chapter": "01-tour-the-app",
-      "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "anchor": "copilot-fusion",
+      "hash": "8338257de5eb"
+    },
+    "autoMore": {
+      "text": "Higher levels can take longer and use more AI credits.",
+      "chapter": "01-tour-the-app",
+      "anchor": "copilot-fusion",
+      "hash": "8338257de5eb"
     },
     "vary": {
       "text": "Available models, effort levels, and context window sizes vary.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     },
     "simple": {
       "text": "Keep the default for this simple question.",
       "chapter": "01-tour-the-app",
       "anchor": "try-the-controls",
-      "hash": "1a9a4b2f69f1"
+      "hash": "fad201d0bd57"
     },
     "retry": {
       "text": "If the agent's response doesn't work for you, you can retry it with a different model or reasoning effort without re-typing your prompt.",
@@ -136,7 +161,7 @@
       "text": "You do not need a specific model for this course.",
       "chapter": "01-tour-the-app",
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118"
+      "hash": "0f81a0a94c0c"
     }
   },
   "jobs": [
@@ -180,7 +205,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "hash": "0f81a0a94c0c"
       }
     },
     "open": {
@@ -189,11 +214,11 @@
     },
     "auto": {
       "voice": "mer.market.auto",
-      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind.",
+      "text": "Copilot Fusion's the house special. It isn't one model: it picks models and a workflow for each job. And it isn't Autopilot, mind.",
       "source": {
         "chapter": "01-tour-the-app",
-        "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "anchor": "copilot-fusion",
+        "hash": "8338257de5eb"
       }
     },
     "right": {
@@ -210,7 +235,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "hash": "0f81a0a94c0c"
       }
     },
     "overEffort": {
@@ -219,7 +244,16 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "hash": "0f81a0a94c0c"
+      }
+    },
+    "overAuto": {
+      "voice": "mer.market.over.auto",
+      "text": "A higher Fusion level for a quick look? Standard would've done it, for fewer starfish.",
+      "source": {
+        "chapter": "01-tour-the-app",
+        "anchor": "models-and-reasoning-effort",
+        "hash": "0f81a0a94c0c"
       }
     },
     "short": {
@@ -233,11 +267,11 @@
     },
     "hardAuto": {
       "voice": "mer.market.hard.auto",
-      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort.",
+      "text": "Right-sized! A hard job suits a higher Fusion level: more capable models, and deeper reasoning.",
       "source": {
         "chapter": "01-tour-the-app",
-        "anchor": "models-and-reasoning-effort",
-        "hash": "84d625491118"
+        "anchor": "copilot-fusion",
+        "hash": "8338257de5eb"
       }
     },
     "broke": {
@@ -265,7 +299,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "open": {
@@ -274,11 +308,11 @@
       },
       "auto": {
         "voice": "desmond.market.auto",
-        "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
+        "text": "Copilot Fusion's the house special. It's not one model: it picks the models and the workflow for each job. Mind, it isn't Autopilot.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "right": {
@@ -295,7 +329,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "overEffort": {
@@ -304,7 +338,16 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
+        }
+      },
+      "overAuto": {
+        "voice": "desmond.market.over.auto",
+        "text": "A higher Fusion level for a quick look? Standard would have done it, and cost you less.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "0f81a0a94c0c"
         }
       },
       "short": {
@@ -318,11 +361,11 @@
       },
       "hardAuto": {
         "voice": "desmond.market.hard.auto",
-        "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort.",
+        "text": "Right-sized, Captain! For a hard job, a higher Fusion level fits: more capable models, deeper reasoning.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "broke": {
@@ -349,7 +392,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "open": {
@@ -358,11 +401,11 @@
       },
       "auto": {
         "voice": "tb.lani.market.auto",
-        "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
+        "text": "Copilot Fusion's our house special. It isn't a single model: it chooses models and a workflow for each job. It's not the same as Autopilot.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "right": {
@@ -379,7 +422,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "overEffort": {
@@ -388,7 +431,16 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
+        }
+      },
+      "overAuto": {
+        "voice": "tb.lani.market.over.auto",
+        "text": "A higher Fusion level for a quick look? Standard would have been plenty.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "0f81a0a94c0c"
         }
       },
       "short": {
@@ -402,11 +454,11 @@
       },
       "hardAuto": {
         "voice": "tb.lani.market.hard.auto",
-        "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort.",
+        "text": "Right-sized! A higher Fusion level suits a hard one like this: more capable models and deeper reasoning.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "broke": {
@@ -433,7 +485,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "open": {
@@ -442,11 +494,11 @@
       },
       "auto": {
         "voice": "kh.bram.market.auto",
-        "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind.",
+        "text": "Copilot Fusion's on the menu too. Not one model: it picks models and a workflow for each job. It's not Autopilot, mind.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "right": {
@@ -463,7 +515,7 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
         }
       },
       "overEffort": {
@@ -472,7 +524,16 @@
         "source": {
           "chapter": "01-tour-the-app",
           "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "hash": "0f81a0a94c0c"
+        }
+      },
+      "overAuto": {
+        "voice": "kh.bram.market.over.auto",
+        "text": "A higher Fusion level for a quick look? Standard would have done it.",
+        "source": {
+          "chapter": "01-tour-the-app",
+          "anchor": "models-and-reasoning-effort",
+          "hash": "0f81a0a94c0c"
         }
       },
       "short": {
@@ -486,11 +547,11 @@
       },
       "hardAuto": {
         "voice": "kh.bram.market.hard.auto",
-        "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort.",
+        "text": "Right-sized! A hard job wants a higher Fusion level: more capable models, deeper reasoning.",
         "source": {
           "chapter": "01-tour-the-app",
-          "anchor": "models-and-reasoning-effort",
-          "hash": "84d625491118"
+          "anchor": "copilot-fusion",
+          "hash": "8338257de5eb"
         }
       },
       "broke": {

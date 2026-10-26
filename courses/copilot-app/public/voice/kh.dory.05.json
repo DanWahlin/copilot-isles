@@ -6,97 +6,97 @@
     {
       "word": "A",
       "start": 0,
-      "end": 0.173
+      "end": 0.147
     },
     {
       "word": "reply",
-      "start": 0.173,
-      "end": 0.7
+      "start": 0.147,
+      "end": 0.54
     },
     {
       "word": "may",
-      "start": 0.7,
-      "end": 0.944
+      "start": 0.54,
+      "end": 0.768
     },
     {
       "word": "show",
-      "start": 0.944,
-      "end": 1.28
+      "start": 0.768,
+      "end": 1
     },
     {
       "word": "a",
-      "start": 1.28,
-      "end": 1.44
+      "start": 1,
+      "end": 1.1
     },
     {
       "word": "Run",
-      "start": 1.44,
-      "end": 1.737
+      "start": 1.1,
+      "end": 1.337
     },
     {
       "word": "button",
-      "start": 1.737,
-      "end": 2.16
+      "start": 1.337,
+      "end": 1.733
     },
     {
       "word": "by",
-      "start": 2.16,
-      "end": 2.36
+      "start": 1.733,
+      "end": 1.88
     },
     {
       "word": "a",
-      "start": 2.36,
-      "end": 2.48
+      "start": 1.88,
+      "end": 1.99
     },
     {
       "word": "snippet",
-      "start": 2.48,
-      "end": 3.867
+      "start": 1.99,
+      "end": 2.747
     },
     {
       "word": "Or",
-      "start": 3.867,
-      "end": 5.024
+      "start": 2.747,
+      "end": 3.184
     },
     {
       "word": "copy",
-      "start": 5.024,
-      "end": 5.64
+      "start": 3.184,
+      "end": 3.46
     },
     {
       "word": "the",
-      "start": 5.64,
-      "end": 5.81
+      "start": 3.46,
+      "end": 3.58
     },
     {
       "word": "snippet",
-      "start": 5.81,
-      "end": 6.224
+      "start": 3.58,
+      "end": 4.064
     },
     {
       "word": "into",
-      "start": 6.224,
-      "end": 6.5
+      "start": 4.064,
+      "end": 4.34
     },
     {
       "word": "the",
-      "start": 6.5,
-      "end": 6.622
+      "start": 4.34,
+      "end": 4.462
     },
     {
       "word": "Terminal",
-      "start": 6.622,
-      "end": 7.22
+      "start": 4.462,
+      "end": 5.02
     },
     {
       "word": "tab",
-      "start": 7.22,
-      "end": 7.6
+      "start": 5.02,
+      "end": 5.271
     },
     {
       "word": "yourself",
-      "start": 7.6,
-      "end": 7.85
+      "start": 5.271,
+      "end": 5.521
     }
   ]
 }

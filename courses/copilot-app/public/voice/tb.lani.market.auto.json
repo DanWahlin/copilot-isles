@@ -1,127 +1,132 @@
 {
   "id": "tb.lani.market.auto",
   "speaker": "Lani",
-  "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot.",
+  "text": "Copilot Fusion's our house special. It isn't a single model: it chooses models and a workflow for each job. It's not the same as Autopilot.",
   "words": [
     {
-      "word": "Auto's",
+      "word": "Copilot",
       "start": 0,
-      "end": 0.62
+      "end": 0.629
+    },
+    {
+      "word": "Fusion's",
+      "start": 0.629,
+      "end": 1.28
     },
     {
       "word": "our",
-      "start": 0.62,
-      "end": 0.867
+      "start": 1.28,
+      "end": 1.573
     },
     {
       "word": "house",
-      "start": 0.867,
-      "end": 1.27
+      "start": 1.573,
+      "end": 1.91
     },
     {
       "word": "special",
-      "start": 1.27,
-      "end": 1.96
+      "start": 1.91,
+      "end": 2.747
     },
     {
-      "word": "The",
-      "start": 1.96,
-      "end": 2.42
+      "word": "It",
+      "start": 2.747,
+      "end": 3.18
     },
     {
-      "word": "app",
-      "start": 2.42,
-      "end": 2.78
-    },
-    {
-      "word": "chooses",
-      "start": 2.78,
-      "end": 3.24
+      "word": "isn't",
+      "start": 3.18,
+      "end": 3.6
     },
     {
       "word": "a",
-      "start": 3.24,
-      "end": 3.333
+      "start": 3.6,
+      "end": 3.726
+    },
+    {
+      "word": "single",
+      "start": 3.726,
+      "end": 4.08
     },
     {
       "word": "model",
-      "start": 3.333,
-      "end": 3.68
+      "start": 4.08,
+      "end": 4.853
     },
     {
-      "word": "for",
-      "start": 3.68,
-      "end": 4
+      "word": "it",
+      "start": 4.853,
+      "end": 5.02
     },
     {
-      "word": "you",
-      "start": 4,
-      "end": 4.4
+      "word": "chooses",
+      "start": 5.02,
+      "end": 5.531
     },
     {
-      "word": "and",
-      "start": 4.4,
-      "end": 4.693
-    },
-    {
-      "word": "tells",
-      "start": 4.693,
-      "end": 5
-    },
-    {
-      "word": "you",
-      "start": 5,
-      "end": 5.173
-    },
-    {
-      "word": "which",
-      "start": 5.173,
-      "end": 5.54
-    },
-    {
-      "word": "one",
-      "start": 5.54,
-      "end": 5.94
+      "word": "models",
+      "start": 5.531,
+      "end": 6.14
     },
     {
       "word": "and",
-      "start": 5.94,
+      "start": 6.14,
       "end": 6.36
     },
     {
-      "word": "why",
+      "word": "a",
       "start": 6.36,
-      "end": 7.093
+      "end": 6.471
+    },
+    {
+      "word": "workflow",
+      "start": 6.471,
+      "end": 7.1
+    },
+    {
+      "word": "for",
+      "start": 7.1,
+      "end": 7.328
+    },
+    {
+      "word": "each",
+      "start": 7.328,
+      "end": 7.64
+    },
+    {
+      "word": "job",
+      "start": 7.64,
+      "end": 8.4
     },
     {
       "word": "It's",
-      "start": 7.093,
-      "end": 7.68
+      "start": 8.4,
+      "end": 9.02
     },
     {
       "word": "not",
-      "start": 7.68,
-      "end": 7.94
+      "start": 9.02,
+      "end": 9.24
     },
     {
       "word": "the",
-      "start": 7.94,
-      "end": 8.112
+      "start": 9.24,
+      "end": 9.44
     },
     {
       "word": "same",
-      "start": 8.112,
-      "end": 8.64
+      "start": 9.44,
+      "end": 9.867
     },
     {
       "word": "as",
-      "start": 8.64,
-      "end": 8.88
+      "start": 9.867,
+      "end": 10.16
     },
     {
       "word": "Autopilot",
-      "start": 8.88,
-      "end": 9.13
+      "start": 10.16,
+      "end": 10.41
     }
   ]
 }

@@ -24,6 +24,7 @@ import {
   GILDA,
   REFUND,
   effortLastTime,
+  levelLastTime,
   feedback,
   grade,
   jobById,
@@ -197,10 +198,15 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     model: `${category} model`,
     effort,
   });
-  const AUTO: Hire = { auto: true };
+  // The house special (Copilot Fusion) at each of its levels.
+  const AUTO: Hire = { auto: true, level: 'standard' };
+  const AUTO_HIGH: Hire = { auto: true, level: 'high' };
+  const AUTO_MAX: Hire = { auto: true, level: 'max' };
 
   it('prices 1-4 starfish: bigger models cost more, High effort one more', () => {
     expect(price(AUTO)).toBe(1);
+    expect(price(AUTO_HIGH)).toBe(2);
+    expect(price(AUTO_MAX)).toBe(3);
     expect(price(hire('Lightweight', 'default'))).toBe(1);
     expect(price(hire('Versatile', 'default'))).toBe(2);
     expect(price(hire('Powerful', 'default'))).toBe(3);
@@ -210,11 +216,14 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
       for (const e of EFFORTS) expect(price(hire(c, e))).toBeLessThanOrEqual(MAX_PRICE);
   });
 
-  it('grades quick looks by the course’s rule: Auto, or any model on its default (or low) effort', () => {
+  it('grades quick looks by the course’s rule: Fusion at Standard, or any model on its default effort', () => {
     for (const id of ['tour', 'explain'] as const) {
       const job = jobById(id)!;
       expect(grade(job, AUTO), id).toEqual({ outcome: 'right', reason: 'quick-right' });
-      // "keep Auto or the current model and its default reasoning effort", whatever the model's size.
+      // A higher Fusion level is more than a quick look needs.
+      expect(grade(job, AUTO_HIGH), id).toEqual({ outcome: 'over', reason: 'quick-over-auto' });
+      expect(grade(job, AUTO_MAX), id).toEqual({ outcome: 'over', reason: 'quick-over-auto' });
+      // "or keep your current model and its default reasoning effort", whatever the model's size.
       for (const e of ['low', 'default'] as const) {
         expect(grade(job, hire('Lightweight', e)), id).toEqual({ outcome: 'right', reason: 'quick-right' });
         expect(grade(job, hire('Versatile', e)), id).toEqual({ outcome: 'right', reason: 'quick-keep' });
@@ -231,11 +240,13 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     }
   });
 
-  it('grades hard jobs: Auto or a model suited to complex coding with effort; light or low falls short', () => {
+  it('grades hard jobs: a higher Fusion level, or a model suited to complex coding; light or low falls short', () => {
     for (const id of ['bug', 'files'] as const) {
       const job = jobById(id)!;
-      // Auto chooses a model for your task: never a failure, with a nudge to choose (and a Retry).
-      expect(grade(job, AUTO), id).toEqual({ outcome: 'right', reason: 'hard-auto' });
+      // "consider a higher Fusion effort level": Standard falls short, High and Max are right-sized.
+      expect(grade(job, AUTO), id).toEqual({ outcome: 'short', reason: 'hard-short-auto' });
+      expect(grade(job, AUTO_HIGH), id).toEqual({ outcome: 'right', reason: 'hard-auto' });
+      expect(grade(job, AUTO_MAX), id).toEqual({ outcome: 'right', reason: 'hard-auto' });
       for (const e of EFFORTS) expect(grade(job, hire('Lightweight', e)).reason, id).toBe('hard-short-model');
       expect(grade(job, hire('Versatile', 'low')).reason, id).toBe('hard-short-effort');
       expect(grade(job, hire('Versatile', 'default')).reason, id).toBe('hard-short-effort');
@@ -250,7 +261,12 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
 
   it('refunds less than every right-sized hire: a right-sized job costs at least one starfish', () => {
     for (const job of JOBS)
-      for (const h of [AUTO, ...CATEGORIES.flatMap((c) => EFFORTS.map((e) => hire(c, e)))])
+      for (const h of [
+        AUTO,
+        AUTO_HIGH,
+        AUTO_MAX,
+        ...CATEGORIES.flatMap((c) => EFFORTS.map((e) => hire(c, e))),
+      ])
         if (grade(job, h).outcome === 'right') {
           expect(refundFor(job, h), `${job.id} ${JSON.stringify(h)}`).toBeLessThan(price(h));
           expect(price(h) - refundFor(job, h)).toBeGreaterThanOrEqual(1);
@@ -258,8 +274,9 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     expect(REFUND.quick).toBe(0);
     expect(REFUND.hard).toBe(2);
     expect(refundFor(jobById('tour')!, AUTO)).toBe(0);
-    // Auto on a hard job is right-sized at its fair price: nothing back.
-    expect(refundFor(jobById('bug')!, AUTO)).toBe(0);
+    // Fusion at High on a hard job: 2 paid, 1 back (never the whole hire), the same net as a model.
+    expect(refundFor(jobById('bug')!, AUTO_HIGH)).toBe(1);
+    expect(refundFor(jobById('bug')!, AUTO_MAX)).toBe(2);
     expect(refundFor(jobById('bug')!, hire('Powerful', 'default'))).toBe(2);
     expect(refundFor(jobById('bug')!, hire('Versatile', 'high'))).toBe(2);
     // Whatever a pack's refund, the game never gives back the whole hire.
@@ -270,7 +287,7 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     const light = hire('Lightweight', 'low') as Extract<Hire, { auto: false }>;
     const byModel = retryPlan(light, 'model');
     expect(byModel).toMatchObject({ kind: 'model', live: 'model' });
-    // The model that fell short can't be picked again; another (or Auto) can.
+    // The model that fell short can't be picked again; another (or Fusion) can.
     expect(usedLastTime(byModel, 'Lightweight', light.model)).toBe(true);
     expect(usedLastTime(byModel, 'Lightweight', 'another')).toBe(false);
     expect(usedLastTime(byModel, 'auto')).toBe(false);
@@ -283,14 +300,22 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     expect(effortLastTime(byEffort, versatile.model, 'high')).toBe(false);
     expect(retryChanges(byEffort, versatile)).toBe(false);
     expect(retryChanges(byEffort, { ...versatile, effort: 'high' })).toBe(true);
-    // After Auto either Retry turns it off: the model picker is live, and Auto can't be picked again.
-    for (const kind of ['model', 'effort'] as const) {
-      const p = retryPlan(AUTO, kind);
-      expect(p.live).toBe('model');
-      expect(usedLastTime(p, 'auto')).toBe(true);
-      expect(retryChanges(p, AUTO)).toBe(false);
-      expect(retryChanges(p, hire('Powerful', 'default'))).toBe(true);
-    }
+    // After Fusion, a different model turns it off: the model picker is live, and Fusion is last time's.
+    const fusionModel = retryPlan(AUTO, 'model');
+    expect(fusionModel.live).toBe('model');
+    expect(usedLastTime(fusionModel, 'auto')).toBe(true);
+    expect(retryChanges(fusionModel, AUTO)).toBe(false);
+    expect(retryChanges(fusionModel, AUTO_HIGH)).toBe(false);
+    expect(retryChanges(fusionModel, hire('Powerful', 'default'))).toBe(true);
+    // More effort keeps Fusion on: its levels are live, and last time's level can't be taken again.
+    const fusionEffort = retryPlan(AUTO, 'effort');
+    expect(fusionEffort.live).toBe('effort');
+    expect(usedLastTime(fusionEffort, 'auto')).toBe(false);
+    expect(levelLastTime(fusionEffort, 'standard')).toBe(true);
+    expect(levelLastTime(fusionEffort, 'high')).toBe(false);
+    expect(retryChanges(fusionEffort, AUTO)).toBe(false);
+    expect(retryChanges(fusionEffort, AUTO_HIGH)).toBe(true);
+    expect(retryChanges(fusionEffort, hire('Powerful', 'default'))).toBe(true);
   });
 
   it('gives each outcome a stamp, a voiced line, the course sentences behind it, and its Retry', () => {
@@ -310,11 +335,22 @@ describe('prices, grades and refunds (MODEL-MARKET.md §3)', () => {
     );
     expect(keep.quotes).toEqual([tour.why, QUOTES.cost]);
     expect(GILDA_TEXT[GILDA.keep]).toMatch(/default effort is fine for a quick look/);
-    // Auto on a hard job: right-sized, the course's "consider", and a Retry to try a model and effort.
-    const auto = feedback(bug, AUTO);
+    // Fusion above Standard on a hard job: right-sized, and a Retry to compare with a model.
+    const auto = feedback(bug, AUTO_HIGH);
     expect(auto).toMatchObject({ outcome: 'right', key: 'hardAuto', retry: 'again' });
-    expect(auto.quotes).toEqual([QUOTES.auto, QUOTES.hard, QUOTES.autoHidden]);
-    expect(GILDA_TEXT[GILDA.hardAuto]).toMatch(/turn Auto off/);
+    expect(auto.quotes).toEqual([QUOTES.hard, QUOTES.autoLevels, QUOTES.noGuarantee]);
+    expect(GILDA_TEXT[GILDA.hardAuto]).toMatch(/higher Fusion level/);
+    // Fusion at Standard on a hard job: it falls short, and either Retry is offered.
+    const standard = feedback(bug, AUTO);
+    expect(standard).toMatchObject({ outcome: 'short', key: 'short', retry: 'short' });
+    expect(standard.quotes).toEqual([QUOTES.hard, QUOTES.autoLevels, QUOTES.retry]);
+    // A higher Fusion level on a quick look overspends, with its own line.
+    const overAuto = feedback(tour, AUTO_MAX);
+    expect(overAuto).toMatchObject({ outcome: 'over', key: 'overAuto', retry: null });
+    expect(overAuto.quotes).toEqual([QUOTES.autoMore, tour.why]);
+    expect(overAuto.summary).toBe(
+      'Copilot Fusion at Max did the job, but a higher Fusion level cost 3 starfish for a 1-starfish job.',
+    );
     const short = feedback(bug, hire('Lightweight', 'low'));
     expect(short).toMatchObject({ stamp: '↻ Fell short', key: 'short', retry: 'short' });
     expect(short.quotes).toContain(QUOTES.retry);
@@ -391,6 +427,14 @@ describe('the starfish purse (MODEL-MARKET.md §3)', () => {
   it('saves hires, keeps a job done, and loads a hire whose model has left the board', () => {
     const storage = new MemStorage();
     const p = new Progress(storage);
+    p.recordHire('bug', {
+      outcome: 'right',
+      category: 'Auto',
+      model: null,
+      effort: null,
+      level: 'high',
+      paid: 2,
+    });
     p.recordHire('tour', { outcome: 'right', category: 'Auto', model: null, effort: null, paid: 1 });
     p.recordHire('tour', {
       outcome: 'over',
@@ -405,7 +449,9 @@ describe('the starfish purse (MODEL-MARKET.md §3)', () => {
     expect(again.jobs.tour!.done).toBe(true);
     expect(again.jobs.tour!.last).toMatchObject({ model: 'Retired 9', outcome: 'over' });
     expect(savedHireName(again.jobs.tour!.last!)).toBe('a Powerful model');
-    expect(savedHireName({ category: 'Auto', model: null })).toBe('Auto');
+    // An older save's house hire has no level; a new one reads with its level.
+    expect(savedHireName({ category: 'Auto', model: null })).toBe('Copilot Fusion');
+    expect(savedHireName(again.jobs.bug!.last!)).toBe('Copilot Fusion at High');
     expect(savedHireName({ category: MODELS[0]!.category, model: MODELS[0]!.name })).toBe(MODELS[0]!.name);
     // A save keeps the course's category name; the grading reads it through the course's binding.
     expect(TIER_OF[again.jobs.tour!.last!.category]).toBe('large');
@@ -414,6 +460,7 @@ describe('the starfish purse (MODEL-MARKET.md §3)', () => {
       JSON.stringify({ v: 1, market: { jobs: { bug: { done: 'yes', last: { outcome: 'great' } } } } }),
     );
     expect(junk.market.jobs.bug).toEqual({ done: false, last: null });
+    expect(again.jobs.tour!.last!.level).toBeNull();
   });
 });
 
@@ -536,7 +583,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     expect(s.done).toContain('bug');
   });
 
-  it('Retry: more effort keeps the model and waits for the effort; after Auto, Auto is off', async () => {
+  it('Retry: more effort keeps the model (or Fusion) and waits for the effort; a different model turns Fusion off', async () => {
     const { d } = play('anchorage');
     await d.open();
     d.pickJob('files');
@@ -552,15 +599,29 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     expect(d.state().done).toContain('files');
     d.back();
     d.pickJob('bug');
+    // Fusion at Standard falls short on a hard job.
     d.pick('auto');
     d.pay();
-    d.retry('effort');
+    expect(d.state().view.result?.feedback).toMatchObject({ outcome: 'short', retry: 'short' });
+    // A different model: Fusion's off, and it can't be picked again.
+    d.retry('model');
     s = d.state();
     expect(s.view.draft).toMatchObject({ auto: false, pending: 'model' });
     d.pick('auto');
     expect(d.state().view.draft.auto).toBe(false);
-    d.pick(modelsIn('Powerful').length ? 'Powerful' : 'Versatile');
+    d.back();
+    d.pickJob('bug');
+    d.pick('auto');
     d.pay();
+    // More effort: Fusion stays on, its level open, and Standard (last time's) can't be taken again.
+    d.retry('effort');
+    s = d.state();
+    expect(s.view.draft).toMatchObject({ auto: true, pending: 'effort', level: 'standard' });
+    d.effort('standard');
+    expect(d.state().view.draft.pending).toBe('effort');
+    d.effort('high');
+    d.pay();
+    expect(d.state().view.result?.feedback).toMatchObject({ outcome: 'right', key: 'hardAuto' });
     expect(d.state().done).toContain('bug');
   });
 
@@ -590,7 +651,8 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     await d.open();
     for (const job of JOBS) {
       const hires: Hire[] = [
-        { auto: true },
+        { auto: true, level: 'standard' },
+        { auto: true, level: 'high' },
         ...CATEGORIES.flatMap((category) =>
           EFFORTS.map((effort) => ({
             auto: false as const,
@@ -603,7 +665,7 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
       const h = hires.find((x) => grade(job, x).outcome === 'right')!;
       d.pickJob(job.id);
       d.pick(h.auto ? 'auto' : h.category);
-      if (!h.auto) d.effort(h.effort);
+      d.effort(h.auto ? h.level : h.effort);
       d.pay();
       expect(d.state().view.screen).toBe('result');
       d.back();
@@ -709,10 +771,11 @@ describe('the market at every stall (MODEL-MARKET.md §2, §5)', () => {
     mer.d.effort('default');
     mer.d.pay();
     expect(mer.d.state().view.practice).toEqual({ quick: true, retry: false });
-    // A hard job with Auto: right-sized, and it offers a Retry (a different model, to compare).
+    // A hard job with Fusion at High: right-sized, and it offers a Retry (a different model, to compare).
     mer.d.back();
     mer.d.pickJob('bug');
     mer.d.pick('auto');
+    mer.d.effort('high');
     mer.d.pay();
     st = mer.d.state();
     expect(st.view.result?.feedback).toMatchObject({ outcome: 'right', retry: 'again' });

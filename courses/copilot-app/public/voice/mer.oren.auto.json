@@ -1,67 +1,102 @@
 {
   "id": "mer.oren.auto",
   "speaker": "Oren",
-  "text": "When it says Auto, the app picks a model for your task.",
+  "text": "Copilot Fusion isn't one model. It picks models and a workflow for each request, then gives you one response.",
   "words": [
     {
-      "word": "When",
+      "word": "Copilot",
       "start": 0.055541,
-      "end": 0.291666
+      "end": 0.680541
     },
     {
-      "word": "it",
-      "start": 0.291666,
-      "end": 0.430541
+      "word": "Fusion",
+      "start": 0.680541,
+      "end": 1.180541
     },
     {
-      "word": "says",
-      "start": 0.430541,
-      "end": 0.708333
+      "word": "isn't",
+      "start": 1.180541,
+      "end": 1.486125
     },
     {
-      "word": "Auto",
-      "start": 0.708333,
-      "end": 1.5
-    },
-    {
-      "word": "the",
-      "start": 1.5,
-      "end": 1.666666
-    },
-    {
-      "word": "app",
-      "start": 1.666666,
-      "end": 1.888875
-    },
-    {
-      "word": "picks",
-      "start": 1.888875,
-      "end": 2.166666
-    },
-    {
-      "word": "a",
-      "start": 2.166666,
-      "end": 2.236125
+      "word": "one",
+      "start": 1.486125,
+      "end": 1.805541
     },
     {
       "word": "model",
-      "start": 2.236125,
-      "end": 2.597208
+      "start": 1.805541,
+      "end": 3.208333
+    },
+    {
+      "word": "It",
+      "start": 3.208333,
+      "end": 3.416666
+    },
+    {
+      "word": "picks",
+      "start": 3.416666,
+      "end": 3.708333
+    },
+    {
+      "word": "models",
+      "start": 3.708333,
+      "end": 4.166666
+    },
+    {
+      "word": "and",
+      "start": 4.166666,
+      "end": 4.263875
+    },
+    {
+      "word": "a",
+      "start": 4.263875,
+      "end": 4.319458
+    },
+    {
+      "word": "workflow",
+      "start": 4.319458,
+      "end": 4.916666
     },
     {
       "word": "for",
-      "start": 2.597208,
-      "end": 2.736125
+      "start": 4.916666,
+      "end": 5.083333
     },
     {
-      "word": "your",
-      "start": 2.736125,
-      "end": 2.986125
+      "word": "each",
+      "start": 5.083333,
+      "end": 5.333333
     },
     {
-      "word": "task",
-      "start": 2.986125,
-      "end": 3.236125
+      "word": "request",
+      "start": 5.333333,
+      "end": 6.194458
+    },
+    {
+      "word": "then",
+      "start": 6.194458,
+      "end": 6.361125
+    },
+    {
+      "word": "gives",
+      "start": 6.361125,
+      "end": 6.666666
+    },
+    {
+      "word": "you",
+      "start": 6.666666,
+      "end": 6.791666
+    },
+    {
+      "word": "one",
+      "start": 6.791666,
+      "end": 7.097208
+    },
+    {
+      "word": "response",
+      "start": 7.097208,
+      "end": 7.347208
     }
   ]
 }

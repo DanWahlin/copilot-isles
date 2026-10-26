@@ -2,7 +2,7 @@
   "$comment": "Written by tools/course/sync.mjs (PLAN §8.2). Section hashes are the first 12 hex digits of the SHA-256 of normalizeForCompare(markdown); images keep the full SHA-256. Do not edit by hand.",
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
-  "sha": "a5cdf7dd96e1e3333cd92d9e11ee127c2bbe1669",
+  "sha": "f24b52105ca870cfecd675e7ae0e9672738ecd53",
   "syncedAt": "2026-10-25",
   "catalog": [
     {
@@ -50,7 +50,7 @@
     "00-setup": {
       "short": "ch00",
       "title": "Setup",
-      "hash": "1031b787f893",
+      "hash": "565c8f063f4b",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -80,7 +80,7 @@
         "connect-to-your-repository": {
           "title": "Connect to Your Repository",
           "level": 2,
-          "hash": "fda261a1fa97",
+          "hash": "39e180f24372",
           "images": ["00-setup/assets/app-add-project.webp"],
           "terms": [
             "+",
@@ -95,7 +95,7 @@
         "check-your-tools-in-terminal": {
           "title": "Check Your Tools in Terminal",
           "level": 2,
-          "hash": "a098a1855e14",
+          "hash": "8f3efb0f005a",
           "images": ["00-setup/assets/app-current-checkout-workspace-selector.webp"],
           "terms": [
             "Terminal",
@@ -103,7 +103,7 @@
             "+",
             "Current checkout",
             "View",
-            "Toggle Review Panel",
+            "Toggle Panel",
             "LTS",
             "GitHub.com",
             "Login with a web browser"
@@ -188,7 +188,7 @@
     "01-tour-the-app": {
       "short": "ch01",
       "title": "Tour the App",
-      "hash": "d26a51135593",
+      "hash": "3d93a6140765",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -210,20 +210,26 @@
         "tour-the-app": {
           "title": "Tour the App",
           "level": 2,
-          "hash": "324629c85fee",
+          "hash": "bfa6c0932790",
           "images": [
             "01-tour-the-app/assets/app-new-page.webp",
             "01-tour-the-app/assets/app-pull-requests-page.webp",
             "01-tour-the-app/assets/app-issues-page.webp",
+            "01-tour-the-app/assets/app-dashboards-page.webp",
             "01-tour-the-app/assets/app-automations-page.webp"
           ],
           "terms": [
             "Authored by me",
             "Review requests",
-            "All repositories",
             "Assigned to me",
             "Created by me",
             "New issue",
+            "My Work",
+            "Pulls created",
+            "Pulls mentioned",
+            "Issues assigned",
+            "Issues mentioned",
+            "Requested reviews",
             "Automations",
             "Sessions",
             "Chats"
@@ -238,9 +244,9 @@
         "pull-requests": {
           "title": "Pull requests",
           "level": 3,
-          "hash": "b7a35175db25",
+          "hash": "ec6e6794c28c",
           "images": ["01-tour-the-app/assets/app-pull-requests-page.webp"],
-          "terms": ["Authored by me", "Review requests", "All repositories"]
+          "terms": ["Authored by me", "Review requests"]
         },
         "issues": {
           "title": "Issues",
@@ -248,6 +254,20 @@
           "hash": "dd5009d56d26",
           "images": ["01-tour-the-app/assets/app-issues-page.webp"],
           "terms": ["Assigned to me", "Created by me", "New issue"]
+        },
+        "dashboards": {
+          "title": "Dashboards",
+          "level": 3,
+          "hash": "d64e7dbfb8c3",
+          "images": ["01-tour-the-app/assets/app-dashboards-page.webp"],
+          "terms": [
+            "My Work",
+            "Pulls created",
+            "Pulls mentioned",
+            "Issues assigned",
+            "Issues mentioned",
+            "Requested reviews"
+          ]
         },
         "automations": {
           "title": "Automations",
@@ -270,7 +290,7 @@
         "chats-project-sessions-and-modes": {
           "title": "Chats, Project Sessions, and Modes",
           "level": 2,
-          "hash": "5721ac27d3ca",
+          "hash": "7de26bea6fbd",
           "images": [
             "01-tour-the-app/assets/producer-control-room-modes.webp",
             "01-tour-the-app/assets/app-quick-chat.webp",
@@ -301,7 +321,7 @@
         "chat-sessions": {
           "title": "Chat Sessions",
           "level": 3,
-          "hash": "9d8ea69782bc",
+          "hash": "9b2bed5bba1c",
           "images": ["01-tour-the-app/assets/app-quick-chat.webp"],
           "terms": ["+", "Sessions", "Chat", "Expected Output:"]
         },
@@ -329,24 +349,37 @@
         "models-and-reasoning-effort": {
           "title": "Models and Reasoning Effort",
           "level": 2,
-          "hash": "84d625491118",
+          "hash": "0f81a0a94c0c",
+          "images": ["01-tour-the-app/assets/app-copilot-fusion-options.webp"],
           "terms": [
             "Model",
             "Reasoning effort",
             "Context window",
-            "Auto",
+            "Copilot Fusion",
             "Effort",
+            "Effort level",
+            "Standard",
             "Autopilot",
+            "High",
+            "Max",
+            "Learn more",
             "Interactive",
             "Expected Output:",
             "Retry"
           ]
         },
+        "copilot-fusion": {
+          "title": "Copilot Fusion",
+          "level": 3,
+          "hash": "8338257de5eb",
+          "images": ["01-tour-the-app/assets/app-copilot-fusion-options.webp"],
+          "terms": ["Copilot Fusion", "Autopilot", "Standard", "High", "Max", "Learn more"]
+        },
         "try-the-controls": {
           "title": "Try the Controls",
           "level": 3,
-          "hash": "1a9a4b2f69f1",
-          "terms": ["Interactive", "Model", "Auto", "Effort", "Expected Output:"]
+          "hash": "fad201d0bd57",
+          "terms": ["Interactive", "Copilot Fusion", "Standard", "Model", "Effort", "Expected Output:"]
         },
         "try-again-with-a-different-model": {
           "title": "Try Again with a Different Model",
@@ -363,7 +396,7 @@
         "settings": {
           "title": "Settings",
           "level": 2,
-          "hash": "49fadf6d109a",
+          "hash": "4c5198f8635b",
           "images": ["01-tour-the-app/assets/app-settings.webp"],
           "terms": [
             "Settings",
@@ -403,7 +436,7 @@
         "key-takeaways": {
           "title": "Key Takeaways",
           "level": 2,
-          "hash": "863dccd1b579",
+          "hash": "b74b93cb51b2",
           "terms": ["Chat sessions", "Project sessions", "Automations", "Interactive", "Plan", "Autopilot"]
         },
         "whats-next": {
@@ -415,14 +448,14 @@
         "source-references": {
           "title": "Source References",
           "level": 2,
-          "hash": "b35a71db2197"
+          "hash": "253aa40160ed"
         }
       }
     },
     "02-sessions-worktrees-context": {
       "short": "ch02",
       "title": "Sessions, Worktrees, and Context",
-      "hash": "ef39e6d0ca8c",
+      "hash": "7c319c8c88b3",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -503,7 +536,7 @@
         "exercise-start-a-session-from-a-branch-and-attach-an-issue": {
           "title": "Exercise: Start a Session from a Branch and Attach an Issue",
           "level": 2,
-          "hash": "6db80a8de549",
+          "hash": "25403dfc8620",
           "images": [
             "02-sessions-worktrees-context/assets/app-create-from-icon.webp",
             "02-sessions-worktrees-context/assets/app-plan-from-issue.webp",
@@ -519,6 +552,7 @@
             "Review plan",
             "Autopilot",
             "Exit plan mode and I will prompt myself",
+            "Continue",
             "Interactive",
             "The Hobbit",
             "Changes"
@@ -527,7 +561,7 @@
         "exercise-check-the-session-with-slash-commands": {
           "title": "Exercise: Check the Session with Slash Commands",
           "level": 2,
-          "hash": "0eb8259b8b60",
+          "hash": "b3a17e3a13fd",
           "images": [
             "02-sessions-worktrees-context/assets/app-chronicle-standup-output.webp",
             "02-sessions-worktrees-context/assets/app-context-information.webp"
@@ -583,13 +617,16 @@
         "assignment": {
           "title": "Assignment",
           "level": 2,
-          "hash": "a6fd57783531",
+          "hash": "dc74319a0e2b",
           "images": ["assets/assignment.webp"],
           "terms": [
             "Create from",
             "Branches",
             "Plan",
             "Exit plan mode and I will prompt myself",
+            "Review plan",
+            "Continue",
+            "Interactive",
             "Success Criteria:"
           ]
         },
@@ -608,7 +645,7 @@
     "03-development-workflows": {
       "short": "ch03",
       "title": "Development and GitHub Workflows",
-      "hash": "f8e6c5847712",
+      "hash": "21b77bdc4474",
       "sections": {
         "learning-objectives": {
           "title": "Learning Objectives",
@@ -641,7 +678,7 @@
         "confirm-the-sample-app-is-ready": {
           "title": "Confirm the Sample App Is Ready",
           "level": 2,
-          "hash": "9f41604e0eea",
+          "hash": "a02a5f393061",
           "images": [
             "03-development-workflows/assets/context-layers.webp",
             "03-development-workflows/assets/app-workspace-panel.webp"
@@ -651,7 +688,7 @@
             "New worktree",
             "Interactive",
             "View",
-            "Toggle Review Panel",
+            "Toggle Panel",
             "Terminal",
             "Copy and paste into the terminal",
             "Run directly from the response",
@@ -667,13 +704,15 @@
         "inner-loop-develop-and-validate-on-your-machine": {
           "title": "Inner Loop: Develop and Validate on Your Machine",
           "level": 2,
-          "hash": "77f6c9aa2f53",
+          "hash": "10a0fe3998b5",
           "images": ["03-development-workflows/assets/app-pick-and-polish.webp"],
           "terms": [
             "Create from",
             "Branches",
             "Plan",
             "Exit plan mode and I will prompt myself",
+            "Review plan",
+            "Continue",
             "Interactive",
             "Changes",
             "Terminal",
@@ -691,12 +730,14 @@
         "1-review-and-fix-a-bug": {
           "title": "1. Review and Fix a Bug",
           "level": 3,
-          "hash": "fe04b228a0d5",
+          "hash": "d1ea06a6a686",
           "terms": [
             "Create from",
             "Branches",
             "Plan",
             "Exit plan mode and I will prompt myself",
+            "Review plan",
+            "Continue",
             "Interactive",
             "Changes",
             "Terminal",
@@ -732,7 +773,7 @@
         "outer-loop-move-the-work-through-github": {
           "title": "Outer Loop: Move the Work Through GitHub",
           "level": 2,
-          "hash": "07e5691870a8",
+          "hash": "fe635c153065",
           "images": [
             "03-development-workflows/assets/issue-to-merged-pr.webp",
             "03-development-workflows/assets/app-filter-repo.webp",
@@ -746,15 +787,16 @@
             "Issues",
             "Pull requests",
             "Assigned to me",
-            "All repositories",
+            "Query filter mode",
             "Authored by me",
-            "Custom",
             "Make search case-insensitive",
             "New session",
             "Create from",
             "Branches",
             "Plan",
             "Exit plan mode and I will prompt myself",
+            "Review plan",
+            "Continue",
             "Interactive",
             "Changes",
             "Terminal",
@@ -774,24 +816,17 @@
         "4-find-work-in-issues-and-pull-requests": {
           "title": "4. Find Work in Issues and Pull requests",
           "level": 3,
-          "hash": "baa3a4dec6ef",
+          "hash": "f929b99a9973",
           "images": [
             "03-development-workflows/assets/app-filter-repo.webp",
             "03-development-workflows/assets/app-issues-filtered.webp"
           ],
-          "terms": [
-            "Issues",
-            "Pull requests",
-            "Assigned to me",
-            "All repositories",
-            "Authored by me",
-            "Custom"
-          ]
+          "terms": ["Issues", "Pull requests", "Assigned to me", "Query filter mode", "Authored by me"]
         },
         "5-start-from-an-issue-and-open-a-pull-request": {
           "title": "5. Start from an Issue and Open a Pull Request",
           "level": 3,
-          "hash": "1a0d8ba7f6ad",
+          "hash": "b564b37adbb4",
           "images": ["03-development-workflows/assets/app-issue-new-session.webp"],
           "terms": [
             "Issues",
@@ -801,6 +836,8 @@
             "Branches",
             "Plan",
             "Exit plan mode and I will prompt myself",
+            "Review plan",
+            "Continue",
             "Interactive",
             "Changes",
             "Terminal",
@@ -812,7 +849,7 @@
         "6-address-review-comments-and-failing-checks": {
           "title": "6. Address Review Comments and Failing Checks",
           "level": 3,
-          "hash": "1d243befe42b",
+          "hash": "48bb6fea7ce8",
           "images": [
             "03-development-workflows/assets/app-pr-review-comment.webp",
             "03-development-workflows/assets/app-pr-failing-check.webp",
@@ -867,7 +904,7 @@
         "troubleshooting": {
           "title": "Troubleshooting",
           "level": 2,
-          "hash": "ff6b0abb5447",
+          "hash": "adcafadbaad6",
           "terms": ["Browser", "Local", "Terminal", "Issues", "Pull requests"]
         },
         "browser-preview-doesnt-update": {
@@ -884,7 +921,7 @@
         "i-cant-see-an-issue-or-pull-request": {
           "title": "I can't see an issue or pull request",
           "level": 3,
-          "hash": "3aaa58523db0",
+          "hash": "57c8a7556def",
           "terms": ["Issues", "Pull requests"]
         },
         "local-results-and-ci-dont-agree": {
@@ -935,7 +972,7 @@
     }
   },
   "glossary": {
-    "hash": "2e7d03a29ea4",
+    "hash": "e84bc0a9acd1",
     "terms": {
       "agent-merge": {
         "title": "Agent Merge",
@@ -979,6 +1016,12 @@
         "level": 2,
         "hash": "247c16700dd4"
       },
+      "copilot-fusion": {
+        "title": "Copilot Fusion",
+        "level": 2,
+        "hash": "0a1b8773bd5b",
+        "terms": ["Standard", "High", "Max"]
+      },
       "create-from": {
         "title": "Create from",
         "level": 2,
@@ -1007,14 +1050,13 @@
       "issues": {
         "title": "Issues",
         "level": 2,
-        "hash": "46554edc9916",
-        "terms": ["Assigned to me", "Created by me", "New issue"]
+        "hash": "a20ea83576b0",
+        "terms": ["Assigned to me", "Created by me", "Query filter mode", "New issue"]
       },
       "model": {
         "title": "Model",
         "level": 2,
-        "hash": "485901790c5b",
-        "terms": ["Auto"]
+        "hash": "87263526d6ee"
       },
       "model-context-protocol-mcp-server": {
         "title": "Model Context Protocol (MCP) server",
@@ -1068,8 +1110,8 @@
       "pull-requests": {
         "title": "Pull requests",
         "level": 2,
-        "hash": "05a4bb89c5a7",
-        "terms": ["Authored by me", "Review requests"]
+        "hash": "ded73f9c2f52",
+        "terms": ["Authored by me", "Review requests", "Query filter mode"]
       },
       "reasoning-effort": {
         "title": "Reasoning effort",
@@ -1079,8 +1121,8 @@
       "review-panel": {
         "title": "Review panel",
         "level": 2,
-        "hash": "7302e122a540",
-        "terms": ["Changes", "Terminal", "Browser", "View", "Toggle Review Panel"]
+        "hash": "a09e21a40e4e",
+        "terms": ["Changes", "Terminal", "Browser", "View", "Toggle Panel"]
       },
       "rubber-duck": {
         "title": "Rubber duck",
@@ -1111,9 +1153,9 @@
   "images": {
     "course/ch00/app-add-project.webp": {
       "upstream": "00-setup/assets/app-add-project.webp",
-      "sha256": "faf03f246231fdd884fddafb11ac6a66d85621af3bf54898bda4d1731ab5a09c",
+      "sha256": "ad8ec6afd4baad45c3f59ccf459512d2bce7041c22924604702195d695268517",
       "pinned": true,
-      "bytes": 78352
+      "bytes": 91012
     },
     "course/ch00/app-current-checkout-workspace-selector.webp": {
       "upstream": "00-setup/assets/app-current-checkout-workspace-selector.webp",
@@ -1135,39 +1177,51 @@
     },
     "course/ch01/app-automations-page.webp": {
       "upstream": "01-tour-the-app/assets/app-automations-page.webp",
-      "sha256": "690be38e00a26bd80cd863799303b76397b72b644722979f8ca5c178c1824f91",
+      "sha256": "7246d29362ee171e0a091a68de2c0e4c3ede41a14bba49fac38a3f1cfc1b316b",
       "pinned": true,
-      "bytes": 131586
+      "bytes": 131994
+    },
+    "course/ch01/app-copilot-fusion-options.webp": {
+      "upstream": "01-tour-the-app/assets/app-copilot-fusion-options.webp",
+      "sha256": "8f63aac4d97d76e8ecefd170f31587afea37deb14cec3af43800aeeeb9893fa8",
+      "pinned": true,
+      "bytes": 93020
+    },
+    "course/ch01/app-dashboards-page.webp": {
+      "upstream": "01-tour-the-app/assets/app-dashboards-page.webp",
+      "sha256": "3f1a869cfc31bbafa70691ad6c2cfa42c5caaf98c5ce4d223826ba563fa4659b",
+      "pinned": true,
+      "bytes": 129602
     },
     "course/ch01/app-issues-page.webp": {
       "upstream": "01-tour-the-app/assets/app-issues-page.webp",
-      "sha256": "09e6cab47ef6f756dd322e396022a130cb80f3762d4b84531c1589d43641c773",
+      "sha256": "0b7b84a9ad1892bbf41678a651960bb4e2794e8cdfa69e1df3d90d09c44121b8",
       "pinned": true,
-      "bytes": 124840
+      "bytes": 125554
     },
     "course/ch01/app-new-page.webp": {
       "upstream": "01-tour-the-app/assets/app-new-page.webp",
-      "sha256": "37be111c3c45d45c866fbbd5f739c5be906afa058d1a05f9a511b0754f3fd2b8",
+      "sha256": "daa76eb254276d94288b9b8e8bcc21ba45591169cd47191ad3ead082d0c3ad3d",
       "pinned": true,
-      "bytes": 66968
+      "bytes": 81334
     },
     "course/ch01/app-pull-requests-page.webp": {
       "upstream": "01-tour-the-app/assets/app-pull-requests-page.webp",
-      "sha256": "ac5c638405ce3356265c81b474b88069c55def48e0347482c81827594e4b1959",
+      "sha256": "1a68cc38eb6a5b1a43edb2c7b56dace7783f2203b03ebd2726c4c068778b112f",
       "pinned": true,
-      "bytes": 78214
+      "bytes": 75558
     },
     "course/ch01/app-quick-chat.webp": {
       "upstream": "01-tour-the-app/assets/app-quick-chat.webp",
-      "sha256": "0e15d445340be969f29a92d402b9501baddae328154fc13e5defe9af473c2adb",
+      "sha256": "9e4bae27093366659f48170ec602d07ad67355dcca9e6c9200d8714ec0c7c155",
       "pinned": true,
-      "bytes": 84034
+      "bytes": 91156
     },
     "course/ch01/app-settings.webp": {
       "upstream": "01-tour-the-app/assets/app-settings.webp",
-      "sha256": "5bfe69fa74d53abca6e1d2a60871ef4fc6f68f5d34fad86a7cf1f1477428ba21",
+      "sha256": "6f0d9480979b47e1cc81de4a9b46965a6d683398022c6f6203985b935fdad164",
       "pinned": true,
-      "bytes": 162782
+      "bytes": 100124
     },
     "course/ch01/editor-vs-app.webp": {
       "upstream": "01-tour-the-app/assets/editor-vs-app.webp",
@@ -1201,9 +1255,9 @@
     },
     "course/ch02/app-context-information.webp": {
       "upstream": "02-sessions-worktrees-context/assets/app-context-information.webp",
-      "sha256": "f4ba435ac73aded1d15f4a0bb3a82842b2328065f72b6a97f12102fc4b1c15d5",
+      "sha256": "71bc77c8d141b51dba18c3db6ed251ec2d6f11813d33d256be6f1e2a4e107192",
       "pinned": true,
-      "bytes": 210622
+      "bytes": 13636
     },
     "course/ch02/app-create-from-icon.webp": {
       "upstream": "02-sessions-worktrees-context/assets/app-create-from-icon.webp",
@@ -1237,74 +1291,87 @@
     },
     "course/ch03/app-filter-repo.webp": {
       "upstream": "03-development-workflows/assets/app-filter-repo.webp",
-      "sha256": "662c9475e25de746f1a2da38d06cc817763e923df1bc6f4d1ddd97a581378ebf",
-      "bytes": 11572
+      "sha256": "99cc8ee154881475a1a1e6b4e8d88e79c3a4d874e301266e55dc32d3e8060d21",
+      "pinned": true,
+      "bytes": 108864
     },
     "course/ch03/app-issue-new-session.webp": {
       "upstream": "03-development-workflows/assets/app-issue-new-session.webp",
-      "sha256": "9a4f4f18c78431941b4ced9c118ce8226be7553af1024d3e96d1d607069f4069",
-      "bytes": 192168
+      "sha256": "f201e64d80a69872a4752ee1e5f59f5f35a9d1642ba21e79bb36707f9185577f",
+      "pinned": true,
+      "bytes": 185640
     },
     "course/ch03/app-issues-filtered.webp": {
       "upstream": "03-development-workflows/assets/app-issues-filtered.webp",
-      "sha256": "a1f320a6041a030542e1f0b277c06eb653c136b581e76f21ec44df25bf2531af",
-      "bytes": 129772
+      "sha256": "57a36030ca9caf83ce45203d626576c305ea29b451ba0bc9469266be583420d6",
+      "pinned": true,
+      "bytes": 143200
     },
     "course/ch03/app-pick-and-polish.webp": {
       "upstream": "03-development-workflows/assets/app-pick-and-polish.webp",
-      "sha256": "b2b745adebd24b6a860ad89c067ed77f2d56f4fecea644a6b0e1423d23367e01",
-      "bytes": 203654
+      "sha256": "7504bc7f614ae82033f1163a3c372894bbc83ca7722bb4157254acf8e8c1ac1f",
+      "pinned": true,
+      "bytes": 229798
     },
     "course/ch03/app-pr-failing-check.webp": {
       "upstream": "03-development-workflows/assets/app-pr-failing-check.webp",
-      "sha256": "ff63d4d1214f37672e8cd691bcfd74e7a69b8913dd7ec5bea037da5a80f6282e",
-      "bytes": 187166
+      "sha256": "a21329df6b2f9464651dd8f56a4fac7cbdb01c4aec5ea17bfdeccdacad980807",
+      "pinned": true,
+      "bytes": 151974
     },
     "course/ch03/app-pr-review-comment.webp": {
       "upstream": "03-development-workflows/assets/app-pr-review-comment.webp",
-      "sha256": "9157076849d05e9ccd8b8ebb8ae59d7831643f5374220b8db81b6428e169449a",
-      "bytes": 186346
+      "sha256": "1a503f53f60e1954ba936831f344c676075bd2f2ee0c0746ca79ab8b5976752a",
+      "pinned": true,
+      "bytes": 169310
     },
     "course/ch03/app-workspace-panel.webp": {
       "upstream": "03-development-workflows/assets/app-workspace-panel.webp",
-      "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
-      "bytes": 200520
+      "sha256": "1cc406feef4b40b6f9fecb9fbdc3720188f56404ef1b3fc4ed37d03899912fcb",
+      "pinned": true,
+      "bytes": 182490
     },
     "course/ch03/context-layers.webp": {
       "upstream": "03-development-workflows/assets/context-layers.webp",
       "sha256": "c47a6bff672ad8545e576464135a6ee91dcc96a47dbd03495a72951a02d0ad77",
+      "pinned": true,
       "bytes": 33422
     },
     "course/ch03/development-loop.webp": {
       "upstream": "03-development-workflows/assets/development-loop.webp",
       "sha256": "74f9f446b0f66c018581fea936e4cbd94047a24fd99d59d53b9c827fa5f30a9f",
+      "pinned": true,
       "bytes": 78364
     },
     "course/ch03/human-judgment-loop.webp": {
       "upstream": "03-development-workflows/assets/human-judgment-loop.webp",
       "sha256": "558f00d2fc1430a246305a3f7b3c27891a82f4146b07862fa8f90391f3013309",
+      "pinned": true,
       "bytes": 49126
     },
     "course/ch03/issue-to-merged-pr.webp": {
       "upstream": "03-development-workflows/assets/issue-to-merged-pr.webp",
       "sha256": "1fbe94a1a241a601ca03bf18faa7169ebea35af3422ec993195f6647c6fba88e",
+      "pinned": true,
       "bytes": 53928
     },
     "course/ch03/producer-review-desk-github.webp": {
       "upstream": "03-development-workflows/assets/producer-review-desk-github.webp",
       "sha256": "a0727e0cbae67cbc427a43407ecf5c9c7984d05e4093b5764733b277badbd854",
+      "pinned": true,
       "bytes": 155946
     },
     "course/ch03/record-playback-retake-loop.webp": {
       "upstream": "03-development-workflows/assets/record-playback-retake-loop.webp",
       "sha256": "18959a58675c08410bb65b3d8f259afe850745174890c1672f1b43c3f9e3d538",
+      "pinned": true,
       "bytes": 93390
     },
     "course/shared/app-github-copilot-app.webp": {
       "upstream": "assets/app-github-copilot-app.webp",
-      "sha256": "371d5ae374bc4afa89f2bf26258866c2e0f98cef09259cfac979520be7d0de58",
+      "sha256": "daa76eb254276d94288b9b8e8bcc21ba45591169cd47191ad3ead082d0c3ad3d",
       "pinned": true,
-      "bytes": 63262
+      "bytes": 81334
     },
     "course/shared/assignment.webp": {
       "upstream": "assets/assignment.webp",
@@ -1315,10 +1382,10 @@
     "course/shared/app-review-panel.webp": {
       "upstream": null,
       "derivedFrom": "03-development-workflows/assets/app-workspace-panel.webp",
-      "sha256": "625efb26cd5e6ac0ccbdfd91be37e81403402ccc192c4b9e9ee15cf697f1097e",
-      "bundled": "999a405eeb53b3e382988321ba88cd0e2cc543792cc59c50ad4717e3dac797be",
+      "sha256": "1cc406feef4b40b6f9fecb9fbdc3720188f56404ef1b3fc4ed37d03899912fcb",
+      "bundled": "8f01fda93c0671231b83c5dc38d8def0d0c6513f5c8c3b9a55261dc398693043",
       "pinned": true,
-      "bytes": 73976
+      "bytes": 82346
     }
   }
 }

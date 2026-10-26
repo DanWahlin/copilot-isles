@@ -224,7 +224,7 @@ describe('content with your setup', () => {
     );
     expect(fillSetup(text, { ...EMPTY_SETUP, os: 'windows' }, 'mac')).toMatch(/^Press Ctrl\+R on Windows/);
     expect(fillSetup('No tokens here.', YOURS, 'linux')).toBe('No tokens here.');
-    expect(modelLabel({ pick: 'auto' })).toBe('Auto');
+    expect(modelLabel({ pick: 'auto' })).toBe('Copilot Fusion');
     expect(modelLabel({ pick: 'current' })).toBe('your current model');
     expect(modelLabel({ pick: 'other', name: null })).toBe('the model you picked');
   });
@@ -319,7 +319,7 @@ describe('setup steps in a script', () => {
     learn.saveSetup({ model: { pick: 'auto' } });
     for (let i = 0; i < 5 && !learn.getState().quiz; i++) await Promise.resolve();
     expect(learn.getState().quiz?.quiz.id).toBe('N1.3');
-    learn.submit({ type: 'mc', option: 'conversation' });
+    learn.submit({ type: 'mc', option: 'select' });
     learn.closeQuiz();
     expect(await run).toBe(true);
     expect(said).toEqual(['after']);

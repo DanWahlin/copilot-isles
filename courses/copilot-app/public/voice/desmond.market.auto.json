@@ -1,127 +1,122 @@
 {
   "id": "desmond.market.auto",
   "speaker": "Desmond",
-  "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot.",
+  "text": "Copilot Fusion's the house special. It's not one model: it picks the models and the workflow for each job. Mind, it isn't Autopilot.",
   "words": [
     {
-      "word": "Auto's",
+      "word": "Copilot",
       "start": 0,
-      "end": 0.44
+      "end": 0.629
+    },
+    {
+      "word": "Fusion's",
+      "start": 0.629,
+      "end": 1.24
     },
     {
       "word": "the",
-      "start": 0.44,
-      "end": 0.613
+      "start": 1.24,
+      "end": 1.413
     },
     {
       "word": "house",
-      "start": 0.613,
-      "end": 0.94
+      "start": 1.413,
+      "end": 1.75
     },
     {
       "word": "special",
-      "start": 0.94,
-      "end": 1.58
+      "start": 1.75,
+      "end": 2.72
     },
     {
-      "word": "The",
-      "start": 1.58,
-      "end": 2.06
+      "word": "It's",
+      "start": 2.72,
+      "end": 3.34
     },
     {
-      "word": "app",
-      "start": 2.06,
-      "end": 2.293
-    },
-    {
-      "word": "picks",
-      "start": 2.293,
-      "end": 2.6
-    },
-    {
-      "word": "a",
-      "start": 2.6,
-      "end": 2.693
-    },
-    {
-      "word": "model",
-      "start": 2.693,
-      "end": 3
-    },
-    {
-      "word": "for",
-      "start": 3,
-      "end": 3.16
-    },
-    {
-      "word": "you",
-      "start": 3.16,
-      "end": 3.712
-    },
-    {
-      "word": "then",
-      "start": 3.712,
-      "end": 3.907
-    },
-    {
-      "word": "tells",
-      "start": 3.907,
-      "end": 4.28
-    },
-    {
-      "word": "you",
-      "start": 4.28,
-      "end": 4.453
-    },
-    {
-      "word": "which",
-      "start": 4.453,
-      "end": 4.78
+      "word": "not",
+      "start": 3.34,
+      "end": 3.58
     },
     {
       "word": "one",
-      "start": 4.78,
-      "end": 5.04
+      "start": 3.58,
+      "end": 3.827
+    },
+    {
+      "word": "model",
+      "start": 3.827,
+      "end": 4.693
     },
     {
       "word": "it",
-      "start": 5.04,
-      "end": 5.253
+      "start": 4.693,
+      "end": 4.853
     },
     {
-      "word": "chose",
-      "start": 5.253,
-      "end": 5.56
+      "word": "picks",
+      "start": 4.853,
+      "end": 5.16
+    },
+    {
+      "word": "the",
+      "start": 5.16,
+      "end": 5.36
+    },
+    {
+      "word": "models",
+      "start": 5.36,
+      "end": 5.92
     },
     {
       "word": "and",
-      "start": 5.56,
-      "end": 5.76
+      "start": 5.92,
+      "end": 6.2
     },
     {
-      "word": "why",
-      "start": 5.76,
-      "end": 6.304
+      "word": "the",
+      "start": 6.2,
+      "end": 6.391
+    },
+    {
+      "word": "workflow",
+      "start": 6.391,
+      "end": 7.02
+    },
+    {
+      "word": "for",
+      "start": 7.02,
+      "end": 7.264
+    },
+    {
+      "word": "each",
+      "start": 7.264,
+      "end": 7.64
+    },
+    {
+      "word": "job",
+      "start": 7.64,
+      "end": 8.368
     },
     {
       "word": "Mind",
-      "start": 6.304,
-      "end": 7.413
+      "start": 8.368,
+      "end": 9.413
     },
     {
       "word": "it",
-      "start": 7.413,
-      "end": 7.58
+      "start": 9.413,
+      "end": 9.76
     },
     {
       "word": "isn't",
-      "start": 7.58,
-      "end": 7.9
+      "start": 9.76,
+      "end": 10.16
     },
     {
       "word": "Autopilot",
-      "start": 7.9,
-      "end": 8.15
+      "start": 10.16,
+      "end": 10.41
     }
   ]
 }

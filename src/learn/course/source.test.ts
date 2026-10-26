@@ -103,7 +103,7 @@ describe('CourseSource', () => {
     const img = await resolveImage('course/ch00/app-add-project.webp', ['00-setup']);
     expect(img.origin).toBe('live');
     expect(img.src).toBe(`${RAW}00-setup/assets/app-add-project.webp`);
-    expect(img.alt).toMatch(/Projects menu/);
+    expect(img.alt).toMatch(/Sessions menu/);
     expect(img.anchor).toBe('connect-to-your-repository');
     expect(peekImage('course/ch00/app-add-project.webp', ['00-setup'])).toEqual(img);
 

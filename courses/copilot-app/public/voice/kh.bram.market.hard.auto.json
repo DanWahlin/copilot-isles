@@ -1,132 +1,77 @@
 {
   "id": "kh.bram.market.hard.auto",
   "speaker": "Bram",
-  "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort.",
+  "text": "Right-sized! A hard job wants a higher Fusion level: more capable models, deeper reasoning.",
   "words": [
     {
-      "word": "Auto",
+      "word": "Right-sized",
       "start": 0,
-      "end": 0.457
+      "end": 1.32
     },
     {
-      "word": "picked",
-      "start": 0.457,
-      "end": 0.84
-    },
-    {
-      "word": "a",
-      "start": 0.84,
-      "end": 0.973
-    },
-    {
-      "word": "model",
-      "start": 0.973,
-      "end": 1.48
-    },
-    {
-      "word": "and",
-      "start": 1.48,
-      "end": 1.68
-    },
-    {
-      "word": "got",
-      "start": 1.68,
-      "end": 1.973
-    },
-    {
-      "word": "it",
-      "start": 1.973,
-      "end": 2.16
-    },
-    {
-      "word": "done",
-      "start": 2.16,
-      "end": 2.8
-    },
-    {
-      "word": "On",
-      "start": 2.8,
-      "end": 3.2
-    },
-    {
-      "word": "a",
-      "start": 3.2,
-      "end": 3.344
+      "word": "A",
+      "start": 1.32,
+      "end": 1.52
     },
     {
       "word": "hard",
-      "start": 3.344,
-      "end": 3.76
+      "start": 1.52,
+      "end": 1.94
     },
     {
       "word": "job",
-      "start": 3.76,
-      "end": 4.28
+      "start": 1.94,
+      "end": 2.347
     },
     {
-      "word": "you",
-      "start": 4.28,
-      "end": 4.427
-    },
-    {
-      "word": "could",
-      "start": 4.427,
-      "end": 4.624
-    },
-    {
-      "word": "also",
-      "start": 4.624,
-      "end": 4.96
-    },
-    {
-      "word": "turn",
-      "start": 4.96,
-      "end": 5.36
-    },
-    {
-      "word": "Auto",
-      "start": 5.36,
-      "end": 5.8
-    },
-    {
-      "word": "off",
-      "start": 5.8,
-      "end": 6.24
-    },
-    {
-      "word": "and",
-      "start": 6.24,
-      "end": 6.544
-    },
-    {
-      "word": "pick",
-      "start": 6.544,
-      "end": 6.84
+      "word": "wants",
+      "start": 2.347,
+      "end": 2.96
     },
     {
       "word": "a",
-      "start": 6.84,
-      "end": 6.947
+      "start": 2.96,
+      "end": 3.131
     },
     {
-      "word": "model",
-      "start": 6.947,
-      "end": 7.38
+      "word": "higher",
+      "start": 3.131,
+      "end": 3.771
     },
     {
-      "word": "and",
-      "start": 7.38,
-      "end": 7.728
+      "word": "Fusion",
+      "start": 3.771,
+      "end": 4.387
+    },
+    {
+      "word": "level",
+      "start": 4.387,
+      "end": 5.248
     },
     {
       "word": "more",
-      "start": 7.728,
-      "end": 8.011
+      "start": 5.248,
+      "end": 5.5
     },
     {
-      "word": "effort",
-      "start": 8.011,
-      "end": 8.261
+      "word": "capable",
+      "start": 5.5,
+      "end": 6.011
+    },
+    {
+      "word": "models",
+      "start": 6.011,
+      "end": 6.697
+    },
+    {
+      "word": "deeper",
+      "start": 6.697,
+      "end": 7.6
+    },
+    {
+      "word": "reasoning",
+      "start": 7.6,
+      "end": 7.85
     }
   ]
 }

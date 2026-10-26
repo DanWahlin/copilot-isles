@@ -5,73 +5,73 @@
   "words": [
     {
       "word": "Captain",
-      "start": 0.052625,
-      "end": 1.631583
+      "start": 0,
+      "end": 0.653
     },
     {
       "word": "Three",
-      "start": 1.631583,
-      "end": 1.960541
+      "start": 0.653,
+      "end": 1.176
     },
     {
       "word": "musicians",
-      "start": 1.960541,
-      "end": 2.868416
+      "start": 1.176,
+      "end": 1.8
     },
     {
       "word": "one",
-      "start": 2.868416,
-      "end": 3.25
+      "start": 1.8,
+      "end": 2
     },
     {
       "word": "song",
-      "start": 3.25,
-      "end": 4.657875
+      "start": 2,
+      "end": 2.54
     },
     {
       "word": "You",
-      "start": 4.657875,
-      "end": 4.815791
+      "start": 2.54,
+      "end": 2.983
     },
     {
       "word": "wouldn't",
-      "start": 4.815791,
-      "end": 5.131583
+      "start": 2.983,
+      "end": 3.24
     },
     {
       "word": "crowd",
-      "start": 5.131583,
-      "end": 5.513166
+      "start": 3.24,
+      "end": 3.472
     },
     {
       "word": "them",
-      "start": 5.513166,
-      "end": 5.697375
+      "start": 3.472,
+      "end": 3.653
     },
     {
       "word": "round",
-      "start": 5.697375,
-      "end": 6.065791
+      "start": 3.653,
+      "end": 3.98
     },
     {
       "word": "one",
-      "start": 6.065791,
-      "end": 6.35525
+      "start": 3.98,
+      "end": 4.211
     },
     {
       "word": "microphone",
-      "start": 6.35525,
-      "end": 7.236833
+      "start": 4.211,
+      "end": 4.86
     },
     {
       "word": "would",
-      "start": 7.236833,
-      "end": 7.473666
+      "start": 4.86,
+      "end": 4.98
     },
     {
       "word": "you",
-      "start": 7.473666,
-      "end": 7.723666
+      "start": 4.98,
+      "end": 5.208
     }
   ]
 }

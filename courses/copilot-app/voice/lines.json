@@ -344,7 +344,7 @@
     {
       "id": "bo.gear.brief.01",
       "speaker": "Bo",
-      "text": "Next, your tools. Open View, then Toggle Review Panel, and pick the Terminal tab. No tab? Select + and then Terminal."
+      "text": "Next, your tools. Open View, then Toggle Panel, and pick the Terminal tab. No tab? Select + and then Terminal."
     },
     {
       "id": "bo.gear.brief.02",
@@ -657,6 +657,11 @@
       "text": "Your setup script’s practice items are up there too. Pull requests under Authored by me, and issues under Assigned to me."
     },
     {
+      "id": "mer.mina.dashboards",
+      "speaker": "Mina",
+      "text": "And Dashboards shows your GitHub work as a board of widgets. The practice items show up in Pulls created and Issues assigned."
+    },
+    {
       "id": "mer.mina.automations",
       "speaker": "Mina",
       "text": "The Clock Tower is Automations. Agent tasks that run on demand, on a schedule, or when something happens on GitHub."
@@ -687,7 +692,7 @@
     {
       "id": "mer.mina.done",
       "speaker": "Mina",
-      "text": "New, Pull requests, Issues, Automations, Customize, and Sessions for your projects and chats. You know your way around now!"
+      "text": "New, Pull requests, Issues, Dashboards, Automations, Customize, and Sessions for your projects and chats. You know your way around now!"
     },
     {
       "id": "mer.lyra.wait",
@@ -865,22 +870,22 @@
     {
       "id": "mer.oren.03",
       "speaker": "Oren",
-      "text": "Open it to find Model, Effort, and Context window. If the Auto switch is on, they’re hidden. Turn it off to see them."
+      "text": "Open it to see what you can change. With a model, that's Model, Effort, and Context window. With Copilot Fusion, it's an Effort level instead."
     },
     {
       "id": "mer.oren.auto",
       "speaker": "Oren",
-      "text": "When it says Auto, the app picks a model for your task."
+      "text": "Copilot Fusion isn't one model. It picks models and a workflow for each request, then gives you one response."
     },
     {
       "id": "mer.oren.04",
       "speaker": "Oren",
-      "text": "Careful, though. Auto isn’t Autopilot. Autopilot is a mode. Auto is about the model."
+      "text": "Careful, though. Fusion isn't Autopilot. Autopilot is a mode. Fusion is about how the models handle your request."
     },
     {
       "id": "mer.oren.05",
       "speaker": "Oren",
-      "text": "For a tour or a quick explanation, keep Auto or your current model, on its default effort. For a hard bug across several files, consider a model suited to complex coding, and more effort."
+      "text": "For a tour or a quick explanation, use Copilot Fusion at Standard, or your current model on its default effort. For a hard bug across several files, consider a higher Fusion level, or a model suited to complex coding."
     },
     {
       "id": "mer.oren.06",
@@ -1014,7 +1019,7 @@
     {
       "id": "mer.pell.letters.debrief",
       "speaker": "Pell",
-      "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Projects is at the foot, with each project’s own settings."
+      "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Repositories is at the foot, with each repository’s own settings."
     },
     {
       "id": "mer.pell.letters.again",
@@ -1189,7 +1194,7 @@
     {
       "id": "mer.market.auto",
       "speaker": "Gilda",
-      "text": "Auto's the house special. The app chooses a model for you, then tells you which one and why. It isn't Autopilot, mind."
+      "text": "Copilot Fusion's the house special. It isn't one model: it picks models and a workflow for each job. And it isn't Autopilot, mind."
     },
     {
       "id": "mer.market.right",
@@ -1212,6 +1217,11 @@
       "text": "High effort for a quick look? The default would've done it."
     },
     {
+      "id": "mer.market.over.auto",
+      "speaker": "Gilda",
+      "text": "A higher Fusion level for a quick look? Standard would've done it, for fewer starfish."
+    },
+    {
       "id": "mer.market.short",
       "speaker": "Gilda",
       "text": "Not quite. This job needs more muscle. Retry with a stronger model or more effort."
@@ -1219,7 +1229,7 @@
     {
       "id": "mer.market.hard.auto",
       "speaker": "Gilda",
-      "text": "Auto chose a model, and the job's done. On a job this hard, you can also turn Auto off, then pick a model and a higher effort."
+      "text": "Right-sized! A hard job suits a higher Fusion level: more capable models, and deeper reasoning."
     },
     {
       "id": "mer.market.broke",
@@ -1254,7 +1264,7 @@
     {
       "id": "desmond.market.auto",
       "speaker": "Desmond",
-      "text": "Auto's the house special. The app picks a model for you, then tells you which one it chose and why. Mind, it isn't Autopilot."
+      "text": "Copilot Fusion's the house special. It's not one model: it picks the models and the workflow for each job. Mind, it isn't Autopilot."
     },
     {
       "id": "desmond.market.right",
@@ -1277,6 +1287,11 @@
       "text": "High effort for a quick look? The default would have done fine."
     },
     {
+      "id": "desmond.market.over.auto",
+      "speaker": "Desmond",
+      "text": "A higher Fusion level for a quick look? Standard would have done it, and cost you less."
+    },
+    {
       "id": "desmond.market.short",
       "speaker": "Desmond",
       "text": "Not quite, Captain. A job like this needs more muscle. Retry with a stronger model or more effort."
@@ -1284,7 +1299,7 @@
     {
       "id": "desmond.market.hard.auto",
       "speaker": "Desmond",
-      "text": "Auto picked a model and got it done. For a job this hard, you can also switch Auto off, then choose a model and a higher effort."
+      "text": "Right-sized, Captain! For a hard job, a higher Fusion level fits: more capable models, deeper reasoning."
     },
     {
       "id": "desmond.market.broke",
@@ -1319,7 +1334,7 @@
     {
       "id": "tb.lani.market.auto",
       "speaker": "Lani",
-      "text": "Auto's our house special. The app chooses a model for you, and tells you which one and why. It's not the same as Autopilot."
+      "text": "Copilot Fusion's our house special. It isn't a single model: it chooses models and a workflow for each job. It's not the same as Autopilot."
     },
     {
       "id": "tb.lani.market.right",
@@ -1342,6 +1357,11 @@
       "text": "High effort for a quick look? Default effort would have been plenty."
     },
     {
+      "id": "tb.lani.market.over.auto",
+      "speaker": "Lani",
+      "text": "A higher Fusion level for a quick look? Standard would have been plenty."
+    },
+    {
       "id": "tb.lani.market.short",
       "speaker": "Lani",
       "text": "Not enough for this one. It needs more muscle, so retry with a stronger model or more effort."
@@ -1349,7 +1369,7 @@
     {
       "id": "tb.lani.market.hard.auto",
       "speaker": "Lani",
-      "text": "Auto chose a model and finished the job. On a hard one like this, you could also turn Auto off and choose a model and more effort."
+      "text": "Right-sized! A higher Fusion level suits a hard one like this: more capable models and deeper reasoning."
     },
     {
       "id": "tb.lani.market.broke",
@@ -2519,7 +2539,7 @@
     {
       "id": "kh.bram.market.auto",
       "speaker": "Bram",
-      "text": "Auto's on the menu too. The app picks a model for you, and tells you which and why. It's not Autopilot, mind."
+      "text": "Copilot Fusion's on the menu too. Not one model: it picks models and a workflow for each job. It's not Autopilot, mind."
     },
     {
       "id": "kh.bram.market.right",
@@ -2542,6 +2562,11 @@
       "text": "High effort for a quick look? Default effort would have done it."
     },
     {
+      "id": "kh.bram.market.over.auto",
+      "speaker": "Bram",
+      "text": "A higher Fusion level for a quick look? Standard would have done it."
+    },
+    {
       "id": "kh.bram.market.short",
       "speaker": "Bram",
       "text": "Not enough for this one. Try again with a stronger model or more effort."
@@ -2549,7 +2574,7 @@
     {
       "id": "kh.bram.market.hard.auto",
       "speaker": "Bram",
-      "text": "Auto picked a model and got it done. On a hard job you could also turn Auto off and pick a model and more effort."
+      "text": "Right-sized! A hard job wants a higher Fusion level: more capable models, deeper reasoning."
     },
     {
       "id": "kh.bram.market.broke",

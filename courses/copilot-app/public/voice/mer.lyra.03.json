@@ -5,63 +5,63 @@
   "words": [
     {
       "word": "And",
-      "start": 0.052625,
-      "end": 0.263166
+      "start": 0,
+      "end": 0.128
     },
     {
       "word": "some",
-      "start": 0.263166,
-      "end": 0.539458
+      "start": 0.128,
+      "end": 0.36
     },
     {
       "word": "quick",
-      "start": 0.539458,
-      "end": 0.842125
+      "start": 0.36,
+      "end": 0.616
     },
     {
       "word": "questions",
-      "start": 0.842125,
-      "end": 1.684208
+      "start": 0.616,
+      "end": 1.152
     },
     {
       "word": "just",
-      "start": 1.684208,
-      "end": 2.078958
+      "start": 1.152,
+      "end": 1.328
     },
     {
       "word": "need",
-      "start": 2.078958,
-      "end": 2.302625
+      "start": 1.328,
+      "end": 1.56
     },
     {
       "word": "a",
-      "start": 2.302625,
-      "end": 2.381583
+      "start": 1.56,
+      "end": 1.664
     },
     {
       "word": "fast",
-      "start": 2.381583,
-      "end": 2.842125
+      "start": 1.664,
+      "end": 1.977
     },
     {
       "word": "answer",
-      "start": 2.842125,
-      "end": 4.302625
+      "start": 1.977,
+      "end": 2.64
     },
     {
       "word": "That’s",
-      "start": 4.302625,
-      "end": 4.60525
+      "start": 2.64,
+      "end": 3.4
     },
     {
       "word": "a",
-      "start": 4.60525,
-      "end": 4.684208
+      "start": 3.4,
+      "end": 3.52
     },
     {
       "word": "chat",
-      "start": 4.684208,
-      "end": 4.934208
+      "start": 3.52,
+      "end": 3.77
     }
   ]
 }

@@ -5,78 +5,78 @@
   "words": [
     {
       "word": "There",
-      "start": 0.052625,
-      "end": 1.35525
+      "start": 0,
+      "end": 0.67
     },
     {
       "word": "The",
-      "start": 1.35525,
-      "end": 1.434208
+      "start": 0.67,
+      "end": 0.926
     },
     {
       "word": "picker",
-      "start": 1.434208,
-      "end": 1.763166
+      "start": 0.926,
+      "end": 1.248
     },
     {
       "word": "says",
-      "start": 1.763166,
-      "end": 2.039458
+      "start": 1.248,
+      "end": 1.52
     },
     {
       "word": "Chat",
-      "start": 2.039458,
-      "end": 2.802625
+      "start": 1.52,
+      "end": 2.293
     },
     {
       "word": "so",
-      "start": 2.802625,
-      "end": 3.263166
+      "start": 2.293,
+      "end": 2.413
     },
     {
       "word": "there’s",
-      "start": 3.263166,
-      "end": 3.421041
+      "start": 2.413,
+      "end": 2.613
     },
     {
       "word": "no",
-      "start": 3.421041,
-      "end": 3.684208
+      "start": 2.613,
+      "end": 2.789
     },
     {
       "word": "branch",
-      "start": 3.684208,
-      "end": 4.381583
+      "start": 2.789,
+      "end": 3.493
     },
     {
       "word": "no",
-      "start": 4.381583,
-      "end": 4.697375
+      "start": 3.493,
+      "end": 3.68
     },
     {
       "word": "worktree",
-      "start": 4.697375,
-      "end": 5.618416
+      "start": 3.68,
+      "end": 4.5
     },
     {
       "word": "and",
-      "start": 5.618416,
-      "end": 5.802625
+      "start": 4.5,
+      "end": 4.667
     },
     {
       "word": "no",
-      "start": 5.802625,
-      "end": 6.078958
+      "start": 4.667,
+      "end": 4.96
     },
     {
       "word": "files",
-      "start": 6.078958,
-      "end": 6.513166
+      "start": 4.96,
+      "end": 5.417
     },
     {
       "word": "change",
-      "start": 6.513166,
-      "end": 6.763166
+      "start": 5.417,
+      "end": 5.667
     }
   ]
 }

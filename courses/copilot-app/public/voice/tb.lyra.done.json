@@ -5,68 +5,68 @@
   "words": [
     {
       "word": "Step",
-      "start": 0.052625,
-      "end": 0.434208
+      "start": 0,
+      "end": 0.288
     },
     {
       "word": "into",
-      "start": 0.434208,
-      "end": 0.802625
+      "start": 0.288,
+      "end": 0.54
     },
     {
       "word": "any",
-      "start": 0.802625,
-      "end": 1.052625
+      "start": 0.54,
+      "end": 0.787
     },
     {
       "word": "booth",
-      "start": 1.052625,
-      "end": 1.421041
+      "start": 0.787,
+      "end": 1.16
     },
     {
       "word": "and",
-      "start": 1.421041,
-      "end": 1.618416
+      "start": 1.16,
+      "end": 1.328
     },
     {
       "word": "hear",
-      "start": 1.618416,
-      "end": 1.907875
+      "start": 1.328,
+      "end": 1.56
     },
     {
       "word": "how",
-      "start": 1.907875,
-      "end": 2.236833
+      "start": 1.56,
+      "end": 1.744
     },
     {
       "word": "each",
-      "start": 2.236833,
-      "end": 2.552625
+      "start": 1.744,
+      "end": 2.08
     },
     {
       "word": "part",
-      "start": 2.552625,
-      "end": 2.960541
+      "start": 2.08,
+      "end": 2.457
     },
     {
       "word": "sounds",
-      "start": 2.960541,
-      "end": 3.35525
+      "start": 2.457,
+      "end": 2.827
     },
     {
       "word": "on",
-      "start": 3.35525,
-      "end": 3.539458
+      "start": 2.827,
+      "end": 2.92
     },
     {
       "word": "its",
-      "start": 3.539458,
-      "end": 3.697375
+      "start": 2.92,
+      "end": 3.12
     },
     {
       "word": "own",
-      "start": 3.697375,
-      "end": 3.947375
+      "start": 3.12,
+      "end": 3.37
     }
   ]
 }

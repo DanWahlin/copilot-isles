@@ -1,7 +1,7 @@
 {
   "id": "mer.pell.letters.debrief",
   "speaker": "Pell",
-  "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Projects is at the foot, with each project’s own settings.",
+  "text": "Select the gear at the bottom of the sidebar, and they’re listed down the left. Repositories is at the foot, with each repository’s own settings.",
   "words": [
     {
       "word": "Select",
@@ -79,54 +79,54 @@
       "end": 4.651458
     },
     {
-      "word": "Projects",
+      "word": "Repositories",
       "start": 4.651458,
-      "end": 5.14425
+      "end": 5.432708
     },
     {
       "word": "is",
-      "start": 5.14425,
-      "end": 5.276458
+      "start": 5.432708,
+      "end": 5.576916
     },
     {
       "word": "at",
-      "start": 5.276458,
-      "end": 5.384625
+      "start": 5.576916,
+      "end": 5.673083
     },
     {
       "word": "the",
-      "start": 5.384625,
-      "end": 5.48075
+      "start": 5.673083,
+      "end": 5.78125
     },
     {
       "word": "foot",
-      "start": 5.48075,
-      "end": 5.973541
+      "start": 5.78125,
+      "end": 6.310083
     },
     {
       "word": "with",
-      "start": 5.973541,
-      "end": 6.141833
+      "start": 6.310083,
+      "end": 6.454333
     },
     {
       "word": "each",
-      "start": 6.141833,
-      "end": 6.358166
+      "start": 6.454333,
+      "end": 6.658666
     },
     {
-      "word": "project’s",
-      "start": 6.358166,
-      "end": 6.826916
+      "word": "repository’s",
+      "start": 6.658666,
+      "end": 7.319708
     },
     {
       "word": "own",
-      "start": 6.826916,
-      "end": 7.04325
+      "start": 7.319708,
+      "end": 7.524041
     },
     {
       "word": "settings",
-      "start": 7.04325,
-      "end": 7.29325
+      "start": 7.524041,
+      "end": 7.774041
     }
   ]
 }

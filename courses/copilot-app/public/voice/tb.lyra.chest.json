@@ -5,73 +5,73 @@
   "words": [
     {
       "word": "My",
-      "start": 0.052625,
-      "end": 0.263166
+      "start": 0,
+      "end": 0.12
     },
     {
       "word": "notes",
-      "start": 0.263166,
-      "end": 0.592125
+      "start": 0.12,
+      "end": 0.34
     },
     {
       "word": "are",
-      "start": 0.592125,
-      "end": 0.828958
+      "start": 0.34,
+      "end": 0.427
     },
     {
       "word": "in",
-      "start": 0.828958,
-      "end": 0.921041
+      "start": 0.427,
+      "end": 0.5
     },
     {
       "word": "the",
-      "start": 0.921041,
-      "end": 1.039458
+      "start": 0.5,
+      "end": 0.613
     },
     {
       "word": "chest",
-      "start": 1.039458,
-      "end": 1.592125
+      "start": 0.613,
+      "end": 0.933
     },
     {
       "word": "by",
-      "start": 1.592125,
-      "end": 1.776333
+      "start": 0.933,
+      "end": 1.06
     },
     {
       "word": "the",
-      "start": 1.776333,
-      "end": 1.881583
+      "start": 1.06,
+      "end": 1.168
     },
     {
       "word": "last",
-      "start": 1.881583,
-      "end": 2.315791
+      "start": 1.168,
+      "end": 1.427
     },
     {
       "word": "booth",
-      "start": 2.315791,
-      "end": 3.657875
+      "start": 1.427,
+      "end": 2.24
     },
     {
       "word": "Take",
-      "start": 3.657875,
-      "end": 3.934208
+      "start": 2.24,
+      "end": 2.592
     },
     {
       "word": "them",
-      "start": 3.934208,
-      "end": 4.342125
+      "start": 2.592,
+      "end": 2.976
     },
     {
       "word": "they're",
-      "start": 4.342125,
-      "end": 4.618416
+      "start": 2.976,
+      "end": 3.173
     },
     {
       "word": "yours",
-      "start": 4.618416,
-      "end": 4.868416
+      "start": 3.173,
+      "end": 3.423
     }
   ]
 }

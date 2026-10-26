@@ -721,6 +721,9 @@
         "hide": true
       },
       {
+        "quiz": "H3.1"
+      },
+      {
         "term": "review-panel"
       },
       {
@@ -951,6 +954,10 @@
         "say": "kh.stroud.04"
       },
       {
+        "show": "ch03/app-filter-repo",
+        "caption": "① The filter icon · ② **Query filter mode** · ③ add your fork’s `repo:` term to the query."
+      },
+      {
         "show": "ch03/app-issues-filtered",
         "caption": "The **Issues** view, limited to your fork: only the practice issues."
       },
@@ -1038,6 +1045,16 @@
       },
       {
         "term": "ci-check"
+      },
+      {
+        "show": "ch03/app-pr-failing-check",
+        "caption": "A practice pull request with a failing check."
+      },
+      {
+        "hide": true
+      },
+      {
+        "quiz": "H3.2"
       },
       {
         "page": "pg3.review-comment"

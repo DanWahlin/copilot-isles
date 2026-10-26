@@ -1,7 +1,7 @@
 {
   "id": "mer.oren.04",
   "speaker": "Oren",
-  "text": "Careful, though. Auto isn’t Autopilot. Autopilot is a mode. Auto is about the model.",
+  "text": "Careful, though. Fusion isn't Autopilot. Autopilot is a mode. Fusion is about how the models handle your request.",
   "words": [
     {
       "word": "Careful",
@@ -14,64 +14,84 @@
       "end": 2.111125
     },
     {
-      "word": "Auto",
+      "word": "Fusion",
       "start": 2.111125,
-      "end": 2.569458
+      "end": 2.680541
     },
     {
-      "word": "isn’t",
-      "start": 2.569458,
-      "end": 2.916666
-    },
-    {
-      "word": "Autopilot",
-      "start": 2.916666,
-      "end": 4.791666
+      "word": "isn't",
+      "start": 2.680541,
+      "end": 2.986125
     },
     {
       "word": "Autopilot",
-      "start": 4.791666,
-      "end": 5.569458
+      "start": 2.986125,
+      "end": 4.847208
+    },
+    {
+      "word": "Autopilot",
+      "start": 4.847208,
+      "end": 5.625
     },
     {
       "word": "is",
-      "start": 5.569458,
-      "end": 5.708333
+      "start": 5.625,
+      "end": 5.763875
     },
     {
       "word": "a",
-      "start": 5.708333,
-      "end": 5.791666
+      "start": 5.763875,
+      "end": 5.847208
     },
     {
       "word": "mode",
-      "start": 5.791666,
-      "end": 7.263875
+      "start": 5.847208,
+      "end": 7.319458
     },
     {
-      "word": "Auto",
-      "start": 7.263875,
-      "end": 7.722208
+      "word": "Fusion",
+      "start": 7.319458,
+      "end": 7.847208
     },
     {
       "word": "is",
-      "start": 7.722208,
-      "end": 7.888875
+      "start": 7.847208,
+      "end": 8
     },
     {
       "word": "about",
-      "start": 7.888875,
-      "end": 8.166666
+      "start": 8,
+      "end": 8.319458
+    },
+    {
+      "word": "how",
+      "start": 8.319458,
+      "end": 8.527791
     },
     {
       "word": "the",
-      "start": 8.166666,
-      "end": 8.263875
+      "start": 8.527791,
+      "end": 8.652791
     },
     {
-      "word": "model",
-      "start": 8.263875,
-      "end": 8.513875
+      "word": "models",
+      "start": 8.652791,
+      "end": 9.097208
+    },
+    {
+      "word": "handle",
+      "start": 9.097208,
+      "end": 9.513875
+    },
+    {
+      "word": "your",
+      "start": 9.513875,
+      "end": 9.708333
+    },
+    {
+      "word": "request",
+      "start": 9.708333,
+      "end": 9.958333
     }
   ]
 }

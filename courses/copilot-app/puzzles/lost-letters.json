@@ -8,12 +8,12 @@
   "cites": {
     "settings": {
       "anchor": "settings",
-      "hash": "49fadf6d109a",
+      "hash": "4c5198f8635b",
       "section": "Settings"
     },
     "models": {
       "anchor": "models-and-reasoning-effort",
-      "hash": "84d625491118",
+      "hash": "0f81a0a94c0c",
       "section": "Models and Reasoning Effort"
     },
     "troubleshooting": {
@@ -70,8 +70,8 @@
     },
     {
       "id": "projects",
-      "name": "Projects",
-      "holds": "**Projects** holds each project’s own settings, such as **Show in sidebar**, sandbox rules and the default branch.",
+      "name": "Repositories",
+      "holds": "**Repositories** holds each repository’s own settings, such as **Show in sidebar**, sandbox rules and the default branch.",
       "apart": true
     }
   ],
@@ -139,7 +139,7 @@
       "text": "I connected a project I hardly use. I’d like it out of my sidebar, but I don’t want to lose it.",
       "answer": "projects",
       "cite": "settings",
-      "need": "This is a setting for one project, not for the whole app."
+      "need": "This is a setting for one repository, not for the whole app."
     },
     {
       "id": "mcp-server",

@@ -1,0 +1,72 @@
+{
+  "id": "kh.bram.market.over.auto",
+  "speaker": "Bram",
+  "text": "A higher Fusion level for a quick look? Standard would have done it.",
+  "words": [
+    {
+      "word": "A",
+      "start": 0,
+      "end": 0.149
+    },
+    {
+      "word": "higher",
+      "start": 0.149,
+      "end": 0.617
+    },
+    {
+      "word": "Fusion",
+      "start": 0.617,
+      "end": 1.027
+    },
+    {
+      "word": "level",
+      "start": 1.027,
+      "end": 1.42
+    },
+    {
+      "word": "for",
+      "start": 1.42,
+      "end": 1.64
+    },
+    {
+      "word": "a",
+      "start": 1.64,
+      "end": 1.733
+    },
+    {
+      "word": "quick",
+      "start": 1.733,
+      "end": 2.064
+    },
+    {
+      "word": "look",
+      "start": 2.064,
+      "end": 2.729
+    },
+    {
+      "word": "Standard",
+      "start": 2.729,
+      "end": 3.48
+    },
+    {
+      "word": "would",
+      "start": 3.48,
+      "end": 3.712
+    },
+    {
+      "word": "have",
+      "start": 3.712,
+      "end": 3.904
+    },
+    {
+      "word": "done",
+      "start": 3.904,
+      "end": 4.24
+    },
+    {
+      "word": "it",
+      "start": 4.24,
+      "end": 4.49
+    }
+  ]
+}

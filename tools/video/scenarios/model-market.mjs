@@ -1,6 +1,6 @@
 // The Model Market (Gilda's stall on Port Meridian's plaza, docs/specs/MODEL-MARKET.md), as Oren's
 // practice (Q1.6 at market): walk across the plaza from the fountain as Gilda calls out, open the work
-// order at her counter, then three jobs with the keys: a repo tour with Auto (right-sized, at the fair
+// order at her counter, then three jobs with the keys: a repo tour with Copilot Fusion (right-sized, at the fair
 // price), filterBooks with a Powerful model on High (overspent: High effort is more than a quick look
 // needs), and a difficult bug with a Lightweight model (fell short), retried with a different model:
 // the work order opens with nothing chosen, and you pick Powerful (right-sized, and Oren's practice is
@@ -24,7 +24,7 @@ export default {
   island: 'Port Meridian',
   who: 'with Gilda on the plaza',
   subtitle:
-    'Hire a model that fits the job: Auto or your model on its default effort for a quick look; for hard work, consider a model suited to complex coding and more effort.',
+    'Hire a model that fits the job: Copilot Fusion at Standard or your model on its default effort for a quick look; for hard work, a higher Fusion level or a model suited to complex coding.',
   chapter: 'Course Chapter 01 · Models and Reasoning Effort · Try Again with a Different Model',
   flags: ['meridian'],
 
@@ -61,7 +61,7 @@ export default {
     api.mark('the board');
     await api.pause(4200);
 
-    api.mark('a repo tour with Auto');
+    api.mark('a repo tour with Copilot Fusion');
     await api.press('Digit1');
     await api.pause(2600);
     await api.press('Digit1');

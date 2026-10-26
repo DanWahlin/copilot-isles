@@ -60,7 +60,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       },
       "link": {
         "label": "Fork the course repository",
@@ -83,7 +83,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "connect-to-your-repository",
-        "hash": "fda261a1fa97"
+        "hash": "39e180f24372"
       },
       "seen": {
         "prompt": "Where does your fork show up once it’s added?",
@@ -119,7 +119,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       }
     },
     {
@@ -128,7 +128,7 @@
       "quest": "Q0.4",
       "title": "Check your tools in Terminal",
       "steps": [
-        "Select **View** > **Toggle Review Panel**, then **Terminal** (no tab? **+**, then **Terminal**).",
+        "Select **View** > **Toggle Panel**, then **Terminal** (no tab? **+**, then **Terminal**).",
         "Run `git --version`, `node -v`, `npm -v` and `gh --version`. Each should print a version number.",
         "Run `gh auth status` and check it shows the account that owns your fork."
       ],
@@ -136,7 +136,7 @@
       "source": {
         "chapter": "00-setup",
         "anchor": "check-your-tools-in-terminal",
-        "hash": "a098a1855e14"
+        "hash": "8f3efb0f005a"
       },
       "seen": {
         "prompt": "For `node -v`, what do you compare the first number with?",
@@ -263,7 +263,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "chat-sessions",
-        "hash": "9d8ea69782bc"
+        "hash": "9b2bed5bba1c"
       },
       "seen": {
         "prompt": "What does the app create for a chat?",
@@ -327,14 +327,14 @@
       "title": "Try the model controls",
       "steps": [
         "In your project session, select **Interactive** mode below the prompt box.",
-        "Open the model control. Keep **Auto** or your current model, and the default effort.",
+        "Open the model control. If **Copilot Fusion** is selected, keep **Standard**. Otherwise, select an available model and keep the default effort.",
         "Send the prompt on your Logbook page about how `filterBooks` searches."
       ],
       "why": "Keep the defaults for simple tasks, and you can change the model or effort mid-session.",
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "try-the-controls",
-        "hash": "1a9a4b2f69f1"
+        "hash": "fad201d0bd57"
       },
       "seen": {
         "prompt": "Which file should the answer refer to?",
@@ -380,13 +380,13 @@
       "steps": [
         "Point to the project and select **Create from**. On **Branches**, select `practice-empty-state-copy`.",
         "Set **Mode** to **Plan**, type `{issue}`, select **Improve the empty state copy**, and ask for a plan.",
-        "Exit plan mode, run the Book App and note the empty state, then ask it to implement the plan and compare."
+        "Exit plan mode (if **Review plan** stays open, select **Continue**), run the Book App and note the empty state, then ask it to implement the plan and compare."
       ],
       "why": "A session from a branch, with the issue attached as context, starts with everything the task needs.",
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
-        "hash": "6db80a8de549"
+        "hash": "25403dfc8620"
       }
     },
     {
@@ -403,7 +403,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "exercise-check-the-session-with-slash-commands",
-        "hash": "0eb8259b8b60"
+        "hash": "b3a17e3a13fd"
       }
     },
     {
@@ -420,7 +420,7 @@
       "source": {
         "chapter": "02-sessions-worktrees-context",
         "anchor": "assignment",
-        "hash": "a6fd57783531"
+        "hash": "dc74319a0e2b"
       }
     },
     {
@@ -431,14 +431,14 @@
       "steps": [
         "Point to the `copilot-app-for-beginners` project and select **+**. Check that the workspace selector shows **New worktree**.",
         "Set the mode to **Interactive** and ask Copilot to summarize the `@samples/book-app-web` test framework and build tool.",
-        "Open the review panel from the **View** menu and select **Terminal** (no tab? Select **+**, then **Terminal**).",
+        "Select **View** > **Toggle Panel**, then **Terminal** (no tab? Select **+**, then **Terminal**).",
         "Run `cd samples/book-app-web`, `npm install`, `npm test -- --run` and `npm run build`. If a reply shows **Run** by a snippet, you can use it."
       ],
       "why": "Tests and a build that pass before you change anything are your known-good baseline.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "confirm-the-sample-app-is-ready",
-        "hash": "9f41604e0eea"
+        "hash": "a02a5f393061"
       },
       "seen": {
         "prompt": "How many tests passed?",
@@ -457,7 +457,7 @@
           }
         ],
         "answer": "four",
-        "explain": "The course shows four passing tests. If they failed, run `npm install` in this worktree first. **Terminal** is in the review panel: open it from the **View** menu."
+        "explain": "The course shows four passing tests. If they failed, run `npm install` in this worktree first. **Terminal** is in the review panel: select **View** > **Toggle Panel**."
       }
     },
     {
@@ -468,14 +468,14 @@
       "steps": [
         "Select **Create from**, then **Branches**, then `practice-unread-count-bug`.",
         "Type `#2` and select **Keep unread stats correct when filters are active** (another number? Type `#` and pick it by title).",
-        "In **Plan** mode, ask for a fix and validation plan. Select **Exit plan mode and I will prompt myself**, check the mode is **Interactive**, and ask Copilot to implement it.",
+        "In **Plan** mode, ask for a fix and validation plan. Select **Exit plan mode and I will prompt myself** (if **Review plan** stays open, select **Continue**), check the mode is **Interactive**, and ask Copilot to implement it.",
         "Inspect **Changes**, check the tests and build, run `npm run dev`, and open **Browser** with the **Local** URL. Set **Fantasy** and **Unread**, then stop the server with `Ctrl+C`."
       ],
       "why": "One full inner-loop cycle: plan, change, inspect, test, build and preview.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "1-review-and-fix-a-bug",
-        "hash": "fe04b228a0d5"
+        "hash": "d1ea06a6a686"
       },
       "seen": {
         "prompt": "With **Fantasy** and **Unread**, what does the unread count say now?",
@@ -578,15 +578,15 @@
       "title": "Find your work in Issues and Pull requests",
       "steps": [
         "Open **Issues** and stay on **Assigned to me**.",
-        "Select the filter icon at the right end of the tab row, and add `repo:YOUR-OWNER/copilot-app-for-beginners` to the query (your fork’s owner).",
-        "Open **Pull requests**, select **Authored by me**, and limit it to your fork too: each view has its own filter.",
+        "Select the filter icon at the right end of the tab row, then **Query filter mode** (`<>`). Add `repo:YOUR-OWNER/copilot-app-for-beginners` to the existing query (your fork’s owner), keep `state:open assignee:@me`, and press `Enter`.",
+        "Open **Pull requests**, select **Authored by me**, and add the same `repo:` term to its query: each view has its own filter.",
         "Open a practice pull request. It shows its title, repository, number and status."
       ],
       "why": "Each view has its own filter, so set your fork in both.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
-        "hash": "baa3a4dec6ef"
+        "hash": "f929b99a9973"
       },
       "seen": {
         "prompt": "Which of these is a pull request on **Authored by me**?",
@@ -615,7 +615,7 @@
       "title": "From an issue to a pull request",
       "steps": [
         "Open **Make search case-insensitive** in **Issues**. Its **New session** starts from `main`, so select **Create from**, then **Branches**, then `practice-search-case-bug`, and type `#1`.",
-        "In **Plan** mode, ask for a plan that names the files and the checks. Select **Exit plan mode and I will prompt myself**, and ask for the fix with a focused regression test.",
+        "In **Plan** mode, ask for a plan that names the files and the checks. Select **Exit plan mode and I will prompt myself** (if **Review plan** stays open, select **Continue**), check the mode is **Interactive**, and ask for the fix with a focused regression test.",
         "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with `Ctrl+C`.",
         "Ask for a pull request summary that claims only checks you saw, select **Create PR**, and don’t merge it."
       ],
@@ -623,7 +623,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-        "hash": "1a0d8ba7f6ad"
+        "hash": "b564b37adbb4"
       },
       "seen": {
         "prompt": "What does your pull request’s summary claim?",
@@ -1159,7 +1159,7 @@
       "source": {
         "chapter": "01-tour-the-app",
         "anchor": "key-takeaways",
-        "hash": "863dccd1b579"
+        "hash": "b74b93cb51b2"
       },
       "choices": [
         {

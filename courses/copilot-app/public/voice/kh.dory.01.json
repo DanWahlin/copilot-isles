@@ -6,72 +6,72 @@
     {
       "word": "Before",
       "start": 0,
-      "end": 0.46
+      "end": 0.44
     },
     {
       "word": "you",
-      "start": 0.46,
-      "end": 0.697
+      "start": 0.44,
+      "end": 0.617
     },
     {
       "word": "change",
-      "start": 0.697,
-      "end": 1.08
+      "start": 0.617,
+      "end": 1
     },
     {
       "word": "a",
-      "start": 1.08,
-      "end": 1.187
+      "start": 1,
+      "end": 1.093
     },
     {
       "word": "thing",
-      "start": 1.187,
-      "end": 2.013
+      "start": 1.093,
+      "end": 1.813
     },
     {
       "word": "prove",
-      "start": 2.013,
-      "end": 2.54
+      "start": 1.813,
+      "end": 2.12
     },
     {
       "word": "the",
-      "start": 2.54,
-      "end": 2.8
+      "start": 2.12,
+      "end": 2.288
     },
     {
       "word": "hull",
-      "start": 2.8,
-      "end": 3.227
+      "start": 2.288,
+      "end": 2.533
     },
     {
       "word": "is",
-      "start": 3.227,
-      "end": 3.533
+      "start": 2.533,
+      "end": 2.72
     },
     {
       "word": "sound",
-      "start": 3.533,
-      "end": 4.288
+      "start": 2.72,
+      "end": 3.408
     },
     {
       "word": "That's",
-      "start": 4.288,
-      "end": 4.912
+      "start": 3.408,
+      "end": 4.016
     },
     {
       "word": "your",
-      "start": 4.912,
-      "end": 5.12
+      "start": 4.016,
+      "end": 4.16
     },
     {
       "word": "known-good",
-      "start": 5.12,
-      "end": 5.92
+      "start": 4.16,
+      "end": 4.88
     },
     {
       "word": "baseline",
-      "start": 5.92,
-      "end": 6.17
+      "start": 4.88,
+      "end": 5.13
     }
   ]
 }

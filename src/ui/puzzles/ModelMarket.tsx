@@ -8,12 +8,16 @@ import {
   EFFORTS,
   EFFORT_LABEL,
   EFFORT_PRICE,
+  HOUSE_LEVELS,
+  HOUSE_LEVEL_LABEL,
+  HOUSE_LEVEL_PRICE,
   JOBS,
   QUOTES,
   TIER_OF,
   SIZE_LABEL,
   effortLastTime,
   jobById,
+  levelLastTime,
   marketText as T,
   price,
   usedLastTime,
@@ -21,6 +25,7 @@ import {
   type Effort,
   type Feedback,
   type Hire,
+  type HouseLevel,
   type JobId,
   type RetryPlan,
 } from '../../game/market/jobs';
@@ -30,9 +35,14 @@ import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './model-market.css';
 
-/** The hire being filled in on the work order: Auto, or a model of a category with an effort. */
+/**
+ * The hire being filled in on the work order: the house special (`auto`) at one of its own levels, or a
+ * model of a category with an effort.
+ */
 export interface MarketDraft {
   auto: boolean;
+  /** The house special's effort level (kept while a model's picked, for when you pick it again). */
+  level: HouseLevel;
   category: ModelCategory;
   model: string;
   effort: Effort;
@@ -74,7 +84,7 @@ export interface MarketView {
   /** A category whose "+N more" is open on the board. */
   more: ModelCategory | null;
   /** Wingman's second hint: the pick (and effort) that fits the job. */
-  hint: { pick: 'auto' | ModelCategory; effort: Effort | null } | null;
+  hint: { pick: 'auto' | ModelCategory; effort: string | null } | null;
   /** A short line under the work order (not enough starfish, a Retry). */
   notice: string | null;
   /** The keeper's last line, written on the work order while they say it (the HUD captions step aside). */
@@ -93,8 +103,8 @@ export interface MarketActions {
   pick(p: 'auto' | ModelCategory): void;
   /** Steps through the category's models (or sets one). */
   model(step: number | string): void;
-  /** Steps the effort dial (or sets it). */
-  effort(step: number | Effort): void;
+  /** Steps the effort dial (or sets it): a model's effort, or the house special's level. */
+  effort(step: number | string): void;
   pay(): void;
   retry(kind: 'model' | 'effort'): void;
   more(c: ModelCategory | null): void;
@@ -112,7 +122,9 @@ export interface MarketStore {
 
 /** The hire a draft stands for. */
 export const draftHire = (d: MarketDraft): Hire =>
-  d.auto ? { auto: true } : { auto: false, category: d.category, model: d.model, effort: d.effort };
+  d.auto
+    ? { auto: true, level: d.level }
+    : { auto: false, category: d.category, model: d.model, effort: d.effort };
 
 const PICKS: readonly ('auto' | ModelCategory)[] = ['auto', ...CATEGORIES];
 const categoryData = (c: ModelCategory) => MARKET.categories.find((x) => x.id === c)!;
@@ -289,9 +301,9 @@ function Practice({ p }: { p: { quick: boolean; retry: boolean } }) {
 }
 
 /** The effort dial: a gauge whose needle points at the level (the buttons beside it set it). */
-function Dial({ effort, off }: { effort: Effort; off: boolean }) {
-  // Off (Auto, or a Retry's dial with nothing chosen): the needle rests upright, the gauge greyed.
-  const angle = off ? 0 : [-55, 0, 55][EFFORTS.indexOf(effort)]!;
+function Dial({ at, of, off }: { at: number; of: number; off: boolean }) {
+  // Off (a Retry's dial with nothing chosen): the needle rests upright, the gauge greyed.
+  const angle = off || at < 0 || of < 2 ? 0 : -55 + (110 * at) / (of - 1);
   return (
     <svg className={`ci-mm-dial${off ? ' is-off' : ''}`} viewBox="-60 -56 120 66" aria-hidden="true">
       <path d="M-46 0 A46 46 0 0 1 -26.4 -37.7" className="seg low" />
@@ -318,6 +330,11 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
   const pickPrice = (p: 'auto' | ModelCategory) => (p === 'auto' ? AUTO_PRICE : CATEGORY_PRICE[p]);
   const isHint = (p: 'auto' | ModelCategory) => v.hint?.pick === p;
   const lastModel = plan && !plan.last.auto ? plan.last.model : null;
+  // The dial: the model's effort, or the house special's own levels.
+  const levels: readonly string[] = d.auto ? HOUSE_LEVELS : EFFORTS;
+  const current: string = d.auto ? d.level : d.effort;
+  const levelLabel = (e: string) => (d.auto ? (HOUSE_LEVEL_LABEL[e] ?? e) : EFFORT_LABEL[e as Effort]);
+  const levelPrice = (e: string) => (d.auto ? (HOUSE_LEVEL_PRICE[e] ?? 0) : EFFORT_PRICE[e as Effort]);
   return (
     <>
       <Header v={v} title={T('hireTitle')} onClose={a.close} />
@@ -340,17 +357,17 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
             <dt>{d.auto ? T('auto') : noModel ? T('chooseModel') : d.model}</dt>
             <dd>{noModel ? '—' : <Star n={d.auto ? AUTO_PRICE : CATEGORY_PRICE[d.category]} />}</dd>
             <dt>
-              {d.auto
-                ? T('effortHidden')
-                : noEffort
-                  ? T('chooseEffort')
+              {noEffort
+                ? T('chooseEffort')
+                : d.auto
+                  ? T('autoLevel', { level: HOUSE_LEVEL_LABEL[d.level] ?? d.level })
                   : T('effort', { effort: EFFORT_LABEL[d.effort] })}
             </dt>
             <dd>
-              {d.auto
-                ? '+0'
-                : d.pending
-                  ? '—'
+              {d.pending
+                ? '—'
+                : d.auto
+                  ? `+${Math.min(HOUSE_LEVEL_PRICE[d.level] ?? 0, cost - AUTO_PRICE)}`
                   : `+${Math.min(EFFORT_PRICE[d.effort], cost - CATEGORY_PRICE[d.category])}`}
             </dd>
             <dt className="total">{T('total')}</dt>
@@ -440,18 +457,20 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
               })}
             </ul>
           )}
-          <h3 className="ci-mm-step">{T('step2')}</h3>
+          <h3 className="ci-mm-step">{T(d.auto ? 'step2Auto' : 'step2')}</h3>
           <div className={`ci-mm-effort${noEffort ? ' is-live' : ''}`}>
-            <Dial effort={d.effort} off={d.auto || noEffort} />
+            <Dial at={levels.indexOf(current)} of={levels.length} off={noEffort} />
             <div
               className="ci-mm-levels"
               role="radiogroup"
-              aria-label={T('effortGroup')}
+              aria-label={T(d.auto ? 'levelGroup' : 'effortGroup')}
               data-live={noEffort || undefined}
             >
-              {EFFORTS.map((e) => {
-                const on = !d.auto && !noEffort && d.effort === e;
-                const used = !!plan && !d.auto && effortLastTime(plan, d.model, e);
+              {levels.map((e) => {
+                const on = !noEffort && current === e;
+                const used =
+                  !!plan && (d.auto ? levelLastTime(plan, e) : effortLastTime(plan, d.model, e as Effort));
+                const label = levelLabel(e);
                 return (
                   <button
                     key={e}
@@ -459,20 +478,19 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
                     role="radio"
                     aria-checked={on}
                     aria-disabled={used || undefined}
-                    aria-label={used ? T('usedLabel', { name: EFFORT_LABEL[e] }) : undefined}
-                    disabled={d.auto}
+                    aria-label={used ? T('usedLabel', { name: label }) : undefined}
                     data-effort={e}
-                    className={`${on ? 'is-on' : ''}${v.hint?.effort === e ? ' is-hint' : ''}${used ? ' is-used' : ''}`}
+                    className={`${on ? 'is-on' : ''}${v.hint?.pick === (d.auto ? 'auto' : d.category) && v.hint?.effort === e ? ' is-hint' : ''}${used ? ' is-used' : ''}`}
                     onClick={() => a.effort(e)}
                   >
-                    <span>{EFFORT_LABEL[e]}</span>
-                    <span className="cost">{used ? T('lastTime') : `+${EFFORT_PRICE[e]} ★`}</span>
+                    <span>{label}</span>
+                    <span className="cost">{used ? T('lastTime') : `+${levelPrice(e)} ★`}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-          <Quote q={d.auto ? QUOTES.autoHidden : QUOTES.effort} />
+          <Quote q={d.auto ? QUOTES.autoLevels : QUOTES.effort} />
           <div className="ci-mm-actions">
             <button type="button" className="ci-mm-btn" onClick={a.back}>
               <kbd aria-hidden="true">Esc</kbd> {T('back')}
@@ -510,7 +528,7 @@ function Result({ v, a }: { v: MarketView; a: MarketActions }) {
   const job = jobById(r.job)!;
   const f = r.feedback;
   const who = r.hire.auto
-    ? T('auto')
+    ? T('hired.auto', { level: HOUSE_LEVEL_LABEL[r.hire.level] ?? r.hire.level })
     : T('hired.who', { model: r.hire.model, effort: EFFORT_LABEL[r.hire.effort] });
   return (
     <>
@@ -601,7 +619,7 @@ function announce(v: MarketView): string {
     }
     const cost = price(draftHire(v.draft));
     const pick = v.draft.auto
-      ? T('auto')
+      ? T('announcePickAuto', { level: HOUSE_LEVEL_LABEL[v.draft.level] ?? v.draft.level })
       : T('announcePick', { model: v.draft.model, effort: EFFORT_LABEL[v.draft.effort] });
     return `${v.notice ? `${v.notice} ` : ''}${T('announceHire', { title: jobById(v.job)!.title, pick, n: cost, purse: v.purse })}`;
   }

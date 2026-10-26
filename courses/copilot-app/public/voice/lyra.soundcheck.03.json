@@ -5,98 +5,98 @@
   "words": [
     {
       "word": "You’ve",
-      "start": 0.052625,
-      "end": 0.302625
+      "start": 0,
+      "end": 0.112
     },
     {
       "word": "just",
-      "start": 0.302625,
-      "end": 0.578958
+      "start": 0.112,
+      "end": 0.272
     },
     {
       "word": "done",
-      "start": 0.578958,
-      "end": 0.789458
+      "start": 0.272,
+      "end": 0.42
     },
     {
       "word": "the",
-      "start": 0.789458,
-      "end": 0.921041
+      "start": 0.42,
+      "end": 0.537
     },
     {
       "word": "sailor’s",
-      "start": 0.921041,
-      "end": 1.315791
+      "start": 0.537,
+      "end": 1.105
     },
     {
       "word": "version",
-      "start": 1.315791,
-      "end": 2.10525
+      "start": 1.105,
+      "end": 1.554
     },
     {
       "word": "papers",
-      "start": 2.10525,
-      "end": 2.60525
+      "start": 1.554,
+      "end": 2.297
     },
     {
       "word": "signed",
-      "start": 2.60525,
-      "end": 3.302625
+      "start": 2.297,
+      "end": 2.84
     },
     {
       "word": "the",
-      "start": 3.302625,
-      "end": 3.421041
+      "start": 2.84,
+      "end": 3.027
     },
     {
       "word": "chart",
-      "start": 3.421041,
-      "end": 3.815791
+      "start": 3.027,
+      "end": 3.44
     },
     {
       "word": "forked",
-      "start": 3.815791,
-      "end": 4.460541
+      "start": 3.44,
+      "end": 4.08
     },
     {
       "word": "your",
-      "start": 4.460541,
-      "end": 4.736833
+      "start": 4.08,
+      "end": 4.304
     },
     {
       "word": "gear",
-      "start": 4.736833,
-      "end": 4.973666
+      "start": 4.304,
+      "end": 4.61
     },
     {
       "word": "checked",
-      "start": 4.973666,
-      "end": 5.723666
+      "start": 4.61,
+      "end": 5.26
     },
     {
       "word": "and",
-      "start": 5.723666,
-      "end": 5.881583
+      "start": 5.26,
+      "end": 5.46
     },
     {
       "word": "the",
-      "start": 5.881583,
-      "end": 5.973666
+      "start": 5.46,
+      "end": 5.564
     },
     {
       "word": "practice",
-      "start": 5.973666,
-      "end": 6.473666
+      "start": 5.564,
+      "end": 5.987
     },
     {
       "word": "items",
-      "start": 6.473666,
-      "end": 6.947375
+      "start": 5.987,
+      "end": 6.389
     },
     {
       "word": "loaded",
-      "start": 6.947375,
-      "end": 7.197375
+      "start": 6.389,
+      "end": 6.639
     }
   ]
 }

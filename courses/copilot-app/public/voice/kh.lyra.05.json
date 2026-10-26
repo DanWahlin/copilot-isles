@@ -5,73 +5,73 @@
   "words": [
     {
       "word": "Hester's",
-      "start": 0.052625,
-      "end": 0.513166
+      "start": 0,
+      "end": 0.587
     },
     {
       "word": "board",
-      "start": 0.513166,
-      "end": 0.934208
+      "start": 0.587,
+      "end": 0.747
     },
     {
       "word": "is",
-      "start": 0.934208,
-      "end": 1.092125
+      "start": 0.747,
+      "end": 0.853
     },
     {
       "word": "by",
-      "start": 1.092125,
-      "end": 1.35525
+      "start": 0.853,
+      "end": 0.98
     },
     {
       "word": "the",
-      "start": 1.35525,
-      "end": 1.434208
+      "start": 0.98,
+      "end": 1.093
     },
     {
       "word": "river",
-      "start": 1.434208,
-      "end": 1.723666
+      "start": 1.093,
+      "end": 1.406
     },
     {
       "word": "bridge",
-      "start": 1.723666,
-      "end": 3.263166
+      "start": 1.406,
+      "end": 1.86
     },
     {
       "word": "She'll",
-      "start": 3.263166,
-      "end": 3.565791
+      "start": 1.86,
+      "end": 2.592
     },
     {
       "word": "show",
-      "start": 3.565791,
-      "end": 3.881583
+      "start": 2.592,
+      "end": 2.74
     },
     {
       "word": "you",
-      "start": 3.881583,
-      "end": 4
+      "start": 2.74,
+      "end": 2.832
     },
     {
       "word": "what",
-      "start": 4,
-      "end": 4.184208
+      "start": 2.832,
+      "end": 2.994
     },
     {
       "word": "counts",
-      "start": 4.184208,
-      "end": 4.64475
+      "start": 2.994,
+      "end": 3.227
     },
     {
       "word": "as",
-      "start": 4.64475,
-      "end": 4.802625
+      "start": 3.227,
+      "end": 3.324
     },
     {
       "word": "evidence",
-      "start": 4.802625,
-      "end": 5.052625
+      "start": 3.324,
+      "end": 3.574
     }
   ]
 }

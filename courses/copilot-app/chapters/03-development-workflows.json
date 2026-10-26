@@ -38,7 +38,7 @@
     {
       "id": "ch03/app-workspace-panel",
       "src": "course/ch03/app-workspace-panel.webp",
-      "hash": "625efb26cd5e",
+      "hash": "1cc406feef4b",
       "width": 1920,
       "height": 1080,
       "alt": "Review panel with the Terminal tab open, showing four passing tests"
@@ -46,7 +46,7 @@
     {
       "id": "ch03/app-pick-and-polish",
       "src": "course/ch03/app-pick-and-polish.webp",
-      "hash": "b2b745adebd2",
+      "hash": "7504bc7f614a",
       "width": 1920,
       "height": 1080,
       "alt": "Pick & Polish with an article.book-card attachment in the prompt box"
@@ -60,9 +60,17 @@
       "alt": "Issue-to-merge workflow: issue, session, diff, approval gate, pull request, checks, approval gate, and merge. Feedback or a failed check goes back to the session."
     },
     {
+      "id": "ch03/app-filter-repo",
+      "src": "course/ch03/app-filter-repo.webp",
+      "hash": "99cc8ee15488",
+      "width": 1920,
+      "height": 1080,
+      "alt": "The Issues view's query filter, with callouts on the filter icon (1), the Query filter mode control (2) and the query field holding the fork's repo: term (3)"
+    },
+    {
       "id": "ch03/app-issues-filtered",
       "src": "course/ch03/app-issues-filtered.webp",
-      "hash": "a1f320a6041a",
+      "hash": "57a36030ca9c",
       "width": 1920,
       "height": 1080,
       "alt": "The Issues view, limited to the course repository: only the practice issues"
@@ -70,7 +78,7 @@
     {
       "id": "ch03/app-issue-new-session",
       "src": "course/ch03/app-issue-new-session.webp",
-      "hash": "9a4f4f18c784",
+      "hash": "f201e64d80a6",
       "width": 1920,
       "height": 1080,
       "alt": "The Make search case-insensitive issue open in the Issues view"
@@ -78,7 +86,7 @@
     {
       "id": "ch03/app-pr-review-comment",
       "src": "course/ch03/app-pr-review-comment.webp",
-      "hash": "9157076849d0",
+      "hash": "1a503f53f60e",
       "width": 1920,
       "height": 1080,
       "alt": "A pull request’s conversation with the comment about the empty-state copy"
@@ -86,7 +94,7 @@
     {
       "id": "ch03/app-pr-failing-check",
       "src": "course/ch03/app-pr-failing-check.webp",
-      "hash": "ff63d4d1214f",
+      "hash": "a21329df6b2f",
       "width": 1920,
       "height": 1080,
       "alt": "The Failing stats check practice pull request, with its failed Book app web check"
@@ -101,6 +109,108 @@
     }
   ],
   "quizzes": [
+    {
+      "id": "H3.1",
+      "type": "hotspot",
+      "image": "ch03/app-workspace-panel",
+      "mask": [],
+      "prompt": "You ran the tests in the review panel’s **Terminal**. Where does the baseline show its result?",
+      "targets": [
+        {
+          "id": "terminal-result",
+          "rect": [0.59375, 0.374074, 0.166667, 0.062963],
+          "label": "Tests: 4 passed",
+          "correct": true
+        },
+        {
+          "id": "reply",
+          "rect": [0.270833, 0.388889, 0.294271, 0.069444],
+          "label": "Copilot’s summary of the tests",
+          "feedback": "That’s Copilot’s reply about the test tools. The result of the run is in **Terminal**."
+        },
+        {
+          "id": "terminal-tab",
+          "rect": [0.591667, 0.012963, 0.091667, 0.044444],
+          "label": "The Terminal tab",
+          "feedback": "Right panel, but that’s the tab. Look at what the run printed."
+        },
+        {
+          "id": "prompt",
+          "rect": [0.260417, 0.840741, 0.302083, 0.146296],
+          "label": "The prompt box",
+          "feedback": "Requests go in the prompt box. Command output shows in **Terminal**."
+        }
+      ],
+      "explain": {
+        "correct": "Right. **Terminal** shows four passing tests: your known-good baseline, before you change anything.",
+        "wrong": "The baseline is what the test run printed."
+      },
+      "hints": [
+        "It’s in the review panel, on the right.",
+        "Look for what the test run printed.",
+        "Select **Tests 4 passed (4)** in **Terminal**."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "confirm-the-sample-app-is-ready",
+        "hash": "a02a5f393061",
+        "image": {
+          "src": "course/ch03/app-workspace-panel.webp",
+          "hash": "1cc406feef4b"
+        }
+      }
+    },
+    {
+      "id": "H3.2",
+      "type": "hotspot",
+      "image": "ch03/app-pr-failing-check",
+      "mask": [],
+      "prompt": "This practice pull request has a failing check. Which check failed?",
+      "targets": [
+        {
+          "id": "failed-check",
+          "rect": [0.71875, 0.559259, 0.252604, 0.046296],
+          "label": "Book app web / validate",
+          "correct": true
+        },
+        {
+          "id": "passed-pr",
+          "rect": [0.25, 0.261111, 0.4375, 0.092593],
+          "label": "Improve empty-state copy #6",
+          "feedback": "That’s another pull request, and the tick says its checks passed."
+        },
+        {
+          "id": "files",
+          "rect": [0.763542, 0.081481, 0.05625, 0.042593],
+          "label": "Files",
+          "feedback": "**Files** lists what changed. The checks are in the conversation."
+        },
+        {
+          "id": "comment",
+          "rect": [0.709375, 0.659259, 0.266667, 0.240741],
+          "label": "The comment box",
+          "feedback": "That’s where you add a comment. Find the check that failed first."
+        }
+      ],
+      "explain": {
+        "correct": "Right. The **Book app web** check failed. Start a session from the pull request, ask Copilot to explain the root cause and propose the smallest fix, and don’t weaken the failing test.",
+        "wrong": "Look for the red mark in the list of checks."
+      },
+      "hints": [
+        "It’s in the pull request’s conversation, on the right.",
+        "Look for a red mark in the checks.",
+        "Select the failed **Book app web** check."
+      ],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "fix-a-failing-check",
+        "hash": "f2156f9ed67c",
+        "image": {
+          "src": "course/ch03/app-pr-failing-check.webp",
+          "hash": "a21329df6b2f"
+        }
+      }
+    },
     {
       "id": "K3.1",
       "type": "mc",
@@ -282,7 +392,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "confirm-the-sample-app-is-ready",
-        "hash": "9f41604e0eea"
+        "hash": "a02a5f393061"
       }
     },
     {
@@ -365,7 +475,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
-        "hash": "baa3a4dec6ef"
+        "hash": "f929b99a9973"
       }
     },
     {
@@ -489,7 +599,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "1-review-and-fix-a-bug",
-        "hash": "fe04b228a0d5"
+        "hash": "d1ea06a6a686"
       }
     },
     {
@@ -642,7 +752,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-        "hash": "1a0d8ba7f6ad"
+        "hash": "b564b37adbb4"
       }
     },
     {
@@ -680,7 +790,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-        "hash": "1a0d8ba7f6ad"
+        "hash": "b564b37adbb4"
       }
     },
     {
@@ -830,7 +940,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
-        "hash": "baa3a4dec6ef"
+        "hash": "f929b99a9973"
       }
     },
     {
@@ -904,12 +1014,12 @@
       "id": "pg3.baseline",
       "title": "A known-good baseline",
       "image": "ch03/app-workspace-panel",
-      "caption": "In a **New worktree** session, open the review panel from the **View** menu and select **Terminal**. In `samples/book-app-web`, four passing tests and a build that works are your known-good baseline. Run `npm install` the first time you use each new worktree.",
+      "caption": "In a **New worktree** session, select **View** > **Toggle Panel**, then **Terminal**. In `samples/book-app-web`, four passing tests and a build that works are your known-good baseline. Run `npm install` the first time you use each new worktree.",
       "code": "cd samples/book-app-web\nnpm install\nnpm test -- --run\nnpm run build",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "confirm-the-sample-app-is-ready",
-        "hash": "9f41604e0eea"
+        "hash": "a02a5f393061"
       }
     },
     {
@@ -920,7 +1030,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "confirm-the-sample-app-is-ready",
-        "hash": "9f41604e0eea"
+        "hash": "a02a5f393061"
       }
     },
     {
@@ -940,18 +1050,18 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "inner-loop-develop-and-validate-on-your-machine",
-        "hash": "77f6c9aa2f53"
+        "hash": "10a0fe3998b5"
       }
     },
     {
       "id": "pg3.fix",
       "title": "Fix a bug from an issue",
-      "caption": "Select **Create from**, then **Branches**, then `practice-unread-count-bug`, and type `#2` to attach **Keep unread stats correct when filters are active**. Ask for a plan in **Plan** mode, select **Exit plan mode and I will prompt myself**, and ask Copilot to implement it. In **Changes**, check that the diff is focused: you can discard a file you didn’t intend, after a confirmation.",
+      "caption": "Select **Create from**, then **Branches**, then `practice-unread-count-bug`, and type `#2` to attach **Keep unread stats correct when filters are active**. Ask for a plan in **Plan** mode, select **Exit plan mode and I will prompt myself** (if the **Review plan** box stays open, select **Continue**), check the mode is **Interactive**, and ask Copilot to implement it. In **Changes**, check that the diff is focused: you can discard a file you didn’t intend, after a confirmation.",
       "code": "Use the attached issue as the source of truth. Review @samples/book-app-web/src, identify the root cause, and create a short fix and validation plan.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "1-review-and-fix-a-bug",
-        "hash": "fe04b228a0d5"
+        "hash": "d1ea06a6a686"
       }
     },
     {
@@ -1015,19 +1125,19 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "outer-loop-move-the-work-through-github",
-        "hash": "07e5691870a8"
+        "hash": "fe635c153065"
       }
     },
     {
       "id": "pg3.find-work",
       "title": "Issues and Pull requests",
       "image": "ch03/app-issues-filtered",
-      "caption": "The **Issues** and **Pull requests** views list the GitHub work that involves you, with tabs such as **Assigned to me** and **Authored by me**. Each view has its own filter, so limit each one to your fork. Open an item to see its title, repository, number and status.",
+      "caption": "The **Issues** and **Pull requests** views list the GitHub work that involves you, with tabs such as **Assigned to me** and **Authored by me**. To limit a view to your fork, select the filter icon at the right end of the tab row, select **Query filter mode** (`<>`), and add `repo:YOUR-OWNER/copilot-app-for-beginners` to the existing query, then press `Enter`. Filters belong to the selected view: when you change tabs, check the query and add the `repo:` term again if you need to. Open an item to see its title, repository, number and status.",
       "fork": ["issues", "pulls"],
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
-        "hash": "baa3a4dec6ef"
+        "hash": "f929b99a9973"
       }
     },
     {
@@ -1040,7 +1150,7 @@
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-        "hash": "1a0d8ba7f6ad"
+        "hash": "b564b37adbb4"
       }
     },
     {
@@ -1132,12 +1242,12 @@
     {
       "id": "B3.3",
       "title": "Can’t see an issue or pull request?",
-      "caption": "Check the selected tab and repository in the **Issues** or **Pull requests** view, then your repository access, permissions and organization policy.",
+      "caption": "Check the selected tab and the query’s `repo:` term in the **Issues** or **Pull requests** view, then your repository access, permissions and organization policy.",
       "fork": ["issues", "pulls"],
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "i-cant-see-an-issue-or-pull-request",
-        "hash": "3aaa58523db0"
+        "hash": "57c8a7556def"
       }
     },
     {
@@ -1330,22 +1440,22 @@
     "kh.dory.01": {
       "chapter": "03-development-workflows",
       "anchor": "confirm-the-sample-app-is-ready",
-      "hash": "9f41604e0eea"
+      "hash": "a02a5f393061"
     },
     "kh.dory.02": {
       "chapter": "03-development-workflows",
       "anchor": "confirm-the-sample-app-is-ready",
-      "hash": "9f41604e0eea"
+      "hash": "a02a5f393061"
     },
     "kh.dory.03": {
       "chapter": "03-development-workflows",
       "anchor": "confirm-the-sample-app-is-ready",
-      "hash": "9f41604e0eea"
+      "hash": "a02a5f393061"
     },
     "kh.dory.04": {
       "chapter": "03-development-workflows",
       "anchor": "confirm-the-sample-app-is-ready",
-      "hash": "9f41604e0eea"
+      "hash": "a02a5f393061"
     },
     "kh.dory.05": {
       "chapter": "03-development-workflows",
@@ -1360,27 +1470,27 @@
     "kh.dory.done": {
       "chapter": "03-development-workflows",
       "anchor": "confirm-the-sample-app-is-ready",
-      "hash": "9f41604e0eea"
+      "hash": "a02a5f393061"
     },
     "kh.cass.01": {
       "chapter": "03-development-workflows",
       "anchor": "inner-loop-develop-and-validate-on-your-machine",
-      "hash": "77f6c9aa2f53"
+      "hash": "10a0fe3998b5"
     },
     "kh.cass.02": {
       "chapter": "03-development-workflows",
       "anchor": "1-review-and-fix-a-bug",
-      "hash": "fe04b228a0d5"
+      "hash": "d1ea06a6a686"
     },
     "kh.cass.plan.ok": {
       "chapter": "03-development-workflows",
       "anchor": "1-review-and-fix-a-bug",
-      "hash": "fe04b228a0d5"
+      "hash": "d1ea06a6a686"
     },
     "kh.cass.plan.hide": {
       "chapter": "03-development-workflows",
       "anchor": "1-review-and-fix-a-bug",
-      "hash": "fe04b228a0d5"
+      "hash": "d1ea06a6a686"
     },
     "kh.cass.plan.test": {
       "chapter": "03-development-workflows",
@@ -1390,12 +1500,12 @@
     "kh.cass.03": {
       "chapter": "03-development-workflows",
       "anchor": "1-review-and-fix-a-bug",
-      "hash": "fe04b228a0d5"
+      "hash": "d1ea06a6a686"
     },
     "kh.cass.stray": {
       "chapter": "03-development-workflows",
       "anchor": "1-review-and-fix-a-bug",
-      "hash": "fe04b228a0d5"
+      "hash": "d1ea06a6a686"
     },
     "kh.cass.04": {
       "chapter": "03-development-workflows",
@@ -1480,7 +1590,7 @@
     "kh.barty.06": {
       "chapter": "03-development-workflows",
       "anchor": "outer-loop-move-the-work-through-github",
-      "hash": "07e5691870a8"
+      "hash": "fe635c153065"
     },
     "kh.barty.done": {
       "chapter": "03-development-workflows",
@@ -1500,42 +1610,42 @@
     "kh.stroud.01": {
       "chapter": "03-development-workflows",
       "anchor": "outer-loop-move-the-work-through-github",
-      "hash": "07e5691870a8"
+      "hash": "fe635c153065"
     },
     "kh.stroud.02": {
       "chapter": "03-development-workflows",
       "anchor": "outer-loop-move-the-work-through-github",
-      "hash": "07e5691870a8"
+      "hash": "fe635c153065"
     },
     "kh.stroud.03": {
       "chapter": "03-development-workflows",
       "anchor": "4-find-work-in-issues-and-pull-requests",
-      "hash": "baa3a4dec6ef"
+      "hash": "f929b99a9973"
     },
     "kh.stroud.04": {
       "chapter": "03-development-workflows",
       "anchor": "4-find-work-in-issues-and-pull-requests",
-      "hash": "baa3a4dec6ef"
+      "hash": "f929b99a9973"
     },
     "kh.stroud.order": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.stroud.05": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.stroud.06": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.stroud.07": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.stroud.08": {
       "chapter": "03-development-workflows",
@@ -1545,12 +1655,12 @@
     "kh.stroud.09": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.arlo.01": {
       "chapter": "03-development-workflows",
       "anchor": "6-address-review-comments-and-failing-checks",
-      "hash": "1d243befe42b"
+      "hash": "48bb6fea7ce8"
     },
     "kh.arlo.02": {
       "chapter": "03-development-workflows",
@@ -1600,7 +1710,7 @@
     "kh.arlo.08": {
       "chapter": "03-development-workflows",
       "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "1a0d8ba7f6ad"
+      "hash": "b564b37adbb4"
     },
     "kh.arlo.tug": {
       "chapter": "03-development-workflows",
