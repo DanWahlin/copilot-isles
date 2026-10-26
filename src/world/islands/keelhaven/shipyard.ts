@@ -1335,6 +1335,9 @@ export function* buildShipyard(
   ubox(b, 'stone', 152, yard + 1.6, -27, 6, 3.2, 5, YARD_PAINT.stone);
   ubox(b, 'wood', 152, yard + 3.35, -27, 6.6, 0.3, 5.6, YARD_PAINT.tar);
   ubox(b, 'stone', 154, yard + 4.6, -28.5, 1.2, 3.2, 1.2, YARD_PAINT.wetStone);
+  out.colliders.push({ ...xzOf(152, -27), hx: 3.1, hz: 2.6, rot: YAW_U, height: 3.5 });
+  out.cameraBoxes.push({ ...xzOf(152, -27), hx: 3.4, hz: 2.9, rot: YAW_U, y0: yard - 0.5, y1: yard + 3.6 });
+  out.cameraBoxes.push({ ...xzOf(154, -28.5), hx: 0.7, hz: 0.7, rot: YAW_U, y0: yard, y1: yard + 6.3 });
   // The steam box: a long timber box on trestles by the saw shed, its boiler at one end.
   ubox(b, 'wood', 66, yard + 1.2, -36, 10, 0.8, 0.9, YARD_PAINT.tar);
   const boiler = at(60, yard, -36);
