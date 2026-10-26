@@ -145,7 +145,7 @@ export const KRAKEN_TIMING_GENTLE: KrakenTiming = {
 
 /**
  * A raider taken mid-fight (a strike landed on her): smaller and faster, about 14 s from her being
- * caught to her pieces under; fewer arms (`QUICK_ROLES`), no arc over her deck, no finale.
+ * caught to her pieces under; fewer arms (`QUICK_ROLES`), a short arc over her deck, no finale.
  */
 export const KRAKEN_TIMING_QUICK: KrakenTiming = {
   ...KRAKEN_TIMING,

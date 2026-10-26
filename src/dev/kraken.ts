@@ -380,8 +380,14 @@ function advance(dt: number, t: number): void {
     // read the evidence, and sails straight on into it.
     const p = mine.dynamics.pose;
     const r = raider.dynamics.pose;
+    // She closes on a line abeam of yours (34 m off), so her course isn't your wake.
+    const ax = Math.cos(p.heading) * 34;
+    const az = -Math.sin(p.heading) * 34;
     if (Number.isNaN(lure.placedAt))
-      lure.heading = Math.atan2(p.x + Math.sin(p.heading) * 40 - r.x, p.z + Math.cos(p.heading) * 40 - r.z);
+      lure.heading = Math.atan2(
+        p.x + Math.sin(p.heading) * 40 + ax - r.x,
+        p.z + Math.cos(p.heading) * 40 + az - r.z,
+      );
     if (Number.isNaN(lure.caughtAt)) steer(raider, lure.heading, 0.95);
     if (once('lure', LURE_AT)) {
       lure.placedAt = st;
@@ -446,7 +452,7 @@ function placeHazard(kind: HazardKind, side: number): void {
   const v = Math.max(1.5, p.speed);
   const ahead = v * hazardImpactAt(spec) + (kind === 'sweep' ? 6 : 2);
   // Just inside the area on her course; the sweep's arc edge needs a little less.
-  const off = side * (spec.radius + halfBeamAt(0, 1) - (kind === 'sweep' ? 1.6 : 2.5));
+  const off = side * (spec.radius + halfBeamAt(0, 1) - 1.6);
   const s = Math.sin(p.heading);
   const c = Math.cos(p.heading);
   const x = p.x + s * ahead + c * off;
@@ -495,8 +501,8 @@ function frameCamera(dt: number): void {
     camGoal.set(m.x - (dx / d) * 26 + (dz / d) * 24, 17, m.z - (dz / d) * 26 - (dx / d) * 24);
     lookGoal.set(at.x, 4, at.z);
   } else if (scenario === 'dodge' && !Number.isNaN(lure.placedAt)) {
-    // The lure: from beside your ship, high, looking back at the raider and the tell on her course,
-    // then at her wreck.
+    // The lure: from her far side, high, looking across her at the tell on her course (your ship off
+    // to one side, beyond), then at her wreck.
     if (Number.isNaN(lure.caughtAt))
       at.set((raider.group.position.x + hazardSeen.x) / 2, 0, (raider.group.position.z + hazardSeen.z) / 2);
     else kraken.wreckPosition(at);
@@ -504,11 +510,13 @@ function frameCamera(dt: number): void {
     const dx = at.x - m.x;
     const dz = at.z - m.z;
     const d = Math.hypot(dx, dz) || 1;
-    const back = Math.min(1, (st - lure.placedAt) / 6);
+    const close = Math.min(1, (st - lure.placedAt) / 8);
+    // Away from your ship and round to her side.
+    const far = 46 - 12 * close;
     camGoal.set(
-      at.x - (dx / d) * (52 - 14 * back) + (dz / d) * 18,
-      22 - 6 * back,
-      at.z - (dz / d) * (52 - 14 * back) - (dx / d) * 18,
+      at.x + (dx / d) * far * 0.6 - (dz / d) * far,
+      20 - 5 * close,
+      at.z + (dz / d) * far * 0.6 + (dx / d) * far,
     );
     lookGoal.set(at.x, 3, at.z);
   } else if (scenario === 'dodge') {
@@ -790,6 +798,7 @@ const stats = () => ({
   time: st,
   strike: { ...lastStrike },
   hits: hitLog.slice(),
+  dodge: { turn: dodgeTurn, away: dodgeAway, at: turnAt, heading: mine.dynamics.pose.heading },
   lure: { ...lure },
   speed: mine.dynamics.pose.speed,
   sighting: sightings.current ? { ...sightings.current } : null,

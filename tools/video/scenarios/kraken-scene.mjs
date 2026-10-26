@@ -1,8 +1,9 @@
 // The kraken prototype (devpages/kraken.html), for review: a raider at rest; the kraken's evidence
-// (bubbles and a great shadow), tips breaking the surface beside her, arms rising slowly round her one
-// or two at a time, one arcing high over her deck and hanging there, the grip, the squeeze, the tear
-// in two, the halves dragged under in a burst of foam, the arms withdrawing, and its body and eyes
-// surfacing behind the wreck before it sinks. Each beat is marked.
+// (bubbles and a great shadow), curled tips breaking the surface beside her, arms rising slowly round
+// her one or two at a time, one arcing high over her deck and hanging there, every arm gripping her
+// (two arc in late for the final pull), the squeeze, the tear in two, the halves dragged under in a
+// burst of foam, the arms curling back under, and (the optional finale) its head and eyes surfacing
+// behind the wreck before it sinks. Each beat is marked.
 const ready = (page) => page.waitForFunction(() => window.__kraken?.ready, null, { timeout: 240_000 });
 
 export default {
@@ -44,7 +45,7 @@ export default {
         last = s.phase;
         api.mark(s.phase);
       }
-      if (s.time > 56 || (s.time > 30 && s.phase === 'none')) break;
+      if (s.time > 48 || (s.time > 30 && s.phase === 'none')) break;
       await api.pause(200);
     }
     api.log(`hitches ${JSON.stringify(await page.evaluate(() => window.__kraken.hitches()))}`);
