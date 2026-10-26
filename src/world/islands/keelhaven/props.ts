@@ -129,7 +129,8 @@ export function buildKeelhavenProps(b: Buckets, signs: SignSet | null, out: Ship
     // post never crosses them.
     const pv = l.v - 0.6;
     const post = at(l.u, y, pv);
-    rod(b, 'wood', post, { x: post.x, y: y + 2.3, z: post.z }, NAME_POST_R, 6, YARD_PAINT.tar);
+    // (It ends at the boards' top edge.)
+    rod(b, 'wood', post, { x: post.x, y: y + 2.26, z: post.z }, NAME_POST_R, 6, YARD_PAINT.tar);
     for (const side of [1, -1]) {
       const bv = pv + side * (NAME_POST_R + 0.012 + NAME_BOARD_T / 2);
       ubox(b, 'wood', l.u, y + 2.05, bv, 1.3, 0.42, NAME_BOARD_T, YARD_PAINT.limewash);

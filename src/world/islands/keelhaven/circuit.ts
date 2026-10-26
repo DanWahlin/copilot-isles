@@ -47,8 +47,11 @@ export const HULL_REST: Readonly<Record<FlightHull, { u: number; v: number; du: 
 };
 /** Where your hull waits after part 1: in the cut, above the shut Sea Gate. */
 export const HULL_WAIT = { u: -10, v: CANAL.v, du: -1, dv: 0 } as const;
-/** The repair barge's mooring in the cut (near side). */
-const BARGE = { u: 4, v: CANAL.v + 2.4 } as const;
+/**
+ * The repair barge's mooring in the cut: on its far side, so the hulls pass and the inner loop's
+ * camera on the near coping sees her over the wall.
+ */
+const BARGE = { u: 4, v: CANAL.v - 2.4 } as const;
 
 export const CIRCUIT_SPOTS: {
   ring: Readonly<Record<string, StationSpot>>;
@@ -333,10 +336,10 @@ export function buildCircuitProps(b: Buckets, out: ShipyardOut, lite: boolean): 
   if (!lite) {
     const st = at(BARGE.u - 1.6, bw + 0.36, BARGE.v);
     rod(b, 'metal', st, { x: st.x, y: bw + 1.9, z: st.z }, 0.16, 6, YARD_PAINT.iron);
-    // Its mooring lines to the coping.
+    // Its mooring lines to the far coping.
     for (const du of [-3, 3]) {
-      const a = at(BARGE.u + du, bw + 0.4, BARGE.v + 1.2);
-      const c = at(BARGE.u + du * 1.3, cut + 0.1, NEAR - 0.6);
+      const a = at(BARGE.u + du, bw + 0.4, BARGE.v - 1.2);
+      const c = at(BARGE.u + du * 1.3, cut + 0.1, CANAL.v - CANAL.half - WALL / 2 + 0.6);
       rope(b, a, c, 0.3, 0.03, YARD_PAINT.rope, 4);
     }
   }
