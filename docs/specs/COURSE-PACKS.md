@@ -301,6 +301,9 @@ Step 1 changes no save key.
   service worker's live-course allow-list comes from the packs' `source.repo` (step 3).
 - **`models-refresh.yml`:** runs only for packs that have `models.json` (today `copilot-app`):
   `models:sync -- --course copilot-app`.
+- **The Node.js LTS job** (in `weekly-refresh.yml`, every week): `npm run course:node-lts` checks every
+  checklist check that `tracks` the Node.js LTS against nodejs.org's release index, and opens an issue
+  when it no longer matches (docs/content-data.md, "How the workflows update and check the data").
 - Step 1: same two workflows, one pack, new paths and `--course copilot-app`.
 
 ## 8. Course selection (step 3: done, see "Step 3 as built")

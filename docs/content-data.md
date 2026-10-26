@@ -185,7 +185,9 @@ so VS Code and other editors check your edit as you type and show each field's d
   `output` first and plays the script it names (the next run prints the right one), a check's `notes`
   show on one kind of computer (`windows`, `mac`, `linux`), and `scripts.checked` plays once every
   check has passed (it must move the quest on). Keep a `stale` version's `output` in step with the
-  real world (the Copilot app course's `node -v` tracks the version nodejs.org marks LTS).
+  real world (the Copilot app course's `node -v` tracks the version nodejs.org marks LTS). A check's
+  `tracks` names the release it follows, and the weekly refresh checks it (`npm run course:node-lts`,
+  below).
 - **`"disabled": true`** turns a puzzle off: its site stays as scenery, and the cue that would start it
   does nothing. Change the quests that wait on it too (their step won't finish by itself).
 - **`quest`**: the quest the puzzle plays in. It must have the steps the puzzle's mechanic sets and
@@ -407,6 +409,14 @@ text-only pack, its captions). The PR, "Weekly refresh: <course title> @ <sha>",
   again.
 - **`models-refresh.yml`** (Mondays): runs `npm run models:sync -- --course=<id>`, then the same content
   check and the other checks, and opens "Weekly refresh: Copilot models" with the report.
+- **The Node.js LTS job** (`weekly-refresh.yml`, every Monday, whether or not a course changed): runs
+  `npm run course:node-lts` (`tools/course/node-lts.ts`). A checklist check with `"tracks":
+  {"release": "node-lts"}` (the gear rack's `node -v`) must print the major version that nodejs.org
+  marks LTS, meet the course sample's `engines.node` (`tracks.engines`), and keep its `stale` output
+  lower. Every line in the pack that names the LTS (`marks v24 as **LTS**`, `the LTS (v24)`,
+  `24, matches the LTS`, `20 is lower than 24`) must name the same major, and each full version in it
+  must be one of the check's outputs. When one doesn't, the job fails and opens the issue "Node.js LTS
+  changed: update the gear rack's node -v sample" with the list (or comments on the open one).
 - Nothing merges by itself: a person reviews and merges each PR.
 
 ## Saves
