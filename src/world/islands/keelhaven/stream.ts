@@ -88,6 +88,7 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
         prefilter: K.terrain.prefilter,
         maxMergedTriangles: K.terrain.maxMergedTriangles,
         morphFrames: K.terrain.morphFrames,
+        seabed: K.terrain.seabed,
         // Every level keeps the works' floors and pads level, and the apron covers the ramp between.
         pin: worksPin,
         skin: worksSkin(apron.value),

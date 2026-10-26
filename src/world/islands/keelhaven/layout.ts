@@ -392,9 +392,16 @@ export const KEELHAVEN = {
   /**
    * The terrain's levels of detail: Lite and Low draw the whole island as one merged block from the sea
    * (up to this many triangles); coarse levels are prefiltered; a chunk that changes level eases to its
-   * new shape over `morphFrames` frames.
+   * new shape over `morphFrames` frames. The 65 of its 154 chunks whose ground is all deeper than 15 m
+   * (the open sea round the bake) draw only their coarsest level (`seabed`): their finer levels held
+   * 62 of the terrain's 176 MB on High, for a floor seen through 15 m of water or more (issue 316).
    */
-  terrain: { maxMergedTriangles: 34_000, prefilter: true, morphFrames: 24 },
+  terrain: {
+    maxMergedTriangles: 34_000,
+    prefilter: true,
+    morphFrames: 24,
+    seabed: { below: -15, level: 2 },
+  },
   /**
    * Its miniature on the opening's 3D chart: the land and its shallows, sampled every `cell` m from a
    * coarse chart pack of its own (spec O7), smaller than true (`scale`) beside its neighbours.

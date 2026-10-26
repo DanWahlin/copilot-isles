@@ -18,6 +18,7 @@ import { createTerrainMaterial } from './terrain-material';
 import { plainShadowColor } from '../../engine/shadow-color';
 import { buildTerrainRocks } from './terrain-rocks';
 import { clamp, lerp } from '../../util/math';
+import { keepIndexUint16 } from '../../engine/index-format';
 
 interface ChunkGeometrySet {
   step: number;
@@ -85,6 +86,11 @@ export interface CreatedTerrain {
   setLod(lod: number | null): void;
   /** How many levels `setLod` takes (the chunks' levels and the merged blocks): a warm-up draws each once. */
   readonly lodCount: number;
+  /**
+   * Every geometry it draws: each chunk's levels (a chunk holds only the one it shows now), the
+   * merged blocks and the skin. A dormant island frees their GPU copies (`releaseGpuCopies`).
+   */
+  geometries(): BufferGeometry[];
   dispose(): void;
   heightGrid: TerrainHeightGrid;
 }
@@ -127,6 +133,12 @@ export interface CreateTerrainOptions {
    * they do there (an island's works apron, over the ramp a pinned lock floor makes). Default none.
    */
   skin?: TerrainSkin | null;
+  /**
+   * The deep sea floor: a chunk whose ground is all lower than `below` m is seen only through that much
+   * water, so its finer levels are its level `level` (one geometry, built and uploaded once). Its
+   * ground isn't walked or waded. Default none: other islands' chunks keep every level.
+   */
+  seabed?: { below: number; level: number } | null;
   /** A merged far block's triangle cap (Lite and Low; default `MAX_MERGED_TRIANGLES`). */
   maxMergedTriangles?: number;
   /**
@@ -440,6 +452,24 @@ function lowestHeightIn(
   for (let iz = iz0; iz <= iz1; iz++)
     for (let ix = ix0; ix <= ix1; ix++) lo = Math.min(lo, data.heights[iz * data.nx + ix]!);
   return lo;
+}
+
+/** The highest baked height at the grid points in a rectangle (clamped to the grid). */
+function highestHeightIn(
+  data: TerrainBakeData,
+  minX: number,
+  maxX: number,
+  minZ: number,
+  maxZ: number,
+): number {
+  const ix0 = clamp(Math.floor((minX - data.minX) / data.cell), 0, data.nx - 1);
+  const ix1 = clamp(Math.ceil((maxX - data.minX) / data.cell), 0, data.nx - 1);
+  const iz0 = clamp(Math.floor((minZ - data.minZ) / data.cell), 0, data.nz - 1);
+  const iz1 = clamp(Math.ceil((maxZ - data.minZ) / data.cell), 0, data.nz - 1);
+  let hi = -Infinity;
+  for (let iz = iz0; iz <= iz1; iz++)
+    for (let ix = ix0; ix <= ix1; ix++) hi = Math.max(hi, data.heights[iz * data.nx + ix]!);
+  return hi;
 }
 
 function resolveTier(tier: Tier | TierSettings): TierSettings {
@@ -854,6 +884,16 @@ function pushVertex(
   return positions.length / 3 - 1;
 }
 
+/**
+ * A vertex's masks and baked light (0-1) as 16-bit fractions (`unorm16`): half a float's memory,
+ * and the shader reads the same vec4 (steps of 1/65535, far under a colour step). Issue 316.
+ */
+function unorm16(values: readonly number[], itemSize: number): BufferAttribute {
+  const array = new Uint16Array(values.length);
+  for (let i = 0; i < values.length; i++) array[i] = Math.round(clamp(values[i]!, 0, 1) * 65535);
+  return new BufferAttribute(array, itemSize, true);
+}
+
 /** Builds one chunk's geometry, yielding every few rows (a slice point for the async build). */
 function* buildChunkGeometry(
   data: TerrainBakeData,
@@ -992,10 +1032,11 @@ function* buildChunkGeometry(
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setAttribute('terrainMask', new BufferAttribute(new Float32Array(masks), 4));
-  geometry.setAttribute('terrainLight', new BufferAttribute(new Float32Array(lights), 4));
+  geometry.setAttribute('terrainMask', unorm16(masks, 4));
+  geometry.setAttribute('terrainLight', unorm16(lights, 4));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
+  keepIndexUint16(geometry);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return { step, geometry, triangles: indices.length / 3, cols, rows };
@@ -1058,10 +1099,11 @@ export function* buildTerrainSkin(
   const geometry = new BufferGeometry();
   geometry.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
   geometry.setAttribute('normal', new BufferAttribute(new Float32Array(normals), 3));
-  geometry.setAttribute('terrainMask', new BufferAttribute(new Float32Array(masks), 4));
-  geometry.setAttribute('terrainLight', new BufferAttribute(new Float32Array(lights), 4));
+  geometry.setAttribute('terrainMask', unorm16(masks, 4));
+  geometry.setAttribute('terrainLight', unorm16(lights, 4));
   geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
   geometry.setIndex(indices);
+  keepIndexUint16(geometry);
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
   return geometry;
@@ -1159,7 +1201,13 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       const x1 = Math.min(data.maxX, x0 + TERRAIN_CHUNK_SIZE);
       const z1 = Math.min(data.maxZ, z0 + TERRAIN_CHUNK_SIZE);
       const geometries: ChunkGeometrySet[] = [];
-      for (const step of steps)
+      // The deep sea floor's finer levels are its seabed level (the same set, `seabed`).
+      const seabed = options.seabed;
+      const first =
+        seabed && highestHeightIn(data, x0, x1, z0, z1) < seabed.below
+          ? clamp(Math.round(seabed.level), 0, steps.length - 1)
+          : 0;
+      for (let lod = first; lod < steps.length; lod++)
         geometries.push(
           yield* buildChunkGeometry(
             data,
@@ -1167,7 +1215,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
             x1,
             z0,
             z1,
-            step,
+            steps[lod]!,
             options.recessSteep ?? null,
             coarsest,
             steps[0],
@@ -1177,6 +1225,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
             options.pin ?? null,
           ),
         );
+      for (let lod = 0; lod < first; lod++) geometries.unshift(geometries[0]!);
       const mesh = new Mesh(geometries[geometries.length - 1].geometry, material);
       mesh.name = `terrain-chunk-${Math.round(x0)}-${Math.round(z0)}`;
       mesh.frustumCulled = true;
@@ -1247,6 +1296,7 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
           meshes.push(null);
           continue;
         }
+        keepIndexUint16(geometry);
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
         const mesh = new Mesh(geometry, material);
@@ -1299,6 +1349,8 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     const from = chunk.geometries[chunk.current]!;
     chunk.current = next;
     const set = chunk.geometries[next]!;
+    // A seabed chunk's finer levels are the same set: nothing to swap.
+    if (set === from) return;
     chunk.mesh.geometry = set.geometry;
     chunk.mesh.geometry.boundingSphere ??= new Sphere(chunk.center, TERRAIN_CHUNK_SIZE);
     if (morphFrames > 0 && pinned === null) startMorph(chunk, from, set);
@@ -1372,11 +1424,14 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
     let channel = 0;
     for (const [name, size, first, end] of MORPHED) {
       const attribute = set.geometry.getAttribute(name);
-      const array = attribute.array as Float32Array;
+      const array = attribute.array;
+      // The masks and light are 16-bit fractions (`unorm16`): round, so the eased level ends on its own.
+      const whole = !(array instanceof Float32Array);
       for (let c = first; c < end; c++, channel++)
         for (let i = 0; i < count; i++) {
           const o = i * MORPH_CHANNELS + channel;
-          array[i * size + c] = slot.from[o]! + (slot.rest[o]! - slot.from[o]!) * k;
+          const v = slot.from[o]! + (slot.rest[o]! - slot.from[o]!) * k;
+          array[i * size + c] = whole ? Math.round(v) : v;
         }
       attribute.needsUpdate = true;
     }
@@ -1427,6 +1482,13 @@ function* buildTerrain(options: CreateTerrainOptions): Generator<void, CreatedTe
       placeBlocks();
     },
     lodCount: blocks.length ? mergedLod + 1 : steps.length,
+    geometries() {
+      const all = new Set<BufferGeometry>();
+      for (const chunk of chunks) for (const set of chunk.geometries) all.add(set.geometry);
+      for (const block of blocks) for (const mesh of block.meshes) if (mesh) all.add(mesh.geometry);
+      if (skin) all.add(skin);
+      return [...all];
+    },
     dispose() {
       const seen = new Set<BufferGeometry>();
       for (const chunk of chunks) {
