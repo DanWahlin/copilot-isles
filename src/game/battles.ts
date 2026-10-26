@@ -28,6 +28,9 @@ export const PASSAGE_BATTLES: readonly PassageBattle[] = [
     from: 'meridian',
     to: /thousand.?bough/i,
   },
+  // Battle 3, "Trust the Evidence": from Thousand-Bough Isle toward Keelhaven with the Seal of
+  // Thousand-Bough (recaps Chapter 02). Its win hands over to the passage's next morning.
+  { id: 'passage-thousand-bough-keelhaven', plan: 2, from: 'thousand-bough', to: 'keelhaven' },
 ];
 
 /**

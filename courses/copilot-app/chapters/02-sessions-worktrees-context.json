@@ -1053,6 +1053,118 @@
         "anchor": "slash-commands",
         "hash": "f7db6b7416aa"
       }
+    },
+    {
+      "id": "N2.1",
+      "type": "scenario",
+      "situation": "A raider calls itself *Muddy Main*. Your next job changes files in the Book App, and you want your `main` checkout left clean.",
+      "prompt": "Which workspace do you choose for the session?",
+      "options": [
+        {
+          "id": "worktree",
+          "text": "**New worktree**"
+        },
+        {
+          "id": "checkout",
+          "text": "**Current checkout**",
+          "feedback": "**Current checkout** works directly in your existing clone, so the session touches your working folder."
+        },
+        {
+          "id": "cloud",
+          "text": "**Cloud**",
+          "feedback": "**Cloud** runs the session off your machine. To keep `main` clean and still run on your machine, choose a new worktree."
+        }
+      ],
+      "answer": "worktree",
+      "explain": {
+        "correct": "Right. When in doubt, choose a new worktree. It keeps your `main` checkout clean while still running on your machine.",
+        "wrong": "Pick the workspace that keeps `main` clean and still runs on your machine."
+      },
+      "hints": [
+        "Which choice gets its own folder and branch?",
+        "The course calls it the safe default.",
+        "Choose **New worktree**."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "where-a-session-runs",
+        "hash": "a55a83c1ff55"
+      }
+    },
+    {
+      "id": "N2.2",
+      "type": "scenario",
+      "situation": "A raider calls itself *Whole Library*. You ask Copilot to fix the Book App's web search, and its code is in `samples/book-app-web/src`.",
+      "prompt": "What context do you add to the prompt?",
+      "options": [
+        {
+          "id": "folder",
+          "text": "`@samples/book-app-web/src`"
+        },
+        {
+          "id": "repo",
+          "text": "Every folder in the repository",
+          "feedback": "That's much more than the job needs. Provide the smallest amount of useful context."
+        },
+        {
+          "id": "issues",
+          "text": "Every open issue with `#`",
+          "feedback": "`#` brings issues and pull requests, but every issue isn't useful context for this job."
+        },
+        {
+          "id": "none",
+          "text": "Nothing: Copilot finds it",
+          "feedback": "Some context helps. Add the one folder the job needs with `@`."
+        }
+      ],
+      "answer": "folder",
+      "explain": {
+        "correct": "Right. Provide the smallest amount of useful context. Less is often more.",
+        "wrong": "Add only what the job needs: the one folder, with `@`."
+      },
+      "hints": ["Which syntax brings a folder?", "Less is often more.", "Type `@samples/book-app-web/src`."],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "context-syntax",
+        "hash": "e41d9116c6a3"
+      }
+    },
+    {
+      "id": "N2.3",
+      "type": "scenario",
+      "situation": "A raider calls itself *Port Jam*. Two worktree sessions each start a Vite preview of the Book App, and the second one can't use its port.",
+      "prompt": "What do you do?",
+      "options": [
+        {
+          "id": "port",
+          "text": "Stop one Vite server, or start the second on port `5174`"
+        },
+        {
+          "id": "worktree",
+          "text": "Make a third worktree",
+          "feedback": "Worktrees isolate files and branches, not ports."
+        },
+        {
+          "id": "checkout",
+          "text": "Move both sessions to **Current checkout**",
+          "feedback": "That doesn't free the port, and it puts both sessions in your clone."
+        }
+      ],
+      "answer": "port",
+      "explain": {
+        "correct": "Right. Worktrees isolate files and branches, but not ports, databases, or background processes. Use different ports for parallel previews.",
+        "wrong": "A worktree doesn't separate ports. Stop one server or use another port."
+      },
+      "hints": [
+        "What does a worktree not separate?",
+        "Two previews can't share one port.",
+        "Stop one Vite server, or start the second on port `5174`."
+      ],
+      "source": {
+        "chapter": "02-sessions-worktrees-context",
+        "anchor": "key-takeaways",
+        "hash": "f1ddff6b1420"
+      }
     }
   ],
   "pages": [

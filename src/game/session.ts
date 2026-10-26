@@ -2766,9 +2766,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             if (passageHold && !morningCut) {
               const ahead = islandLight(passageHold.skip, pose.x, pose.z);
               const here = islandLight(passageHold.hold, pose.x, pose.z);
-              // The evening holds until the next island's light is the stronger (or a battle on the
-              // passage ends: `battles` calls the cut), then the morning holds until you're there, or
-              // until you turn back into the evening's light.
+              // The evening holds until the next island's light is the stronger, and while a battle on
+              // the passage is on (its win hands over to the night at sea), then the morning holds until
+              // you're there, or until you turn back into the evening's light.
               const evening = nextMorningFrom(passageHold.hold) === passageHold.skip;
               if (evening && ahead > 0 && ahead >= here && !battles.current) void nextMorning();
               else if (!evening && (here >= 1 || ahead > here)) passageHold = null;

@@ -44,7 +44,7 @@ export interface WaveSpec {
 export interface BattlePlan {
   id: string;
   /** The course chapter it recaps. */
-  chapter: '00' | '01';
+  chapter: '00' | '01' | '02';
   title: string;
   waves: readonly WaveSpec[];
   /** The win card's line (player copy). */
@@ -100,11 +100,24 @@ const meridianPassage = (c: CourseMeta) =>
   ]);
 export let MERIDIAN_BATTLE: BattlePlan = meridianPassage(COURSE);
 
-export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+/**
+ * Battle 3, "Trust the Evidence": the passage from Thousand-Bough Isle to Keelhaven, three waves, each
+ * with the course's quiz (its `hooks.battles`; docs/specs/BATTLES.md §2.0c, §2.1).
+ */
+const keelhavenPassage = (c: CourseMeta) =>
+  plan(c, 'passage-thousand-bough-keelhaven', 'Thousand-Bough Isle → Keelhaven', [
+    ['cutter', 'cutter'],
+    ['brigantine', 'cutter'],
+    ['brigantine', 'cutter'],
+  ]);
+export let KEELHAVEN_BATTLE: BattlePlan = keelhavenPassage(COURSE);
+
+export let BATTLE_PLANS: readonly BattlePlan[] = [PASSAGE_BATTLE, MERIDIAN_BATTLE, KEELHAVEN_BATTLE];
 onCourseSelected((c) => {
   PASSAGE_BATTLE = passage(c);
   MERIDIAN_BATTLE = meridianPassage(c);
-  BATTLE_PLANS = [PASSAGE_BATTLE, MERIDIAN_BATTLE];
+  KEELHAVEN_BATTLE = keelhavenPassage(c);
+  BATTLE_PLANS = [PASSAGE_BATTLE, MERIDIAN_BATTLE, KEELHAVEN_BATTLE];
 });
 
 /** Battle 1's waves (kept for callers that only need the waves). */
