@@ -346,15 +346,3 @@ function addCap(b: MeshBuilder, z: number, dir: number, rand: () => number): voi
   // A torn deck beam across the break.
   b.addBox(0, top - 0.55, z + dir * 0.35, halfBeamAt(z, top - 0.5) * 1.6, 0.16, 0.7);
 }
-
-/** The ship's triangles (all visible parts), for the cost report. */
-export function countTriangles(root: Object3D): number {
-  let tris = 0;
-  root.traverseVisible((o) => {
-    const m = o as Mesh;
-    if (!m.isMesh) return;
-    const g = m.geometry;
-    tris += g.index ? g.index.count / 3 : g.getAttribute('position').count / 3;
-  });
-  return Math.round(tris);
-}

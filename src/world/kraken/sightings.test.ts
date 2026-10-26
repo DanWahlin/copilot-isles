@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { QuietSea } from '../life/quiet-sea';
-import { SIGHTING_RULES, SightingsPlanner, sightingPixels, type SightingView } from './sightings';
+import {
+  SIGHTING_RULES,
+  SightingsPlanner,
+  deepWaterAt,
+  sightingPixels,
+  type SightingView,
+} from './sightings';
 
 const view = (o: Partial<SightingView> = {}): SightingView => ({
   x: 0,
@@ -99,5 +105,20 @@ describe('SightingsPlanner', () => {
     expect(p.plan(0, view(), { allowed: () => false }, false, { kind: 'arc', distance: 600 })?.kind).toBe(
       'arc',
     );
+  });
+});
+
+describe('deepWaterAt', () => {
+  const field = (land: (x: number, z: number) => boolean) => ({
+    heightAt: (x: number, z: number) => (land(x, z) ? 4 : -30),
+    normalAt: (_x: number, _z: number, out: number[]) => out,
+    masksAt: () => ({ sand: 0, grass: 0, rock: 0, cliff: 0 }),
+  });
+
+  it('is open sea far from land, and not near a shore', () => {
+    const island = field((x, z) => Math.hypot(x, z) < 200);
+    expect(deepWaterAt(island as never, 600, 0)).toBe(true);
+    expect(deepWaterAt(island as never, 260, 0)).toBe(false);
+    expect(deepWaterAt(island as never, 100, 0)).toBe(false);
   });
 });
