@@ -17,6 +17,7 @@ import {
 import { installDebug } from '../engine/debug';
 import { prepareAudioContext } from '../audio/early-context';
 import { TIER_NAMES, TIER_ORDER } from '../engine/tier-info';
+import { browserStorage, renameStorageKeys } from '../game/storage-rename';
 import type { Tier } from '../world/contracts';
 
 const stage = (p: number, msg: string) => window.__load?.(p, msg);
@@ -24,6 +25,9 @@ const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()
 
 async function boot(): Promise<void> {
   stage(0.05, 'Charting the isles');
+  // Keys with the game's old name (`copilot-isles.*`) move to `kraken-isles.*` before anything reads them.
+  renameStorageKeys(browserStorage('local'));
+  renameStorageKeys(browserStorage('session'));
   // URL options: ?webgl forces the WebGL2 backend; ?hdr enables HDR output on HDR displays (WebGPU);
   // ?tier= overrides the quality tier; ?forceGpu / ?forceSoftware are test overrides.
   const q = new URLSearchParams(location.search);
@@ -287,7 +291,7 @@ function asTier(s: string | null): Tier | null {
 
 function readQuality(): string | null {
   try {
-    const s = JSON.parse(localStorage.getItem('copilot-isles.settings.v1') ?? 'null') as {
+    const s = JSON.parse(localStorage.getItem('kraken-isles.settings.v1') ?? 'null') as {
       quality?: string;
     } | null;
     return s?.quality ?? null;

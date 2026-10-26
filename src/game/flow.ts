@@ -44,7 +44,7 @@ import { buildSlice, installBuildSlicer } from '../engine/build-slice';
 import { savedBattles } from './battles';
 import { warmIsland, warmLate, warmWorld, type ScenePassCompiler } from './island-warm';
 
-const SETTINGS_KEY = 'copilot-isles.settings.v1';
+const SETTINGS_KEY = 'kraken-isles.settings.v1';
 /** The crossfade (s) from the opening's song into the island's theme, at the song's phrase end. */
 const SONG_TAIL = 2.4;
 /** The island's theme comes in once the arrival is this close (s) to reaching the captain. */
@@ -53,9 +53,9 @@ const ARRIVAL_NEAR = 2.5;
 const OPENING_PIXEL_CAP = 1.5;
 /** Main-thread build work per frame while the island builds behind the opening (ms). */
 const BUILD_SLICE_MS = 5;
-// The voyage's save is per course (save-keys.ts, COURSE-PACKS.md §6): `copilot-isles.<course>.save.v1`.
+// The voyage's save is per course (save-keys.ts, COURSE-PACKS.md §6): `kraken-isles.<course>.save.v1`.
 /** Session storage: where Apply's reload should land (the title, or back in the game). */
-const RESUME_KEY = 'copilot-isles.apply-quality.v1';
+const RESUME_KEY = 'kraken-isles.apply-quality.v1';
 
 const BRIDGE_METHODS = [
   'getState',
@@ -179,8 +179,8 @@ export class GameFlow implements GameBridge {
     // Each island's chart terrain (its height and masks, the world's own code) loads with the title,
     // so the opening's chart has it, and no module of it loads while the title is on screen.
     for (const e of ISLAND_LIST) void e.chart.terrain().catch(() => undefined);
-    // Saves from before course packs become the course that claims them (`legacySaves`; their old
-    // keys stay for now).
+    // Old keys get the game's new name, and saves from before course packs become the course that
+    // claims them (`legacySaves`). Boot moved them already (main.ts); dev pages come here first.
     const storage = safeStorage();
     migrateSaves(storage);
     this.course = lastCourse(storage, PLAYABLE_IDS);

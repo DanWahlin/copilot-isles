@@ -336,7 +336,7 @@ await step('travel to Port Meridian', async () => {
   const s = await page.evaluate(() => ({
     st: window.__flow.session.debug.state(),
     tracker: document.querySelector('.ci-tracker-eyebrow')?.textContent ?? null,
-    seen: JSON.parse(localStorage.getItem('copilot-isles.copilot-app.progress.v1') ?? '{}').arrivals ?? [],
+    seen: JSON.parse(localStorage.getItem('kraken-isles.copilot-app.progress.v1') ?? '{}').arrivals ?? [],
   }));
   check(
     'ashore on Meridian’s quay with its task list',

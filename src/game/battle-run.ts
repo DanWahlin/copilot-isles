@@ -38,7 +38,7 @@ export interface BattleRunOptions {
 }
 
 /** The briefing shows before every battle until you tick "Don't show this again". */
-const BRIEF_KEY = 'isles.battleBriefing.hidden';
+const BRIEF_KEY = 'kraken-isles.battleBriefing.hidden';
 /** After the win, the camera holds its turn round your ship this long (s) before it's yours again. */
 const WON_HOLD = 9;
 /** How far a stick or key must go before it moves between the question's choices. */

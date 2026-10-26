@@ -207,7 +207,7 @@ const post = q.has('nopost') ? null : await createPost(renderer, scene, camera, 
 if (post) engine.renderFn = post.render;
 await compileAndStart(renderer, engine, scene, camera, post ? () => post.compile() : undefined);
 /** The briefing shows before every battle until you tick "Don't show this again" (?brief forces it). */
-const BRIEF_KEY = 'isles.battleBriefing.hidden';
+const BRIEF_KEY = 'kraken-isles.battleBriefing.hidden';
 const startBattle = () => {
   if (q.has('nobrief') || (!q.has('brief') && localStorage.getItem(BRIEF_KEY) === '1')) {
     battle.start(clockT);

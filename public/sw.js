@@ -1,7 +1,10 @@
 const VERSION = 's13-v1';
-const STATIC_CACHE = `copilot-isles-static-${VERSION}`;
-const RUNTIME_CACHE = `copilot-isles-runtime-${VERSION}`;
-const COURSE_CACHE = `copilot-isles-course-${VERSION}`;
+const STATIC_CACHE = `kraken-isles-static-${VERSION}`;
+const RUNTIME_CACHE = `kraken-isles-runtime-${VERSION}`;
+const COURSE_CACHE = `kraken-isles-course-${VERSION}`;
+// Activate deletes every other version of these caches. The game was "Copilot Isles" until 2026-10-26:
+// its caches (`copilot-isles-*`, on this origin under the old Pages path) go too, so nothing stale stays.
+const CACHE_PREFIXES = ['kraken-isles-', 'copilot-isles-'];
 const MANIFEST_RE = /\/packs\/manifest\.json$/;
 // Live course content (PLAN §8.2, §13.6): each course pack's repository on raw.githubusercontent.com
 // only. The build writes this list from the packs' `course.json` → `source.repo` (vite.config.ts,
@@ -27,7 +30,7 @@ self.addEventListener('activate', (event) => {
           keys
             .filter(
               (key) =>
-                key.startsWith('copilot-isles-') &&
+                CACHE_PREFIXES.some((prefix) => key.startsWith(prefix)) &&
                 key !== STATIC_CACHE &&
                 key !== RUNTIME_CACHE &&
                 key !== COURSE_CACHE,

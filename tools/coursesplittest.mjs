@@ -24,7 +24,7 @@ const out = opt.out || 'test-results/coursesplit';
 mkdirSync(out, { recursive: true });
 const url = `${base}/?debug&tier=${opt.tier || 'medium'}${opt.webgl ? '&webgl' : ''}`;
 const COURSE = 'copilot-app';
-const SAVE = `copilot-isles.${COURSE}.save.v1`;
+const SAVE = `kraken-isles.${COURSE}.save.v1`;
 /** A chapter part's URL, in dev or in a build: its chapter is group 1. */
 const PART = new RegExp(
   `/(?:__course-parts/${COURSE}/|assets/course-${COURSE}-)(\\d\\d-[a-z0-9-]+?)(?:-[0-9a-f]{10})?\\.json`,

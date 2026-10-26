@@ -4,7 +4,7 @@ import { useSetupText } from './Rich';
 
 // Set only while the player wants the whole list. The old `tracker.collapsed` key was written on
 // every mount, so reading it would keep the full list open for everyone who has played before.
-const FULL_LIST_KEY = 'copilot-isles.tracker.full';
+const FULL_LIST_KEY = 'kraken-isles.tracker.full';
 
 function readCollapsed(): boolean {
   try {
