@@ -5,7 +5,7 @@ import {
   FORE_LOWEST_YARD,
   Points,
   RIG_CLEARANCE,
-  SEIZE_SPOTS,
+  SEIZE_LAYOUT,
   WRAP_SPOTS,
   clearOfMasts,
   heavy,
@@ -14,9 +14,7 @@ import {
   freeStance,
   pullArc,
   railGrip,
-  mirrorX,
-  seizeMast,
-  seizeRail,
+  seizeShape,
   standPath,
   type FreeStance,
 } from './arm-paths';
@@ -96,22 +94,6 @@ describe('wrap shapes keep clear of the rig', () => {
 });
 
 describe("a battle's seize keeps clear of her sails, yards and masts", () => {
-  /** Each seize shape at a press, with the half of her it holds (the cut is at z 1.8). */
-  const shapes: [string, (p: Points, press: number) => void, 'bow' | 'stern', number][] = [
-    ['near rail forward', (p, k) => seizeRail(p, SEIZE_SPOTS.fore, k, SEIZE_SPOTS.foreSweep), 'bow', 1],
-    ['near rail aft', (p, k) => seizeRail(p, SEIZE_SPOTS.aft, k, SEIZE_SPOTS.aftSweep), 'stern', 1],
-    [
-      'far rail',
-      (p, k) => {
-        seizeRail(p, SEIZE_SPOTS.far, k, SEIZE_SPOTS.farSweep);
-        mirrorX(p);
-      },
-      'stern',
-      -1,
-    ],
-    ['foremast', (p, k) => seizeMast(p, k), 'bow', 0],
-  ];
-
   it("the sails are the ship's own canvas, flat to full (a check of the check)", () => {
     // On the fore course's middle (flat); and over her rail between the fore and main, clear.
     expect(sailDistance(0, 5.3, BRIGANTINE_MASTS.fore.z)).toBeLessThan(0.3);
@@ -121,36 +103,53 @@ describe("a battle's seize keeps clear of her sails, yards and masts", () => {
     expect(yardDistance(0, 4, BRIGANTINE_MASTS.fore.z)).toBeGreaterThan(2.5);
   });
 
-  for (const [name, build, half, side] of shapes)
-    it(`over her ${name}: never through canvas, flat or full, loose or clamped`, () => {
-      for (const press of [0, 0.5, 1]) {
-        const p = new Points();
-        build(p, press);
-        expect(p.n).toBeGreaterThan(6);
-        expect(pathSailDistance(p.xyz, p.n)).toBeGreaterThanOrEqual(SAIL_CLEARANCE);
-        for (let i = 0; i < p.n; i++) {
-          const x = p.xyz[i * 3]!;
-          const y = p.xyz[i * 3 + 1]!;
-          const z = p.xyz[i * 3 + 2]!;
-          // Round the mast, never into it; clear of the others and their yards.
-          expect(mastDistance(x, y, z)).toBeGreaterThan(side === 0 ? 0.5 : RIG_CLEARANCE);
-          expect(yardDistance(x, y, z)).toBeGreaterThan(RIG_CLEARANCE);
-          // Over her deck, under the lowest yard (outside her rail the hook may rise higher).
-          if (Math.abs(x) < halfBeamAt(z, 1.5)) expect(y).toBeLessThan(FORE_LOWEST_YARD - RIG_CLEARANCE);
-          // On its own half (it holds it as she tears).
-          if (half === 'bow') expect(z).toBeGreaterThan(1.9);
-          else expect(z).toBeLessThan(1.7);
-          // Low across her deck amidships (under the staysails' feet).
-          if (Math.abs(x) < halfBeamAt(z, 1.5) - 1.5) expect(y).toBeLessThan(deckHeightAt(z) + 1.4);
+  for (const side of [1, -1] as const)
+    for (const key of ['fore', 'aft', 'far', 'mast'] as const)
+      it(`from her ${side > 0 ? '+x' : '−x'} side, ${key}: never through canvas, flat or full, loose or clamped`, () => {
+        const spot = SEIZE_LAYOUT[side]![key];
+        const mast = key === 'mast';
+        for (const press of [0, 0.5, 1]) {
+          const p = new Points();
+          seizeShape(p, spot, mast, press);
+          expect(p.n).toBeGreaterThan(6);
+          expect(pathSailDistance(p.xyz, p.n)).toBeGreaterThanOrEqual(SAIL_CLEARANCE);
+          for (let i = 0; i < p.n; i++) {
+            const x = p.xyz[i * 3]!;
+            const y = p.xyz[i * 3 + 1]!;
+            const z = p.xyz[i * 3 + 2]!;
+            // Round the mast, never into it; clear of the others and their yards.
+            expect(mastDistance(x, y, z)).toBeGreaterThan(mast ? 0.5 : RIG_CLEARANCE);
+            expect(yardDistance(x, y, z)).toBeGreaterThan(RIG_CLEARANCE);
+            const beam = halfBeamAt(z, 1.5);
+            if (Math.abs(x) < beam) {
+              // Over her deck: under the lowest yard, on the half it holds (she tears at z 1.8), and low
+              // across her middle (under the staysails' feet).
+              expect(y).toBeLessThan(FORE_LOWEST_YARD - RIG_CLEARANCE);
+              if (spot.half === 1) expect(z).toBeGreaterThan(1.9);
+              else expect(z).toBeLessThan(1.7);
+              if (Math.abs(x) < beam - 1.5) expect(y).toBeLessThan(deckHeightAt(z) + 1.4);
+            }
+          }
+          // It starts in the sea on its own side, and clamps her: across her deck to her centre line,
+          // or round the mast.
+          expect(p.xyz[1]!).toBeLessThan(0.5);
+          expect(p.xyz[0]! * spot.side).toBeGreaterThan(halfBeamAt(0, 1.5));
+          const e = (p.n - 1) * 3;
+          if (mast) expect(mastDistance(p.xyz[e]!, p.xyz[e + 1]!, p.xyz[e + 2]!)).toBeLessThan(1.2);
+          else expect(Math.abs(p.xyz[e]!)).toBeLessThan(0.5);
         }
-        // It starts in the sea on its own side, and clamps her: across her deck to her centre line, or round the mast.
-        expect(p.xyz[1]!).toBeLessThan(0.5);
-        if (side !== 0) expect(p.xyz[0]! * side).toBeGreaterThan(halfBeamAt(0, 1.5));
-        const e = (p.n - 1) * 3;
-        if (side === 0) expect(mastDistance(p.xyz[e]!, p.xyz[e + 1]!, p.xyz[e + 2]!)).toBeLessThan(1.2);
-        else expect(Math.abs(p.xyz[e]!)).toBeLessThan(0.5);
-      }
-    });
+      });
+
+  it('holds two arms on each half of her, from either side', () => {
+    for (const side of [1, -1]) {
+      const l = SEIZE_LAYOUT[side]!;
+      expect([l.fore, l.aft, l.far, l.mast].filter((s) => s.half === 1)).toHaveLength(2);
+      // Near arms on the kraken's side, the far one on the other.
+      expect(l.fore.side).toBe(side);
+      expect(l.aft.side).toBe(side);
+      expect(l.far.side).toBe(-side);
+    }
+  });
 });
 
 describe('standPath', () => {

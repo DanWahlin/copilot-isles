@@ -17,9 +17,8 @@ import {
   mirrorX,
   pullArc,
   railGrip,
-  SEIZE_SPOTS,
-  seizeMast,
-  seizeRail,
+  SEIZE_LAYOUT,
+  seizeShape,
   standPath,
   reachOver,
   truncatePoints,
@@ -378,11 +377,11 @@ const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
   farGrip: [-7.5, -5.5, 12],
   pullFar: [-11, 10.5, 19],
   pullNear: [11, -17.5, 19],
-  // Beside her rails: each comes up only a little way before it reaches over them.
-  seizeMast: [5.2, 8.3, 6],
-  seizeFore: [8.8, 5.4, 6],
-  seizeAft: [8.6, -8.6, 6],
-  seizeFar: [-8.8, -9.2, 6],
+  // A seize's arms come up where their shapes start (`SEIZE_LAYOUT`), only a little way at first.
+  seizeMast: [0, 0, 6],
+  seizeFore: [0, 0, 6],
+  seizeAft: [0, 0, 6],
+  seizeFar: [0, 0, 6],
 };
 /** How far round the surfaced body its arms rise (m), and how much of each stands there. */
 const RING = 11.5;
@@ -1190,7 +1189,9 @@ export class KrakenEncounter {
   private frameFor(role: Role, w: number): Object3D {
     const wreck = this.wreck!;
     if (w < this.piecesFrom(this.beats)) return wreck.ship.group;
-    return wreck.pieces.pieces[PIECE_OF[role]]!.pivot.children[0]!;
+    const shape = this.seizing ? SEIZE_SHAPE[role] : undefined;
+    const half = shape === undefined ? PIECE_OF[role] : seizeSpotOf(shape, this.side).half;
+    return wreck.pieces.pieces[half]!.pivot.children[0]!;
   }
 
   /** One arm, each frame (Kraken.onPose): stand up from the water, then its role's shape over it. */
@@ -1221,9 +1222,15 @@ export class KrakenEncounter {
     if (this.mode === 'wrap' && !finaleArm) {
       const e = EMERGE[role];
       // Where it breaks the water moves with the ship, and once she's torn, with the half it holds
-      // (it rises beside her as it drags her down, not stretched straight from where she broke).
+      // (it rises beside her as it drags her down, not stretched straight from where she broke). A
+      // seize's arm comes up where its shape starts.
       frame!.updateWorldMatrix(true, false);
-      _a.set(e[0] * this.side, 0, e[1]).applyMatrix4(frame!.matrixWorld);
+      const shape = this.seizing ? SEIZE_SHAPE[role] : undefined;
+      if (shape !== undefined) {
+        shapePoints(shape, 0, 0, this.side);
+        _a.set(_pts.xyz[0]!, 0, _pts.xyz[2]!);
+      } else _a.set(e[0], 0, e[1]);
+      _a.applyMatrix4(frame!.matrixWorld);
       height = e[2];
     } else {
       // Round the body (the surfaced kraken, or the finale), out along its socket.
@@ -1385,9 +1392,8 @@ export class KrakenEncounter {
     aimAt(shape, u);
     const arm = s.arm;
     arm.poser.base(_b);
-    shapePoints(shape, u, v);
+    shapePoints(shape, u, v, this.side);
     truncatePoints(_pts, reach);
-    if (this.side < 0) mirrorX(_pts);
     // The shape's own length above the water, so the loop under it takes up only the rest.
     let above = shapeLength(e, sea);
     // An arc that's more than the arm can reach comes over less far (it still curves, all of it on
@@ -1800,6 +1806,18 @@ const SEIZE_SHAPE: Partial<Record<Role, number>> = {
   seizeMast: SHAPE_SEIZE_MAST,
 };
 
+/** A seize shape's spot on the kraken's `side` of her. */
+function seizeSpotOf(shape: number, side: number) {
+  const l = SEIZE_LAYOUT[side]!;
+  return shape === SHAPE_SEIZE_FORE
+    ? l.fore
+    : shape === SHAPE_SEIZE_AFT
+      ? l.aft
+      : shape === SHAPE_SEIZE_FAR
+        ? l.far
+        : l.mast;
+}
+
 /**
  * A seized ship's heel toward the arms (rad), `k` s after they clamp: snatched over hard, rocking
  * back, and settling a little over.
@@ -1837,17 +1855,12 @@ function aimAt(shape: number, u: number): void {
   _axisAim.set(px, py, pz, _ax.x, _ax.y, _ax.z);
 }
 
-/** A wrap shape's points (ship-local) into `_pts`. */
-function shapePoints(shape: number, u: number, v: number): void {
+/** A wrap shape's points (ship-local) into `_pts`; a seize's on the kraken's `side` of her. */
+function shapePoints(shape: number, u: number, v: number, side = 1): void {
   _pts.clear();
-  if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
-  else if (shape === SHAPE_SEIZE_MAST) seizeMast(_pts, u);
-  else if (shape === SHAPE_SEIZE_FORE) seizeRail(_pts, SEIZE_SPOTS.fore, u, SEIZE_SPOTS.foreSweep);
-  else if (shape === SHAPE_SEIZE_AFT) seizeRail(_pts, SEIZE_SPOTS.aft, u, SEIZE_SPOTS.aftSweep);
-  else if (shape === SHAPE_SEIZE_FAR) {
-    seizeRail(_pts, SEIZE_SPOTS.far, u, SEIZE_SPOTS.farSweep);
-    mirrorX(_pts);
-  } else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
+  if (shape >= SHAPE_SEIZE_FORE) seizeShape(_pts, seizeSpotOf(shape, side), shape === SHAPE_SEIZE_MAST, u);
+  else if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
+  else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
   else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
   else if (shape === SHAPE_PULL_NEAR) pullArc(_pts, WRAP_SPOTS.pullAft, u, v);
   else if (shape === SHAPE_PULL_FAR) {

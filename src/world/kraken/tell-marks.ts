@@ -274,8 +274,9 @@ export class TellMarks {
           p[i * 3 + 2] = z;
           const pulse = sparklePulse(x, z, time, night);
           if (foam) {
-            // White water: a broken ring of foam, densest toward its rim, streaked by the swirl.
-            const streak = 0.55 + 0.45 * Math.sin(5 * ang + 11 * rn - m.spin) * Math.sin(3 * ang - 4 * rn);
+            // White water: a ring of foam, densest toward its rim, in soft streaks of the swirl (slow
+            // across the disc's few rings and segments: a finer pattern reads as a checkerboard).
+            const streak = 0.65 + 0.35 * Math.sin(4 * ang + 4 * rn - m.spin);
             const a = m.shadow * Math.min(1, rn * 1.6) * (1 - rn ** 4) * streak * FOAM_GAIN;
             setColor(c, i, FOAM[0] * a, FOAM[1] * a, FOAM[2] * a, pulse);
           } else {

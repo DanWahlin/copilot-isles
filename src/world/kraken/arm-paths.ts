@@ -403,26 +403,53 @@ export function pullArc(out: Points, z: number, rise: number, press: number): vo
   out.push(Math.max(1.0, beam - 1.9), deck + 0.35, z - 1.5);
 }
 
+/** How high (m) a seize's arc rises over her rail (outside it: the square sails overhang it higher up). */
+export const SEIZE_LIFT = 4.4;
+
+/** One arm's place in a seize: over her rail at `z` (`sweep` m along her where it comes up), on her `side`, holding her `half` (0 stern, 1 bow) once she tears. */
+export interface SeizeSpot {
+  readonly z: number;
+  readonly sweep: number;
+  readonly side: 1 | -1;
+  readonly half: 0 | 1;
+}
+
+/** A seize's four arms: over her near rail forward and aft, over her far rail, and round her foremast. */
+export interface SeizeLayout {
+  readonly fore: SeizeSpot;
+  readonly aft: SeizeSpot;
+  readonly far: SeizeSpot;
+  readonly mast: SeizeSpot;
+}
+
 /**
- * Where a battle's quick seize (`wrapAndBreak(ship, { seize })`) clamps her (ship-local z): over her
- * rails in the gaps her sails leave (the square sails fill aft from their yards and overhang her
- * rails; the staysails and the spanker fill to one side of her centre line), so every arm keeps clear
- * of the canvas, set or furled, flat or full (rig-clearance.ts). The cut is at z 1.8: `fore` and the
- * mast hook hold her bow half, `aft` and `far` her stern half.
+ * Where a battle's seize (`wrapAndBreak(ship, { seize })`) clamps her, by the side of her the kraken
+ * comes up on (+1 her +x side): over her rails in the gaps her sails leave, so every arm keeps clear
+ * of the canvas, set or furled, flat or full (rig-clearance.ts). Her yards are braced, so her square
+ * sails lie further aft on her −x side than on her +x side, and her staysails and spanker fill to one
+ * side: each side has its own spots, two arms on each half of her (she tears at z 1.8).
  */
-export const SEIZE_SPOTS = {
-  /** Over her near rail between the fore and main masts, and between the main and mizzen. */
-  fore: 2.4,
-  aft: -5.6,
-  /** Over her far rail, between the main and mizzen masts. */
-  far: -6.2,
-  /** How far along her (m) each comes up out of the sea from where it comes over her rail. */
-  foreSweep: 3,
-  aftSweep: -3,
-  farSweep: -3,
-  /** How high (m) each hook rises over her rail (outside it: the square sails overhang it higher up). */
-  lift: 4.4,
-} as const;
+export const SEIZE_LAYOUT: { readonly [side: number]: SeizeLayout } = {
+  1: {
+    fore: { z: 2.4, sweep: 3, side: 1, half: 1 },
+    aft: { z: -5.6, sweep: -3, side: 1, half: 0 },
+    far: { z: -6.2, sweep: -3, side: -1, half: 0 },
+    mast: { z: FORE.z, sweep: 0, side: 1, half: 1 },
+  },
+  [-1]: {
+    fore: { z: 1, sweep: 2.5, side: -1, half: 0 },
+    aft: { z: -6, sweep: -3, side: -1, half: 0 },
+    far: { z: 2, sweep: 2, side: 1, half: 1 },
+    mast: { z: FORE.z, sweep: 0, side: -1, half: 1 },
+  },
+};
+
+/** A seize's shape for `spot` (ship-local): round the foremast (`mast`) or over a rail, on its side. */
+export function seizeShape(out: Points, spot: SeizeSpot, mast: boolean, press: number): void {
+  if (mast) seizeMast(out, press);
+  else seizeRail(out, spot.z, press, spot.sweep);
+  if (spot.side < 0) mirrorX(out);
+}
 
 /**
  * A battle's seize over her rail at `z` on her +x side (mirror it for the far side): a long arc up
@@ -430,13 +457,7 @@ export const SEIZE_SPOTS = {
  * reads as an arc from any side, not edge on), over the rail and down onto her deck, clamped across
  * it to her centre line (under the staysails' feet). `press` (0…1) pulls it down tight.
  */
-export function seizeRail(
-  out: Points,
-  z: number,
-  press: number,
-  sweep = 0,
-  lift: number = SEIZE_SPOTS.lift,
-): void {
+export function seizeRail(out: Points, z: number, press: number, sweep = 0, lift = SEIZE_LIFT): void {
   const beam = halfBeamAt(z, 1.5);
   const sheer = sheerHeightAt(z);
   const deck = deckHeightAt(z);
