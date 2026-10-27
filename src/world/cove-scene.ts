@@ -468,8 +468,9 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
   // `?sightings` (tests, the video) loads them 5 s in rather than a minute.
   const soonSightings =
     typeof location !== 'undefined' && new URLSearchParams(location.search).has('sightings');
+  // Lite has no ambient sea life (no leaps either): its JS heap has no room for a second kraken.
   const sightingsTimer =
-    typeof window !== 'undefined'
+    typeof window !== 'undefined' && tier.leaps > 0
       ? window.setTimeout(() => void engine.counters.excuse(loadSightings()), soonSightings ? 5000 : 60000)
       : 0;
   const leapsTimer =
