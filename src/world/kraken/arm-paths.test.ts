@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BRIGANTINE_MASTS } from '../ship/brigantine-rig';
+import { deckHeightAt, halfBeamAt } from '../ship/lines';
 import {
   FORE_LOWEST_YARD,
   Points,
@@ -19,7 +20,7 @@ import {
   standPath,
   type FreeStance,
 } from './arm-paths';
-import { SAIL_CLEARANCE, mastDistance, pathSailDistance, sailDistance } from './rig-clearance';
+import { SAIL_CLEARANCE, mastDistance, pathSailDistance, sailDistance, yardDistance } from './rig-clearance';
 import { CurvePath, followPath } from './tentacle-pose';
 
 describe('heavy', () => {
@@ -97,12 +98,12 @@ describe('wrap shapes keep clear of the rig', () => {
 describe("a battle's seize keeps clear of her sails, yards and masts", () => {
   /** Each seize shape at a press, with the half of her it holds (the cut is at z 1.8). */
   const shapes: [string, (p: Points, press: number) => void, 'bow' | 'stern', number][] = [
-    ['near rail forward', (p, k) => seizeRail(p, SEIZE_SPOTS.fore, k), 'bow', 1],
-    ['near rail aft', (p, k) => seizeRail(p, SEIZE_SPOTS.aft, k), 'stern', 1],
+    ['near rail forward', (p, k) => seizeRail(p, SEIZE_SPOTS.fore, k, SEIZE_SPOTS.foreSweep), 'bow', 1],
+    ['near rail aft', (p, k) => seizeRail(p, SEIZE_SPOTS.aft, k, SEIZE_SPOTS.aftSweep), 'stern', 1],
     [
       'far rail',
       (p, k) => {
-        seizeRail(p, SEIZE_SPOTS.far, k);
+        seizeRail(p, SEIZE_SPOTS.far, k, SEIZE_SPOTS.farSweep);
         mirrorX(p);
       },
       'stern',
@@ -115,6 +116,9 @@ describe("a battle's seize keeps clear of her sails, yards and masts", () => {
     // On the fore course's middle (flat); and over her rail between the fore and main, clear.
     expect(sailDistance(0, 5.3, BRIGANTINE_MASTS.fore.z)).toBeLessThan(0.3);
     expect(sailDistance(5, 3, 2)).toBeGreaterThan(2);
+    // On the fore course's yard, and well under it.
+    expect(yardDistance(0, 7.15, BRIGANTINE_MASTS.fore.z)).toBeLessThan(0.1);
+    expect(yardDistance(0, 4, BRIGANTINE_MASTS.fore.z)).toBeGreaterThan(2.5);
   });
 
   for (const [name, build, half, side] of shapes)
@@ -122,7 +126,7 @@ describe("a battle's seize keeps clear of her sails, yards and masts", () => {
       for (const press of [0, 0.5, 1]) {
         const p = new Points();
         build(p, press);
-        expect(p.n).toBeGreaterThan(4);
+        expect(p.n).toBeGreaterThan(6);
         expect(pathSailDistance(p.xyz, p.n)).toBeGreaterThanOrEqual(SAIL_CLEARANCE);
         for (let i = 0; i < p.n; i++) {
           const x = p.xyz[i * 3]!;
@@ -130,15 +134,21 @@ describe("a battle's seize keeps clear of her sails, yards and masts", () => {
           const z = p.xyz[i * 3 + 2]!;
           // Round the mast, never into it; clear of the others and their yards.
           expect(mastDistance(x, y, z)).toBeGreaterThan(side === 0 ? 0.5 : RIG_CLEARANCE);
-          expect(y).toBeLessThan(FORE_LOWEST_YARD - RIG_CLEARANCE);
-          // On its own half (it holds it as she tears), and on its own side of her centre line.
+          expect(yardDistance(x, y, z)).toBeGreaterThan(RIG_CLEARANCE);
+          // Over her deck, under the lowest yard (outside her rail the hook may rise higher).
+          if (Math.abs(x) < halfBeamAt(z, 1.5)) expect(y).toBeLessThan(FORE_LOWEST_YARD - RIG_CLEARANCE);
+          // On its own half (it holds it as she tears).
           if (half === 'bow') expect(z).toBeGreaterThan(1.9);
           else expect(z).toBeLessThan(1.7);
-          if (side !== 0 && i > 0) expect(x * side).toBeGreaterThan(0.5);
+          // Low across her deck amidships (under the staysails' feet).
+          if (Math.abs(x) < halfBeamAt(z, 1.5) - 1.5) expect(y).toBeLessThan(deckHeightAt(z) + 1.4);
         }
-        // It starts in the sea beside her and ends on her deck.
+        // It starts in the sea on its own side, and clamps her: across her deck to her centre line, or round the mast.
         expect(p.xyz[1]!).toBeLessThan(0.5);
-        expect(Math.abs(p.xyz[(p.n - 1) * 3]!)).toBeLessThan(1.5);
+        if (side !== 0) expect(p.xyz[0]! * side).toBeGreaterThan(halfBeamAt(0, 1.5));
+        const e = (p.n - 1) * 3;
+        if (side === 0) expect(mastDistance(p.xyz[e]!, p.xyz[e + 1]!, p.xyz[e + 2]!)).toBeLessThan(1.2);
+        else expect(Math.abs(p.xyz[e]!)).toBeLessThan(0.5);
       }
     });
 });

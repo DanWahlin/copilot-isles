@@ -2,6 +2,7 @@ import { Group, Matrix4, Vector3 } from 'three/webgpu';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle, HeightField, WaveSampler } from '../contracts';
 import { createBrigantine, type Brigantine, type BrigantineEnv } from '../ship';
+import { BRIGANTINE_HALF_LENGTH, sheerHeightAt } from '../ship/lines';
 import { world } from '../uniforms';
 import { windAt } from '../wind';
 import { ARC_FIRING, ARC_WARNING, ArcSet } from './arcs';
@@ -189,6 +190,8 @@ const INTRO_REVEAL = 2.8;
 const LULL_SECONDS = 20;
 const STORE_LIFE = 45;
 const SINK_SECONDS = 17;
+/** Her stem head (ship-local z): the last of her to go under. */
+const BOW_HEAD = BRIGANTINE_HALF_LENGTH * 0.85;
 const COLLECT_RADIUS = 9;
 const BASE_REPAIR = 25;
 const TIMBER_REPAIR = 10;
@@ -211,6 +214,8 @@ interface Combatant {
   readonly helm: RaiderHelm;
   state: ShipState;
   struckAt: number;
+  /** When (s after she was struck) her bow went under, NaN while it's above the sea. */
+  underAt: number;
   /** Warning arcs: 0…1 while a raider's side lays its guns on you, −1 when not. */
   readonly lay: Float32Array;
   readonly inverse: Matrix4;
@@ -489,6 +494,7 @@ export class Battle {
       helm: { trim: 0, rudder: 0 },
       state: player ? 'afloat' : 'idle',
       struckAt: 0,
+      underAt: NaN,
       lay: new Float32Array([-1, -1]),
       inverse: new Matrix4(),
       vx: 0,
@@ -1320,6 +1326,7 @@ export class Battle {
   private strike(c: Combatant, t: number): void {
     c.state = 'struck';
     c.struckAt = t;
+    c.underAt = NaN;
     c.lay.fill(-1);
     c.listSign = this.rand() < 0.5 ? 1 : -1;
     const sp = c.ship.dynamics.pose;
@@ -1383,25 +1390,30 @@ export class Battle {
       9 * clamp01((age - 11) / 5) ** 2;
     g.position.set(pose.x, swell - sink * c.scale, pose.z);
     g.rotation.set(bowUp, pose.heading, list, 'YXZ');
-    // Air bubbling out along her waterline while she goes down (on the hull, never off it).
-    if (age > 1.5 && age < 15.5 && this.rand() < dt * (age > 11 ? 3 : 1.2)) {
+    // Air bubbling out along her waterline while she goes down (on the hull, never off it), and a
+    // moment after her bow's gone.
+    const under = !Number.isNaN(c.underAt);
+    if (age > 1.5 && (!under || age < c.underAt + 1) && this.rand() < dt * (age > 11 ? 3 : 1.2)) {
       const along = (this.rand() - 0.6) * 16 * c.scale;
       const bx = pose.x + Math.sin(pose.heading) * along;
       const bz = pose.z + Math.cos(pose.heading) * along;
       this.splashes.spawn(bx, this.waves.heightAt(bx, bz, t), bz, t, 0.9 + this.rand() * 0.6, 0, this.rand());
     }
-    // Follow-through: the bow slips under with a last gout of spray.
-    if (age >= 15.6 && age - dt < 15.6) {
-      const fx = Math.sin(pose.heading);
-      const fz = Math.cos(pose.heading);
-      const bx = pose.x + fx * 9 * c.scale;
-      const bz = pose.z + fz * 9 * c.scale;
-      const y = this.waves.heightAt(bx, bz, t);
-      this.splashes.spawn(bx, y, bz, t, 3.4, 1, this.rand());
-      this.emit('sink', bx, y, bz);
-      const ax = bx - fx * 4;
-      const az = bz - fz * 4;
-      this.splashes.spawn(ax, this.waves.heightAt(ax, az, t), az, t, 2.2, 0, this.rand());
+    // Follow-through: the bow slips under with a last gout of spray, where and when it goes.
+    if (!under && age > 6) {
+      g.updateMatrixWorld();
+      tmpWorld.set(0, sheerHeightAt(BOW_HEAD), BOW_HEAD).applyMatrix4(g.matrixWorld);
+      const y = this.waves.heightAt(tmpWorld.x, tmpWorld.z, t);
+      if (tmpWorld.y < y) {
+        c.underAt = age;
+        const bx = tmpWorld.x;
+        const bz = tmpWorld.z;
+        this.splashes.spawn(bx, y, bz, t, 3.4, 1, this.rand());
+        this.emit('sink', bx, y, bz);
+        const ax = bx - Math.sin(pose.heading) * 4 * c.scale;
+        const az = bz - Math.cos(pose.heading) * 4 * c.scale;
+        this.splashes.spawn(ax, this.waves.heightAt(ax, az, t), az, t, 2.2, 0, this.rand());
+      }
     }
     if (age > SINK_SECONDS) {
       c.state = 'gone';

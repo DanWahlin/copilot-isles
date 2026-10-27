@@ -510,8 +510,9 @@ export class KrakenHazards {
       m.arc = a.arc;
       m.foam = 0;
       m.spin = age * (0.8 + told);
-      // Bubbles: a few at first, more as it comes.
-      if (age < tell + spec.windUp * 0.5 && t >= this.bubbleAt) {
+      // Bubbles: a few at first, more as it comes; none before the shadow under them reads (a splash
+      // needs a cause you can see).
+      if (told > 0.4 && age < tell + spec.windUp * 0.5 && t >= this.bubbleAt) {
         this.bubbleAt = t + (gentle ? 0.35 : 0.18) * (1.4 - Math.min(1, age / tell));
         const r = Math.sqrt(this.rand()) * spec.radius * 0.45;
         const ang = this.rand() * Math.PI * 2;

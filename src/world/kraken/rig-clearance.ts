@@ -1,5 +1,5 @@
-import { createSailGeometry } from '../ship/brigantine-rig';
-import { BRIGANTINE_MASTS } from '../ship/brigantine-rig';
+import { segmentDistance3 } from '../../util/math';
+import { BRIGANTINE_MASTS, BRIGANTINE_YARDS, createSailGeometry } from '../ship/brigantine-rig';
 import { deckHeightAt } from '../ship/lines';
 
 /**
@@ -165,6 +165,25 @@ export function mastDistance(x: number, y: number, z: number): number {
   for (const m of Object.values(BRIGANTINE_MASTS)) {
     if (y < deckHeightAt(m.z) - 0.2 || y > m.truck) continue;
     best = Math.min(best, Math.hypot(x, z - m.z) - m.radius);
+  }
+  return best;
+}
+
+const _a = { x: 0, y: 0, z: 0 };
+const _b = { x: 0, y: 0, z: 0 };
+
+/** How near (m) a ship-local point comes to any yard's surface (furled canvas on it included). */
+export function yardDistance(x: number, y: number, z: number): number {
+  let best = Infinity;
+  for (const yd of BRIGANTINE_YARDS) {
+    _a.x = -yd.span;
+    _a.y = yd.y;
+    _a.z = yd.z - yd.span * yd.brace;
+    _b.x = yd.span;
+    _b.y = yd.y;
+    _b.z = yd.z + yd.span * yd.brace;
+    const d = segmentDistance3(x, y, z, _a, _b);
+    best = Math.min(best, d - yd.radius);
   }
   return best;
 }

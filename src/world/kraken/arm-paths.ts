@@ -412,47 +412,62 @@ export function pullArc(out: Points, z: number, rise: number, press: number): vo
  */
 export const SEIZE_SPOTS = {
   /** Over her near rail between the fore and main masts, and between the main and mizzen. */
-  fore: 2.3,
+  fore: 2.4,
   aft: -5.6,
-  /** Over her far rail, between the fore and main masts, aft of the cut. */
-  far: 0.8,
-  /** How high (m) each arc rises over her rail. */
-  lift: 2.2,
+  /** Over her far rail, between the main and mizzen masts. */
+  far: -6.2,
+  /** How far along her (m) each comes up out of the sea from where it comes over her rail. */
+  foreSweep: 3,
+  aftSweep: -3,
+  farSweep: -3,
+  /** How high (m) each hook rises over her rail (outside it: the square sails overhang it higher up). */
+  lift: 4.4,
 } as const;
 
 /**
- * A battle's seize over her rail at `z` on her +x side (mirror it for the far side): up out of the
- * sea beside her, over the rail in a short high arc, and down across her deck toward her centre line
- * (never past it: the staysails fill on the far side). `press` (0…1) clamps it down.
+ * A battle's seize over her rail at `z` on her +x side (mirror it for the far side): a long arc up
+ * out of the sea beside her, `sweep` m along her (forward or aft) from where it comes over (so it
+ * reads as an arc from any side, not edge on), over the rail and down onto her deck, clamped across
+ * it to her centre line (under the staysails' feet). `press` (0…1) pulls it down tight.
  */
-export function seizeRail(out: Points, z: number, press: number, lift: number = SEIZE_SPOTS.lift): void {
+export function seizeRail(
+  out: Points,
+  z: number,
+  press: number,
+  sweep = 0,
+  lift: number = SEIZE_SPOTS.lift,
+): void {
   const beam = halfBeamAt(z, 1.5);
   const sheer = sheerHeightAt(z);
   const deck = deckHeightAt(z);
-  out.push(beam + 2.4, 0.3, z - 0.3);
-  out.push(beam + 1.7, sheer * 0.6 + lift * 0.3, z - 0.25);
-  out.push(beam + 0.7, sheer + lift - 0.45 * press, z - 0.15);
-  out.push(beam - 0.4, sheer + 0.8 - 0.35 * press, z);
-  out.push(beam - 1.5, deck + 0.45 - 0.15 * press, z + 0.1);
-  out.push(Math.max(1.0, beam - 2.5), deck + 0.32, z + 0.2);
-  out.push(0.7, deck + 0.3, z + 0.3);
+  // It peaks outside her rail (her square sails overhang it higher up), then comes over it and down.
+  const p = 0.8 * press;
+  out.push(beam + 5, 0.3, z + sweep);
+  out.push(beam + 4, sheer + lift * 0.52, z + sweep * 0.7);
+  out.push(beam + 2.5, sheer + lift * 0.9 - 0.4 * p, z + sweep * 0.38);
+  out.push(beam + 1, sheer + lift - p, z + sweep * 0.12);
+  out.push(beam + 0.2, sheer + lift * 0.6 - p, z);
+  out.push(beam - 0.9, sheer + 1.4 - 0.5 * p, z);
+  out.push(beam - 2.2, deck + 1.2 - 0.4 * p, z);
+  out.push(0, deck + 1.25 - 0.4 * p, z);
 }
 
 /**
- * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and
- * round the mast's foot (under the fore course and the staysails), clamped (`press` 0…1).
+ * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and a
+ * turn round the mast's foot (under the fore course and the staysails' feet), clamped (`press` 0…1).
  */
 export function seizeMast(out: Points, press: number): void {
-  const z = FORE.z;
-  const deck = deckHeightAt(z);
-  const t = 0.2 * press;
-  out.push(halfBeamAt(z + 2.6, 1.5) + 2.2, 0.3, z + 3.0);
-  out.push(3.3, deck + 0.9, z + 2.6);
-  out.push(2.3, deck + 1.35, z + 1.9);
-  out.push(1.2, deck + 1.4 - t, z + 1.3);
-  out.push(0.3, deck + 1.3 - t, z + 1.0);
-  out.push(-0.5, deck + 1.15 - t, z + 0.85);
-  out.push(-1.0, deck + 0.95 - t, z + 0.5);
+  const z0 = FORE.z;
+  const deck = deckHeightAt(z0);
+  const r = 1.05 - 0.15 * press;
+  out.push(halfBeamAt(z0 + 2.4, 1.5) + 2.4, 0.3, z0 + 2.7);
+  out.push(halfBeamAt(z0 + 2.2, 1.5) + 0.9, deck + 1.9, z0 + 2.3);
+  out.push(1.7, deck + 1.0, z0 + 1.5);
+  // Round the mast from its forward face: ahead, to port, aft and back to starboard.
+  for (let k = 0; k <= 8; k++) {
+    const a = (k / 8) * Math.PI * 2 * 0.9;
+    out.push(Math.sin(a) * r, deck + 0.85 - 0.25 * (k / 8) - 0.1 * press, z0 + Math.cos(a) * r);
+  }
 }
 
 /** True when `out`'s points over the deck keep clear of every mast (tests). */

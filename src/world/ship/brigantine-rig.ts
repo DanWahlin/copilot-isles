@@ -70,6 +70,10 @@ const YARDS: readonly YardSpec[] = [
   { mast: MIZZEN, y: 12.95, span: 2.95, radius: 0.092, canvasRadius: 0.15 },
 ];
 
+/** The yards as segments (ship-local, braced), for checks that keep things clear of them (the kraken's arms). */
+export const BRIGANTINE_YARDS: readonly { y: number; z: number; span: number; brace: number; radius: number }[] =
+  YARDS.map((yd) => ({ y: yd.y, z: yd.mast.z, span: yd.span, brace: YARD_BRACE, radius: yd.canvasRadius }));
+
 const MIZZEN_STAY_AFT: P3 = { x: 0, y: MIZZEN.lowerTop + 0.05, z: MIZZEN.z };
 const MIZZEN_STAY_FORE: P3 = { x: 0, y: MAIN.lowerTop + 0.05, z: MAIN.z };
 

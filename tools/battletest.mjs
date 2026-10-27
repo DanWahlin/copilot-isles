@@ -12,7 +12,8 @@
 //   [--battle=3] (battle 3, "Trust the Evidence": Chapters 00-02 done, the chart to Thousand-Bough Isle,
 //   then out toward Keelhaven; its peak must stay at or under 140 programs with Keelhaven in memory, its
 //   end must bring the passage's "next morning", and you dock at Keelhaven). Battle 3's kraken: after
-//   wave 1 the evidence and the flagship taken (its beat), then in wave 2 a tell near you, a dodge, a
+//   wave 1 the evidence and the flagship seized and taken (its beat: under 22 s from the call, its arms
+//   never within 0.45 m of a sail, a yard or a mast), then in wave 2 a tell near you, a dodge, a
 //   lure (a raider led over a tell and taken) and a hit on your hull, and its retreat after the last
 //   raider; no ship's sails may jump (`sailJumps`). --nokraken plays it without (a census without it).
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
@@ -239,38 +240,103 @@ async function waitPhase(page, phases, ms = 60_000) {
 const K = (page, js) => S(page, `(() => { const k = s.debug.battleRun().kraken; return ${js}; })()`);
 const krakenLog = (page) => K(page, 'k ? { ...k.log, stage: k.stage, wrap: k.encounter.phase() } : null');
 
-/** After wave 1: the evidence, the flagship sailing into it and taken, then wave 2 out of the fog. */
+/**
+ * How near the kraken's arms come to the canvas, yards and masts of the ship they hold (m, from an
+ * arm's line; its girth is under half a metre up there): each arm's bones and the points between them,
+ * in her own frame (or her half's), checked against her sails flat and full (rig-clearance.ts).
+ */
+const RIG_CHECK = `(async () => {
+  const { sailDistance, yardDistance, mastDistance } = await import('/src/world/kraken/rig-clearance.ts');
+  const enc = s.debug.battleRun()?.kraken?.encounter;
+  if (!enc || enc.mode !== 'wrap' || !enc.wreck) return null;
+  const w = enc.time - enc.startAt;
+  if (w > enc.beats.break) return null;
+  const V = enc.group.position.constructor;
+  const M = enc.group.matrixWorld.constructor;
+  const v = new V(), u = new V(), inv = new M();
+  let sail = Infinity, rig = Infinity, at = '';
+  for (const st of enc.states) {
+    if (!st.active || !st.arm.shown || st.arm.sink > 0) continue;
+    const frame = enc.frameFor(enc.roleOf(st), w);
+    frame.updateWorldMatrix(true, false);
+    inv.copy(frame.matrixWorld).invert();
+    const bones = st.arm.poser.bones;
+    for (let i = 0; i < bones.length; i++) {
+      bones[i].getWorldPosition(v);
+      for (const f of i + 1 < bones.length ? [0, 0.5] : [0]) {
+        if (f) { bones[i + 1].getWorldPosition(u); u.lerp(v, 0.5); } else u.copy(v);
+        u.applyMatrix4(inv);
+        if (u.y < 1.2) continue;
+        const d = sailDistance(u.x, u.y, u.z);
+        const r = Math.min(yardDistance(u.x, u.y, u.z), mastDistance(u.x, u.y, u.z));
+        if (d < sail) { sail = d; at = enc.roleOf(st) + ' bone ' + i + ' at ' + [u.x, u.y, u.z].map((n) => n.toFixed(1)).join(','); }
+        rig = Math.min(rig, r);
+      }
+    }
+  }
+  return { w: +w.toFixed(1), sail: +sail.toFixed(2), rig: +rig.toFixed(2), at };
+})()`;
+/** An arm's line keeps this far (m) from canvas, yards and masts: its girth near its tip, and air. */
+const ARM_CLEAR = 0.45;
+
+/**
+ * After wave 1: the cut to the evidence, the flagship close and sailing into it, seized and taken
+ * quick and hard (about 10 s), then the battle carries on (wave 2). Its arms never touch her sails.
+ */
 async function krakenBeat(page, res) {
   const s = await waitPhase(page, ['event'], 10_000);
   if (s?.phase !== 'event') return fail(`no kraken beat after wave 1 (${s?.phase})`);
-  await page.waitForTimeout(1800);
-  await shot(page, 'kraken-evidence');
-  await sample(page, 'kraken evidence');
   const t0 = Date.now();
-  const until = async (pred, ms) => {
-    while (Date.now() - t0 < ms) {
-      const l = await krakenLog(page);
-      if (l && pred(l)) return l;
-      await page.waitForTimeout(250);
-    }
-    return krakenLog(page);
+  const beat = { tips: 0, grip: 0, under: 0, end: 0, sail: Infinity, rig: Infinity, at: '' };
+  const shots = new Set();
+  const take = async (name, ok) => {
+    if (!ok || shots.has(name)) return;
+    shots.add(name);
+    await shot(page, name);
   };
-  await until((l) => l.stage === 'approach', 10_000);
-  await page.waitForTimeout(4000);
-  await shot(page, 'kraken-flagship');
-  const grip = await until((l) => l.wrap === 'grip' || l.wrap === 'squeeze', 50_000);
-  if (grip?.wrap !== 'grip' && grip?.wrap !== 'squeeze')
-    fail(`the kraken never gripped the flagship (${JSON.stringify(grip)})`);
-  await page.waitForTimeout(2500);
-  await shot(page, 'kraken-taken');
-  await sample(page, 'kraken taken');
-  await until((l) => l.wrap === 'under' || l.wrap === 'withdraw', 30_000);
-  await shot(page, 'kraken-broken');
-  const after = await waitPhase(page, ['intro', 'fight'], 70_000);
-  if (after?.phase !== 'intro' && after?.phase !== 'fight')
-    fail(`wave 2 never came after the kraken (${after?.phase})`);
-  res.kraken = { beatSeconds: Math.round((Date.now() - t0) / 1000) + 2, beat: await krakenLog(page) };
+  for (;;) {
+    const age = Date.now() - t0;
+    const st = await S(
+      page,
+      `(() => { const r = s.debug.battleRun(); return { phase: r.battle.phase, wrap: r.kraken?.encounter.phase(), stage: r.kraken?.stage }; })()`,
+    );
+    if (st.phase !== 'event') {
+      beat.end = age;
+      break;
+    }
+    if (age > 40_000) {
+      fail(`the kraken's beat never ended (${JSON.stringify(st)})`);
+      break;
+    }
+    if (!beat.tips && st.stage === 'wrap') beat.tips = age;
+    if (!beat.grip && (st.wrap === 'grip' || st.wrap === 'squeeze')) beat.grip = age;
+    if (!beat.under && (st.wrap === 'under' || st.wrap === 'withdraw')) beat.under = age;
+    const c = await S(page, RIG_CHECK);
+    if (c && c.sail < beat.sail) Object.assign(beat, { sail: c.sail, at: c.at });
+    if (c) beat.rig = Math.min(beat.rig, c.rig);
+    await take('kraken-evidence', age > 1500);
+    await take('kraken-flagship', st.stage === 'approach' && age > 3500);
+    await take('kraken-taken', beat.grip > 0 && age > beat.grip + 600);
+    await take('kraken-broken', beat.under > 0);
+    if (age > 1500 && age < 2500) await sample(page, 'kraken evidence');
+    if (beat.grip && age > beat.grip + 400 && age < beat.grip + 1400) await sample(page, 'kraken taken');
+    await page.waitForTimeout(120);
+  }
+  const s2 = (ms) => Math.round(ms / 100) / 10;
+  res.kraken = {
+    beat: await krakenLog(page),
+    seconds: { total: s2(beat.end), seized: s2(beat.grip - beat.tips), fromTips: s2(beat.end - beat.tips) },
+    clearance: { sail: beat.sail, rig: beat.rig, at: beat.at },
+  };
   if (!res.kraken.beat?.flagshipTaken) fail('the flagship was never taken');
+  if (!beat.grip) fail('the kraken never gripped the flagship');
+  // Quick and hard: about 18–20 s from the call, 12–15 s from its arms to the battle carrying on.
+  if (beat.end > 22_000) fail(`the kraken's beat is too long (${s2(beat.end)} s)`);
+  if (beat.end - beat.tips > 16_000)
+    fail(`the take is too long (${s2(beat.end - beat.tips)} s from its arms)`);
+  if (beat.grip - beat.tips > 3000) fail(`the seize is slow (${s2(beat.grip - beat.tips)} s)`);
+  if (!(beat.sail >= ARM_CLEAR)) fail(`an arm went through a sail (${beat.sail} m: ${beat.at})`);
+  if (!(beat.rig >= ARM_CLEAR)) fail(`an arm went through a yard or a mast (${beat.rig} m)`);
 }
 
 /**

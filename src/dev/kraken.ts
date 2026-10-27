@@ -372,11 +372,11 @@ function advance(dt: number, t: number): void {
     if (once('wrap', 1)) kraken.wrapAndBreak(flagship, { finale: true });
     flagship.dynamics.setInput({ trim: 0, rudder: 0 });
   } else if (scenario === 'fight') {
-    // Both under sail on a broad reach; the kraken takes the flagship mid-fight.
-    // She sails on until its arms close on her (from then the kraken holds her).
-    if (st < 3 + kraken.beats.grip - 2) steer(flagship, 0.9, 0.7);
+    // Both under sail on a broad reach; the kraken seizes the flagship mid-fight (the battle's take:
+    // quick and hard, her sails set). She sails on until it has her (from then it holds her).
+    if (st < 3) steer(flagship, 0.9, 0.7);
     steer(mine, 0.9, st > 14 ? 0.3 : 0.6);
-    if (once('wrap', 3)) kraken.wrapAndBreak(flagship);
+    if (once('wrap', 3)) kraken.wrapAndBreak(flagship, { seize: true });
   } else if (scenario === 'dodge') {
     // On course; at the lookout's call, hard over away from the evidence, then back on course.
     if (st >= turnAt) {
@@ -823,6 +823,7 @@ const stats = () => ({
 dev.__kraken = {
   ready: true,
   kraken,
+  camera,
   sightings,
   ships: { flagship, mine, raider },
   stats,

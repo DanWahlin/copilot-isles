@@ -38,7 +38,7 @@ import {
 } from './hazards';
 import { Kraken, poseFreeArm, type KrakenArm } from './kraken';
 import { cutShip, type ShipPieces } from './ship-break';
-import { AxisAim, CurvePath } from './tentacle-pose';
+import { AxisAim, CurvePath, followPath } from './tentacle-pose';
 import { TellMarks, type MarkState } from './tell-marks';
 
 /**
@@ -320,14 +320,15 @@ const WITHDRAW_ORDER: readonly Role[] = [
   'mast',
 ];
 /**
- * The four arms a battle's seize uses, by socket in order of choice (Lite draws sockets 0, 1, 7, 6):
- * round her foremast, over her near rail forward and aft, and over her far rail.
+ * The four arms a battle's seize uses, by socket (the four that face her: Lite draws only these):
+ * round her foremast, over her far rail (the longest way, under her keel), and over her near rail
+ * forward and aft.
  */
 const SEIZE_SOCKETS: readonly (readonly [Role, readonly number[]])[] = [
   ['seizeMast', [0]],
-  ['seizeFore', [6, 7]],
-  ['seizeAft', [2, 1]],
-  ['seizeFar', [3, 5, 7]],
+  ['seizeFar', [7]],
+  ['seizeFore', [1]],
+  ['seizeAft', [6]],
 ];
 /** The order a seize's arms let go in. */
 const SEIZE_WITHDRAW: readonly Role[] = ['seizeFar', 'seizeAft', 'seizeFore', 'seizeMast'];
@@ -378,9 +379,9 @@ const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
   pullNear: [11, -17.5, 19],
   // Beside her rails: each comes up only a little way before it reaches over them.
   seizeMast: [5.2, 8.3, 6],
-  seizeFore: [6.0, 2.0, 6],
-  seizeAft: [5.9, -5.9, 6],
-  seizeFar: [-6.0, 0.5, 6],
+  seizeFore: [8.8, 5.4, 6],
+  seizeAft: [8.6, -8.6, 6],
+  seizeFar: [-8.8, -9.2, 6],
 };
 /** How far round the surfaced body its arms rise (m), and how much of each stands there. */
 const RING = 11.5;
@@ -391,6 +392,8 @@ const RING_HEIGHT = 10;
  * it reaches: its ring of arms is higher and nearer her, so they reach her, and its head stays under.
  */
 const ANCHOR = { x: 13, z: -1.5, depth: -8.5, pitch: -1.15 } as const;
+/** A seize's place beside her: a little further aft, so its four arms reach her bow, rails and mast. */
+const SEIZE_ANCHOR = { x: 12.5, z: -1.5 } as const;
 /** The ship's one cut: she tears in two between the fore and main masts. */
 const CUTS = [1.8] as const;
 
@@ -427,6 +430,8 @@ const _arcStance: FreeStance = { len: 0, curl: 0, bow: 0 };
 /** How much of the highest arm arcs over her deck (m along it). */
 const ARC_LENGTH = 20;
 const _pts = new Points(64);
+const _fitJoints = new Float32Array(16 * 3);
+const SEIZE_FIT_TRIES = 6;
 const _stance: FreeStance = { len: 0, curl: 0, bow: 0 };
 
 export interface KrakenEncounterOptions {
@@ -815,6 +820,12 @@ export class KrakenEncounter {
     for (const role of this.seizing ? SEIZE_WITHDRAW : WITHDRAW_ORDER)
       for (const s of this.states)
         if (this.roleOf(s) === role && s.active) s.outAt = rank++ * this.beatsNow.withdrawStep;
+    // A seize's tell is the battle's (its evidence, or the strike that caught her): none of its own.
+    if (this.seizing) {
+      if (this.tellMark) this.marks.release(this.tellMark);
+      this.tellMark = null;
+      return;
+    }
     this.tellMark ??= this.marks.acquire();
     if (this.tellMark) {
       this.tellMark.radius = 12;
@@ -874,8 +885,8 @@ export class KrakenEncounter {
     m.ring = e.ring * ease(age / 1.5) * fade;
     m.foam = 0;
     m.spin = age * (0.6 + 0.6 * told);
-    // Bubbles over the shadow.
-    if (fade > 0.5 && this.rand() < (this.reducedMotion ? 0.15 : 0.35)) {
+    // Bubbles over the shadow, once it reads.
+    if (told > 0.4 && fade > 0.5 && this.rand() < (this.reducedMotion ? 0.15 : 0.35)) {
       const r = Math.sqrt(this.rand()) * e.radius * 0.6;
       const a = this.rand() * Math.PI * 2;
       const x = e.x + Math.cos(a) * r;
@@ -1145,11 +1156,8 @@ export class KrakenEncounter {
     const pose = ship.dynamics.pose;
     const s = Math.sin(pose.heading);
     const c = Math.cos(pose.heading);
-    this.anchor.set(
-      g.position.x + ANCHOR.x * c + ANCHOR.z * s,
-      0,
-      g.position.z - ANCHOR.x * s + ANCHOR.z * c,
-    );
+    const a = this.seizing ? SEIZE_ANCHOR : ANCHOR;
+    this.anchor.set(g.position.x + a.x * c + a.z * s, 0, g.position.z - a.x * s + a.z * c);
     this.anchorHeading = pose.heading - Math.PI / 2;
   }
 
@@ -1371,6 +1379,40 @@ export class KrakenEncounter {
         above = shapeLength(e, sea);
       }
     }
+    if (shape < SHAPE_SEIZE_FORE) {
+      this.buildShipPath(s, path, e, sea, above, 0);
+      return;
+    }
+    // A seize's short shapes: the bones cut across the loop under the water and the hook over her
+    // rail, so the chain can run off the shape's end (a stub poking out) or stop short of it. Refit
+    // the loop to the chain, as a free arm does, keeping the best try (a little short is better).
+    let slack = 0;
+    let best = 0;
+    let bestErr = Infinity;
+    for (let tries = 0; tries < SEIZE_FIT_TRIES; tries++) {
+      this.buildShipPath(s, path, e, sea, above, slack);
+      const fit = followPath(path, arm.poser.lengths, _fitJoints);
+      const err = fit > 0 ? fit * 3 : -fit;
+      if (err < bestErr) {
+        bestErr = err;
+        best = slack;
+      }
+      if (fit > -0.3 && fit < 0.05) return;
+      slack += fit > 0 ? fit + 0.1 : fit * 0.9;
+    }
+    this.buildShipPath(s, path, e, sea, above, best);
+  }
+
+  /** The way under the water to where it breaks the surface (its spare length in a loop), then the shape. */
+  private buildShipPath(
+    s: ArmState,
+    path: CurvePath,
+    e: Vector3,
+    sea: number,
+    above: number,
+    slack: number,
+  ): void {
+    const arm = s.arm;
     path.clear();
     standPath(
       path,
@@ -1391,7 +1433,7 @@ export class KrakenEncounter {
       0,
       0,
       0,
-      0,
+      slack,
       arm.poser.lengths[0]!,
     );
     // Under the water only: then the shape.
@@ -1531,8 +1573,13 @@ export class KrakenEncounter {
 
   private cues(w: number, b: WrapBeats, t: number): void {
     const tm = this.timing;
-    // Bubbles over the shadow while it tells.
-    if (w < tm.tell + 1 && this.rand() < (this.reducedMotion ? 0.15 : 0.35) && this.tellMark) {
+    // Bubbles over the shadow while it tells, once the shadow reads.
+    if (
+      w > tm.tell * 0.5 &&
+      w < tm.tell + 1 &&
+      this.rand() < (this.reducedMotion ? 0.15 : 0.35) &&
+      this.tellMark
+    ) {
       const m = this.tellMark;
       const r = Math.sqrt(this.rand()) * 7;
       const a = this.rand() * Math.PI * 2;
@@ -1571,11 +1618,21 @@ export class KrakenEncounter {
         this.emit('groan', _p, 1);
       }
     if (this.broke) {
-      if (w > b.under && w < b.withdraw + 2 && this.rand() < 0.1 * (this.reducedMotion ? 0.5 : 1)) {
-        const p = wreck.pieces.pieces[Math.floor(this.rand() * wreck.pieces.pieces.length)]!;
+      // Air out of a half going under: along it, while it shows.
+      const p = wreck.pieces.pieces[Math.floor(this.rand() * wreck.pieces.pieces.length)]!;
+      if (
+        w > b.under &&
+        w < b.withdraw + 2 &&
+        p.root.visible &&
+        this.rand() < 0.1 * (this.reducedMotion ? 0.5 : 1)
+      ) {
         p.root.getWorldPosition(_p);
-        _p.x += (this.rand() - 0.5) * 9;
-        _p.z += (this.rand() - 0.5) * 9;
+        const along = (this.rand() - 0.5) * 9 * this.brokeAt.scale;
+        const across = (this.rand() - 0.5) * 2.4 * this.brokeAt.scale;
+        const hs = Math.sin(this.brokeAt.heading);
+        const hc = Math.cos(this.brokeAt.heading);
+        _p.x += along * hs + across * hc;
+        _p.z += along * hc - across * hs;
         this.splashes.spawn(
           _p.x,
           this.waves.heightAt(_p.x, _p.z, t),
@@ -1763,10 +1820,10 @@ function shapePoints(shape: number, u: number, v: number): void {
   _pts.clear();
   if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
   else if (shape === SHAPE_SEIZE_MAST) seizeMast(_pts, u);
-  else if (shape === SHAPE_SEIZE_FORE) seizeRail(_pts, SEIZE_SPOTS.fore, u);
-  else if (shape === SHAPE_SEIZE_AFT) seizeRail(_pts, SEIZE_SPOTS.aft, u);
+  else if (shape === SHAPE_SEIZE_FORE) seizeRail(_pts, SEIZE_SPOTS.fore, u, SEIZE_SPOTS.foreSweep);
+  else if (shape === SHAPE_SEIZE_AFT) seizeRail(_pts, SEIZE_SPOTS.aft, u, SEIZE_SPOTS.aftSweep);
   else if (shape === SHAPE_SEIZE_FAR) {
-    seizeRail(_pts, SEIZE_SPOTS.far, u);
+    seizeRail(_pts, SEIZE_SPOTS.far, u, SEIZE_SPOTS.farSweep);
     mirrorX(_pts);
   } else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
   else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
