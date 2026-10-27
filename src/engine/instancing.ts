@@ -7,7 +7,11 @@ import {
   Matrix4,
   type BufferGeometry,
   type Material,
+  type Node,
+  type NodeBuilder,
+  type NodeMaterial,
 } from 'three/webgpu';
+import { positionLocal } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { InstanceMatrices, releaseInstanceBuffers } from './instance-buffers';
 
@@ -124,6 +128,33 @@ export function sharedInstancedMesh<G extends BufferGeometry, M extends Material
   mesh.instanceMatrix = matrices;
   mesh.addEventListener('dispose', releaseOnDispose);
   return mesh;
+}
+
+/**
+ * Gives an instanced mesh's material a change of shape in its geometry's own space: `shape` reads
+ * `positionGeometry` (or `positionLocal`, the same here) and three then moves the result by the
+ * instance matrix. Use it in place of `positionNode` for a shape that must stay about each instance.
+ *
+ * three (r186) applies an instanced mesh's matrices before the material's `positionNode`, so there
+ * `positionLocal` is already in the mesh's space. A scale in a `positionNode` then also scaled each
+ * instance's distance from the mesh's origin: the splashes' spread (×0.55 to ×1.4 over their life)
+ * drew the battle's splashes up to 60 m from their cause, out at sea far from the world's origin,
+ * where they flashed for a frame or two as they swept past. This sets the shape first, before three's
+ * own steps (`setupPosition`), with no `positionNode`. The override isn't enumerable, so it doesn't go
+ * in three's program cache key and materials with the same graph still share a shader.
+ */
+export function shapeBeforeInstancing<M extends NodeMaterial>(material: M, shape: Node): M {
+  const setup = material.setupPosition;
+  Object.defineProperty(material, 'setupPosition', {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: function (this: M, builder: NodeBuilder): Node {
+      positionLocal.assign(shape as Node<'vec3'>);
+      return setup.call(this, builder);
+    },
+  });
+  return material;
 }
 
 const changedRanges = new WeakMap<BufferAttribute, { start: number; count: number }>();

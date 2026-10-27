@@ -597,6 +597,13 @@ hook (release it when the site is freed).
   turned 90° from its boxes had a drawn wall 0.8 m outside them). Thin dressing whose box would pull
   the camera in each time you walk under it (bunting, garlands) stays without one.
   `node tools/cameratest.mjs --explain` lists the hits; one seed's count moves by up to 6 between runs.
+- **`positionNode` on an instanced mesh is in the mesh's space (issue 335):** three r186 applies the
+  instance matrix before `positionNode`, so `positionLocal` there already includes the instance's
+  place. A scale there also scales the instance's distance from the mesh's origin: the battle's
+  splashes spread (×0.55 to ×1.4) about the world's origin and flashed up to 350 m from their cause.
+  For a shape about each instance (spread, bend, flap), use `shapeBeforeInstancing` (engine/instancing.ts)
+  with `positionGeometry`; for colour in the geometry's space, read `positionGeometry`. An offset that
+  you want in the mesh's space (the battle's props, the wake arcs on the swell) can stay a `positionNode`.
 
 ### CPU and GPU time (issues 11 and 29)
 

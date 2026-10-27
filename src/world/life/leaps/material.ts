@@ -10,7 +10,7 @@ import {
   floor,
   fract,
   mix,
-  positionLocal,
+  positionGeometry,
   pow,
   select,
   sin,
@@ -22,6 +22,7 @@ import {
   vec2,
   vec3,
 } from 'three/tsl';
+import { shapeBeforeInstancing } from '../../../engine/instancing';
 import { world } from '../../uniforms';
 
 // TSL fluent typings do not cover this mixed scalar/vector graph.
@@ -37,14 +38,14 @@ function dolphinLook(): { position: AnyNode; color: AnyNode; roughness: AnyNode 
     world.time
       .mul(6.0)
       .add(phase)
-      .add((positionLocal as AnyNode).z.mul(7.0)),
+      .add((positionGeometry as AnyNode).z.mul(7.0)),
   )
     .mul(amp)
-    .mul(smoothstep(float(-0.2), float(-0.9), (positionLocal as AnyNode).z))
+    .mul(smoothstep(float(-0.2), float(-0.9), (positionGeometry as AnyNode).z))
     .mul(float(1).sub(world.reducedMotion));
-  const belly = smoothstep(float(-0.07), float(-0.2), (positionLocal as AnyNode).y);
+  const belly = smoothstep(float(-0.07), float(-0.2), (positionGeometry as AnyNode).y);
   return {
-    position: (positionLocal as AnyNode).add(vec3Node(bend.mul(0.05), bend.abs().mul(0.025), 0)),
+    position: (positionGeometry as AnyNode).add(vec3Node(bend.mul(0.05), bend.abs().mul(0.025), 0)),
     color: mix(color(0x234657), color(0xd4d5c9), belly.mul(0.85)),
     roughness: float(0.62),
   };
@@ -62,7 +63,7 @@ function flyingFishLook(): { position: AnyNode; color: AnyNode; roughness: AnyNo
     world.time
       .mul(18)
       .add(phase)
-      .add((positionLocal as AnyNode).x.mul(7)),
+      .add((positionGeometry as AnyNode).x.mul(7)),
   )
     .mul(0.5)
     .add(0.5);
@@ -70,12 +71,12 @@ function flyingFishLook(): { position: AnyNode; color: AnyNode; roughness: AnyNo
   const body = mix(
     color(0x5c8e9d),
     color(0xe8f4ea),
-    smoothstep(float(-0.02), float(-0.08), (positionLocal as AnyNode).y),
+    smoothstep(float(-0.02), float(-0.08), (positionGeometry as AnyNode).y),
   );
   const fin = mix(color(0x79c9d9), color(0xf3fff9), shimmer.mul(0.65));
   return {
-    position: (positionLocal as AnyNode).add(
-      vec3Node(0, flap.mul(abs((positionLocal as AnyNode).x)).mul(0.14), 0),
+    position: (positionGeometry as AnyNode).add(
+      vec3Node(0, flap.mul(abs((positionGeometry as AnyNode).x)).mul(0.14), 0),
     ),
     color: mix(body, fin, wing.mul(0.82)),
     roughness: mix(float(0.55), float(0.28), wing.mul(shimmer)),
@@ -96,7 +97,8 @@ function createLeapCreatureMaterial(fish: boolean): MeshStandardNodeMaterial {
   const isFish = (uniform(fish ? 1 : 0) as AnyNode).greaterThan(0.5);
   const d = dolphinLook();
   const f = flyingFishLook();
-  material.positionNode = select(isFish, f.position, d.position);
+  // In each animal's own space, before its instance matrix (see shapeBeforeInstancing).
+  shapeBeforeInstancing(material, select(isFish, f.position, d.position));
   material.colorNode = select(isFish, f.color, d.color);
   material.roughnessNode = select(isFish, f.roughness, d.roughness);
   return material;
@@ -132,7 +134,7 @@ export function createSplashMaterial(): MeshBasicNodeMaterial {
   const part = attribute('leapPart', 'float') as AnyNode;
   const rand = attribute('sheetRand', 'float') as AnyNode;
   const coord = uv() as AnyNode;
-  const p = positionLocal as AnyNode;
+  const p = positionGeometry as AnyNode;
 
   const isFoam = part.lessThan(0.5);
   const isPlume = part.greaterThan(1.5);
@@ -144,7 +146,9 @@ export function createSplashMaterial(): MeshBasicNodeMaterial {
   const foamSpread = sqrt(age).mul(0.7).add(0.55);
   const horiz = select(isFoam, foamSpread, select(isPlume, age.mul(0.4).add(1), spread));
   const lift = select(isFoam, float(1), select(isPlume, plumeRise, rise));
-  material.positionNode = vec3(p.x.mul(horiz), p.y.mul(lift), p.z.mul(horiz));
+  // About the splash's own centre, before its instance matrix moves it into place: as a
+  // `positionNode` this scaled its distance from the mesh's origin too (see shapeBeforeInstancing).
+  shapeBeforeInstancing(material, vec3(p.x.mul(horiz), p.y.mul(lift), p.z.mul(horiz)));
 
   // Spray cards: soft side edges, feathered top, breaking into droplets from the top as it ages.
   const edge = smoothstep(float(0), float(0.28), coord.x).mul(smoothstep(float(1), float(0.72), coord.x));
