@@ -141,7 +141,7 @@ export function createAnchorageStream(ctx: {
     await ctx.breathe();
     // Only what nothing in the scene still draws (the village kit, terrain textures and shared
     // models stay for the island you're on).
-    await releaseGpuCopies(objects, scene, ctx.breathe);
+    await releaseGpuCopies(objects, scene, ctx.breathe, ctx.terrain.geometries());
     // The session's parts come back with its own setup.
     parked = parked.filter((p) => !self.extra.includes(p.object));
     self.extra = [];

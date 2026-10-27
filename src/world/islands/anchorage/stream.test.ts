@@ -18,7 +18,7 @@ function world(warm?: (roots: unknown[]) => Promise<void>, breathe: () => Promis
   const stream = createAnchorageStream({
     scene,
     island: ANCHORAGE,
-    terrain: { group: terrain } as unknown as CreatedTerrain,
+    terrain: { group: terrain, geometries: () => [] } as unknown as CreatedTerrain,
     silhouette: new Group(),
     parts: () => [terrain, gulls, shrub],
     plantsAwake: () => {},

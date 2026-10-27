@@ -14,6 +14,7 @@ import { createKeelhavenContent, KEELHAVEN_CHEST_IDS, type KeelhavenContent } fr
 import { KEELHAVEN_NPCS, keelhavenExtras } from './keelhaven-npcs';
 import { BOOTH_LAYOUT } from '../world/market-stall/booth';
 import { KEELHAVEN_BOOTH } from '../world/islands/keelhaven/anchors';
+import { KEELHAVEN } from '../world/islands/keelhaven/layout';
 
 /** Each session's content, for its walk surfaces (made before the content, read once it's there). */
 const own = new WeakMap<IslandContent, KeelhavenContent>();
@@ -46,6 +47,7 @@ export const KEELHAVEN_CODE: IslandCode = {
       return c ? (own.get(c) ?? null) : null;
     };
     return {
+      box: KEELHAVEN.bounds,
       surfaces: [
         {
           heightAt: (x, z, y) => kh()?.surface.heightAt(x, z, y) ?? null,

@@ -11,7 +11,7 @@ import type { Brigantine } from '../world/ship';
 import type { IslandWays } from '../world/islands/waypoints';
 import type { VillageAnchor } from '../world/village/kit';
 import type { MarketStallLayout } from '../world/market-stall/layout';
-import type { InlandWater, WalkSurface } from './collision';
+import type { InlandWater, WalkBox, WalkSurface } from './collision';
 import type { CameraShot, FollowCamera } from './follow-camera';
 import type { Npc } from './npcs';
 import type { HelmsHost } from './puzzles/three-helms';
@@ -78,6 +78,11 @@ export interface IslandWalkContext {
 /** The island's part of the session's collision world (src/game/collision.ts). */
 export interface IslandWalk {
   surfaces: WalkSurface[];
+  /**
+   * Where its surfaces and water can be (its bake): the collision world skips them outside it (each
+   * surface without a `box` of its own takes this one), so an island far off costs the queries nothing.
+   */
+  box?: WalkBox;
   /** Colliders that stand from the start (they're data, not the streamed world). */
   circles?: readonly CircleObstacle[];
   /** Its pools and streams as they're drawn on this tier: wade the shallows, the deep middle stops you. */

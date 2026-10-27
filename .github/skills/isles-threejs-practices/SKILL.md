@@ -30,7 +30,7 @@ Every island is a package; shared systems never import an island's coordinates.
 | Island layout data        | none                                                                                                                                                                                                                                                                                                                                        | `src/world/layout.ts` (`COVE`), `islands/meridian-layout.ts` (`MERIDIAN`), `islands/thousand-bough/layout.ts`, `islands/keelhaven/layout.ts` (`KEELHAVEN`): plain data the registry entries import                                                  |
 | Ocean shallows (depth)    | `src/world/ocean/water-depth-texture.ts`: the home tile and one island tile slot holding the nearest lent tile (`addWaterDepthTile`, `tileUvBounds`); one format, so a swap builds no shader                                                                                                                                                | an entry with `stream.depthTile` builds its tile from its baked terrain and lends it while in memory (`createIslandDepthTile`, `src/world/islands/depth-tile.ts`; Thousand-Bough)                                                                   |
 | Coast foam surf           | `src/world/terrain/coast-foam.ts` `exposure` (0-1, default 0): a wider, whiter ribbon where the open sea reaches a steep shore (`shoreExposure`)                                                                                                                                                                                            | the island passes it                                                                                                                                                                                                                                |
-| Terrain levels of detail  | `src/world/terrain/terrain-mesh.ts`, opt-in: `prefilter` (coarse levels' mean height), `maxMergedTriangles` (Lite/Low far blocks), `morphFrames` (a chunk eases to its new level)                                                                                                                                                           | `KEELHAVEN.terrain`; the other islands keep the defaults                                                                                                                                                                                            |
+| Terrain levels of detail  | `src/world/terrain/terrain-mesh.ts`, opt-in: `prefilter` (coarse levels' mean height), `maxMergedTriangles` (Lite/Low far blocks), `morphFrames` (a chunk eases to its new level), `seabed` (deep sea floor: its coarsest level only)                                                                                                       | `KEELHAVEN.terrain`; the other islands keep the defaults                                                                                                                                                                                            |
 
 Adding an island: create its package and add one line to the island registry
 (docs/adding-an-island.md lists what the package gives, and the few tables that still have a line
@@ -346,6 +346,15 @@ hook (release it when the site is freed).
   and Low cloud keys decoded at half width, and the kit's roughness maps as KTX2 ETC1S
   (tools/village/ktx-roughness.mjs, `engine/ktx2.ts`). Base colour and normal maps stay WebP:
   ETC1S shows on them at High's distances, and UASTC would add megabytes to the download.
+- Find where memory goes per owner, not by guess (issue 316): wrap the renderer info's public
+  create/destroy calls for the live list, and note each geometry's creating stack (a scratch patch of
+  `setAttribute`). What paid on Keelhaven's terrain (High WebGPU 769.9 → 571.3 MB at its stop): vertex
+  data in the size it's baked in (masks and light are bytes: `unorm8`, not floats); a 16-bit index
+  kept 16-bit (three r186's WebGPU backend uploads every non-`normalized` `Uint16Array` as a 32-bit
+  copy and keeps the copy: `Index16Attribute`, engine/index-format.ts); no finer levels for chunks no
+  one sees closely (`seabed`: all deeper than 15 m); and a dormant island freeing every level, not only
+  the one each chunk shows (`CreatedTerrain.geometries`). Prove no visible change with frozen shots
+  at fixed views (the terrain dev page), against two runs of the old tree for the noise.
 
 ## 5. Lessons learned (bugs we have hit)
 
@@ -608,6 +617,12 @@ hook (release it when the site is freed).
   (a loaded run). Count draws when you plan Low's main thread, and don't expect per-object tricks to
   pay: sorting opaque draws by material (`setOpaqueSort`) and updating the shadow's reference nodes
   once per render instead of per object both measured within noise.
+- **Every island's hooks ran for every query:** each island's walk surfaces and water were asked
+  for all ~1150 of the follow camera's ground queries a frame, however far the island (Keelhaven's
+  added two calls each). An island's walk gives its bake as a `box` (`IslandWalk.box`,
+  `WalkSurface.box`), and the collision world skips it outside (issue 314). And a per-frame write to
+  shared state (the sky's mood) from an island that's far off must change nothing: set the shared
+  value once a frame and let each island apply its own within its reach (issue 322).
 - **What paid on the main thread:** early-outs on a box before the maths in anything the follow
   camera asks (~1000 ground queries a frame: the streets, door stairs, batteries, basins and streams
   each kept a box; `CollisionWorld.groundUnder` looks the terrain and bed up once); skipping a plant

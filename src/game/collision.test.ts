@@ -187,3 +187,26 @@ describe('CollisionWorld.groundUnder', () => {
           expect(w.groundUnder(x, z, y)).toBe(Math.min(w.groundAt(x, z), w.groundAt(x, z, y)));
   });
 });
+
+describe('walk surface boxes (issue 314)', () => {
+  it("doesn't ask a surface outside its box, and answers as before inside it", () => {
+    let calls = 0;
+    const deck = {
+      heightAt: (x: number) => {
+        calls++;
+        return x > 0 && x < 10 ? 5 : null;
+      },
+      kind: 'wood' as const,
+      box: { minX: 0, maxX: 10, minZ: -5, maxZ: 5 },
+    };
+    const w = new CollisionWorld({ ground: seabed, surfaces: [deck] });
+    expect(w.groundAt(500, 0)).toBe(-3);
+    expect(w.groundUnder(500, 0, 12)).toBe(-3);
+    expect(w.surfaceAt(500, 0)).not.toBe('wood');
+    expect(calls).toBe(0);
+    expect(w.groundAt(5, 0)).toBe(5);
+    expect(w.groundUnder(5, 0, 12)).toBe(5);
+    expect(w.surfaceAt(5, 0)).toBe('wood');
+    expect(calls).toBeGreaterThan(0);
+  });
+});
