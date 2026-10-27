@@ -453,20 +453,45 @@ export function seizeRail(
 }
 
 /**
- * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and a
- * turn round the mast's foot (under the fore course and the staysails' feet), clamped (`press` 0…1).
+ * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and
+ * half a turn round the mast's foot from its +x side round its after side (under the fore course
+ * and the staysails' feet, clear of the jib's clew ahead of it), clamped (`press` 0…1).
  */
 export function seizeMast(out: Points, press: number): void {
   const z0 = FORE.z;
   const deck = deckHeightAt(z0);
-  const r = 1.05 - 0.15 * press;
+  // Wide enough that its tip bones (about 1.6 m) lay round the mast without cutting into it.
+  const r = 1.45 - 0.1 * press;
   out.push(halfBeamAt(z0 + 2.4, 1.5) + 2.4, 0.3, z0 + 2.7);
   out.push(halfBeamAt(z0 + 2.2, 1.5) + 0.9, deck + 1.9, z0 + 2.3);
-  out.push(1.7, deck + 1.0, z0 + 1.5);
-  // Round the mast from its forward face: ahead, to port, aft and back to starboard.
-  for (let k = 0; k <= 8; k++) {
-    const a = (k / 8) * Math.PI * 2 * 0.9;
-    out.push(Math.sin(a) * r, deck + 0.85 - 0.25 * (k / 8) - 0.1 * press, z0 + Math.cos(a) * r);
+  out.push(2.1, deck + 1.1, z0 + 1.1);
+  for (let k = 0; k <= 5; k++) {
+    const a = ((60 + k * 40) * Math.PI) / 180;
+    out.push(Math.sin(a) * r, deck + 0.85 - 0.04 * k - 0.1 * press, z0 + Math.cos(a) * r);
+  }
+}
+
+/**
+ * Cuts `p` to the first `frac` (0…1) of its length, the last point moved back along its leg: an arm
+ * coming up along its shape, tip first.
+ */
+export function truncatePoints(p: Points, frac: number): void {
+  if (frac >= 1 || p.n < 2) return;
+  const want = p.length() * Math.max(0, frac);
+  const q = p.xyz;
+  let run = 0;
+  for (let i = 1; i < p.n; i++) {
+    const j = i * 3;
+    const leg = Math.hypot(q[j]! - q[j - 3]!, q[j + 1]! - q[j - 2]!, q[j + 2]! - q[j - 1]!);
+    if (run + leg >= want) {
+      const f = leg > 0 ? (want - run) / leg : 0;
+      q[j] = q[j - 3]! + (q[j]! - q[j - 3]!) * f;
+      q[j + 1] = q[j - 2]! + (q[j + 1]! - q[j - 2]!) * f;
+      q[j + 2] = q[j - 1]! + (q[j + 2]! - q[j - 1]!) * f;
+      p.n = i + 1;
+      return;
+    }
+    run += leg;
   }
 }
 

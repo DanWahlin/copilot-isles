@@ -1,7 +1,7 @@
 // Sea battle 3, "Trust the Evidence" (the passage from Thousand-Bough Isle to Keelhaven): Chapters 00-02
 // done off camera, the chart to Thousand-Bough, aboard and out toward Keelhaven until the lookout calls
 // sails, then the three waves fought with the real controls (the first question answered wrong). After
-// wave 1 the kraken: the evidence on the sea, the raiders' flagship sailing straight over it and taken.
+// wave 1 the kraken: the evidence on the sea, the raiders' flagship sailing straight over it, seized.
 // Wave 2 with the kraken still there: its tells, your helmsman steering clear (a dodge), a tell on a
 // raider's course (a lure: she's taken), and one you hold your course over (a hit). Wave 3 short, the
 // kraken going back down, the win card, and the night passing at sea into Keelhaven's morning. About
@@ -90,18 +90,18 @@ export default battleScenario({
   },
   async afterReward(page, api, wave) {
     if (wave !== 0) return;
-    // The kraken's beat: the evidence, the flagship sailing over it, taken. Played whole.
+    // The kraken's beat, played whole (about 17 s): the cut to the evidence, the flagship close and
+    // sailing over it, seized, torn in two and under, and the battle carries on.
     const l = await krakenUntil(api, (k) => k.stage === 'evidence', 10_000);
     if (!l) return api.log('no kraken beat after wave 1');
     api.mark('evidence');
     await krakenUntil(api, (k) => k.stage === 'approach', 10_000);
     api.mark('flagship');
-    // The flagship's run in is trimmed a little; she still sails into it on camera.
-    await api.cutWhile(() => krakenUntil(api, (k) => k.wrap === 'grip', 40_000), { head: 7000, tail: 5000 });
-    api.mark('taken');
-    await krakenUntil(api, (k) => k.wrap === 'break', 30_000);
+    await krakenUntil(api, (k) => k.wrap === 'grip' || k.wrap === 'squeeze', 20_000);
+    api.mark('seized');
+    await krakenUntil(api, (k) => k.wrap === 'break', 10_000);
     api.mark('break');
-    await krakenUntil(api, (k) => k.stage === 'stay', 40_000);
+    await krakenUntil(api, (k) => k.stage === 'stay', 20_000);
     api.mark('it stays');
   },
   async board(page, api) {

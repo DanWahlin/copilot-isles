@@ -22,6 +22,7 @@ import {
   seizeRail,
   standPath,
   reachOver,
+  truncatePoints,
   freeStance,
   type FreeStance,
 } from './arm-paths';
@@ -1271,12 +1272,14 @@ export class KrakenEncounter {
     const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
     const release = (1 - out) * (1 - letGo);
     if (this.seizing) {
-      // Straight up out of the sea and over her rail (or round her foremast) in one move, then
-      // clamped down harder with each squeeze.
-      const wSeize = ease((w - s.riseAt - tm.riseEach * 0.15) / (tm.riseEach * 0.75)) * release;
-      if (wSeize <= 0) return;
+      // Up out of the sea along its arc, tip first, and over her rail (or round her foremast) in one
+      // move, then clamped down harder with each squeeze. It leaves its free pose at once, while both
+      // are a stub at the water (a slow blend between them would swing its tip through her rig).
+      const reach = Math.min(1, heavy((w - s.riseAt) / (tm.riseEach + tm.arc), a, o));
+      if (reach <= 0) return;
+      const wSeize = Math.min(1, reach * 5) * release;
       const press = Math.min(1, 0.6 * clamp01(grip) + 0.4 * squeeze);
-      this.shipPath(s, s.target, frame, _a, sea, SEIZE_SHAPE[role] ?? SHAPE_SEIZE_FORE, press, 0);
+      this.shipPath(s, s.target, frame, _a, sea, SEIZE_SHAPE[role] ?? SHAPE_SEIZE_FORE, press, 0, reach);
       arm.poser.pose(s.target, wSeize, _axisAim);
       return;
     }
@@ -1359,6 +1362,7 @@ export class KrakenEncounter {
     shape: number,
     u: number,
     v: number,
+    reach = 1,
   ): void {
     frame.updateWorldMatrix(true, false);
     _m.copy(frame.matrixWorld);
@@ -1366,6 +1370,7 @@ export class KrakenEncounter {
     const arm = s.arm;
     arm.poser.base(_b);
     shapePoints(shape, u, v);
+    truncatePoints(_pts, reach);
     // The shape's own length above the water, so the loop under it takes up only the rest.
     let above = shapeLength(e, sea);
     // An arc that's more than the arm can reach comes over less far (it still curves, all of it on

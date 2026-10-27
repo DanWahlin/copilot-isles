@@ -102,10 +102,10 @@ raiders into it. The plan's `events` hook holds it: `KEELHAVEN_BATTLE.events` is
 
 | Beat | What happens | Code |
 |---|---|---|
-| **The evidence** (after wave 1's question) | The battle holds in phase `event`: no raiders, your guns held (the powder rows dim). 75 m off your bow the sea shows the evidence: bubbles, a dark shadow, a swirl and the orange danger ring. Juno calls it (`b3.juno.evidence`). | `KrakenAct.begin`, `KrakenEncounter.showEvidence` |
-| **The flagship** | The raiders' flagship (the course's name, `kraken.flagship`) comes out of a fog bank about 190 m off, sails set, and sails straight over the evidence (`b3.juno.flagship`). | `KrakenAct.steerFlagship` |
-| **Taken** | The full wrap and break with its finale (about 40 s; reduced motion: the quick wrap, about 14 s). The arms rising round her take her way off, and the grip stops her over the evidence; her sails stay set through the wrap, and her two halves keep them. Wingman says why (`b3.wingman.taken`). The battle camera holds a `kraken` shot on it (`BattleCamera.hold`). **Skip** (the HUD button, E or the gamepad's A) ends it at once. | `wrapAndBreak(flagship, { finale })`, `ShipDynamics.held` |
-| **It stays** (waves 2 and 3) | Wingman: lead the raiders over the bubbles (`b3.wingman.stays`). Every 6.5–9.5 s of a fight a tell rises: near your ship (ahead and off your line, so turning away clears it) or, every third, on a raider's course (a lure). It shows 2.6–2.8 s of evidence, then an arm slams (14 m) or sweeps (24 m arc) and hits **any ship** in its area. A raider it strikes is taken (the quick wrap, `b3.juno.lured`) and leaves her stores; your hull takes half the hazard's damage (slam 17, sweep 11, a standing arm 1.5; halved again in calm seas), and the base repairs still help. The helm hint (and your helmsman, while he has the helm) steers clear of the bubbles. | `KrakenAct.tell`, `Battle.strikeFromBelow`, `Battle.take` |
+| **The evidence** (after wave 1's question) | The battle holds in phase `event`: no raiders, your guns held (the powder rows dim). It opens with a cut (the HUD's dip to dark, `bh-dip`) to the sea 52 m off your bow: bubbles, a dark shadow, a swirl and the orange danger ring, in clear view (no fog). Juno calls it (`b3.juno.evidence`, 5.5 s). | `KrakenAct.begin`, `KrakenEncounter.showEvidence` |
+| **The flagship** | The raiders' flagship (the course's name, `kraken.flagship`) is already close (40 m short of the evidence), sails set, and sails straight over it (`b3.juno.flagship`). | `KrakenAct.steerFlagship` |
+| **Taken** | Quick and hard (`wrapAndBreak(flagship, { seize })`, `KRAKEN_TIMING_BATTLE`, about 10 s from the first tip to the last arm down): four arms burst up on both sides of her at once (one round the foremast's foot) and arc in over her rails onto her deck (about 2 s); she lurches and heels; the squeeze and the crack (2 s); torn in two and under (about 3.5 s); the arms withdraw (2 s). No arm comes within 0.7 m of her canvas, set or furled, flat or full, or near a yard or a mast (`rig-clearance.ts`, `arm-paths.test.ts`; `tools/battletest.mjs` checks the drawn arms). Her sails stay set, and her two halves keep them. Wingman says why (`b3.wingman.taken`). The battle carries on 16–18 s after Juno's call. The battle camera holds a `kraken` shot on it (`BattleCamera.hold`, from a cut). **Skip** (the HUD button, E or the gamepad's A) ends it at once. The dev page's slow, cinematic wrap (`KRAKEN_TIMING`) is the dev page's only. | `wrapAndBreak(flagship, { seize })`, `ShipDynamics.held` |
+| **It stays** (waves 2 and 3) | Wingman: lead the raiders over the bubbles (`b3.wingman.stays`). Every 6.5–9.5 s of a fight a tell rises: near your ship (ahead and off your line, so turning away clears it) or, every third, on a raider's course (a lure). It shows 2.6–2.8 s of evidence, then an arm slams (14 m) or sweeps (24 m arc) and hits **any ship** in its area. A raider it strikes is seized and taken (as the flagship, `b3.juno.lured`) and leaves her stores; your hull takes a quarter of the hazard's damage (slam 8.5, sweep 5.5, a standing arm 0.75; halved again in calm seas), and the base repairs still help. The helm hint (and your helmsman, while he has the helm) steers clear of the bubbles. | `KrakenAct.tell`, `Battle.strikeFromBelow`, `Battle.take` |
 | **It retreats** | When the last raider is gone (the last wave's lull), it goes back down (`b3.juno.retreat`). The question, the win card and the next morning follow as before. | `KrakenEncounter.retreat` |
 
 - **The lesson tie.** The evidence ("That's evidence: something's down there"), Wingman's "A confident
@@ -120,9 +120,13 @@ raiders into it. The plan's `events` hook holds it: `KEELHAVEN_BATTLE.events` is
   the crew can haul (`SAIL_RATE`). Each draw of the canvas (and of a broken ship's pieces) counts a
   jump (`Brigantine.sailJumps`); `src/world/ship/sail-state.test.ts` and `tools/battletest.mjs` hold it
   at 0.
-- **Budgets.** It adds four shader stages (the kraken's skinned vertex and lit fragment, the tell
-  marks' pair; the marks draw in one pass, `forceSinglePass`). `?nokraken` plays battle 3 without it
-  (a census without it).
+- **A splash needs a visible cause.** Tell and evidence bubbles start only once the shadow under them
+  reads; a seize has no tell of its own (the evidence, or the strike that caught her, is its tell); air
+  out of a half going under rises along it while it shows; a sinking raider's last gout comes where
+  and when her stem goes under (`Battle.settle`, `splashes.test.ts`).
+- **Budgets.** It adds two shader stages (the kraken's skinned vertex and lit fragment; the tell
+  marks draw with the sparkles' look). Battle 3's peak is 140 (138 without it). `?nokraken` plays
+  battle 3 without it (a census without it).
 
 ### 2.1 Keelhaven (later): "Trust the Evidence"
 
