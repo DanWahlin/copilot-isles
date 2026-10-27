@@ -121,6 +121,11 @@ export interface HouseData {
 }
 
 export interface MarketData {
+  /**
+   * The hire's picks (the house special, then each size) show in their own order: they're a scale
+   * from small to large, so they don't shuffle like a quiz's answers (src/learn/option-order.ts).
+   */
+  picksInOrder?: boolean;
   categories: readonly {
     id: ModelCategoryId;
     acts: ModelTier;

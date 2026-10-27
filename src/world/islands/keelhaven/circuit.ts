@@ -56,8 +56,13 @@ const BARGE = { u: 4, v: CANAL.v - 2.4 } as const;
 export const CIRCUIT_SPOTS: {
   ring: Readonly<Record<string, StationSpot>>;
   flight: Readonly<Record<string, StationSpot>>;
-  /** The flight's lamps station is at the lock that runs: Lock 1 in part 1, Lock 2 in part 2. */
-  flightLamps: readonly StationSpot[];
+  /**
+   * Flight places whose station moves with the part (index = lap): the lamps are at the lock that runs
+   * (Lock 1's from the pound's head in part 1, Lock 2's in part 2), and part 1's Sea Gate is read from
+   * the cut's head below Lock 2 (the gate's in view down the cut, and Arlo's a few steps on), part 2's
+   * at the gate itself, on the way to the Gate Light.
+   */
+  flightLaps: Readonly<Record<string, readonly StationSpot[]>>;
 } = {
   ring: {
     post: { u: 168.6, v: D2 - 1.4, lamp: 'ring:post', look: { u: 160, y: yard + 1, v: D2 } },
@@ -77,13 +82,19 @@ export const CIRCUIT_SPOTS: {
     barge: { u: 7, v: NEAR, lamp: 'flight:barge', look: { u: BARGE.u, y: 0.6, v: BARGE.v } },
     gate2: { u: 18.6, v: -50.4, lamp: 'flight:gate2', look: { u: 16, y: 2, v: CANAL.v } },
     seaGate: { u: -18, v: NEAR, lamp: 'flight:seaGate', look: { u: SEA_GATE_U, y: 1, v: CANAL.v } },
-    // The lamps station's place moves with the lock that runs (`flightLamps`).
-    lamps: { u: 58.5, v: -50.8, lamp: 'lock:1', look: { u: 55, y: yard + 2, v: -67 } },
+    // The lamps station's place moves with the lock that runs (`flightLaps`).
+    lamps: { u: 48.5, v: -50.4, lamp: 'lock:1', look: { u: 55, y: yard + 2, v: -67 } },
   },
-  flightLamps: [
-    { u: 58.5, v: -50.8, lamp: 'lock:1', look: { u: 55, y: yard + 2, v: -67 } },
-    { u: 21, v: -50.4, lamp: 'lock:3', look: { u: 19, y: terrace + 2, v: -67 } },
-  ],
+  flightLaps: {
+    lamps: [
+      { u: 48.5, v: -50.4, lamp: 'lock:1', look: { u: 55, y: yard + 2, v: -67 } },
+      { u: 21, v: -50.4, lamp: 'lock:3', look: { u: 19, y: terrace + 2, v: -67 } },
+    ],
+    seaGate: [
+      { u: 12.4, v: NEAR, lamp: 'flight:seaView', look: { u: SEA_GATE_U, y: 1.5, v: CANAL.v } },
+      { u: -18, v: NEAR, lamp: 'flight:seaGate', look: { u: SEA_GATE_U, y: 1, v: CANAL.v } },
+    ],
+  },
 };
 
 /** Gate 2's post carries a lamp for each of its four agreements (`gate2:0`..`gate2:3`). */
@@ -311,6 +322,8 @@ export function buildCircuitProps(b: Buckets, out: ShipyardOut, lite: boolean): 
   const cut = top('cut');
   stationPost(b, out, F.barge!.lamp, F.barge!.u + 1.6, NEAR + 0.9, cut, 2.2);
   stationPost(b, out, F.seaGate!.lamp, F.seaGate!.u - 1.6, NEAR + 0.9, cut, 2.6);
+  const view = CIRCUIT_SPOTS.flightLaps.seaGate![0]!;
+  stationPost(b, out, view.lamp, view.u + 1.6, NEAR + 0.9, cut, 2.2);
   // Gate 2's post: a crossbar with its four lamps (diff, local, checks, review), and its own lamp.
   const g2 = F.gate2!;
   const gu = g2.u - 1.6;

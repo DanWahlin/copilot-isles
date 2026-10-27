@@ -5,8 +5,9 @@ import { islandSign } from '../course/active';
 import { puzzleContent, puzzleOn, textOf } from '../course/puzzles';
 import type { CircleObstacle } from '../world/contracts';
 import { naturalWaterAt } from '../world/islands/fresh-water-natural';
-import { KEELHAVEN_ANCHORS } from '../world/islands/keelhaven/anchors';
+import { headingUv, KEELHAVEN_ANCHORS } from '../world/islands/keelhaven/anchors';
 import { DeckIndex } from '../world/islands/keelhaven/decks';
+import { gateStairTreads } from '../world/islands/keelhaven/gate-stair';
 import { keelhavenWater } from '../world/islands/keelhaven/height';
 import type { KeelhavenWorld } from '../world/islands/keelhaven/index';
 import { KEELHAVEN, toWorld } from '../world/islands/keelhaven/layout';
@@ -165,6 +166,8 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         ...head,
         prompt: T('pick'),
         options: bars.map((b) => ({ id: b, label: T(b), tried: tried.has(b) })),
+        // A tune's bars, in order.
+        ordered: true,
       });
       if (!pick || !world) return card.close();
       // The second bar rings wrong (a red ripple on the music line).
@@ -282,42 +285,64 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
     host.backToTalk();
   });
 
-  /** The ledgers: set the Issues ledger's port to your fork; the Pull requests ledger keeps its own. */
+  /**
+   * The ledgers (03 · 4-find-work-in-issues-and-pull-requests): each view's query takes your fork's
+   * `repo:` term in Query filter mode. First the Issues ledger (add it, don't replace the query, and
+   * there's no repository list), then Pull requests, whose query doesn't share it. The words are the
+   * pack's signs.
+   */
   host.cues.set('kh-ledgers', async () => {
     if (!world) return;
     host.frame(SHOTS.ledgers);
-    const issues = islandSign('keelhaven', 'ledgerIssues');
-    const pulls = islandSign('keelhaven', 'ledgerPulls');
-    const all = islandSign('keelhaven', 'ledgerAll');
-    const fork = islandSign('keelhaven', 'ledgerFork');
-    const tried = new Set<string>();
-    for (;;) {
-      const pick = await ask({
-        eyebrow: 'Harbourmaster Stroud',
-        title: issues,
-        prompt: `${issues}: ${all}`,
-        options: [
-          { id: 'all', label: all, tried: tried.has('all') },
-          { id: 'fork', label: fork },
-        ],
-      });
-      if (!pick || !world) return card.close();
-      if (pick === 'fork') break;
-      tried.add(pick);
-      card.message(`${issues}: ${all}`, 'bad');
-      await wait(700);
-    }
+    const sign = (k: string) => islandSign('keelhaven', k);
+    const eyebrow = 'Harbourmaster Stroud';
     const l0 = KEELHAVEN_SET.ledgers[0];
+    const l1 = KEELHAVEN_SET.ledgers[1];
+    /** One ledger's card: asked until the right pick, each wrong one with its reason. */
+    const ledger = async (
+      title: string,
+      prompt: string,
+      right: { id: string; label: string },
+      wrong: readonly { id: string; label: string; why: string }[],
+    ): Promise<boolean> => {
+      const tried = new Set<string>();
+      for (;;) {
+        const pick = await ask({
+          eyebrow,
+          title,
+          prompt,
+          options: [right, ...wrong.map((w) => ({ id: w.id, label: w.label, tried: tried.has(w.id) }))],
+        });
+        if (!pick || !world) return false;
+        if (pick === right.id) return true;
+        tried.add(pick);
+        card.message(wrong.find((w) => w.id === pick)?.why ?? '', 'bad');
+        await wait(900);
+      }
+    };
+    const issues = await ledger(
+      sign('ledgerIssues'),
+      sign('ledgerIssuesAsk'),
+      { id: 'add', label: sign('ledgerAddRepo') },
+      [
+        { id: 'replace', label: sign('ledgerReplace'), why: sign('ledgerKeep') },
+        { id: 'pick', label: sign('ledgerPick'), why: sign('ledgerNoList') },
+      ],
+    );
+    if (!issues) return card.close();
     sfx('stone_turn', atUv(l0.u, yard + 0.6, l0.v), 0.6);
-    const open = await ask({
-      eyebrow: 'Harbourmaster Stroud',
-      title: pulls,
-      prompt: `${issues}: ${fork}`,
-      options: [{ id: 'open', label: pulls }],
-    });
-    if (!open || !world) return card.close();
-    card.message(`${pulls}: ${all}`, 'info');
-    await wait(host.reducedMotion() ? 900 : 1800);
+    card.message(sign('ledgerIssuesDone'), 'good');
+    await wait(host.reducedMotion() ? 700 : 1300);
+    const pulls = await ledger(
+      sign('ledgerPulls'),
+      sign('ledgerPullsAsk'),
+      { id: 'same', label: sign('ledgerSame') },
+      [{ id: 'shared', label: sign('ledgerShared'), why: sign('ledgerPerView') }],
+    );
+    if (!pulls) return card.close();
+    sfx('stone_turn', atUv(l1.u, yard + 0.6, l1.v), 0.6);
+    card.message(sign('ledgerPullsDone'), 'good');
+    await wait(host.reducedMotion() ? 900 : 1600);
     card.close();
     host.backToTalk();
   });
@@ -543,6 +568,12 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         host.frame(shotUv(u + 6, yard + 8, -42, u, 2.5, -60));
       },
       lamp: (key: string) => circuits.debug.lamp(key),
+      stations: () => circuits.debug.spots(),
+      /** Every fourth tread of the Gate Light's stair, its middle and the way it climbs (tests push at its rails). */
+      railedTreads: () =>
+        gateStairTreads()
+          .filter((_, k) => k % 4 === 2)
+          .map((t) => ({ ...toWorld(t.u, t.v), y: t.y, heading: headingUv(t.tu, t.tv) })),
     },
     dispose() {
       disposed = true;

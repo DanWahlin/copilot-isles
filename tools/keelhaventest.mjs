@@ -2,7 +2,7 @@
 // End-to-end Chapter 03 run on Keelhaven, in the course's order (docs/specs/ISLAND-03-keelhaven.md §4):
 // ashore at the Old Town quay (the arrival flyover, Juno and Wingman), Lyra's re-take on the tavern porch
 // (a wrong bar first), Hester's Evidence Board, Dory's sounding, tool chest and bell cord (and her app
-// card), Cass and the Drydock Ring's two laps, Barty at the Old Hulk, Stroud's ledgers (the wrong port
+// card), Cass and the Drydock Ring's two laps, Barty at the Old Hulk, Stroud's ledgers (a wrong query
 // first) and the Lock Flight's two parts (Stroud's and Arlo's), station by station with a wrong pick first
 // where there is one, and Ottoline's Trial at the Gate Light and the Seal (the light kindles, the lamps
 // turn green). Then the chests, the bottles and the starfish.
@@ -89,46 +89,65 @@ async function clickHotspot() {
 
 /**
  * A set piece's or a circuit station's choice card (the re-take, the sounding, the ledgers, the ring,
- * the flight): a wrong pick first where there is one, so each way back is played too.
+ * the flight): a wrong pick first where there is one, so each way back is played too. Pairs of
+ * [right, wrong] ids; the options show shuffled, so picks go by id (keys 1-9 in the order shown).
  */
-const WRONG_FIRST = {
-  bar2: 'bar1',
-  fork: 'all',
+const WRONG_FIRST = [
+  ['bar2', 'bar1'],
+  // The ledgers: replace the query, then think the Issues query covers Pull requests.
+  ['add', 'replace'],
+  ['same', 'shared'],
   // The Drydock Ring: a plan that hides the number, approving a slate with a stray mark, a check that
-  // can't tell the bug from the fix, and the gauge that never floods.
-  filtered: 'hide',
-  pry: 'approve',
-  both: 'unread',
-  new: 'always',
-  // The Lock Flight: the issue's own New session (on main), half an answer, a gauge filed down.
-  dock3: 'main',
-  whole: 'half',
-  fix: 'file',
-};
+  // can't tell the bug from the fix, the gauge that never floods, an old mark moved, a seal on a claim.
+  ['filtered', 'hide'],
+  ['pry', 'approve'],
+  ['both', 'unread'],
+  ['new', 'always'],
+  ['focused', 'moved'],
+  ['evidence', 'claim'],
+  // The Lock Flight: the issue's own New session (on main), polish in the diff, Gate 1 sealed on a
+  // claim, half an answer, a gauge filed down, Gate 2 on one green lamp, and the Sea Gate opened.
+  ['dock3', 'main'],
+  ['focused', 'polish'],
+  ['seal', 'claim'],
+  ['whole', 'half'],
+  ['fix', 'file'],
+  ['seal', 'green'],
+  ['shut', 'open'],
+];
 const cardTried = new Set();
+/** Each choice card's options, in the order shown, and where the right one was (the shuffle's check). */
+const cardOrders = [];
 async function answerChoice() {
   const v = await kh('card');
   if (!v?.open || v.busy) return false;
   const ids = v.options.map((o) => o.id);
-  const key = `${v.title}|${ids.join(',')}`;
+  const key = `${v.title}|${[...ids].sort().join(',')}`;
   if (!seen.has(`card-${key}`)) {
     seen.add(`card-${key}`);
     await page.waitForTimeout(400);
     await shot(`card-${v.title.replace(/[^\w]+/g, '_').slice(0, 24)}`);
+    const right = WRONG_FIRST.find(([r, w]) => ids.includes(r) && ids.includes(w))?.[0];
+    if (right) cardOrders.push(ids.indexOf(right));
   }
   // Never the circuit's own Leave or Skip (a demo plays out by itself).
   const free = ids.filter((id) => !id.startsWith('·leave') && !id.startsWith('·skip'));
   if (!free.length) return false;
   let pick = free.find((id) => !v.options.find((o) => o.id === id).tried) ?? free[0];
-  for (const [right, wrong] of Object.entries(WRONG_FIRST))
-    if (ids.includes(right) && ids.includes(wrong) && !cardTried.has(wrong)) pick = wrong;
-    else if (ids.includes(right)) pick = right;
-  cardTried.add(pick);
+  const pair = WRONG_FIRST.find(([r, w]) => ids.includes(r) && ids.includes(w));
+  if (pair) pick = cardTried.has(`${key}|${pair[1]}`) ? pair[0] : pair[1];
+  else {
+    const r = WRONG_FIRST.find(([r]) => ids.includes(r));
+    if (r) pick = r[0];
+  }
+  cardTried.add(`${key}|${pick}`);
   // Through the card's own keys (1-9), as a player would.
   await tap(`Digit${ids.indexOf(pick) + 1}`);
   return true;
 }
 
+/** Where each one-answer quiz's right answer showed (the answers shuffle per quiz and voyage). */
+const quizOrders = [];
 const seen = new Set();
 const cardPlan = { later: [] };
 /** Drives dialogue, quizzes, reveals, cards and set pieces until `done(state)`. */
@@ -153,6 +172,21 @@ async function drive(label, done, ms = 180000) {
         seen.add(s.quiz.id);
         await page.waitForTimeout(600);
         await shot(`quiz-${s.quiz.id}`);
+        if (s.quiz.type === 'mc' || s.quiz.type === 'scenario') {
+          // The right answer's place as shown, read from the panel's own buttons against the quiz's.
+          const at = await S(async () => {
+            const q = window.__dev.learn.getState().quiz.quiz;
+            const { quizOptions } = await import('/src/learn/option-order.ts');
+            const shown = [...document.querySelectorAll('.ci-quiz .ci-options .ci-option span')].map((e) =>
+              e.textContent.trim(),
+            );
+            const order = quizOptions(q);
+            const right = order.findIndex((o) => o.id === q.answer);
+            return { right, agrees: shown.length === order.length };
+          });
+          if (!at.agrees) fail(`quiz ${s.quiz.id}: the panel's options don't match the shuffled order`);
+          quizOrders.push(at.right);
+        }
       }
       if (s.quiz.correct) await tap('KeyE');
       else if (s.quiz.type === 'hotspot') await clickHotspot();
@@ -435,6 +469,15 @@ const starfish = await S(() =>
     .filter((s) => s.island === 'keelhaven'),
 );
 if (starfish.length !== 5) fail(`${starfish.length} starfish on Keelhaven, not 5`);
+
+// The answers shuffle: the right one isn't always first (P02 of the play review).
+for (const [what, list] of [
+  ['quizzes', quizOrders],
+  ['choice cards', cardOrders],
+])
+  if (list.length >= 5 && list.filter((i) => i === 0).length > list.length * 0.6)
+    fail(`${what}: the right answer showed first in ${list.filter((i) => i === 0).length} of ${list.length}`);
+note(`right answer's place: quizzes ${quizOrders.join(',')}; cards ${cardOrders.join(',')}`);
 
 const hitches = await S(() => window.__isles?.hitches?.() ?? []);
 if (hitches.length) fail(`hitches after warm-up: ${JSON.stringify(hitches)}`);

@@ -1,0 +1,87 @@
+{
+  "id": "kh.otto.more",
+  "speaker": "Ottoline",
+  "text": "And one more job, if you want it, Captain. Talk to me again when you're ready.",
+  "words": [
+    {
+      "word": "And",
+      "start": 0,
+      "end": 0.22
+    },
+    {
+      "word": "one",
+      "start": 0.22,
+      "end": 0.448
+    },
+    {
+      "word": "more",
+      "start": 0.448,
+      "end": 0.74
+    },
+    {
+      "word": "job",
+      "start": 0.74,
+      "end": 1.253
+    },
+    {
+      "word": "if",
+      "start": 1.253,
+      "end": 1.4
+    },
+    {
+      "word": "you",
+      "start": 1.4,
+      "end": 1.584
+    },
+    {
+      "word": "want",
+      "start": 1.584,
+      "end": 1.893
+    },
+    {
+      "word": "it",
+      "start": 1.893,
+      "end": 2.14
+    },
+    {
+      "word": "Captain",
+      "start": 2.14,
+      "end": 2.8
+    },
+    {
+      "word": "Talk",
+      "start": 2.8,
+      "end": 3.493
+    },
+    {
+      "word": "to",
+      "start": 3.493,
+      "end": 3.653
+    },
+    {
+      "word": "me",
+      "start": 3.653,
+      "end": 3.813
+    },
+    {
+      "word": "again",
+      "start": 3.813,
+      "end": 4.128
+    },
+    {
+      "word": "when",
+      "start": 4.128,
+      "end": 4.34
+    },
+    {
+      "word": "you're",
+      "start": 4.34,
+      "end": 4.533
+    },
+    {
+      "word": "ready",
+      "start": 4.533,
+      "end": 4.783
+    }
+  ]
+}

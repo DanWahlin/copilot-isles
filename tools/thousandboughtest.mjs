@@ -556,7 +556,14 @@ if (opt.from === 'elder') {
     timeout: 30000,
   });
   await shot('twist-question');
-  await page.keyboard.press('Digit1');
+  // A wrong answer first, by its key in the order shown (the answers shuffle per voyage).
+  const wrongKey = await S(
+    () =>
+      [...document.querySelectorAll('.ci-cr-choices button')].findIndex((b) => b.dataset.choice === 'redig') +
+      1,
+  );
+  if (wrongKey < 1) fail('the Spire twist has no "redig" answer');
+  await page.keyboard.press(`Digit${Math.max(1, wrongKey)}`);
   await page.waitForTimeout(800);
   await shot('twist-wrong');
   await page.waitForFunction(() => !document.querySelector('.ci-cr-choices button')?.disabled, null, {

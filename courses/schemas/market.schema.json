@@ -23,6 +23,10 @@
     "$comment": {
       "type": "string"
     },
+    "picksInOrder": {
+      "description": "The hire's picks show in their own order (a scale from small to large), not shuffled like a quiz's answers.",
+      "type": "boolean"
+    },
     "categories": {
       "description": "The course's model categories (models.json names them), smallest (cheapest) to largest: the boards' order and their size marks, each bound to a size the grading reads.",
       "type": "array",

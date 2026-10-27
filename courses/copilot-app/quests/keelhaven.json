@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/quests.schema.json",
-  "$comment": "Keelhaven (Chapter 03: Development and GitHub Workflows), docs/specs/ISLAND-03-keelhaven.md §4. The island is in build: its cast ids, story names, signs, cues and compass ids are the wiring step’s contract (the spec’s § Wiring contract), and the game leaves this file out until Keelhaven is in the registry.",
+  "$comment": "Keelhaven (Chapter 03: Development and GitHub Workflows), docs/specs/ISLAND-03-keelhaven.md §4. Its cast ids, story names, signs, cues and compass ids are the game’s contract (the spec’s § Wiring contract).",
   "island": "keelhaven",
   "tracker": {
     "chapter": "Chapter 03 · Dev & GitHub Workflows",
@@ -92,7 +92,7 @@
       },
       "steps": {
         "start": "Stroud keeps the harbour office at Lock 1.",
-        "done": "Each view has its own filter. The practice pull requests are on Authored by me."
+        "done": "Filters belong to the selected view: check the query’s repo: term when you change tabs. The practice pull requests are on Authored by me."
       }
     },
     {
@@ -122,7 +122,7 @@
         "start": "Arlo keeps Lock 2.",
         "flight": "Bring both hulls through Lock 2.",
         "solved": "Both hulls are through. Talk to Arlo.",
-        "done": "Answer the whole comment. Fix the code, not the test. Merge only when the evidence agrees."
+        "done": "Answer the whole comment. Fix the code, not the test. Don’t mark a pull request ready until the local and GitHub evidence agree."
       }
     },
     {
@@ -560,8 +560,20 @@
     "lampPlate": "Book app web",
     "ledgerIssues": "Issues",
     "ledgerPulls": "Pull requests",
-    "ledgerAll": "Every repository",
-    "ledgerFork": "Your fork",
+    "ledgerIssuesQuery": "state:open assignee:@me",
+    "ledgerPullsQuery": "state:open author:@me",
+    "ledgerIssuesAsk": "Assigned to me, in Query filter mode: state:open assignee:@me. Issues from every repository show. Limit it to your fork.",
+    "ledgerAddRepo": "Add repo:YOUR-OWNER/copilot-app-for-beginners to the query",
+    "ledgerReplace": "Replace the query with the repo: term",
+    "ledgerPick": "Pick your fork from a list of repositories",
+    "ledgerKeep": "Keep state:open assignee:@me, and add the repo: term to it.",
+    "ledgerNoList": "There’s no list to pick from: add a repo: term to the query.",
+    "ledgerIssuesDone": "Issues: only your fork’s practice issues.",
+    "ledgerPullsAsk": "Authored by me, in Query filter mode: state:open author:@me.",
+    "ledgerSame": "Add the same repo: term to its query",
+    "ledgerShared": "Nothing: the Issues query covers it",
+    "ledgerPerView": "Filters belong to the selected view. When you change tabs, check the query and add the repo: term again.",
+    "ledgerPullsDone": "Authored by me: the practice pull requests.",
     "hullSearch": "Make search case-insensitive",
     "hullNote": "Improve empty-state copy",
     "hullLamp": "Failing stats check practice",
@@ -690,16 +702,16 @@
         "say": "kh.dory.02"
       },
       {
-        "cue": "kh-sounding"
-      },
-      {
-        "say": "kh.dory.03"
-      },
-      {
         "cue": "kh-tool-chest"
       },
       {
         "say": "kh.dory.04"
+      },
+      {
+        "cue": "kh-sounding"
+      },
+      {
+        "say": "kh.dory.03"
       },
       {
         "quiz": "K3.3"
@@ -774,7 +786,7 @@
         "file": "pg3.inner"
       },
       {
-        "page": "pg3.fix"
+        "file": "pg3.fix"
       },
       {
         "page": "pg3.validate",
@@ -841,16 +853,10 @@
         "say": "kh.barty.02"
       },
       {
-        "say": "kh.barty.03"
-      },
-      {
         "quiz": "K3.6"
       },
       {
         "say": "kh.barty.04"
-      },
-      {
-        "say": "kh.barty.05"
       },
       {
         "term": "rubber-duck"
@@ -942,10 +948,10 @@
         "hide": true
       },
       {
-        "say": "kh.stroud.03"
+        "cue": "kh-ledgers"
       },
       {
-        "cue": "kh-ledgers"
+        "say": "kh.stroud.03"
       },
       {
         "quiz": "K3.7"
@@ -965,7 +971,7 @@
         "hide": true
       },
       {
-        "page": "pg3.find-work",
+        "file": "pg3.find-work",
         "doubloons": 15
       },
       {
@@ -1057,10 +1063,10 @@
         "quiz": "H3.2"
       },
       {
-        "page": "pg3.review-comment"
+        "file": "pg3.review-comment"
       },
       {
-        "page": "pg3.failing-check",
+        "file": "pg3.failing-check",
         "doubloons": 15
       },
       {
@@ -1133,6 +1139,9 @@
       {
         "quest": "Q3.A",
         "step": "start"
+      },
+      {
+        "say": "kh.otto.more"
       }
     ],
     "ottoline.assignment": [
@@ -1178,19 +1187,19 @@
   "notes": {
     "lyra": "The Bard's re-take (puzzles/retake.json, the kh-retake cue): she plays a take, the player finds the bar that rang wrong, and she records again; Salty Sway joins the Songbook.",
     "hester": "The Evidence Board (the kh-board cue) shows M3.1 on its four name boards, then her judgment lines and K3.2.",
-    "dory": "Three small acts, each before its line: sounding four planks and floating the hull (kh-sounding), carrying a tool chest to Drydock 2 (kh-tool-chest), and the bell cord and the winch (kh-bell-cord). Then the baseline card.",
+    "dory": "Three small acts, each before its line: carrying a tool chest to Drydock 2 (kh-tool-chest: each new worktree needs its own npm install, which the course runs before the tests), sounding four planks and floating the hull (kh-sounding), and the bell cord and the winch (kh-bell-cord). Then the baseline card.",
     "cass": "The Drydock Ring, lap 1 (puzzles/drydock-ring.json): the brief sets the ring step, and the ring opens (kh-ring). The lap’s end sets solved and plays cass.solved at once.",
-    "cass.solved": "Lap 1’s close: the inner loop’s pages and the fix card (A3.2).",
+    "cass.solved": "Lap 1’s close: the fix page is filed (A3.2 has its steps), the validate page and the fix card (A3.2).",
     "cass.lap2": "Lap 2, the regression test: the same ring with a gauge to bolt on.",
     "cass.lap2.solved": "Lap 2’s close: the regression page and card, then chest C3.2 at the dock head opens.",
-    "barty": "The second opinion: K3.6 is what you do with a critique; then the card (A3.4). Pick & Polish (Q3.B) starts, optional.",
+    "barty": "The second opinion: two lines, then K3.6 is what you do with a critique; then the card (A3.4), whose steps say how to send /rubber-duck and what to do without it. Pick & Polish (Q3.B) starts, optional.",
     "barty.polish": "Optional: the chalk spyglass (kh-chalk-spyglass) marks one sail; the card goes quietly, and Barty asks when you’re back.",
     "barty.polish.back": "Later ends the talk: the quest waits at try, and Barty asks again next time.",
-    "stroud": "The outer loop, then the two ledgers (kh-ledgers): each view has its own filter (4. Find Work), K3.7, and the card (A3.5). Written to hold for both the repository picker and the query filter of the course’s two latest texts.",
+    "stroud": "The outer loop, then the two ledgers (kh-ledgers): add your fork’s repo: term to each view’s query in Query filter mode (03 · 4-find-work-in-issues-and-pull-requests), Stroud’s line on it, K3.7, and the card (A3.5); the page is filed (the card has its steps).",
     "stroud.flight": "The Lock Flight, part 1 (puzzles/lock-flight.json): the order, then the flight opens (kh-flight). The part’s end plays stroud.flight.solved.",
     "stroud.flight.solved": "Part 1’s close: the issue-to-pull-request page and card (A3.6).",
     "arlo": "The Lock Flight, part 2: the note and the red lamp, Gate 2 and the Sea Gate. The part’s end plays arlo.solved.",
-    "arlo.solved": "Part 2’s close: Wingman on the two seals, the tug (Agent Merge, chest C3.3), the pages and both cards (A3.7, A3.8).",
+    "arlo.solved": "Part 2’s close: Wingman on the two seals, the tug (Agent Merge, chest C3.3), the failing check, both pages filed and both cards (A3.7, A3.8).",
     "ottoline": "Leaving the Trial ends the script; next time Ottoline skips her introduction (ottoline.retry). The reflection comes before the Seal (as built).",
     "trial.passed": "The Seal: kh-seal kindles the Gate Light and the lamps answer down the flight (§4.5).",
     "ottoline.assignment": "Optional, after the Seal: the assignment card goes quietly, and Ottoline asks when you’re back.",

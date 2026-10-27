@@ -18,7 +18,7 @@ import type { CourseBoardsData } from '../../src/content/course-boards';
 import type { CourseLock } from '../../src/learn/course/lock';
 import { splitFromDisk } from '../course-pack/files';
 import { coursePaths, DEFAULT_COURSE, ROOT as root } from '../course-pack/read';
-import { boardChanges, checkBoardSpots, checkContent, courseBoardIslands } from './check';
+import { answerClusters, boardChanges, checkBoardSpots, checkContent, courseBoardIslands } from './check';
 
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
@@ -86,6 +86,15 @@ else {
   for (const i of issues) say(`| \`${i.file}\` | \`${cell(i.path || '(file)')}\` | ${cell(i.message)} |`);
 }
 say();
+
+// Notes for authors (they don't fail the check).
+const notes = answerClusters(root, course);
+if (notes.length) {
+  say('### Authoring notes');
+  say();
+  for (const n of notes) say(`- \`${n.file}\`: ${n.message}`);
+  say();
+}
 
 // The boards follow the course lock by themselves; this lists what they'll show after this sync.
 let boards: CourseBoardsData | null = null;

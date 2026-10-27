@@ -3,7 +3,7 @@ import type { IslandWays } from '../waypoints';
 import { KEELHAVEN_HARBOR as H } from './harbor';
 import { keelhavenHeight } from './height';
 import { toWorld } from './layout';
-import { STREET } from './town';
+import { BEACH_BRIDGE, STREET } from './town';
 import { GATE_PATH } from './works';
 import { gateStairY } from './gate-stair';
 
@@ -53,21 +53,57 @@ at('docks.head', 168.5, -34);
 // Down the dock heads, between their rails and the bollards: Drydock 2 (Cass) and Drydock 1 (Dory).
 at('docks.d2', 168.5, -58.5);
 at('docks.d1', 168.5, -73);
-path('yard.gate', 'yard.basin', 'docks.head', 'docks.d2', 'docks.d1');
+// The Drydock Ring round Drydock 2 (circuit.ts): out along the coping between Docks 2 and 3, past the
+// plank stack and the slate, across the caisson at its mouth, and back along the coping between Docks
+// 1 and 2 by the lookout, each lane clear of the stations' posts.
+at('ring.n.head', 168.6, -53.3, 5.2);
+at('ring.n.mouth', 125.2, -53.3, 5.2);
+at('ring.caisson', 125.1, -61, 5.19);
+at('ring.s.mouth', 125.2, -69.1, 5.2);
+at('ring.s.head', 168.6, -69.1, 5.2);
+path('yard.gate', 'yard.basin', 'docks.head', 'ring.n.head', 'docks.d2', 'ring.s.head', 'docks.d1');
+path('ring.n.head', 'ring.n.mouth', 'ring.caisson', 'ring.s.mouth', 'ring.s.head');
 at('yard.west', 98, -34.6, 5.2);
 at('yard.corner', 58, -33);
 at('locks.top', 50, -45);
 at('locks.near', 38, -47);
 path('yard.basin', 'yard.west', 'yard.corner', 'locks.top', 'locks.near');
 // Over Lock 2's upper gate (its two leaves meet in a V upstream) to the far towpath.
-at('gate.near', 36, -54, 3.6);
+// Each end has a point a step out past the rails' gap, so the compass turns only once you're through.
+at('gate.in', 36.3, -51.5);
+at('gate.near', 36.2, -54.5, 3.6);
 at('gate.mitre', 37.4, -60, 4.02);
-at('gate.far', 36, -66, 3.6);
+at('gate.far', 36.2, -65.5, 3.6);
+at('gate.out', 36.3, -68.5);
 at('locks.far', 30, -70);
-path('locks.near', 'gate.near', 'gate.mitre', 'gate.far', 'locks.far');
+path('locks.near', 'gate.in', 'gate.near', 'gate.mitre', 'gate.far', 'gate.out', 'locks.far');
+// The near towpath on down past Lock 2's stations to the cut's coping and the Sea Gate, whose walkway
+// crosses to the far coping and on to the stair's foot (the Lock Flight runs downstream, then the Gate
+// Light is straight on).
+at('tow.l2', 22, -49, 3.4);
+at('tow.cut', 4, -53.6, 3.6);
+at('tow.sea', -18, -53.6, 3.6);
+at('sea.near', -24, -54, 3.6);
+at('sea.mitre', -22.6, -60, 4.02);
+at('sea.far', -24, -66, 3.6);
+// Along the far coping until the bank's behind it (west of there the walls stand in the sea), then
+// over the bank to the stair's foot, out past its first tread so the stair is walked onto end on.
+at('cut.far', -10, -66.2, 3.6);
+at('cut.bank', -5, -71);
+at('stair.foot', 13, -76.5);
+path('locks.near', 'tow.l2', 'tow.cut', 'tow.sea', 'sea.near', 'sea.mitre', 'sea.far', 'cut.far', 'cut.bank');
+path('cut.bank', 'stair.foot', 'stair.0');
+path('locks.far', 'stair.foot');
+// The beach: from the lock terrace down the sand, over the beach footbridge, to the quay's root (the
+// short way back to the ship).
+at('beach.slip', 18, -20);
+at('beach.bridge.n', BEACH_BRIDGE.u, BEACH_BRIDGE.v1 - 1.5);
+at('beach.bridge.s', BEACH_BRIDGE.u, BEACH_BRIDGE.v0 + 1.5);
+at('beach.town', 6, 36);
+path('tow.l2', 'beach.slip', 'beach.bridge.n', 'beach.bridge.s', 'beach.town', 'quay.root');
 // The stair up the North Head to the Gate Light.
 GATE_PATH.forEach((p, i) => at(`stair.${i}`, p[0], p[1], gateStairY(p[0], p[1])));
-path('locks.far', ...GATE_PATH.map((_, i) => `stair.${i}`));
+path(...GATE_PATH.map((_, i) => `stair.${i}`));
 at('light', -224, -150, 44);
 path(`stair.${GATE_PATH.length - 1}`, 'light');
 

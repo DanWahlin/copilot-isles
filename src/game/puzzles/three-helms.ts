@@ -32,6 +32,7 @@ import {
   rekey,
   textOf,
 } from '../../course/puzzles';
+import { orderOptions } from '../../learn/option-order';
 
 const HELMS_ID = 'P1.2';
 const FLAG: Readonly<Record<HelmMode, string>> = {
@@ -226,6 +227,7 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
   const distTo = (p: { x: number; z: number }) => Math.hypot(p.x - pose().x, p.z - pose().z);
   const orderNo = (mode: HelmMode) => HELM_ORDER.indexOf(mode) + 1;
 
+  /** The three helms in the app's own order (an ordered set: they don't shuffle). */
   function helmOptions(r: Run): SeaChoiceOption[] {
     return HELM_ORDER.map((m) => ({
       id: m,
@@ -261,7 +263,10 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         title: run.leg === 0 ? T('legFirst') : T('legNext', { from: run.leg, to: run.leg + 1 }),
         prompt: T('headingPrompt'),
         detail: [],
-        options: legs[run.leg]!.map((h) => ({ id: h.id, label: h.label })),
+        options: orderOptions(
+          legs[run.leg]!.map((h) => ({ id: h.id, label: h.label })),
+          `helms:heading:${run.leg}`,
+        ),
         focus: 0,
       });
     } else {
@@ -271,7 +276,10 @@ export function createThreeHelms(host: HelmsHost, buoys: HelmBuoysSite, quiet?: 
         title: run.revised ? T('reviewRevised') : T('review'),
         prompt: T('reviewPrompt'),
         detail: chartLines(run.revised),
-        options: REVIEW_OPTIONS.map((o) => ({ id: o.id, label: o.label })),
+        options: orderOptions(
+          REVIEW_OPTIONS.map((o) => ({ id: o.id, label: o.label })),
+          `helms:review:${run.revised ? 1 : 0}`,
+        ),
         focus: same ? view.focus : 0,
       });
     }

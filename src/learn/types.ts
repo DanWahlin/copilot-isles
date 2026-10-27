@@ -53,6 +53,8 @@ export interface Option {
   text: string;
   /** Shown after picking this option when it's wrong (falls back to `explain.wrong`). */
   feedback?: string;
+  /** Stays at its place when the others are shuffled (src/learn/option-order.ts). */
+  pinned?: boolean;
 }
 
 interface QuizBase {
@@ -70,12 +72,16 @@ export interface ChoiceQuiz extends QuizBase {
   situation?: string;
   options: readonly Option[];
   answer: string;
+  /** Shows the options in the data's order (else they're shuffled per quiz and voyage). */
+  fixedOrder?: boolean;
 }
 
 export interface MultiQuiz extends QuizBase {
   type: 'multi';
   options: readonly Option[];
   answers: readonly string[];
+  /** Shows the options in the data's order (else they're shuffled per quiz and voyage). */
+  fixedOrder?: boolean;
 }
 
 interface HotspotTarget {

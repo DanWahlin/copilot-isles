@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T08:16:13.675Z",
+  "generatedAt": "2026-10-27T19:29:44.815Z",
   "generator": "Rhubarb Lip Sync 1.14.0",
   "scope": "Every voiced islander (not Wingman)",
   "lines": {
@@ -3504,13 +3504,13 @@
       "v": "XBCFCAFGCBECBCFCBXCEFCEFCBGXFCEFCBCBXBAEFBDBCEBX"
     },
     "kh.stroud.03": {
-      "h": "2b7ee2fc329e6a5d",
+      "h": "ecf361ded652ce5b",
       "e": "neutral",
       "t": [
-        0, 3, 27, 8, 7, 14, 7, 21, 21, 51, 11, 56, 23, 6, 6, 8, 26, 21, 7, 14, 42, 77, 33, 7, 21, 14, 35, 21,
-        7, 14, 21, 14, 68, 14, 7, 14, 7, 14, 14, 14, 21, 35, 8, 18, 21, 6
+        0, 3, 19, 8, 7, 14, 7, 14, 54, 34, 7, 7, 56, 134, 8, 14, 21, 8, 11, 14, 28, 14, 28, 56, 13, 7, 14, 14,
+        7, 14, 14, 14, 7, 28, 8, 54, 28, 15, 21, 49, 7
       ],
-      "v": "XFEHCBEBXBFBCBAFBFCBXBGFCBFGBEBXBEBCBEGEBAEFX"
+      "v": "XFEHCBEBFBFBXGBEABEFGFXBECBCEGECBAEABFBX"
     },
     "kh.stroud.04": {
       "h": "391f8908cb500439",
@@ -4003,6 +4003,15 @@
       "e": "neutral",
       "t": [0, 4, 7, 21, 7, 8, 48, 7, 14, 72, 12, 7, 7, 35, 7, 14, 14, 9, 5, 25, 17, 7, 41, 7, 14, 7, 28, 4],
       "v": "XBEBACECXFBCBCBCABCBCBCGEBX"
+    },
+    "kh.otto.more": {
+      "h": "b57db9bffe1a963d",
+      "e": "neutral",
+      "t": [
+        0, 6, 8, 14, 7, 14, 8, 16, 14, 7, 17, 32, 7, 14, 7, 42, 14, 8, 6, 26, 53, 11, 14, 21, 8, 9, 38, 8, 31,
+        35, 17
+      ],
+      "v": "XCBFCAEBEABGFDBCABCXBEFABCEFBX"
     }
   }
 }

@@ -296,8 +296,8 @@
         }
       },
       "keelhaven": {
-        "landing": ["kh.juno.arrive.01", "kh.juno.arrive.02"],
-        "welcome": ["wingman.kh.01", "wingman.kh.02", "@nav", "@starfish"],
+        "landing": ["kh.juno.arrive.01"],
+        "welcome": ["wingman.kh.02", "@starfish"],
         "tips": {
           "nav": "wingman.kh.03",
           "starfish": "wingman.starfish.keelhaven"

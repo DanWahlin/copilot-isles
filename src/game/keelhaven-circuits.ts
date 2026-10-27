@@ -57,6 +57,8 @@ export interface KeelhavenCircuits {
     /** Where a flight hull is (cove frame). */
     hull(id: FlightHull): { u: number; v: number; y: number } | null;
     lamp(key: string): string | null;
+    /** Every station's spot, each part's where it moves (tests walk to each). */
+    spots(): { id: string; x: number; y: number; z: number }[];
   };
 }
 
@@ -149,12 +151,12 @@ export function createKeelhavenCircuits(
     const t = toWorld(look.u, look.v);
     return { x: e.x, y: y + 4.2, z: e.z, tx: t.x, ty: look.y, tz: t.z };
   }
-  /** Each place's spot per lap (the flight's lamps move with the lap), made once. */
+  /** Each place's spot per lap (some of the flight's move with the part), made once. */
   const spotCache = { ring: new Map<string, Spot[]>(), flight: new Map<string, Spot[]>() };
   type Spot = ReturnType<CircuitStage['spot']>;
   function spot(kind: 'ring' | 'flight', place: string, lap: number): Spot {
-    const moving = kind === 'flight' && place === 'lamps';
-    const i = moving ? Math.max(0, Math.min(lap, CIRCUIT_SPOTS.flightLamps.length - 1)) : 0;
+    const laps = kind === 'flight' ? CIRCUIT_SPOTS.flightLaps[place] : undefined;
+    const i = laps ? Math.max(0, Math.min(lap, laps.length - 1)) : 0;
     let list = spotCache[kind].get(place);
     if (!list) {
       list = [];
@@ -162,7 +164,7 @@ export function createKeelhavenCircuits(
     }
     let s = list[i];
     if (s) return s;
-    const sp = moving ? CIRCUIT_SPOTS.flightLamps[i]! : CIRCUIT_SPOTS[kind][place]!;
+    const sp = laps ? laps[i]! : CIRCUIT_SPOTS[kind][place]!;
     const p = toWorld(sp.u, sp.v);
     const y = host.world.groundAt(p.x, p.z, yard + 2);
     s = { x: p.x, y, z: p.z, lamp: sp.lamp, shot: shotAt(sp.u, sp.v, y, sp.look) };
@@ -351,6 +353,18 @@ export function createKeelhavenCircuits(
     debug: {
       hull: (id) => (world ? { ...hullAt[id] } : null),
       lamp: (key) => world?.circuit.look(key) ?? null,
+      spots: () => {
+        const out: { id: string; x: number; y: number; z: number }[] = [];
+        for (const kind of ['ring', 'flight'] as const)
+          for (const place of Object.keys(CIRCUIT_SPOTS[kind])) {
+            const n = kind === 'flight' ? (CIRCUIT_SPOTS.flightLaps[place]?.length ?? 1) : 1;
+            for (let lap = 0; lap < n; lap++) {
+              const s = spot(kind, place, lap);
+              out.push({ id: `${kind}:${place}${n > 1 ? `@${lap}` : ''}`, x: s.x, y: s.y, z: s.z });
+            }
+          }
+        return out;
+      },
     },
     teardown() {
       moves.length = 0;

@@ -34,6 +34,7 @@ import { MARKET, type GildaKey } from '../../content/market';
 import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './model-market.css';
+import { orderOptions } from '../../learn/option-order';
 
 /**
  * The hire being filled in on the work order: the house special (`auto`) at one of its own levels, or a
@@ -127,6 +128,9 @@ export const draftHire = (d: MarketDraft): Hire =>
     : { auto: false, category: d.category, model: d.model, effort: d.effort };
 
 const PICKS: readonly ('auto' | ModelCategory)[] = ['auto', ...CATEGORIES];
+/** The hire's picks as they show for a job: the scale's own order, unless the market lets them shuffle. */
+const picksFor = (job: string | null): readonly ('auto' | ModelCategory)[] =>
+  MARKET.picksInOrder ? PICKS : orderOptions(PICKS, `market:${job ?? ''}`);
 const categoryData = (c: ModelCategory) => MARKET.categories.find((x) => x.id === c)!;
 
 const plain = (s: string) => s.replace(/\*\*/g, '');
@@ -392,7 +396,7 @@ function HireStep({ v, a }: { v: MarketView; a: MarketActions }) {
             aria-label={T('modelGroup')}
             data-live={noModel || undefined}
           >
-            {PICKS.map((p, i) => {
+            {picksFor(v.job).map((p, i) => {
               const on = !noModel && (p === 'auto' ? d.auto : !d.auto && d.category === p);
               const used = !!plan && p === 'auto' && usedLastTime(plan, 'auto');
               return (
@@ -672,7 +676,7 @@ function Market({ store }: { store: MarketStore }) {
           else a.pickJob(JOBS[s.focus]!.id);
         } else handled = false;
       } else if (s.screen === 'hire') {
-        if (digit) a.pick(PICKS[Number(digit[1]) - 1]!);
+        if (digit) a.pick(picksFor(s.job)[Number(digit[1]) - 1]!);
         else if (UP.has(e.code)) a.model(-1);
         else if (DOWN.has(e.code)) a.model(1);
         else if (LEFT.has(e.code)) a.effort(-1);

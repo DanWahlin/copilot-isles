@@ -27,6 +27,7 @@ import {
   type Workspace,
 } from './workspaces';
 import { lineOf, puzzleQuest, puzzleSteps, textOf } from '../../../course/puzzles';
+import { orderOptions } from '../../../learn/option-order';
 
 /** What Channel Routing needs beyond the usual puzzle host: the camera, voices and the screen. */
 export interface ChannelRoutingHost extends PuzzleHost {
@@ -365,7 +366,13 @@ export function createChannelRouting(
     await host.say([L('twist2')]);
     sync({
       busy: false,
-      twist: { question: twistQuestion(), choices: TWIST_CHOICES.map(({ id, text }) => ({ id, text })) },
+      twist: {
+        question: twistQuestion(),
+        choices: orderOptions(
+          TWIST_CHOICES.map(({ id, text }) => ({ id, text })),
+          'twist:channel-routing',
+        ),
+      },
       announce: twistQuestion(),
     });
   }

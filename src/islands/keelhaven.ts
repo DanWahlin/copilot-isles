@@ -64,6 +64,7 @@ export const KEELHAVEN_ISLAND: IslandEntry = {
   berthLabel: 'Keelhaven',
   dockLabel: 'Dock at the Old Town quay',
   mooring: H.berth,
+  departure: H.departure,
   // Up the quay to the tavern and the town's street.
   landingHeading: H.landing.heading,
   quay: H.landing,

@@ -285,9 +285,19 @@ const GATE_GAP = [-0.45, 0.95] as const;
 /** The gates in order along u (`railRuns` walks them so). */
 const GATES_UP = [...GATES].sort((x, y) => x - y);
 
-/** A side's rail runs, `r0` to `r1`, split round the canal gates' hinges (the docks' sides are whole). */
+/**
+ * How far along a dock's side (m, from its mouth) its rail leaves a gap, where you step onto the
+ * caisson's walkway (its own rails take over there): the Drydock Ring crosses Dock 2's mouth.
+ */
+const CAISSON_GAP = 2.35;
+
+/**
+ * A side's rail runs, `r0` to `r1`, split round the canal gates' hinges; a dock's sides stop short of
+ * its caisson.
+ */
 function railRuns(c: Chamber, along: 'u' | 'v', r0: number, r1: number): [number, number][] {
-  if (along !== 'u' || c.name.startsWith('dock')) return [[r0, r1]];
+  if (along !== 'u') return [[r0, r1]];
+  if (c.name.startsWith('dock')) return [[Math.max(r0, c.u0 + CAISSON_GAP), r1]];
   const runs: [number, number][] = [];
   let a = r0;
   for (const g of GATES_UP) {
@@ -887,6 +897,12 @@ function caisson(b: Buckets, out: ShipyardOut, c: Chamber): void {
     );
   ubox(b, 'wood', c.u0 + 1.0, c.top - 0.08, (c.v0 + c.v1) / 2, 2.1, 0.14, w + 0.3, YARD_PAINT.silver);
   out.decks.push(uvDeck(c.u0 - 0.05, c.u0 + 2.05, c.v0 - 0.15, c.v1 + 0.15, c.top - 0.01, true));
+  // A rail down each side of its walkway (the basin's water and the dock's drop), meeting the copings'
+  // rails, which stop short of it (`CAISSON_GAP`): you walk on from either coping.
+  const r0 = c.v0 - 0.35;
+  const r1 = c.v1 + 0.35;
+  railAlong(b, out, c, { along: 'v', u: c.u0 - 0.3, out: 1 }, r0, r1, c.top);
+  railAlong(b, out, c, { along: 'v', u: c.u0 + 2.35, out: -1 }, r0, r1, c.top);
 }
 
 /**

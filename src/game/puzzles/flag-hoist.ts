@@ -11,6 +11,7 @@
 import { onCourse } from '../../course/active';
 import type { PuzzleFile } from '../../course/pack';
 import { puzzleContent, puzzleMaybe, textOf } from '../../course/puzzles';
+import { orderOptions } from '../../learn/option-order';
 
 /** The puzzle's id (its chart label is `puzzle:<id>`). */
 export const HOIST_ID = 'P2.3';
@@ -96,9 +97,14 @@ export function rightPick(o: HoistOrder): string {
   return o.kind === 'flag' ? o.answer : o.choices.find((c) => c.right)!.id;
 }
 
-/** The picks an order offers, in key order (1-4). */
+/** A choice order's choices as they show: shuffled per order and voyage (src/learn/option-order.ts). */
+export function shownChoices(o: Extract<HoistOrder, { kind: 'choice' }>): readonly HoistChoice[] {
+  return orderOptions(o.choices, `hoist:${o.title}`);
+}
+
+/** The picks an order offers, in key order (1-4): the flags in their own order, or its choices as shown. */
 export function orderPicks(o: HoistOrder): readonly string[] {
-  return o.kind === 'flag' ? FLAGS.map((f) => f.symbol) : o.choices.map((c) => c.id);
+  return o.kind === 'flag' ? FLAGS.map((f) => f.symbol) : shownChoices(o).map((c) => c.id);
 }
 
 /** The flag that goes up the mast for a pick (none for a choice without one). */

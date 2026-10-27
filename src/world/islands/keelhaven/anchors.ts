@@ -62,9 +62,9 @@ export const KEELHAVEN_ANCHORS = {
   extraCaulker: anchor(150, -32, 0, -1),
   extraFisher: anchor(-6, 34, -1, 0),
   extraLamplighter: anchor(40, CANAL.v + CANAL.half + WALL + 1.4, 0, 1),
-  // The barge's skipper on her deck in the cut (circuit.ts `BARGE`, deck 0.51), by her stack, facing
-  // the near coping where you stand for the inner loop.
-  extraTug: anchor(1.2, CANAL.v - 1.9, 5.8, 8.1, 0.52),
+  // The barge's skipper on the cut's near coping by her mooring (circuit.ts `BARGE`), off the towpath,
+  // facing her over the wall: a captain on the coping can talk to him.
+  extraTug: anchor(1.5, CANAL.v + CANAL.half + WALL + 1.3, 0, -1),
 } as const satisfies Record<string, VillageAnchor>;
 
 export type KeelhavenAnchor = keyof typeof KEELHAVEN_ANCHORS;

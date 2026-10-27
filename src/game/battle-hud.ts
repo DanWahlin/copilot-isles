@@ -2,6 +2,7 @@ import type { BattleSnapshot } from '../world/battle/battle';
 import { courseUrl } from '../learn/content';
 import type { ChoiceQuiz, SourceRef } from '../learn/types';
 import './battle-hud.css';
+import { quizOptions } from '../learn/option-order';
 
 export interface BattleHudActions {
   fire(which: 'bearing' | 'port' | 'starboard'): void;
@@ -436,7 +437,7 @@ export class BattleHud {
     el('p', 'bh-prompt', this.card).innerHTML = md(quiz.prompt);
     const list = el('div', 'bh-options', this.card);
     const feedback = el('p', 'bh-feedback', this.card);
-    for (const option of quiz.options) {
+    for (const option of quizOptions(quiz)) {
       const b = el('button', 'bh-choice', list);
       b.type = 'button';
       b.innerHTML = md(option.text);

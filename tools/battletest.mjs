@@ -507,8 +507,10 @@ async function play() {
     const answerIdx = await page.evaluate(async (wi) => {
       const run = window.__flow.debugSession.debug.battleRun();
       const { QUIZZES } = await import('/src/learn/content/index.ts');
+      const { quizOptions } = await import('/src/learn/option-order.ts');
       const quiz = QUIZZES.get(run.plan.waves[wi].quiz);
-      return quiz.options.findIndex((o) => o.id === quiz.answer);
+      // The answers show shuffled (per quiz and voyage): find the right one where it shows.
+      return quizOptions(quiz).findIndex((o) => o.id === quiz.answer);
     }, wave);
     for (let k = 0; k < answerIdx; k++) await tap(page, 'ArrowDown');
     await page.keyboard.press('KeyE');

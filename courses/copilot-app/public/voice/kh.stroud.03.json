@@ -1,97 +1,92 @@
 {
   "id": "kh.stroud.03",
   "speaker": "Stroud",
-  "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both.",
+  "text": "Two ledgers, two queries. Filters belong to the view, so add your fork's repo term to each.",
   "words": [
     {
       "word": "Two",
       "start": 0,
-      "end": 0.32
+      "end": 0.24
     },
     {
       "word": "ledgers",
-      "start": 0.32,
-      "end": 1.2
+      "start": 0.24,
+      "end": 1.32
     },
     {
-      "word": "Issues",
-      "start": 1.2,
-      "end": 2.26
+      "word": "two",
+      "start": 1.32,
+      "end": 1.53
     },
     {
-      "word": "and",
-      "start": 2.26,
-      "end": 2.624
+      "word": "queries",
+      "start": 1.53,
+      "end": 2.54
     },
     {
-      "word": "Pull",
-      "start": 2.624,
-      "end": 2.969
+      "word": "Filters",
+      "start": 2.54,
+      "end": 4.126
     },
     {
-      "word": "requests",
-      "start": 2.969,
-      "end": 4.304
+      "word": "belong",
+      "start": 4.126,
+      "end": 4.453
     },
     {
-      "word": "Each",
-      "start": 4.304,
-      "end": 4.8
+      "word": "to",
+      "start": 4.453,
+      "end": 4.58
+    },
+    {
+      "word": "the",
+      "start": 4.58,
+      "end": 4.72
     },
     {
       "word": "view",
-      "start": 4.8,
-      "end": 5.16
-    },
-    {
-      "word": "has",
-      "start": 5.16,
-      "end": 5.34
-    },
-    {
-      "word": "its",
-      "start": 5.34,
-      "end": 5.58
-    },
-    {
-      "word": "own",
-      "start": 5.58,
-      "end": 5.84
-    },
-    {
-      "word": "filter",
-      "start": 5.84,
-      "end": 7.12
+      "start": 4.72,
+      "end": 5.573
     },
     {
       "word": "so",
-      "start": 7.12,
-      "end": 7.34
+      "start": 5.573,
+      "end": 5.9
     },
     {
-      "word": "set",
-      "start": 7.34,
-      "end": 7.552
+      "word": "add",
+      "start": 5.9,
+      "end": 6.112
     },
     {
       "word": "your",
-      "start": 7.552,
-      "end": 7.792
+      "start": 6.112,
+      "end": 6.32
     },
     {
-      "word": "fork",
-      "start": 7.792,
-      "end": 8.347
+      "word": "fork's",
+      "start": 6.32,
+      "end": 6.816
     },
     {
-      "word": "in",
-      "start": 8.347,
-      "end": 8.64
+      "word": "repo",
+      "start": 6.816,
+      "end": 7.296
     },
     {
-      "word": "both",
-      "start": 8.64,
-      "end": 8.89
+      "word": "term",
+      "start": 7.296,
+      "end": 7.813
+    },
+    {
+      "word": "to",
+      "start": 7.813,
+      "end": 8.192
+    },
+    {
+      "word": "each",
+      "start": 8.192,
+      "end": 8.442
     }
   ]
 }

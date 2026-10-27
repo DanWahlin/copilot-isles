@@ -148,6 +148,10 @@
             "prompt": {
               "$ref": "#/$defs/text"
             },
+            "fixedOrder": {
+              "description": "Shows the options in the data's order. Otherwise the game shuffles them, seeded per card and voyage.",
+              "type": "boolean"
+            },
             "options": {
               "type": "array",
               "minItems": 2,
@@ -162,6 +166,10 @@
                   },
                   "text": {
                     "$ref": "#/$defs/text"
+                  },
+                  "pinned": {
+                    "description": "Keeps this option at its place when the others are shuffled (an honest \"I couldn't…\" last).",
+                    "type": "boolean"
                   }
                 }
               }
