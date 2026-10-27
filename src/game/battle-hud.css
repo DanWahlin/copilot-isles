@@ -569,7 +569,9 @@
   pointer-events: none;
 }
 .bh-card.banner {
-  top: 18%;
+  /* Its top under the hull and wave box (it overlapped the box's lower edge). */
+  top: max(18%, 7rem);
+  transform: translate(-50%, 0);
   background: none;
   border-color: transparent;
   backdrop-filter: none;
@@ -694,9 +696,9 @@
 .bh-card {
   box-sizing: border-box;
 }
-/* A phone: the hull bar and the wave banner sit under the purse (top right), and Skip battle takes
-   the top left (the island tracker steps away in a battle), so none overlaps another. */
-@media (max-width: 700px) {
+/* A phone: the hull bar and the wave banner sit under the purse (top right), and Skip (its word
+   only) takes the top left beside the purse, so none overlaps another. */
+@media (max-width: 760px) {
   .bh-top {
     top: 4.4rem;
   }
@@ -704,6 +706,22 @@
     top: 1.1rem;
     right: auto;
     left: 0.8rem;
+    padding: 0 0.8rem;
+  }
+  .bh-skip-word {
+    display: none;
+  }
+  .bh-card.banner {
+    top: 9.6rem;
+  }
+  /* The helm's hint wraps over the guns rather than running off the screen. */
+  .bh-helm {
+    width: calc(100vw - 1.6rem);
+    justify-content: center;
+  }
+  .bh-hint {
+    white-space: normal;
+    text-align: center;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -730,4 +748,16 @@
 body:has(.bh.show) .hud-subtitle {
   top: 10.5rem;
   bottom: auto;
+}
+/* A phone: the passage's chart label goes under the hull box and the wave banner, and the voiced
+   lines under the label. */
+@media (max-width: 760px) {
+  :root:has(.bh.show) .hud-chart {
+    --lt-room: 100vw;
+    /* Under the wave's title card too (game/hud.css .hud-card, 21vh down). */
+    top: calc(env(safe-area-inset-top, 0px) + max(15.5rem, 21vh + 4.5rem));
+  }
+  body:has(.bh.show) .hud-subtitle {
+    top: max(24.5rem, 21vh + 13.5rem);
+  }
 }

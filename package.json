@@ -21,6 +21,7 @@
     "check:frame-budgets": "node tools/budgettest.mjs",
     "check:secrets": "node tools/check-secrets.mjs",
     "check:opening": "node tools/openingtest.mjs",
+    "check:cards": "node tools/cardtest.mjs",
     "check:audio": "node tools/audiotest.mjs --serve=dist",
     "check:memory": "node tools/memorytest.mjs",
     "check:perf": "node tools/perftest.mjs",

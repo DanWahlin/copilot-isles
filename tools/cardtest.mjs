@@ -43,6 +43,7 @@ const HUD = [
   '.bh-skip-event',
   '.bh-captions',
   '.bh-hint',
+  '.hud-chart',
 ];
 /** The battle's panels during a fight: none may overlap another. */
 const BATTLE_PANELS = [

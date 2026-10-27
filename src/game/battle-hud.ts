@@ -128,7 +128,9 @@ export class BattleHud {
 
     const skip = noFocus(el('button', 'bh-skip', this.root));
     skip.type = 'button';
-    skip.textContent = 'Skip battle';
+    // A phone shows "Skip" only (battle-hud.css): it sits beside the purse there.
+    skip.innerHTML = 'Skip<span class="bh-skip-word"> battle</span>';
+    skip.setAttribute('aria-label', 'Skip battle');
     skip.onclick = () => this.actions.skip();
 
     // Skip a mid-battle event (shown only while one plays): E or the gamepad's A, too.
