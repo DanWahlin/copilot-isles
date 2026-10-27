@@ -42,6 +42,8 @@ import { createFishingBoat, type FishingBoat } from './life/fishing-boat';
 import { ANCHORAGE_FISHING_BOATS } from './islands/anchorage/life';
 import { createBirds, type BirdsSystem } from './life/birds';
 import type { LeapsSystem } from './life/leaps';
+import type { KrakenSightings, SightingsGates } from './kraken/sightings';
+import { unreflected } from './reflection';
 import { QuietSea } from './life/quiet-sea';
 import { villageExclusionAsync } from './village-exclusion';
 import { BRIGANTINE_CARGO, createCoveSites, type CoveSites } from './sites';
@@ -83,6 +85,14 @@ export interface CoveScene {
   leaps: LeapsSystem | null;
   /** Stretches of sea the leaping fish and dolphins keep out of (a battle, a puzzle's course). */
   quietSea: QuietSea;
+  /** The kraken's distant sightings (loaded a while after the world), or null. */
+  sightings: KrakenSightings | null;
+  /**
+   * What the sightings may do: open water and quiet zones are the world's; the game sets `allowed`
+   * (sailing, or ashore with a sea view; never in a harbour, a script, the opening or the chart) and
+   * `player` (her course is kept clear).
+   */
+  sightingGates: SightingsGates;
   /**
    * How objects that join after the island's warm-up get warmed (the game's flow sets one that
    * matches the post's scene pass); without one they're precompiled with `compileAsync`.
@@ -425,6 +435,43 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     if (result) result.leaps = created;
   };
   if (immediateLeaps) void loadLeaps();
+
+  // The kraken's distant sightings: on open water, minutes apart, in every passage. Loaded (its own
+  // chunk and the tentacle) and warmed a while after the world, like the leaps; never during a warm.
+  let sightings: KrakenSightings | null = null;
+  const sightingGates: SightingsGates = { quiet: quietSea, allowed: () => false, player: null };
+  const loadSightings = async () => {
+    if (disposed || sightings) return;
+    const { KrakenSightings, deepWaterAt } = await import('./kraken/sightings');
+    if (disposed || sightings) return;
+    sightingGates.water = (x, z) => deepWaterAt(heightField, x, z);
+    const created = await KrakenSightings.create({ tier, waves: ocean.field, gates: sightingGates });
+    if (disposed) {
+      created.dispose();
+      return;
+    }
+    unreflected.add(created.group);
+    scene.add(created.group);
+    const undo = created.stageWarm();
+    if (lateWarm) await lateWarm([created.group]);
+    else await renderer.compileAsync(created.group, camera);
+    undo();
+    if (disposed) {
+      scene.remove(created.group);
+      unreflected.delete(created.group);
+      created.dispose();
+      return;
+    }
+    sightings = created;
+    if (result) result.sightings = created;
+  };
+  // `?sightings` (tests, the video) loads them 5 s in rather than a minute.
+  const soonSightings =
+    typeof location !== 'undefined' && new URLSearchParams(location.search).has('sightings');
+  const sightingsTimer =
+    typeof window !== 'undefined'
+      ? window.setTimeout(() => void engine.counters.excuse(loadSightings()), soonSightings ? 5000 : 60000)
+      : 0;
   const leapsTimer =
     !immediateLeaps && typeof window !== 'undefined'
       ? window.setTimeout(() => void engine.counters.excuse(loadLeaps()), 90000)
@@ -506,6 +553,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       }
       starfish.update(dt, t, camera);
       leaps?.update(dt, t, camera);
+      sightings?.update(dt, t, camera, renderer.domElement.height);
       focus.set(camera.position.x, 0, camera.position.z);
       sky.update(clock, focus, dt, camera);
       if (mirror) {
@@ -542,6 +590,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     birds,
     leaps,
     quietSea,
+    sightings,
+    sightingGates,
     starfish,
     detail,
     setLateWarm(warm) {
@@ -566,6 +616,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
     dispose() {
       disposed = true;
       if (leapsTimer) window.clearTimeout(leapsTimer);
+      if (sightingsTimer) window.clearTimeout(sightingsTimer);
       removeSystem();
       // A dormant Anchorage's parts are out of the scene, so the voyage's end doesn't see them: they
       // stay out, and are told they're disposed here once their owners have freed them.
@@ -585,6 +636,10 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       if (birds) scene.remove(birds.group);
       if (dockGull) scene.remove(dockGull.group);
       if (leaps) scene.remove(leaps.group);
+      if (sightings) {
+        scene.remove(sightings.group);
+        unreflected.delete(sightings.group);
+      }
       disposeTree(foam);
       if (mirrorStandIn) {
         scene.remove(mirrorStandIn.group);
@@ -602,6 +657,7 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       starfish.dispose();
       blobs?.dispose();
       leaps?.dispose();
+      sightings?.dispose();
       village.dispose();
       wreck.dispose();
       sites.dispose();

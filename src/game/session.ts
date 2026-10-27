@@ -279,6 +279,8 @@ export interface GameSession {
     skipArrival(): void;
     /** The passage battle's run once it's built (tests: its Battle, HUD and camera director). */
     battleRun(): BattleRun | null;
+    /** The kraken's distant sightings (null until they've loaded), and whether one may show now. */
+    sightings(): { system: CoveScene['sightings']; allowed: boolean };
     /**
      * Which islands are in memory (tests, the memory gate): each streamed island's state, and
      * `settled` once every island you've left is freed and every one you need is in.
@@ -334,6 +336,10 @@ const TACK_TIP =
   'the sails fill, then turn through the wind and zig-zag up to where you’re going.';
 /** How close (m) to a berth counts as near its harbour, for the tacking tip. */
 const HARBOUR_REACH = 450;
+/** Every island's berth (its harbour), for the kraken's sightings. */
+const ALL_BERTHS = ISLAND_LIST.map((i) => ISLANDS[i.id].mooring);
+/** Ashore, a sighting may show only from low ground by the sea (m over it): a beach or a quay's end. */
+const SIGHTING_SHORE = 8;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
@@ -1858,6 +1864,13 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     return ISLANDS[HOME_ISLAND];
   }
+  /** Within a harbour's reach of any island's berth (the kraken's sightings keep out). */
+  const nearAnyHarbour = (x: number, z: number) =>
+    ALL_BERTHS.some((b) => Math.hypot(x - b.x, z - b.z) < HARBOUR_REACH);
+  let sightingsOk = false;
+  const sightingPlayer = { x: 0, z: 0, heading: 0, speed: 0 };
+  cove.sightingGates.allowed = () => sightingsOk;
+  cove.sightingGates.player = sightingPlayer;
   const nearHarbour = () =>
     openIslands().some((b) => Math.hypot(dyn.pose.x - b.mooring.x, dyn.pose.z - b.mooring.z) < HARBOUR_REACH);
 
@@ -2841,6 +2854,22 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             cam.framing ||
             overlayModal);
         calmFor = busy ? CALM_HOLD : Math.max(0, calmFor - dt);
+        // The kraken's distant sightings: under sail, or ashore low by the sea; never in a harbour, a
+        // conversation, a script or a framed shot (battles and puzzle courses quiet the sea themselves).
+        if (busy || welcoming) sightingsOk = false;
+        else if (mode === 'sail') {
+          sightingsOk = !nearAnyHarbour(dyn.pose.x, dyn.pose.z);
+          sightingPlayer.x = dyn.pose.x;
+          sightingPlayer.z = dyn.pose.z;
+          sightingPlayer.heading = dyn.pose.heading;
+          sightingPlayer.speed = dyn.pose.speed;
+        } else if (mode === 'walk') {
+          sightingsOk =
+            ground.heightAt(player.x, player.z) < SIGHTING_SHORE && !nearAnyHarbour(player.x, player.z);
+          sightingPlayer.x = player.x;
+          sightingPlayer.z = player.z;
+          sightingPlayer.speed = 0;
+        } else sightingsOk = false;
         const calm = calmFor > 0;
         if (calm !== calmShown) {
           calmShown = calm;
@@ -3119,6 +3148,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         if (arrival && arrival.phase !== 'done') void endArrival('skipped');
       },
       battleRun: () => battles.current,
+      sightings: () => ({ system: cove.sightings, allowed: sightingsOk }),
       unloadIsland: (id) => unloadIsland(id),
       keepResident(on) {
         keepResident = on;
