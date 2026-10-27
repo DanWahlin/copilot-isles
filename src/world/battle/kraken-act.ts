@@ -79,7 +79,7 @@ const TAKE_AFTER = 10;
 /** Wingman's word on it plays at the withdraw; the battle carries on this long (s) after it starts. */
 const TAKEN_HOLD = 5;
 /** The beat's camera: this far from the evidence (beyond your ship's bow), and from the wreck after. */
-const EVIDENCE_VIEW = 60;
+const EVIDENCE_VIEW = 50;
 const WRAP_VIEW = 40;
 /** The first tell of each wave's fight comes this long after the guns run out (s), then every GAP s. */
 const FIRST_TELL = 4;
@@ -394,7 +394,8 @@ export class KrakenAct {
       const along = dx * Math.sin(p.heading) + dz * Math.cos(p.heading);
       if (Math.hypot(dx, dz) < TAKE_WITHIN || along < 0 || age > TAKE_AFTER) {
         this.encounter.reducedMotion = world.reducedMotion.value > 0.5;
-        if (this.encounter.wrapAndBreak(f, { seize: true })) this.setStage('wrap', t);
+        if (this.encounter.wrapAndBreak(f, { seize: true, side: this.sideFacingYou(f) }))
+          this.setStage('wrap', t);
         else this.skip();
       }
     } else if (this.stage === 'wrap') {
@@ -421,6 +422,14 @@ export class KrakenAct {
     // Wingman's word on what it means for the rest of the fight, as the next wave comes.
     this.o.say(this.o.hooks.lines.stays);
     this.battle.endEvent(t);
+  }
+
+  /** The side of `ship` (her +x or −x, `wrapAndBreak`'s `side`) your ship is on: the kraken seizes her from it, in view. */
+  private sideFacingYou(ship: Brigantine): number {
+    const you = this.battle.shipAt(0).dynamics.pose;
+    const p = ship.dynamics.pose;
+    const x = (you.x - p.x) * Math.cos(p.heading) - (you.z - p.z) * Math.sin(p.heading);
+    return x >= 0 ? 1 : -1;
   }
 
   /** The flagship holds her course over the evidence at a good trim (she doesn't read the signs). */
@@ -617,7 +626,10 @@ export class KrakenAct {
     // A strike that lands on a raider it can take: it seizes her.
     if (h.strike && this.hulls[i]!.catchable && this.takenIdx < 0 && this.encounter.free()) {
       const ship = b.shipAt(i);
-      if (this.encounter.wrapAndBreak(ship, { seize: true }) && b.take(i, t)) {
+      if (
+        this.encounter.wrapAndBreak(ship, { seize: true, side: this.sideFacingYou(ship) }) &&
+        b.take(i, t)
+      ) {
         this.takenIdx = i;
         this.log.taken++;
         this.o.caption(`${b.shipName(i)} sailed over the evidence. The kraken has her!`);

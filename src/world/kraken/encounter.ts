@@ -474,6 +474,8 @@ export class KrakenEncounter {
   private quick = false;
   /** A battle's seize (`wrapAndBreak(ship, { seize: true })`): four arms at once, quick and hard. */
   private seizing = false;
+  /** Which side of her a seize comes up on: +1 her +x side (the cinematic wrap's), −1 her other. */
+  private side = 1;
   private readonly timingSeize: KrakenTiming;
   private readonly timingSeizeGentle: KrakenTiming;
   private readonly timingQuick: KrakenTiming;
@@ -633,7 +635,11 @@ export class KrakenEncounter {
 
   /** An arm's part in this wrap. */
   private roleOf(s: ArmState): Role {
-    return this.seizing && s.seize ? s.seize : s.role;
+    if (!this.seizing || !s.seize) return s.role;
+    // From her other side the kraken lies turned about: its forward and after arms change places.
+    if (this.side < 0 && s.seize === 'seizeFore') return 'seizeAft';
+    if (this.side < 0 && s.seize === 'seizeAft') return 'seizeFore';
+    return s.seize;
   }
 
   /** The timing in use (the gentle one with reduced motion). */
@@ -680,6 +686,7 @@ export class KrakenEncounter {
     this.time = 0;
     this.mode = 'idle';
     this.quick = this.seizing = false;
+    this.side = 1;
     this.startAt = this.leaveAt = NaN;
     this.broke = false;
     this.fired.fill(0);
@@ -738,10 +745,14 @@ export class KrakenEncounter {
    * battle's quick, hard take instead (`KRAKEN_TIMING_BATTLE`): four arms burst up round her at once,
    * clamp over her rails and round her foremast, and she lurches and heels as they take her.
    */
-  wrapAndBreak(ship: Brigantine, o?: { finale?: boolean; quick?: boolean; seize?: boolean }): boolean {
+  wrapAndBreak(
+    ship: Brigantine,
+    o?: { finale?: boolean; quick?: boolean; seize?: boolean; side?: number },
+  ): boolean {
     const wreck = this.wrecks.find((w) => w.ship === ship);
     if (!wreck || wreck === this.wreck || !this.free()) return false;
     this.seizing = !!o?.seize;
+    this.side = this.seizing && (o?.side ?? 1) < 0 ? -1 : 1;
     this.quick = !!o?.quick && !this.seizing;
     this.finaleOn = !!o?.finale && !this.quick && !this.seizing;
     this.beatsNow = wrapBeats(this.timing, this.activeArms(), this.finaleOn);
@@ -805,7 +816,10 @@ export class KrakenEncounter {
     this.fired.fill(0);
     this.kraken.group.visible = true;
     this.kraken.body.root.position.set(0, mode === 'wrap' ? ANCHOR.depth - 4 : -16, 0);
-    if (mode !== 'wrap') this.quick = this.seizing = false;
+    if (mode !== 'wrap') {
+      this.quick = this.seizing = false;
+      this.side = 1;
+    }
     // Each arm's rise: one or two at a time, a varied gap between them.
     let at = this.timing.tell;
     for (const s of this.states) {
@@ -910,6 +924,7 @@ export class KrakenEncounter {
     this.mode = 'idle';
     this.startAt = this.leaveAt = NaN;
     this.quick = this.seizing = false;
+    this.side = 1;
     if (this.tellMark) {
       this.marks.release(this.tellMark);
       this.tellMark = null;
@@ -1158,8 +1173,9 @@ export class KrakenEncounter {
     const s = Math.sin(pose.heading);
     const c = Math.cos(pose.heading);
     const a = this.seizing ? SEIZE_ANCHOR : ANCHOR;
-    this.anchor.set(g.position.x + a.x * c + a.z * s, 0, g.position.z - a.x * s + a.z * c);
-    this.anchorHeading = pose.heading - Math.PI / 2;
+    const ax = a.x * this.side;
+    this.anchor.set(g.position.x + ax * c + a.z * s, 0, g.position.z - ax * s + a.z * c);
+    this.anchorHeading = pose.heading - (this.side * Math.PI) / 2;
   }
 
   /**
@@ -1207,7 +1223,7 @@ export class KrakenEncounter {
       // Where it breaks the water moves with the ship, and once she's torn, with the half it holds
       // (it rises beside her as it drags her down, not stretched straight from where she broke).
       frame!.updateWorldMatrix(true, false);
-      _a.set(e[0], 0, e[1]).applyMatrix4(frame!.matrixWorld);
+      _a.set(e[0] * this.side, 0, e[1]).applyMatrix4(frame!.matrixWorld);
       height = e[2];
     } else {
       // Round the body (the surfaced kraken, or the finale), out along its socket.
@@ -1371,6 +1387,7 @@ export class KrakenEncounter {
     arm.poser.base(_b);
     shapePoints(shape, u, v);
     truncatePoints(_pts, reach);
+    if (this.side < 0) mirrorX(_pts);
     // The shape's own length above the water, so the loop under it takes up only the rest.
     let above = shapeLength(e, sea);
     // An arc that's more than the arm can reach comes over less far (it still curves, all of it on
@@ -1477,7 +1494,7 @@ export class KrakenEncounter {
         p.pivot.rotation.set(
           sign * 0.025 * squeeze * gentle - 0.04 * kick,
           0,
-          0.16 * squeeze * gentle + kick * (1 - 0.6 * squeeze),
+          (0.16 * squeeze * gentle + kick * (1 - 0.6 * squeeze)) * this.side,
         );
       }
       return;
@@ -1489,7 +1506,7 @@ export class KrakenEncounter {
       const p = list[k]!;
       const dir = k === 0 ? -1 : 1;
       const along = dir * 5 * pull;
-      const toward = 2.5 * pull;
+      const toward = 2.5 * pull * this.side;
       const hs = Math.sin(this.brokeAt.heading);
       const hc = Math.cos(this.brokeAt.heading);
       const x = this.brokeAt.x + along * hs + toward * hc;
@@ -1507,7 +1524,7 @@ export class KrakenEncounter {
       );
       // Torn ends up, outer ends dragged down: her masts fall outward; each half rolls away.
       const tilt = (0.32 * pull + 0.4 * ease(sinkAge / tm.under)) * (this.reducedMotion ? 0.7 : 1);
-      p.pivot.rotation.set(dir * tilt, 0, 0.16 + dir * 0.22 * pull);
+      p.pivot.rotation.set(dir * tilt, 0, 0.16 * this.side + dir * 0.22 * pull);
       p.root.visible = down < 16;
       const fade = 1 - ease((sinkAge + 0.6) / 2);
       for (const m of p.lineMaterials) m.opacity = wreck.lineBase[i++]! * fade;

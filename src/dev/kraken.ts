@@ -376,7 +376,13 @@ function advance(dt: number, t: number): void {
     // quick and hard, her sails set). She sails on until it has her (from then it holds her).
     if (st < 3) steer(flagship, 0.9, 0.7);
     steer(mine, 0.9, st > 14 ? 0.3 : 0.6);
-    if (once('wrap', 3)) kraken.wrapAndBreak(flagship, { seize: true });
+    // From the side your ship is on (as the battle does), so you see it come over her rail.
+    if (once('wrap', 3)) {
+      const f = flagship.dynamics.pose;
+      const m = mine.dynamics.pose;
+      const x = (m.x - f.x) * Math.cos(f.heading) - (m.z - f.z) * Math.sin(f.heading);
+      kraken.wrapAndBreak(flagship, { seize: true, side: x >= 0 ? 1 : -1 });
+    }
   } else if (scenario === 'dodge') {
     // On course; at the lookout's call, hard over away from the evidence, then back on course.
     if (st >= turnAt) {
