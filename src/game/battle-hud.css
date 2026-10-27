@@ -760,10 +760,15 @@
 }
 
 /* The crew's voiced lines in a battle (battle 3's kraken): under the hull and wave box and the wave's
-   banner at the top, clear of the powder rows, the helm hint and the captions at the bottom. */
+   banner at the top, above the lookout's captions, the helm hint and the powder rows at the bottom. */
 body:has(.bh.show) .hud-subtitle {
-  top: 10.5rem;
+  /* Under the wave's banner too (.bh-card.banner, its top at max(18%, 7rem)). */
+  top: max(15rem, 18% + 8rem);
   bottom: auto;
+}
+/* The passage's chart label sits bottom left in a battle: the lines don't move up for it. */
+body:has(.bh.show) .hud.has-label .hud-subtitle.show {
+  transform: translate(-50%, 0);
 }
 /* A phone: the passage's chart label goes under the hull box and the wave banner, and the voiced
    lines under the label. */

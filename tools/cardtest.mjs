@@ -204,10 +204,19 @@ for (const view of VIEWS) {
       await checkCard(page, view, 'battle briefing');
       await page.keyboard.press('Enter');
       // The fight: the wave banner, the lookout's calls, the gun rows, the helm hint.
+      // A voiced line over the wave's banner (battle 3's crew speak through the fight): a two-line one.
+      await page.evaluate(() => {
+        const s = document.querySelector('.hud-subtitle');
+        if (!s) return;
+        s.innerHTML =
+          '<span class="hud-speaker">Wingman</span><span>A line long enough to wrap onto a second row, as the crew\'s do in a battle.</span>';
+        s.classList.add('show', 'is-text');
+      });
       for (const at of [3000, 9000]) {
         await page.waitForTimeout(at === 3000 ? 3000 : 6000);
         await checkBattlePanels(page, view, `fight-${at / 1000}s`);
       }
+      await page.evaluate(() => document.querySelector('.hud-subtitle')?.classList.remove('show'));
       // The wave beaten: the bosun's question (a card of the battle's own).
       await S(page, 's.debug.battleRun().battle.debugStrikeAll()');
       const asked = await page
