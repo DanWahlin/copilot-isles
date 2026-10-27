@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { KRAKEN_TIMING, KRAKEN_TIMING_GENTLE, KRAKEN_TIMING_QUICK, wrapBeats } from './encounter';
+import {
+  KRAKEN_TIMING,
+  KRAKEN_TIMING_BATTLE,
+  KRAKEN_TIMING_BATTLE_GENTLE,
+  KRAKEN_TIMING_GENTLE,
+  KRAKEN_TIMING_QUICK,
+  wrapBeats,
+} from './encounter';
 import {
   HAZARD_SPECS,
   hazardHitsHull,
@@ -55,6 +62,30 @@ describe('kraken timing (data the battle can tune)', () => {
       expect(b.end).toBeLessThanOrEqual(15);
       expect(b.break).toBeLessThan(b.end - 3);
     }
+  });
+
+  it("takes a battle's flagship quick and hard: seized in about 2 s, gone in 12–15 s", () => {
+    for (const t of [KRAKEN_TIMING_BATTLE, KRAKEN_TIMING_BATTLE_GENTLE])
+      for (const arms of [3, 4]) {
+        const b = wrapBeats(t, arms);
+        // Every arm up within a fraction of a second of the first: they burst up together.
+        expect(b.lastRise - b.tips).toBeLessThan(0.3);
+        // Arms up and clamped (the squeeze starts) about 2 s after the first tip.
+        expect(b.squeeze - b.tips).toBeGreaterThanOrEqual(1.5);
+        expect(b.squeeze - b.tips).toBeLessThanOrEqual(2.5);
+        // Squeeze and crack about 2 s; torn and under 3–4 s; the withdraw about 2 s.
+        expect(b.break - b.squeeze).toBeCloseTo(2, 1);
+        expect(b.withdraw - b.break).toBeGreaterThanOrEqual(2.5);
+        expect(b.withdraw - b.break).toBeLessThanOrEqual(4);
+        expect(t.withdraw).toBeLessThanOrEqual(2.5);
+        // From the first tip to the last arm down: room for the battle to carry on within 12–15 s.
+        expect(b.end - b.tips).toBeGreaterThanOrEqual(8);
+        expect(b.end - b.tips).toBeLessThanOrEqual(12);
+        expect(b.hasFinale).toBe(false);
+      }
+    // Reduced motion is as short, only gentler.
+    expect(wrapBeats(KRAKEN_TIMING_BATTLE_GENTLE, 4).end).toBe(wrapBeats(KRAKEN_TIMING_BATTLE, 4).end);
+    expect(KRAKEN_TIMING_BATTLE_GENTLE.overshoot).toBe(0);
   });
 
   it('is slow for its size: rise, reach and coil take 2–3× the first prototype', () => {

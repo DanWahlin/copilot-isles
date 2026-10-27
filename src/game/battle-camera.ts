@@ -101,9 +101,10 @@ export class BattleCamera {
 
   /**
    * Holds a shot on a moving focus (a mid-battle event: the kraken's beat), called each frame while it
-   * lasts: it starts like a beat, then follows (x, z) and stays until the calls stop.
+   * lasts: it starts like a beat, then follows (x, z) and stays until the calls stop. `cut`: it
+   * starts with a cut, not a swoop (the HUD's dip hides it).
    */
-  hold(kind: BattleBeat, x: number, z: number, distance = 0): void {
+  hold(kind: BattleBeat, x: number, z: number, distance = 0, cut = false): void {
     if (!this.enabled) return;
     this.holdDistance = distance;
     if (this.shot === kind && this.now < this.shotUntil) {
@@ -113,6 +114,7 @@ export class BattleCamera {
       return;
     }
     this.beat(kind, x, z);
+    if (cut) this.cut = true;
   }
 
   /** The raider to keep in frame this frame (`has` false: none, so the camera looks ahead). */

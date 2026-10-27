@@ -177,6 +177,7 @@ export class BattleHud {
     this.rowsReady = [portRow, starRow];
 
     el('div', 'bh-veil', this.root);
+    el('div', 'bh-dip', this.root).setAttribute('aria-hidden', 'true');
     this.card = el('div', 'bh-card', this.root);
     this.card.setAttribute('role', 'dialog');
   }

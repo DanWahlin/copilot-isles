@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-26T20:04:01.521Z",
+  "generatedAt": "2026-10-27T03:04:22.961Z",
   "set": "testcove",
   "lines": [
     {
@@ -46047,88 +46047,73 @@
     {
       "id": "b3.juno.evidence",
       "speaker": "Juno",
-      "text": "Captain! Bubbles ahead, and a big dark shadow under them. That's evidence: something's down there.",
-      "duration": 7.008,
+      "text": "Bubbles ahead, Captain, and a dark shadow! That's evidence: something's down there.",
+      "duration": 5.508,
       "files": {
         "webm": "b3.juno.evidence.webm",
         "m4a": "b3.juno.evidence.m4a"
       },
-      "hash": "bad4e98bda1c3063",
+      "hash": "266c1df7a3e6b706",
       "words": [
         {
-          "word": "Captain",
-          "start": 0,
-          "end": 0.72
-        },
-        {
           "word": "Bubbles",
-          "start": 0.72,
-          "end": 1.187
+          "start": 0,
+          "end": 0.373
         },
         {
           "word": "ahead",
-          "start": 1.187,
-          "end": 1.86
+          "start": 0.373,
+          "end": 0.91
+        },
+        {
+          "word": "Captain",
+          "start": 0.91,
+          "end": 1.38
         },
         {
           "word": "and",
-          "start": 1.86,
-          "end": 1.96
+          "start": 1.38,
+          "end": 1.48
         },
         {
           "word": "a",
-          "start": 1.96,
-          "end": 2.1
-        },
-        {
-          "word": "big",
-          "start": 2.1,
-          "end": 2.496
+          "start": 1.48,
+          "end": 1.584
         },
         {
           "word": "dark",
-          "start": 2.496,
-          "end": 2.937
+          "start": 1.584,
+          "end": 1.92
         },
         {
           "word": "shadow",
-          "start": 2.937,
-          "end": 3.333
-        },
-        {
-          "word": "under",
-          "start": 3.333,
-          "end": 3.648
-        },
-        {
-          "word": "them",
-          "start": 3.648,
-          "end": 4.24
+          "start": 1.92,
+          "end": 2.784
         },
         {
           "word": "That's",
-          "start": 4.24,
-          "end": 4.702
+          "start": 2.784,
+          "end": 3.191
         },
         {
           "word": "evidence",
-          "start": 4.702,
-          "end": 5.568
+          "start": 3.191,
+          "end": 4.04
         },
         {
           "word": "something's",
-          "start": 5.568,
-          "end": 6.208
+          "start": 4.04,
+          "end": 4.624
         },
         {
           "word": "down",
-          "start": 6.208,
-          "end": 6.44
+          "start": 4.624,
+          "end": 4.92
         },
         {
           "word": "there",
-          "start": 6.44,
-          "end": 6.69
+          "start": 4.92,
+          "end": 5.17
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
@@ -46136,63 +46121,43 @@
     {
       "id": "b3.juno.flagship",
       "speaker": "Juno",
-      "text": "Their flagship's sailing straight over it! They haven't even looked.",
-      "duration": 5.008,
+      "text": "Their flagship's sailing right over it!",
+      "duration": 2.568,
       "files": {
         "webm": "b3.juno.flagship.webm",
         "m4a": "b3.juno.flagship.m4a"
       },
-      "hash": "2e19b6d526af6432",
+      "hash": "05baee29f5923212",
       "words": [
         {
           "word": "Their",
           "start": 0,
-          "end": 0.213
+          "end": 0.142
         },
         {
           "word": "flagship's",
-          "start": 0.213,
-          "end": 0.85
+          "start": 0.142,
+          "end": 0.77
         },
         {
           "word": "sailing",
-          "start": 0.85,
-          "end": 1.262
+          "start": 0.77,
+          "end": 1.173
         },
         {
-          "word": "straight",
-          "start": 1.262,
-          "end": 1.824
+          "word": "right",
+          "start": 1.173,
+          "end": 1.52
         },
         {
           "word": "over",
-          "start": 1.824,
-          "end": 2.213
+          "start": 1.52,
+          "end": 1.973
         },
         {
           "word": "it",
-          "start": 2.213,
-          "end": 2.816
-        },
-        {
-          "word": "They",
-          "start": 2.816,
-          "end": 3.24
-        },
-        {
-          "word": "haven't",
-          "start": 3.24,
-          "end": 3.584
-        },
-        {
-          "word": "even",
-          "start": 3.584,
-          "end": 3.931
-        },
-        {
-          "word": "looked",
-          "start": 3.931,
-          "end": 4.181
+          "start": 1.973,
+          "end": 2.223
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
@@ -46200,108 +46165,88 @@
     {
       "id": "b3.wingman.taken",
       "speaker": "Wingman",
-      "text": "Their captain was sure the sea was clear, and never checked the signs. A confident guess isn't proof, Captain.",
-      "duration": 7.307,
+      "text": "They were sure the sea was clear, and never checked. A confident guess isn't proof.",
+      "duration": 5.507,
       "files": {
         "webm": "b3.wingman.taken.webm",
         "m4a": "b3.wingman.taken.m4a"
       },
-      "hash": "f8bf946b6494b811",
+      "hash": "27144a3c95184786",
       "words": [
         {
-          "word": "Their",
+          "word": "They",
           "start": 0,
-          "end": 0.14
+          "end": 0.112
         },
         {
-          "word": "captain",
-          "start": 0.14,
-          "end": 0.62
-        },
-        {
-          "word": "was",
-          "start": 0.62,
-          "end": 0.864
+          "word": "were",
+          "start": 0.112,
+          "end": 0.288
         },
         {
           "word": "sure",
-          "start": 0.864,
-          "end": 1.14
+          "start": 0.288,
+          "end": 0.5
         },
         {
           "word": "the",
-          "start": 1.14,
-          "end": 1.26
+          "start": 0.5,
+          "end": 0.62
         },
         {
           "word": "sea",
-          "start": 1.26,
-          "end": 1.5
+          "start": 0.62,
+          "end": 0.84
         },
         {
           "word": "was",
-          "start": 1.5,
-          "end": 1.747
+          "start": 0.84,
+          "end": 1.027
         },
         {
           "word": "clear",
-          "start": 1.747,
-          "end": 2.58
+          "start": 1.027,
+          "end": 1.5
         },
         {
           "word": "and",
-          "start": 2.58,
-          "end": 2.707
+          "start": 1.5,
+          "end": 1.72
         },
         {
           "word": "never",
-          "start": 2.707,
-          "end": 3.08
+          "start": 1.72,
+          "end": 1.99
         },
         {
           "word": "checked",
-          "start": 3.08,
-          "end": 3.38
-        },
-        {
-          "word": "the",
-          "start": 3.38,
-          "end": 3.547
-        },
-        {
-          "word": "signs",
-          "start": 3.547,
-          "end": 4.68
+          "start": 1.99,
+          "end": 2.96
         },
         {
           "word": "A",
-          "start": 4.68,
-          "end": 5.176
+          "start": 2.96,
+          "end": 3.248
         },
         {
           "word": "confident",
-          "start": 5.176,
-          "end": 5.733
+          "start": 3.248,
+          "end": 3.76
         },
         {
           "word": "guess",
-          "start": 5.733,
-          "end": 6.04
+          "start": 3.76,
+          "end": 4.26
         },
         {
           "word": "isn't",
-          "start": 6.04,
-          "end": 6.307
+          "start": 4.26,
+          "end": 4.733
         },
         {
           "word": "proof",
-          "start": 6.307,
-          "end": 6.91
-        },
-        {
-          "word": "Captain",
-          "start": 6.91,
-          "end": 7.16
+          "start": 4.733,
+          "end": 4.983
         }
       ],
       "voice": "tfsEebr1nWcNraaptkk3"

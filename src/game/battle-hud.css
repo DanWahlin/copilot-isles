@@ -495,6 +495,30 @@
   opacity: 0;
   transition: opacity 0.8s ease;
 }
+/* A mid-battle event (the kraken's beat) opens with a cut: a short dip to dark, darkest at about
+   0.35 s (kraken-act.ts CUT_AT), when its ship and its camera come in. */
+.bh-dip {
+  position: absolute;
+  inset: 0;
+  background: #05090d;
+  opacity: 0;
+  pointer-events: none;
+}
+.bh[data-phase='event'] .bh-dip {
+  animation: bh-dip 0.9s ease-in-out;
+}
+@keyframes bh-dip {
+  0% {
+    opacity: 0;
+  }
+  38%,
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 /* The battle is over: the guns and Skip step away (hidden also takes them out of the tab order). */
 .bh-guns,
 .bh-skip {

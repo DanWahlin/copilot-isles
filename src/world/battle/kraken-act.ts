@@ -24,14 +24,15 @@ import type { Battle, BattleBeat, BattleSound } from './battle';
  * Battle 3's kraken (docs/specs/BATTLES.md §2.0c, "Trust the Evidence"): the battle's `kraken` event
  * and what it does for the rest of the battle.
  *
- * - **The beat** (after wave 1): the sea shows the evidence ahead (bubbles, a dark shadow, a swirl,
- *   the danger ring) and the lookout calls it; the raiders' flagship comes out of the fog and sails
- *   straight over it, and the kraken takes her (the full wrap and break with its finale, about 40 s;
- *   the quick wrap with reduced motion). Your guns are held while it plays (the battle's `event`
- *   phase). Skip ends it at once.
+ * - **The beat** (after wave 1), quick and hard: a cut (the HUD's dip) to the sea ahead, where the
+ *   evidence shows (bubbles, a dark shadow, a swirl, the danger ring) and the lookout calls it. The
+ *   raiders' flagship is already close, sailing straight for it; as she reaches it the kraken seizes
+ *   her (`wrapAndBreak(ship, { seize })`: four arms at once, the squeeze, torn in two, under, about
+ *   10 s), and the battle carries on 16–18 s after the call. Your guns are held while it plays (the
+ *   battle's `event` phase). Skip ends it at once.
  * - **It stays**: through each later wave's fight, tells rise near your ship (to make you dodge) and on
  *   a raider's course (so you can lead one over it), then an arm slams or sweeps and hits any ship in
- *   its area. A raider it strikes is taken (the quick wrap); your hull takes damage.
+ *   its area. A raider it strikes is seized and taken; your hull takes damage.
  * - **It retreats** once the last raider is gone, before the win card.
  *
  * The course's words (the flagship's name, the crew's lines) come from `KrakenHooks`; the captions here
@@ -55,30 +56,31 @@ export interface KrakenActOptions {
 }
 
 /**
- * Where the beat's evidence lies from your ship (m), and how far the flagship sails to it: she comes
- * out of a fog bank about as far off as the raiders' (190 m), on a diagonal toward your side of it.
+ * Where the beat's evidence lies from your ship (m), and how far short of it the flagship is when the
+ * beat starts: close, on a diagonal toward your side of it, so the beat is short.
  */
-const EVIDENCE_RANGE = 75;
-const APPROACH = 95;
-/** Her course's angle off the line from the evidence out to the fog (radians, either side). */
+const EVIDENCE_RANGE = 52;
+const APPROACH = 40;
+/** Her course's angle off the line from the evidence out to where she starts (radians, either side). */
 const APPROACH_SKEW = 0.6;
 /** The evidence's radius (m): the shadow and the ring. */
-const EVIDENCE_RADIUS = 13;
-/** The fog forms over this long (s) before the flagship shows in it (as the battle's raiders). */
-const FLAGSHIP_REVEAL = 2.8;
+const EVIDENCE_RADIUS = 12;
 /**
- * The kraken starts to take her this far before the evidence (m), or after this long (s) whatever the
- * wind does: its arms rise round her as she sails on into it (they slow her, `HELD_RISE`), and its
- * grip stops her over it. Her sails stay set throughout, and so do her pieces'.
+ * The beat opens with a cut: the HUD's dip to dark (battle-hud.css `bh-dip`) is darkest this long
+ * (s) after it starts, and the flagship and the beat's camera come in then.
  */
-const TAKE_WITHIN = 42;
-const TAKE_AFTER = 20;
-/** The beat's camera: this far behind your ship while the evidence shows, this far from the wreck after. */
-const BEHIND = 12;
-const WRAP_VIEW = 55;
-/** How fast its rising arms take her way off (share a second, up to `HELD_MAX`) before the grip. */
-const HELD_RISE = 0.09;
-const HELD_MAX = 0.75;
+const CUT_AT = 0.35;
+/**
+ * The kraken seizes her this near the evidence's middle (m), or once she's past it, or after this
+ * long (s) whatever the wind does. Her sails stay set throughout, and so do her pieces'.
+ */
+const TAKE_WITHIN = 7;
+const TAKE_AFTER = 8;
+/** Wingman's word on it plays at the withdraw; the battle carries on this long (s) after it starts. */
+const TAKEN_HOLD = 5;
+/** The beat's camera: this far from the evidence (beyond your ship's bow), and from the wreck after. */
+const EVIDENCE_VIEW = 38;
+const WRAP_VIEW = 40;
 /** The first tell of each wave's fight comes this long after the guns run out (s), then every GAP s. */
 const FIRST_TELL = 4;
 const GAP_MIN = 6.5;
@@ -87,10 +89,10 @@ const GAP_MAX = 9.5;
 const STAND = 4;
 /** Every third tell goes on a raider's course (a lure), the rest near your ship. */
 const LURE_EVERY = 3;
-/** Your hull takes this share of a hazard's damage (HAZARD_SPECS): harder than the guns, still fair. */
-const PLAYER_DAMAGE = 0.5;
-/** A standing arm brushing her hull: a quarter (it's the strike that hurts). */
-const STANDING_DAMAGE = 0.25;
+/** Your hull takes this share of a hazard's damage (HAZARD_SPECS): it hurts, and it's still fair. */
+const PLAYER_DAMAGE = 0.25;
+/** A standing arm brushing her hull: half as much again (it's the strike that hurts). */
+const STANDING_DAMAGE = 0.125;
 /** Tells keep this far (m) from another hazard that's up. */
 const TELL_SPACING = 30;
 
@@ -140,6 +142,11 @@ export class KrakenAct {
   /** The evidence's spot and the flagship's course in the beat. */
   private readonly spot = { x: 0, z: 0, heading: 0 };
   private stageAt = 0;
+  /** When the beat started, and when Wingman's word on the flagship started (battle clock; NaN none). */
+  private beatAt = 0;
+  private takenAt = NaN;
+  /** Whether the beat's camera has made its cut. */
+  private cutDone = false;
   private now = 0;
   private seaT = 0;
   private nextTellAt = Infinity;
@@ -188,13 +195,8 @@ export class KrakenAct {
   }
 
   static async create(o: KrakenActOptions): Promise<KrakenAct> {
-    // The beat's evidence shows before the wrap, so the wrap's own tell is short.
-    const encounter = await KrakenEncounter.create({
-      tier: o.tier,
-      waves: o.waves,
-      onSound: o.onSound,
-      timing: { tell: 1.5, riseGap: 0.7, arc: 3, hang: 1.8 },
-    });
+    // The battle shows the evidence itself, and the kraken seizes (KRAKEN_TIMING_BATTLE).
+    const encounter = await KrakenEncounter.create({ tier: o.tier, waves: o.waves, onSound: o.onSound });
     // The flagship draws like the other raiders (a lighter brigantine with the raiders' livery).
     const flagship = createBrigantine({
       tier: o.tier.tier === 'ultra' || o.tier.tier === 'high' ? 'medium' : o.tier.tier,
@@ -255,14 +257,14 @@ export class KrakenAct {
   }
 
   /**
-   * The battle's `kraken` event: the evidence ahead and the flagship sailing into it. False (the
-   * battle goes straight on) when there's no open water for it.
+   * The battle's `kraken` event: the evidence ahead and the flagship, close, sailing into it. False
+   * (the battle goes straight on) when there's no open water for it.
    */
   begin(t: number): boolean {
     if (this.stage !== 'off') return false;
     const p = this.battle.shipAt(0).dynamics.pose;
     windAt(p.x, p.z, t, wind);
-    // Off the bow on either side; she crosses your view on her best point of sail, from the fog.
+    // Off the bow on either side; she crosses your view on her best point of sail.
     let best = -Infinity;
     for (let k = 0; k < 8; k++) {
       const off = (k % 2 === 0 ? 1 : -1) * (0.5 + 0.2 * Math.floor(k / 2));
@@ -290,7 +292,7 @@ export class KrakenAct {
     const s = this.spot;
     const qx = s.x - Math.sin(s.heading) * APPROACH;
     const qz = s.z - Math.cos(s.heading) * APPROACH;
-    // Her sails are set before she's ever drawn, and she's under way as she comes out of the fog.
+    // Her sails are set before she's ever drawn, and she's under way; she shows at the cut.
     const f = this.flagship;
     f.dynamics.setInput(HELM);
     f.restartMotion(qx, qz, s.heading);
@@ -301,9 +303,13 @@ export class KrakenAct {
     f.group.visible = false;
     this.encounter.reducedMotion = world.reducedMotion.value > 0.5;
     this.encounter.showEvidence(s.x, s.z, EVIDENCE_RADIUS, 0.8);
-    this.battle.formFog(Math.atan2(qx - p.x, qz - p.z), Math.hypot(qx - p.x, qz - p.z) - 16, 0.32, t);
+    // The lookout calls the evidence, then the flagship sailing over it (one after the other).
     const l = this.o.hooks.lines;
     this.o.say(l.evidence);
+    this.o.say(l.flagship);
+    this.beatAt = t;
+    this.takenAt = NaN;
+    this.cutDone = false;
     this.setStage('evidence', t);
     return true;
   }
@@ -315,29 +321,29 @@ export class KrakenAct {
     this.encounter.fadeEvidence();
     this.flagship.group.visible = false;
     this.log.flagshipTaken = true;
-    this.battle.thinFog(this.now);
     this.endBeat();
   }
 
   /**
-   * Where the camera looks while the beat plays (the evidence, the flagship, the wreck), and how far
-   * back from it (`d`, m): from behind your ship at first, then in close for the wrap.
+   * Where the camera looks while the beat plays (between the evidence and the flagship, then the
+   * wreck), and how far back from it (`d`, m), from the cut on. `cut`: the first frame of the shot
+   * (the camera jumps there under the dip, not a swoop across the sea).
    */
-  focus(out: { x: number; z: number; d: number }): boolean {
-    if (!this.playing) return false;
-    const you = this.battle.shipAt(0).dynamics.pose;
+  focus(out: { x: number; z: number; d: number; cut: boolean }): boolean {
+    if (!this.playing || this.now - this.beatAt < CUT_AT) return false;
+    out.cut = !this.cutDone;
+    this.cutDone = true;
     if (this.stage === 'wrap') {
       this.encounter.wreckPosition(_p);
       out.x = _p.x;
       out.z = _p.z;
-      out.d = Math.min(WRAP_VIEW, Math.hypot(_p.x - you.x, _p.z - you.z) + BEHIND);
+      out.d = WRAP_VIEW;
       return true;
     }
-    const g = this.flagship.group;
-    const w = this.stage === 'approach' ? 0.35 : 0;
-    out.x = this.spot.x + (g.position.x - this.spot.x) * w;
-    out.z = this.spot.z + (g.position.z - this.spot.z) * w;
-    out.d = Math.hypot(out.x - you.x, out.z - you.z) + BEHIND;
+    const p = this.flagship.dynamics.pose;
+    out.x = this.spot.x * 0.6 + p.x * 0.4;
+    out.z = this.spot.z * 0.6 + p.z * 0.4;
+    out.d = EVIDENCE_VIEW;
     return true;
   }
 
@@ -375,10 +381,9 @@ export class KrakenAct {
     const age = t - this.stageAt;
     if (this.stage === 'evidence') {
       this.steerFlagship(dt);
-      if (age >= FLAGSHIP_REVEAL) {
+      // She shows at the cut, the dip at its darkest.
+      if (age >= CUT_AT) {
         f.group.visible = true;
-        // The flagship's line follows the lookout's call.
-        this.o.say(this.o.hooks.lines.flagship);
         this.setStage('approach', t);
       }
     } else if (this.stage === 'approach') {
@@ -387,28 +392,21 @@ export class KrakenAct {
       const dx = this.spot.x - p.x;
       const dz = this.spot.z - p.z;
       const along = dx * Math.sin(p.heading) + dz * Math.cos(p.heading);
-      if (age > 4) this.battle.thinFog(t);
       if (Math.hypot(dx, dz) < TAKE_WITHIN || along < 0 || age > TAKE_AFTER) {
-        const quick = world.reducedMotion.value > 0.5;
-        this.encounter.reducedMotion = quick;
-        if (this.encounter.wrapAndBreak(f, { finale: !quick, quick })) this.setStage('wrap', t);
+        this.encounter.reducedMotion = world.reducedMotion.value > 0.5;
+        if (this.encounter.wrapAndBreak(f, { seize: true })) this.setStage('wrap', t);
         else this.skip();
       }
     } else if (this.stage === 'wrap') {
-      // She sails on, slowed by its rising arms, until they close on her: from then it holds her.
-      if (age < this.encounter.beats.grip - 2) {
-        f.dynamics.held = Math.min(HELD_MAX, f.dynamics.held + dt * HELD_RISE);
-        this.steerFlagship(dt);
-      } else this.updateFlagship(dt);
-      const phase = this.encounter.phase();
+      // Seized, she coasts to a stop in its grip (the encounter takes her way off).
+      this.updateFlagship(dt);
       // The evidence gives way to what it was evidence of.
       if (age >= this.encounter.beats.grip) this.encounter.fadeEvidence();
-      if ((phase === 'withdraw' || phase === 'finale') && !this.log.flagshipTaken) {
-        this.log.flagshipTaken = true;
-        const l = this.o.hooks.lines;
-        this.o.say(l.taken);
+      if ((this.encounter.phase() === 'withdraw' || this.encounter.free()) && Number.isNaN(this.takenAt)) {
+        this.takenAt = t;
+        this.o.say(this.o.hooks.lines.taken);
       }
-      if (this.encounter.free()) {
+      if (this.encounter.free() && t - this.takenAt >= TAKEN_HOLD) {
         this.log.flagshipTaken = true;
         this.endBeat();
       }
@@ -616,10 +614,10 @@ export class KrakenAct {
       this.sayOnce(this.o.hooks.lines.hit);
       return;
     }
-    // A strike that lands on a raider it can take: it has her (the quick wrap).
+    // A strike that lands on a raider it can take: it seizes her.
     if (h.strike && this.hulls[i]!.catchable && this.takenIdx < 0 && this.encounter.free()) {
       const ship = b.shipAt(i);
-      if (this.encounter.wrapAndBreak(ship, { quick: true }) && b.take(i, t)) {
+      if (this.encounter.wrapAndBreak(ship, { seize: true }) && b.take(i, t)) {
         this.takenIdx = i;
         this.log.taken++;
         this.o.caption(`${b.shipName(i)} sailed over the evidence. The kraken has her!`);

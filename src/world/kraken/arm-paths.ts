@@ -403,6 +403,58 @@ export function pullArc(out: Points, z: number, rise: number, press: number): vo
   out.push(Math.max(1.0, beam - 1.9), deck + 0.35, z - 1.5);
 }
 
+/**
+ * Where a battle's quick seize (`wrapAndBreak(ship, { seize })`) clamps her (ship-local z): over her
+ * rails in the gaps her sails leave (the square sails fill aft from their yards and overhang her
+ * rails; the staysails and the spanker fill to one side of her centre line), so every arm keeps clear
+ * of the canvas, set or furled, flat or full (rig-clearance.ts). The cut is at z 1.8: `fore` and the
+ * mast hook hold her bow half, `aft` and `far` her stern half.
+ */
+export const SEIZE_SPOTS = {
+  /** Over her near rail between the fore and main masts, and between the main and mizzen. */
+  fore: 2.3,
+  aft: -5.6,
+  /** Over her far rail, between the fore and main masts, aft of the cut. */
+  far: 0.8,
+  /** How high (m) each arc rises over her rail. */
+  lift: 2.2,
+} as const;
+
+/**
+ * A battle's seize over her rail at `z` on her +x side (mirror it for the far side): up out of the
+ * sea beside her, over the rail in a short high arc, and down across her deck toward her centre line
+ * (never past it: the staysails fill on the far side). `press` (0…1) clamps it down.
+ */
+export function seizeRail(out: Points, z: number, press: number, lift: number = SEIZE_SPOTS.lift): void {
+  const beam = halfBeamAt(z, 1.5);
+  const sheer = sheerHeightAt(z);
+  const deck = deckHeightAt(z);
+  out.push(beam + 2.4, 0.3, z - 0.3);
+  out.push(beam + 1.7, sheer * 0.6 + lift * 0.3, z - 0.25);
+  out.push(beam + 0.7, sheer + lift - 0.45 * press, z - 0.15);
+  out.push(beam - 0.4, sheer + 0.8 - 0.35 * press, z);
+  out.push(beam - 1.5, deck + 0.45 - 0.15 * press, z + 0.1);
+  out.push(Math.max(1.0, beam - 2.5), deck + 0.32, z + 0.2);
+  out.push(0.7, deck + 0.3, z + 0.3);
+}
+
+/**
+ * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and
+ * round the mast's foot (under the fore course and the staysails), clamped (`press` 0…1).
+ */
+export function seizeMast(out: Points, press: number): void {
+  const z = FORE.z;
+  const deck = deckHeightAt(z);
+  const t = 0.2 * press;
+  out.push(halfBeamAt(z + 2.6, 1.5) + 2.2, 0.3, z + 3.0);
+  out.push(3.3, deck + 0.9, z + 2.6);
+  out.push(2.3, deck + 1.35, z + 1.9);
+  out.push(1.2, deck + 1.4 - t, z + 1.3);
+  out.push(0.3, deck + 1.3 - t, z + 1.0);
+  out.push(-0.5, deck + 1.15 - t, z + 0.85);
+  out.push(-1.0, deck + 0.95 - t, z + 0.5);
+}
+
 /** True when `out`'s points over the deck keep clear of every mast (tests). */
 export function clearOfMasts(out: Points, clearance = RIG_CLEARANCE): boolean {
   for (let i = 0; i < out.n; i++) {

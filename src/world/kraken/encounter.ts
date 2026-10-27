@@ -17,6 +17,9 @@ import {
   mirrorX,
   pullArc,
   railGrip,
+  SEIZE_SPOTS,
+  seizeMast,
+  seizeRail,
   standPath,
   reachOver,
   freeStance,
@@ -162,6 +165,39 @@ export const KRAKEN_TIMING_QUICK: KrakenTiming = {
   finale: 0,
 };
 
+/**
+ * A battle's flagship taken (`wrapAndBreak(ship, { seize: true })`): quick and hard. Four arms burst
+ * up on both sides of her at once and clamp over her rails and round her foremast (about 2 s), the
+ * squeeze and the crack (2 s), torn in two and under (about 3.5 s), the arms withdraw (2 s): about
+ * 10 s from the first tip to the last arm down. The battle shows the evidence itself, before it.
+ */
+export const KRAKEN_TIMING_BATTLE: KrakenTiming = {
+  ...KRAKEN_TIMING,
+  tell: 0.3,
+  riseEach: 0.9,
+  riseGap: 0.07,
+  arc: 0.3,
+  hang: 0.1,
+  grip: 0.9,
+  squeeze: 2,
+  apart: 1.6,
+  under: 2.8,
+  withdraw: 2,
+  finale: 0,
+  swayPeriod: 5,
+  swayAmp: 0.4,
+  anticipate: 0.08,
+  overshoot: 0.1,
+};
+
+/** Reduced motion's battle seize: as short, gentler (no anticipation or overshoot, less sway). */
+export const KRAKEN_TIMING_BATTLE_GENTLE: KrakenTiming = {
+  ...KRAKEN_TIMING_BATTLE,
+  swayAmp: 0.2,
+  anticipate: 0,
+  overshoot: 0,
+};
+
 /** Reduced motion's quick wrap: as long, gentler. */
 export const KRAKEN_TIMING_QUICK_GENTLE: KrakenTiming = {
   ...KRAKEN_TIMING_QUICK,
@@ -247,7 +283,19 @@ export type WrapPhase =
  * grip her (both sides of the hull, over the deck, round the foremast), and two rise high behind her
  * and arc in over her rails for the final pull. Lite's four (sockets 0, 1, 7, 6) all grip.
  */
-type Role = 'mast' | 'bow' | 'stern' | 'gripFore' | 'gripAft' | 'farGrip' | 'pullFar' | 'pullNear';
+type Role =
+  | 'mast'
+  | 'bow'
+  | 'stern'
+  | 'gripFore'
+  | 'gripAft'
+  | 'farGrip'
+  | 'pullFar'
+  | 'pullNear'
+  | 'seizeFore'
+  | 'seizeAft'
+  | 'seizeFar'
+  | 'seizeMast';
 const ROLE_OF: Readonly<Record<number, Role>> = {
   0: 'mast',
   7: 'bow',
@@ -271,6 +319,18 @@ const WITHDRAW_ORDER: readonly Role[] = [
   'bow',
   'mast',
 ];
+/**
+ * The four arms a battle's seize uses, by socket in order of choice (Lite draws sockets 0, 1, 7, 6):
+ * round her foremast, over her near rail forward and aft, and over her far rail.
+ */
+const SEIZE_SOCKETS: readonly (readonly [Role, readonly number[]])[] = [
+  ['seizeMast', [0]],
+  ['seizeFore', [6, 7]],
+  ['seizeAft', [2, 1]],
+  ['seizeFar', [3, 5, 7]],
+];
+/** The order a seize's arms let go in. */
+const SEIZE_WITHDRAW: readonly Role[] = ['seizeFar', 'seizeAft', 'seizeFore', 'seizeMast'];
 /** The arms a quick wrap (a raider caught mid-fight) uses: its grips and the foremast coil. */
 const QUICK_ROLES: readonly Role[] = ['gripFore', 'farGrip', 'stern', 'bow', 'mast'];
 const NO_HITS: readonly HazardHit[] = [];
@@ -297,6 +357,10 @@ const PIECE_OF: Readonly<Record<Role, number>> = {
   farGrip: 0,
   pullFar: 1,
   pullNear: 0,
+  seizeMast: 1,
+  seizeFore: 1,
+  seizeAft: 0,
+  seizeFar: 0,
 };
 /**
  * Where each arm breaks the water beside the ship (her frame: x to the kraken's side, z to her bow)
@@ -312,6 +376,11 @@ const EMERGE: Readonly<Record<Role, readonly [number, number, number]>> = {
   farGrip: [-7.5, -5.5, 12],
   pullFar: [-11, 10.5, 19],
   pullNear: [11, -17.5, 19],
+  // Beside her rails: each comes up only a little way before it reaches over them.
+  seizeMast: [5.2, 8.3, 6],
+  seizeFore: [6.0, 2.0, 6],
+  seizeAft: [5.9, -5.9, 6],
+  seizeFar: [-6.0, 0.5, 6],
 };
 /** How far round the surfaced body its arms rise (m), and how much of each stands there. */
 const RING = 11.5;
@@ -329,6 +398,8 @@ interface ArmState {
   arm: KrakenArm;
   k: number;
   role: Role;
+  /** Its part in a battle's seize, or null: not in it. */
+  seize: Role | null;
   /** When it starts to rise (s after the wrap or rise starts). */
   riseAt: number;
   /** In this wrap (a quick one uses fewer arms), and its withdraw's start after the wrap's. */
@@ -368,6 +439,8 @@ export interface KrakenEncounterOptions {
   timing?: Partial<KrakenTiming>;
   /** The quick wrap's timings (a raider caught mid-fight) instead of `KRAKEN_TIMING_QUICK`. */
   quickTiming?: Partial<KrakenTiming>;
+  /** A battle's seize's timings instead of `KRAKEN_TIMING_BATTLE`. */
+  seizeTiming?: Partial<KrakenTiming>;
 }
 
 interface Wreck {
@@ -393,6 +466,10 @@ export class KrakenEncounter {
   private gentle = false;
   private finaleOn = false;
   private quick = false;
+  /** A battle's seize (`wrapAndBreak(ship, { seize: true })`): four arms at once, quick and hard. */
+  private seizing = false;
+  private readonly timingSeize: KrakenTiming;
+  private readonly timingSeizeGentle: KrakenTiming;
   private readonly timingQuick: KrakenTiming;
   private readonly timingQuickGentle: KrakenTiming;
   /** A raider a landed strike catches is taken at once (a battle can turn it off and call `wrapAndBreak`). */
@@ -450,6 +527,8 @@ export class KrakenEncounter {
     this.timingGentle = { ...KRAKEN_TIMING_GENTLE, ...o.timing };
     this.timingQuick = { ...KRAKEN_TIMING_QUICK, ...o.quickTiming };
     this.timingQuickGentle = { ...KRAKEN_TIMING_QUICK_GENTLE, ...o.quickTiming };
+    this.timingSeize = { ...KRAKEN_TIMING_BATTLE, ...o.seizeTiming };
+    this.timingSeizeGentle = { ...KRAKEN_TIMING_BATTLE_GENTLE, ...o.seizeTiming };
     this.beatsNow = wrapBeats(this.timingFull, kraken.arms.length);
     this.kraken = kraken;
     this.hazards = hazards;
@@ -465,6 +544,7 @@ export class KrakenEncounter {
         arm,
         k,
         role: ROLE_OF[arm.index] ?? 'pullNear',
+        seize: null,
         riseAt: 0,
         active: true,
         outAt: 0,
@@ -475,6 +555,10 @@ export class KrakenEncounter {
         shown: 0,
       });
     });
+    for (const [role, sockets] of SEIZE_SOCKETS) {
+      const s = sockets.map((i) => this.states.find((st) => st.arm.index === i && !st.seize)).find(Boolean);
+      if (s) s.seize = role;
+    }
     // Rise order: the order's roles first, any others after.
     this.states.sort((a, b) => RISE_ORDER.indexOf(a.role) - RISE_ORDER.indexOf(b.role));
     kraken.onPose = (arm, k) => this.poseArm(arm, k);
@@ -531,12 +615,24 @@ export class KrakenEncounter {
 
   private activeArms(): number {
     let n = 0;
-    for (const s of this.states) if (!this.quick || QUICK_ROLES.includes(s.role)) n++;
+    for (const s of this.states) if (this.inWrap(s)) n++;
     return n;
+  }
+
+  /** Whether an arm takes part in this wrap (a quick one or a seize uses fewer). */
+  private inWrap(s: ArmState): boolean {
+    if (this.seizing) return s.seize !== null;
+    return !this.quick || QUICK_ROLES.includes(s.role);
+  }
+
+  /** An arm's part in this wrap. */
+  private roleOf(s: ArmState): Role {
+    return this.seizing && s.seize ? s.seize : s.role;
   }
 
   /** The timing in use (the gentle one with reduced motion). */
   get timing(): KrakenTiming {
+    if (this.seizing) return this.gentle ? this.timingSeizeGentle : this.timingSeize;
     if (this.quick) return this.gentle ? this.timingQuickGentle : this.timingQuick;
     return this.gentle ? this.timingGentle : this.timingFull;
   }
@@ -577,6 +673,7 @@ export class KrakenEncounter {
   reset(): void {
     this.time = 0;
     this.mode = 'idle';
+    this.quick = this.seizing = false;
     this.startAt = this.leaveAt = NaN;
     this.broke = false;
     this.fired.fill(0);
@@ -631,13 +728,16 @@ export class KrakenEncounter {
    * Wraps `ship` (prepared with `prepare`) and tears her in two, from under the water beside her:
    * its evidence, then tips beside her hull, arms rising round her, one arcing over her deck, the
    * grip, the squeeze, the tear, the halves dragged under, the arms withdrawing, and (with a finale)
-   * its body and eyes surfacing behind the wreck. It follows her if she's under way.
+   * its body and eyes surfacing behind the wreck. It follows her if she's under way. `seize`: a
+   * battle's quick, hard take instead (`KRAKEN_TIMING_BATTLE`): four arms burst up round her at once,
+   * clamp over her rails and round her foremast, and she lurches and heels as they take her.
    */
-  wrapAndBreak(ship: Brigantine, o?: { finale?: boolean; quick?: boolean }): boolean {
+  wrapAndBreak(ship: Brigantine, o?: { finale?: boolean; quick?: boolean; seize?: boolean }): boolean {
     const wreck = this.wrecks.find((w) => w.ship === ship);
     if (!wreck || wreck === this.wreck || !this.free()) return false;
-    this.finaleOn = !!o?.finale && !o?.quick;
-    this.quick = !!o?.quick;
+    this.seizing = !!o?.seize;
+    this.quick = !!o?.quick && !this.seizing;
+    this.finaleOn = !!o?.finale && !this.quick && !this.seizing;
     this.beatsNow = wrapBeats(this.timing, this.activeArms(), this.finaleOn);
     this.restorePieces(wreck);
     this.wreck = wreck;
@@ -684,7 +784,7 @@ export class KrakenEncounter {
     for (const h of hits) {
       if (!h.strike || !this.autoCatch || !this.hazards.catchable(h.shipId)) continue;
       const wreck = this.wrecks.find((w) => w.id === h.shipId);
-      if (!wreck || !this.wrapAndBreak(wreck.ship, { quick: true })) continue;
+      if (!wreck || !this.wrapAndBreak(wreck.ship, { seize: true })) continue;
       e.shipId = h.shipId;
       this.emitEvent('caught', 'wrap', h.x, h.z, 0, 0);
       e.shipId = '';
@@ -699,11 +799,11 @@ export class KrakenEncounter {
     this.fired.fill(0);
     this.kraken.group.visible = true;
     this.kraken.body.root.position.set(0, mode === 'wrap' ? ANCHOR.depth - 4 : -16, 0);
-    if (mode !== 'wrap') this.quick = false;
+    if (mode !== 'wrap') this.quick = this.seizing = false;
     // Each arm's rise: one or two at a time, a varied gap between them.
     let at = this.timing.tell;
     for (const s of this.states) {
-      s.active = mode !== 'wrap' || !this.quick || QUICK_ROLES.includes(s.role);
+      s.active = mode !== 'wrap' || this.inWrap(s);
       s.riseAt = s.active ? at : Infinity;
       s.shown = 0;
       s.arm.sink = 0;
@@ -712,9 +812,9 @@ export class KrakenEncounter {
     }
     // Their withdraw, in order (the finale's arms first), over the arms in this wrap.
     let rank = 0;
-    for (const role of WITHDRAW_ORDER)
+    for (const role of this.seizing ? SEIZE_WITHDRAW : WITHDRAW_ORDER)
       for (const s of this.states)
-        if (s.role === role && s.active) s.outAt = rank++ * this.beatsNow.withdrawStep;
+        if (this.roleOf(s) === role && s.active) s.outAt = rank++ * this.beatsNow.withdrawStep;
     this.tellMark ??= this.marks.acquire();
     if (this.tellMark) {
       this.tellMark.radius = 12;
@@ -797,7 +897,7 @@ export class KrakenEncounter {
     this.broke = false;
     this.mode = 'idle';
     this.startAt = this.leaveAt = NaN;
-    this.quick = false;
+    this.quick = this.seizing = false;
     if (this.tellMark) {
       this.marks.release(this.tellMark);
       this.tellMark = null;
@@ -915,7 +1015,7 @@ export class KrakenEncounter {
         const d = wreck.ship.dynamics;
         d.held = Math.min(1, d.held + dt * 0.5);
       }
-      const showPieces = w >= b.squeeze;
+      const showPieces = w >= this.piecesFrom(b);
       wreck.ship.group.visible = !showPieces;
       wreck.pieces.group.visible = showPieces;
       if (showPieces) this.placePieces(wreck, w, t);
@@ -1053,10 +1153,18 @@ export class KrakenEncounter {
     this.anchorHeading = pose.heading - Math.PI / 2;
   }
 
+  /**
+   * When her two halves stand in for her: at the squeeze, or a seize's grip (they lurch and heel her
+   * as the arms take her).
+   */
+  private piecesFrom(b: WrapBeats): number {
+    return this.seizing ? b.grip - 0.15 : b.squeeze;
+  }
+
   /** The frame turning a ship-local point into the world for an arm: her (whole), or the half it holds. */
   private frameFor(role: Role, w: number): Object3D {
     const wreck = this.wreck!;
-    if (w < this.beats.squeeze) return wreck.ship.group;
+    if (w < this.piecesFrom(this.beats)) return wreck.ship.group;
     return wreck.pieces.pieces[PIECE_OF[role]]!.pivot.children[0]!;
   }
 
@@ -1064,6 +1172,7 @@ export class KrakenEncounter {
   private poseArm(arm: KrakenArm, k: number): void {
     const s = this.stateOf(k);
     if (!s) return;
+    const role = this.roleOf(s);
     const tm = this.timing;
     const b = this.beats;
     const w = this.time - this.startAt;
@@ -1081,11 +1190,11 @@ export class KrakenEncounter {
     // Where it breaks the water: beside the ship it's after, or round its own surfaced body. A
     // finale arm moves to the body only once it's down.
     const finaleArm =
-      this.mode === 'wrap' && b.hasFinale && out >= 1 && w > b.finale && FINALE_ROLES.includes(s.role);
+      this.mode === 'wrap' && b.hasFinale && out >= 1 && w > b.finale && FINALE_ROLES.includes(role);
     let height: number;
-    const frame = this.mode === 'wrap' ? this.frameFor(s.role, w) : null;
+    const frame = this.mode === 'wrap' ? this.frameFor(role, w) : null;
     if (this.mode === 'wrap' && !finaleArm) {
-      const e = EMERGE[s.role];
+      const e = EMERGE[role];
       // Where it breaks the water moves with the ship, and once she's torn, with the half it holds
       // (it rises beside her as it drags her down, not stretched straight from where she broke).
       frame!.updateWorldMatrix(true, false);
@@ -1149,11 +1258,21 @@ export class KrakenEncounter {
     );
     if (this.mode !== 'wrap' || finaleArm || !frame) return;
     // Its role's shape over the ship, blended in slowly (and out as it withdraws).
-    const order = RISE_ORDER.indexOf(s.role) % 3;
+    const order = this.seizing ? 0 : RISE_ORDER.indexOf(role) % 3;
     const grip = heavy((w - b.grip - order * 0.6) / (tm.grip * 0.7), a, o);
     const squeeze = this.squeezeAt(w) * (this.reducedMotion ? 0.5 : 1);
     const release = (1 - out) * (1 - letGo);
-    if (s.role === 'mast') {
+    if (this.seizing) {
+      // Straight up out of the sea and over her rail (or round her foremast) in one move, then
+      // clamped down harder with each squeeze.
+      const wSeize = ease((w - s.riseAt - tm.riseEach * 0.15) / (tm.riseEach * 0.75)) * release;
+      if (wSeize <= 0) return;
+      const press = Math.min(1, 0.6 * clamp01(grip) + 0.4 * squeeze);
+      this.shipPath(s, s.target, frame, _a, sea, SEIZE_SHAPE[role] ?? SHAPE_SEIZE_FORE, press, 0);
+      arm.poser.pose(s.target, wSeize, _axisAim);
+      return;
+    }
+    if (role === 'mast') {
       // The highest arm: a slow, tall J over the forecastle (forward of the fore yards and sails),
       // its suckers down toward the deck, a hang, then down round the foremast.
       const arc = heavy((w - b.arc) / tm.arc, a, o);
@@ -1189,9 +1308,9 @@ export class KrakenEncounter {
       }
       return;
     }
-    if (s.role === 'pullFar' || s.role === 'pullNear') {
+    if (role === 'pullFar' || role === 'pullNear') {
       // High behind her until the squeeze, then over her rail for the final pull.
-      const start = b.squeeze - 1.5 + (s.role === 'pullNear' ? 0.7 : 0);
+      const start = b.squeeze - 1.5 + (role === 'pullNear' ? 0.7 : 0);
       const over = heavy((w - start) / (tm.squeeze * 0.6 + 1), a, o);
       const wPull = ease((w - start) / 1.6) * release;
       if (wPull <= 0) return;
@@ -1201,7 +1320,7 @@ export class KrakenEncounter {
         frame,
         _a,
         sea,
-        s.role === 'pullFar' ? SHAPE_PULL_FAR : SHAPE_PULL_NEAR,
+        role === 'pullFar' ? SHAPE_PULL_FAR : SHAPE_PULL_NEAR,
         Math.min(1, Math.max(0.05, over)),
         squeeze,
       );
@@ -1211,10 +1330,10 @@ export class KrakenEncounter {
     const wGrip = ease((w - b.grip - order * 0.6) / (tm.grip * 0.45)) * release;
     if (wGrip <= 0) return;
     const loose = 1 - Math.min(1, Math.max(0, grip));
-    if (s.role === 'bow') this.shipPath(s, s.target, frame, _a, sea, SHAPE_BOW, loose, squeeze);
-    else if (s.role === 'stern') this.shipPath(s, s.target, frame, _a, sea, SHAPE_STERN, loose, squeeze);
-    else if (s.role === 'gripFore') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FORE, squeeze, 0);
-    else if (s.role === 'gripAft') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_AFT, squeeze, 0);
+    if (role === 'bow') this.shipPath(s, s.target, frame, _a, sea, SHAPE_BOW, loose, squeeze);
+    else if (role === 'stern') this.shipPath(s, s.target, frame, _a, sea, SHAPE_STERN, loose, squeeze);
+    else if (role === 'gripFore') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FORE, squeeze, 0);
+    else if (role === 'gripAft') this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_AFT, squeeze, 0);
     else this.shipPath(s, s.target, frame, _a, sea, SHAPE_GRIP_FAR, squeeze, 0);
     arm.poser.pose(s.target, wGrip, _axisAim);
   }
@@ -1296,15 +1415,23 @@ export class KrakenEncounter {
     const gentle = this.reducedMotion ? 0.5 : 1;
     const list = wreck.pieces.pieces;
     if (!this.broke) {
-      // Still one ship: she rolls toward the kraken and hogs at the cut with each squeeze.
+      // Still one ship: she rolls toward the kraken and hogs at the cut with each squeeze. Seized,
+      // she lurches first: a hard heel toward the arms that rocks back, and her bow snatched down.
       const squeeze = this.squeezeAt(w);
+      const kick = this.seizing ? lurch(w - b.grip) * gentle : 0;
+      const drop = this.seizing ? 0.35 * ease((w - b.grip + 0.1) / 0.35) * gentle : 0;
       for (let k = 0; k < list.length; k++) {
         const p = list[k]!;
         p.root.position.copy(g.position);
+        p.root.position.y -= drop;
         p.root.quaternion.copy(g.quaternion);
         p.root.scale.copy(g.scale);
         const sign = k === 0 ? -1 : 1;
-        p.pivot.rotation.set(sign * 0.025 * squeeze * gentle, 0, 0.16 * squeeze * gentle);
+        p.pivot.rotation.set(
+          sign * 0.025 * squeeze * gentle - 0.04 * kick,
+          0,
+          0.16 * squeeze * gentle + kick * (1 - 0.6 * squeeze),
+        );
       }
       return;
     }
@@ -1429,8 +1556,14 @@ export class KrakenEncounter {
     const wreck = this.wreck;
     if (!wreck || this.mode !== 'wrap') return;
     const g = wreck.ship.group;
-    if (this.once(CUE_GRIP, b.grip))
+    if (this.once(CUE_GRIP, b.grip)) {
       this.emitEvent('striking', 'wrap', g.position.x, g.position.z, BRIGANTINE_HALF_LENGTH, 0);
+      if (this.seizing) {
+        g.getWorldPosition(_p);
+        this.emit('timber', _p, 1);
+        this.shake = this.reducedMotion ? 0 : 0.25;
+      }
+    }
     const span = b.break - b.squeeze;
     for (let k = 0; k < 3; k++)
       if (this.once(CUE_GROAN + k, b.squeeze + 0.4 + (k * span) / 3)) {
@@ -1577,6 +1710,25 @@ const SHAPE_GRIP_AFT = 5;
 const SHAPE_GRIP_FAR = 6;
 const SHAPE_PULL_NEAR = 7;
 const SHAPE_PULL_FAR = 8;
+const SHAPE_SEIZE_FORE = 9;
+const SHAPE_SEIZE_AFT = 10;
+const SHAPE_SEIZE_FAR = 11;
+const SHAPE_SEIZE_MAST = 12;
+const SEIZE_SHAPE: Partial<Record<Role, number>> = {
+  seizeFore: SHAPE_SEIZE_FORE,
+  seizeAft: SHAPE_SEIZE_AFT,
+  seizeFar: SHAPE_SEIZE_FAR,
+  seizeMast: SHAPE_SEIZE_MAST,
+};
+
+/**
+ * A seized ship's heel toward the arms (rad), `k` s after they clamp: snatched over hard, rocking
+ * back, and settling a little over.
+ */
+function lurch(k: number): number {
+  if (k <= 0) return 0;
+  return 0.1 * (1 - Math.exp(-6 * k)) + 0.12 * Math.sin(Math.min(Math.PI, k * 4.5)) * Math.exp(-1.2 * k);
+}
 const WRAP_SPOTS_FORE_Z = BRIGANTINE_MASTS.fore.z;
 
 /** The ship's hull material (the caps are its planking). */
@@ -1592,7 +1744,7 @@ function aimAt(shape: number, u: number): void {
   let dy = 0;
   let dz = 1;
   if (shape === SHAPE_BOW || shape === SHAPE_STERN) py = 0.15 + 4 * u;
-  else if (shape === SHAPE_MAST) {
+  else if (shape === SHAPE_MAST || shape === SHAPE_SEIZE_MAST) {
     py = 0;
     pz = WRAP_SPOTS_FORE_Z;
     dy = 1;
@@ -1610,7 +1762,13 @@ function aimAt(shape: number, u: number): void {
 function shapePoints(shape: number, u: number, v: number): void {
   _pts.clear();
   if (shape === SHAPE_MAST) mastCoil(_pts, u, v);
-  else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
+  else if (shape === SHAPE_SEIZE_MAST) seizeMast(_pts, u);
+  else if (shape === SHAPE_SEIZE_FORE) seizeRail(_pts, SEIZE_SPOTS.fore, u);
+  else if (shape === SHAPE_SEIZE_AFT) seizeRail(_pts, SEIZE_SPOTS.aft, u);
+  else if (shape === SHAPE_SEIZE_FAR) {
+    seizeRail(_pts, SEIZE_SPOTS.far, u);
+    mirrorX(_pts);
+  } else if (shape === SHAPE_BOW) hullCoil(_pts, WRAP_SPOTS.bow.z0, WRAP_SPOTS.bow.z1, u, v);
   else if (shape === SHAPE_STERN) hullCoil(_pts, WRAP_SPOTS.stern.z0, WRAP_SPOTS.stern.z1, u, v);
   else if (shape === SHAPE_PULL_NEAR) pullArc(_pts, WRAP_SPOTS.pullAft, u, v);
   else if (shape === SHAPE_PULL_FAR) {

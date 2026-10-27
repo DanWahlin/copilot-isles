@@ -4,6 +4,7 @@ import {
   FORE_LOWEST_YARD,
   Points,
   RIG_CLEARANCE,
+  SEIZE_SPOTS,
   WRAP_SPOTS,
   clearOfMasts,
   heavy,
@@ -12,9 +13,13 @@ import {
   freeStance,
   pullArc,
   railGrip,
+  mirrorX,
+  seizeMast,
+  seizeRail,
   standPath,
   type FreeStance,
 } from './arm-paths';
+import { SAIL_CLEARANCE, mastDistance, pathSailDistance, sailDistance } from './rig-clearance';
 import { CurvePath, followPath } from './tentacle-pose';
 
 describe('heavy', () => {
@@ -87,6 +92,55 @@ describe('wrap shapes keep clear of the rig', () => {
     }
     expect(Math.abs(WRAP_SPOTS.arc - BRIGANTINE_MASTS.fore.z)).toBeGreaterThan(2);
   });
+});
+
+describe("a battle's seize keeps clear of her sails, yards and masts", () => {
+  /** Each seize shape at a press, with the half of her it holds (the cut is at z 1.8). */
+  const shapes: [string, (p: Points, press: number) => void, 'bow' | 'stern', number][] = [
+    ['near rail forward', (p, k) => seizeRail(p, SEIZE_SPOTS.fore, k), 'bow', 1],
+    ['near rail aft', (p, k) => seizeRail(p, SEIZE_SPOTS.aft, k), 'stern', 1],
+    [
+      'far rail',
+      (p, k) => {
+        seizeRail(p, SEIZE_SPOTS.far, k);
+        mirrorX(p);
+      },
+      'stern',
+      -1,
+    ],
+    ['foremast', (p, k) => seizeMast(p, k), 'bow', 0],
+  ];
+
+  it("the sails are the ship's own canvas, flat to full (a check of the check)", () => {
+    // On the fore course's middle (flat); and over her rail between the fore and main, clear.
+    expect(sailDistance(0, 5.3, BRIGANTINE_MASTS.fore.z)).toBeLessThan(0.3);
+    expect(sailDistance(5, 3, 2)).toBeGreaterThan(2);
+  });
+
+  for (const [name, build, half, side] of shapes)
+    it(`over her ${name}: never through canvas, flat or full, loose or clamped`, () => {
+      for (const press of [0, 0.5, 1]) {
+        const p = new Points();
+        build(p, press);
+        expect(p.n).toBeGreaterThan(4);
+        expect(pathSailDistance(p.xyz, p.n)).toBeGreaterThanOrEqual(SAIL_CLEARANCE);
+        for (let i = 0; i < p.n; i++) {
+          const x = p.xyz[i * 3]!;
+          const y = p.xyz[i * 3 + 1]!;
+          const z = p.xyz[i * 3 + 2]!;
+          // Round the mast, never into it; clear of the others and their yards.
+          expect(mastDistance(x, y, z)).toBeGreaterThan(side === 0 ? 0.5 : RIG_CLEARANCE);
+          expect(y).toBeLessThan(FORE_LOWEST_YARD - RIG_CLEARANCE);
+          // On its own half (it holds it as she tears), and on its own side of her centre line.
+          if (half === 'bow') expect(z).toBeGreaterThan(1.9);
+          else expect(z).toBeLessThan(1.7);
+          if (side !== 0 && i > 0) expect(x * side).toBeGreaterThan(0.5);
+        }
+        // It starts in the sea beside her and ends on her deck.
+        expect(p.xyz[1]!).toBeLessThan(0.5);
+        expect(Math.abs(p.xyz[(p.n - 1) * 3]!)).toBeLessThan(1.5);
+      }
+    });
 });
 
 describe('standPath', () => {

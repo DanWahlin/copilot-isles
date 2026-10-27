@@ -1,102 +1,82 @@
 {
   "id": "b3.wingman.taken",
   "speaker": "Wingman",
-  "text": "Their captain was sure the sea was clear, and never checked the signs. A confident guess isn't proof, Captain.",
+  "text": "They were sure the sea was clear, and never checked. A confident guess isn't proof.",
   "words": [
     {
-      "word": "Their",
+      "word": "They",
       "start": 0,
-      "end": 0.14
+      "end": 0.112
     },
     {
-      "word": "captain",
-      "start": 0.14,
-      "end": 0.62
-    },
-    {
-      "word": "was",
-      "start": 0.62,
-      "end": 0.864
+      "word": "were",
+      "start": 0.112,
+      "end": 0.288
     },
     {
       "word": "sure",
-      "start": 0.864,
-      "end": 1.14
+      "start": 0.288,
+      "end": 0.5
     },
     {
       "word": "the",
-      "start": 1.14,
-      "end": 1.26
+      "start": 0.5,
+      "end": 0.62
     },
     {
       "word": "sea",
-      "start": 1.26,
-      "end": 1.5
+      "start": 0.62,
+      "end": 0.84
     },
     {
       "word": "was",
-      "start": 1.5,
-      "end": 1.747
+      "start": 0.84,
+      "end": 1.027
     },
     {
       "word": "clear",
-      "start": 1.747,
-      "end": 2.58
+      "start": 1.027,
+      "end": 1.5
     },
     {
       "word": "and",
-      "start": 2.58,
-      "end": 2.707
+      "start": 1.5,
+      "end": 1.72
     },
     {
       "word": "never",
-      "start": 2.707,
-      "end": 3.08
+      "start": 1.72,
+      "end": 1.99
     },
     {
       "word": "checked",
-      "start": 3.08,
-      "end": 3.38
-    },
-    {
-      "word": "the",
-      "start": 3.38,
-      "end": 3.547
-    },
-    {
-      "word": "signs",
-      "start": 3.547,
-      "end": 4.68
+      "start": 1.99,
+      "end": 2.96
     },
     {
       "word": "A",
-      "start": 4.68,
-      "end": 5.176
+      "start": 2.96,
+      "end": 3.248
     },
     {
       "word": "confident",
-      "start": 5.176,
-      "end": 5.733
+      "start": 3.248,
+      "end": 3.76
     },
     {
       "word": "guess",
-      "start": 5.733,
-      "end": 6.04
+      "start": 3.76,
+      "end": 4.26
     },
     {
       "word": "isn't",
-      "start": 6.04,
-      "end": 6.307
+      "start": 4.26,
+      "end": 4.733
     },
     {
       "word": "proof",
-      "start": 6.307,
-      "end": 6.91
-    },
-    {
-      "word": "Captain",
-      "start": 6.91,
-      "end": 7.16
+      "start": 4.733,
+      "end": 4.983
     }
   ]
 }

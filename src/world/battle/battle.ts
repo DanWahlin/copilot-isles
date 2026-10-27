@@ -1636,16 +1636,6 @@ export class Battle {
     return true;
   }
 
-  /** A fog bank `range` m out on `bearing` (radians, heading convention) from your ship: an event's ship comes out of it. */
-  formFog(bearing: number, range: number, width: number, t: number): void {
-    const p = this.player.ship.dynamics.pose;
-    this.fog.form(p.x, p.z, bearing, range, width, t, this.rand);
-  }
-
-  thinFog(t: number): void {
-    this.fog.thin(t);
-  }
-
   /** The kraken is done with raider `i` (her pieces are under): she's gone. */
   letGo(i: number): void {
     const c = this.combatants[i];

@@ -1,82 +1,67 @@
 {
   "id": "b3.juno.evidence",
   "speaker": "Juno",
-  "text": "Captain! Bubbles ahead, and a big dark shadow under them. That's evidence: something's down there.",
+  "text": "Bubbles ahead, Captain, and a dark shadow! That's evidence: something's down there.",
   "words": [
     {
-      "word": "Captain",
-      "start": 0,
-      "end": 0.72
-    },
-    {
       "word": "Bubbles",
-      "start": 0.72,
-      "end": 1.187
+      "start": 0,
+      "end": 0.373
     },
     {
       "word": "ahead",
-      "start": 1.187,
-      "end": 1.86
+      "start": 0.373,
+      "end": 0.91
+    },
+    {
+      "word": "Captain",
+      "start": 0.91,
+      "end": 1.38
     },
     {
       "word": "and",
-      "start": 1.86,
-      "end": 1.96
+      "start": 1.38,
+      "end": 1.48
     },
     {
       "word": "a",
-      "start": 1.96,
-      "end": 2.1
-    },
-    {
-      "word": "big",
-      "start": 2.1,
-      "end": 2.496
+      "start": 1.48,
+      "end": 1.584
     },
     {
       "word": "dark",
-      "start": 2.496,
-      "end": 2.937
+      "start": 1.584,
+      "end": 1.92
     },
     {
       "word": "shadow",
-      "start": 2.937,
-      "end": 3.333
-    },
-    {
-      "word": "under",
-      "start": 3.333,
-      "end": 3.648
-    },
-    {
-      "word": "them",
-      "start": 3.648,
-      "end": 4.24
+      "start": 1.92,
+      "end": 2.784
     },
     {
       "word": "That's",
-      "start": 4.24,
-      "end": 4.702
+      "start": 2.784,
+      "end": 3.191
     },
     {
       "word": "evidence",
-      "start": 4.702,
-      "end": 5.568
+      "start": 3.191,
+      "end": 4.04
     },
     {
       "word": "something's",
-      "start": 5.568,
-      "end": 6.208
+      "start": 4.04,
+      "end": 4.624
     },
     {
       "word": "down",
-      "start": 6.208,
-      "end": 6.44
+      "start": 4.624,
+      "end": 4.92
     },
     {
       "word": "there",
-      "start": 6.44,
-      "end": 6.69
+      "start": 4.92,
+      "end": 5.17
     }
   ]
 }
