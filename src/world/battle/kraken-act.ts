@@ -60,7 +60,7 @@ export interface KrakenActOptions {
  * beat starts: close, on a diagonal toward your side of it, so the beat is short.
  */
 const EVIDENCE_RANGE = 52;
-const APPROACH = 40;
+const APPROACH = 55;
 /** Her course's angle off the line from the evidence out to where she starts (radians, either side). */
 const APPROACH_SKEW = 0.6;
 /** The evidence's radius (m): the shadow and the ring. */
@@ -75,7 +75,7 @@ const CUT_AT = 0.35;
  * long (s) whatever the wind does. Her sails stay set throughout, and so do her pieces'.
  */
 const TAKE_WITHIN = 7;
-const TAKE_AFTER = 8;
+const TAKE_AFTER = 10;
 /** Wingman's word on it plays at the withdraw; the battle carries on this long (s) after it starts. */
 const TAKEN_HOLD = 5;
 /** The beat's camera: this far from the evidence (beyond your ship's bow), and from the wreck after. */
