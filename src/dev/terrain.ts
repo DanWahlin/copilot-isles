@@ -309,6 +309,7 @@ const terrain = createTerrain({
         prefilter: KEELHAVEN.terrain.prefilter,
         maxMergedTriangles: KEELHAVEN.terrain.maxMergedTriangles,
         morphFrames: KEELHAVEN.terrain.morphFrames,
+        seabed: KEELHAVEN.terrain.seabed,
         freshWater: q.has('noart') ? null : keelhavenTerrainWater(),
       }
     : {}),

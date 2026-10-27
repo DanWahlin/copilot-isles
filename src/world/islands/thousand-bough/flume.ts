@@ -19,6 +19,7 @@ import { mulberry32, smoothstep } from '../../../util/math';
 import { CREW_LOOK } from '../../../game/puzzles/channel-routing/boards';
 import type { ChannelRoutingState, Crew, Flow, FlumeTerraceView } from './contract';
 import type { FlumeStones } from './rocks';
+import type { CameraBlockerBox } from '../../terrain/camera-blockers';
 import { THOUSAND_BOUGH as TB } from './layout';
 import { thousandBoughHeight } from './height';
 import {
@@ -519,6 +520,8 @@ export interface FlumeTerrace extends FlumeTerraceView {
   group: Group;
   /** Static structure for the village's merged meshes was added to its buckets. */
   colliders: BoxCollider[];
+  /** For the camera: the side walls past the walker's box (issue 312). */
+  cameraBoxes: CameraBlockerBox[];
   /** Adds separate flume meshes that share the island rock geometry and material. */
   useStones(stones: FlumeStones): void;
   update(dt: number): void;
@@ -538,7 +541,8 @@ export function createFlumeTerrace(
   const group = new Group();
   group.name = 'thousand-bough-flume';
   const colliders: BoxCollider[] = [];
-  buildStatics(statics, colliders, signs);
+  const cameraBoxes: CameraBlockerBox[] = [];
+  buildStatics(statics, colliders, signs, cameraBoxes);
 
   // Rigid parts: wood (straight, elbow and a rock's bed per cell, the gates, the wheels, the demo
   // trough and its stacked boards), stone (the trough's piers; painted rocks if there are no rock
@@ -935,6 +939,7 @@ export function createFlumeTerrace(
   const view: FlumeTerrace = {
     group,
     colliders,
+    cameraBoxes,
     useStones(s) {
       // Hide the painted stand-ins; this mesh shares the island's real rock asset.
       for (const p of stoneIndex.rocks) stoneParts.set(p, ZERO);
@@ -1191,7 +1196,7 @@ function wheelGeometry(): BufferGeometry {
 export function flumeColliders(): BoxCollider[] {
   const out: BoxCollider[] = [];
   const b = makeBuckets();
-  buildStatics(b, out);
+  buildStatics(b, out, undefined, []);
   for (const list of Object.values(b)) for (const g of list) g.dispose();
   return out;
 }
@@ -1221,7 +1226,12 @@ function chuteEnds(w: (typeof TB.water.wheels)[number]): {
  * The header box over the north edge, the chutes to the wheels, the trestles, the catch sluice, and
  * the crews' gates with their painted boards (name and icon, like the Gate Board's) in `signs`.
  */
-function buildStatics(b: Buckets, colliders: BoxCollider[], signs?: SignSet): void {
+function buildStatics(
+  b: Buckets,
+  colliders: BoxCollider[],
+  signs: SignSet | undefined,
+  cameraBoxes: CameraBlockerBox[],
+): void {
   const x0 = F.cols[0]! - TILE / 2;
   const x1 = F.cols[COLS - 1]! + TILE / 2;
   const zN = F.rows[0]! - TILE / 2;
@@ -1384,6 +1394,16 @@ function buildStatics(b: Buckets, colliders: BoxCollider[], signs?: SignSet): vo
       const h = top - ground + 0.5;
       box(b, 'stone', wx, top - h / 2, z, 0.55, h, TILE + 0.02, 0, r % 2 ? PAINT.stone : PAINT.basalt);
       box(b, 'stone', wx + sgn * 0.04, top + 0.03, z, 0.6, 0.08, TILE, 0, PAINT.moss);
+      // The camera keeps out of the wall and its footing, which stand past the walker's box.
+      cameraBoxes.push({
+        x: wx + sgn * 0.3,
+        z,
+        hx: 0.6,
+        hz: TILE / 2 + 0.01,
+        rot: 0,
+        y0: ground - 0.6,
+        y1: top + 0.11,
+      });
     }
   // The front wall under the last row, above the sluice.
   {

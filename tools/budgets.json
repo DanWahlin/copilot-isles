@@ -51,7 +51,7 @@
       "heapPct": 15,
       "$heapFloorMB": "The heap may also grow this much (MB), whichever allows more: what a first voyage leaves behind for good doesn't scale with the heap. A heap-snapshot diff (first Anchorage vs a new voyage, High WebGPU) put ~7 MB of the ~10 MB in V8 compiled code for the island modules a voyage first loads (they never unload) and ~1 MB in kept CPU data (packs, caches); the same +10 MB at HEAD. A relative-only margin passed at 86 MB and failed once the grass freed its build data (69 MB).",
       "heapFloorMB": 15,
-      "$heapFloorKeelhaven": "12 → 15 MB (2026-10-25, Keelhaven's wiring): a voyage that has been to Keelhaven keeps its island chunk's compiled code too; a new voyage read 91.5 MB against 77.3 MB at first (High WebGPU), +14.2 MB, and the tree before the wiring's last milestone read the same (91.0 against 76.9)."
+      "$heapFloorKeelhaven": "12 → 15 MB (2026-10-25, Keelhaven's wiring): a voyage that has been to Keelhaven keeps its island chunk's compiled code too; a new voyage read 91.5 MB against 77.3 MB at first (High WebGPU), +14.2 MB, and the tree before the wiring's last milestone read the same (91.0 against 76.9). 2026-10-26 (issue 316): still +14.1 MB (91.6 against 77.5; WebGL2 +13.9), so it stays 15."
     },
     "leak": {
       "$trackedMB": "Growth allowed from one round trip's Anchorage to the next (MB). It's only a leak signal if the reading doesn't depend on timing: three counted a texture once, at its size when first seen, so an image still decoding (5.3 MB per 1024² kit or terrain WebP) or TRAA's history target sized after its first use (11 MB at 1600 × 900) counted ~0 or in full by the luck of the frame, and the same stop read 453-484 MB on one tree (issue 261). The ledger now recounts a texture whose size changed (engine/memory-ledger.ts) and the test holds the render scale at the tier's (adaptive resolution would resize ~90 MB of screen targets on High). With issue 262 fixed (instanced meshes free the instance buffers three made for them), every round trip reads the same to 0.1 MB on High and Lite, WebGPU and WebGL2, and its resources match one for one; before it, High WebGPU grew 0.6 MB a round trip. 1 MB is ten times the jitter seen and still catches one leaked 512² texture with mips (1.3 MB) or ~8 instanced meshes' matrices a trip (128 KB each).",
@@ -59,13 +59,13 @@
       "heapMB": 6
     },
     "ceilings": {
-      "$keelhaven": "Raised 2026-10-25 when Keelhaven joined the round trips (its stops weren't measured when these were set): its peak plus ~15 %. High: 781.5 MB on WebGPU (its terrain's finest level is 1 m over a 1.3 × 1.8 km bake) → 900; Lite: 237.3 MB → 273. The tree before the wiring's last milestone read 776.4 / 234.9 (the works' apron and the lent ocean tiles add ~5 / ~2.4 MB).",
+      "$keelhaven": "2026-10-25, Keelhaven's wiring: raised to 900 / 273 for its stops (781.5 / 237.3 MB). 2026-10-26, issue 316: its terrain cut (masks and light as bytes, 16-bit indices kept 16-bit on WebGPU, its deep sea floor at its coarsest level) and a dormant Anchorage freeing every terrain level: High 781.5 → 571.3 MB (Keelhaven, WebGPU; 563.5 WebGL2) → 661 (peak + 15 %, the ceiling before Keelhaven); Lite 237.3 → 210.2 MB (Keelhaven, WebGPU) → 242. Lite can't go back to 228: Anchorage alone reads 205.3 MB on Lite (236 with the margin).",
       "high": {
-        "trackedMB": 900,
+        "trackedMB": 661,
         "heapMB": 129
       },
       "lite": {
-        "trackedMB": 273,
+        "trackedMB": 242,
         "heapMB": 103
       }
     }

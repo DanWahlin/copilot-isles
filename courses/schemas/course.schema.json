@@ -83,6 +83,15 @@
               }
             }
           }
+        },
+        "appendices": {
+          "type": "array",
+          "description": "The course's appendices to snapshot (`appendices/<name>.md`), by name. `npm run course:sync` copies each with the chapters and locks its sections, so a line can cite one as `{\"chapter\": \"appendix:<name>\", \"anchor\": …, \"hash\": …}` (docs/content-data.md).",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          }
         }
       }
     },
@@ -205,6 +214,13 @@
             },
             "note": {
               "$ref": "#/$defs/text"
+            },
+            "cites": {
+              "type": "object",
+              "description": "Where the form's words come from: a field's key (`intro`, `hint`, `example`…) → its course section.",
+              "additionalProperties": {
+                "$ref": "#/$defs/sourceRef"
+              }
             }
           }
         },
@@ -236,6 +252,13 @@
             },
             "hint": {
               "$ref": "#/$defs/text"
+            },
+            "cites": {
+              "type": "object",
+              "description": "Where the form's words come from: a field's key (`intro`, `hint`, `example`…) → its course section.",
+              "additionalProperties": {
+                "$ref": "#/$defs/sourceRef"
+              }
             }
           }
         },
@@ -280,6 +303,13 @@
             "skip": {
               "description": "The Skip button's label when a script asks (the Logbook's is Cancel).",
               "$ref": "#/$defs/text"
+            },
+            "cites": {
+              "type": "object",
+              "description": "Where the form's words come from: a field's key (`intro`, `hint`, `example`…) → its course section.",
+              "additionalProperties": {
+                "$ref": "#/$defs/sourceRef"
+              }
             }
           }
         },
@@ -378,6 +408,13 @@
                 "other": {
                   "$ref": "#/$defs/text"
                 }
+              }
+            },
+            "cites": {
+              "type": "object",
+              "description": "Where the form's words come from: a field's key (`intro`, `hint`, `example`…) → its course section.",
+              "additionalProperties": {
+                "$ref": "#/$defs/sourceRef"
               }
             }
           }
@@ -747,6 +784,26 @@
             "type": "string",
             "minLength": 1
           }
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chapter", "anchor", "hash"],
+      "description": "The course section a line comes from: a chapter (`02-sessions-worktrees-context`) or an appendix in `source.appendices` (`appendix:git-worktrees`), the heading anchor, and the section's hash in lock.json (npm run course:refs).",
+      "properties": {
+        "chapter": {
+          "type": "string",
+          "pattern": "^(\\d{2}-[a-z0-9-]+|appendix:[a-z0-9-]+)$"
+        },
+        "anchor": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{12}$"
         }
       }
     }

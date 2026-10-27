@@ -18,6 +18,7 @@ import { THOUSAND_BOUGH as TB } from './layout';
 import { THOUSAND_BOUGH_FLORA } from './flora';
 import { createThousandBoughSilhouette } from './tree/silhouette';
 import { createIslandDepthTile } from '../depth-tile';
+import { applyIslandMood, resetMood as resetSkyMood } from '../../sky/mood';
 import { footprintDistance } from '../footprint';
 import type { IslandStream, IslandStreamCreateContext } from '../island-stream';
 import { SilhouetteSwap } from '../silhouette-swap';
@@ -179,13 +180,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
   };
 
   const life = new StreamLifecycle<ThousandBoughWorld>(build, teardown, ctx.disabled);
-  const resetMood = () => {
-    const mood = ctx.sky.mood;
-    mood.fogScale = 1;
-    for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1;
-    mood.fill = 1;
-    mood.exposure = 1;
-  };
+  const resetMood = () => resetSkyMood(ctx.sky.mood);
 
   const self: ThousandBoughStream & {
     terrain: CreatedTerrain | null;
@@ -242,11 +237,7 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
       const R = TB.skyReach;
       const k0 = Math.min(1, Math.max(0, (R.reach - d) / (R.reach - R.full)));
       const k = k0 * k0 * (3 - 2 * k0);
-      const mood = ctx.sky.mood;
-      mood.fogScale = 1 + (TB.mood.fogScale - 1) * k;
-      for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1 + (TB.mood.hazeTint[i]! - 1) * k;
-      mood.fill = 1 + (TB.mood.fill - 1) * k;
-      mood.exposure = 1 + (TB.mood.exposure - 1) * k;
+      applyIslandMood(ctx.sky.mood, TB.mood, k);
       const reach = footprintDistance(footprint, camera.position.x, camera.position.z);
       if (reach < ranges.load && ctx.nearLoads()) void self.load();
       const near = !swap.update(reach);

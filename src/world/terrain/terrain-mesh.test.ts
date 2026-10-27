@@ -13,6 +13,7 @@ import {
   terrainLodThresholds,
 } from './terrain-mesh';
 import { WALK_RIG } from '../../game/follow-camera';
+import { Index16Attribute } from '../../engine/index-format';
 
 // The terrain's own look loads textures (a browser's job); these tests only need its meshes.
 vi.mock('./terrain-material', async () => {
@@ -497,5 +498,66 @@ describe('terrain skins', () => {
       }
       g.dispose();
     }
+  });
+});
+
+describe('terrain memory (issue 316)', () => {
+  const C = TERRAIN_CHUNK_SIZE;
+  it('keeps masks and light as bytes and the index 16-bit on WebGPU', () => {
+    const data = roughData({ minX: 0, maxX: C * 2, minZ: 0, maxZ: C, cell: 4 }, 3);
+    data.masks.fill(255);
+    data.ao.fill(128);
+    const terrain = createTerrain({ tier: 'lite', data, createRocks: () => null });
+    for (const g of terrain.geometries()) {
+      const mask = g.getAttribute('terrainMask');
+      const light = g.getAttribute('terrainLight');
+      expect(mask.array).toBeInstanceOf(Uint8Array);
+      expect(mask.normalized).toBe(true);
+      // getX reads the fraction (three scales a normalized attribute's accessors).
+      expect(mask.getX(0)).toBe(1);
+      expect(light.getX(0)).toBe(128 / 255);
+      const index = g.getIndex()!;
+      expect(index.array).toBeInstanceOf(Uint16Array);
+      expect(index).toBeInstanceOf(Index16Attribute);
+    }
+    terrain.dispose();
+  });
+
+  it('draws a deep sea floor chunk at its seabed level at every distance (one geometry)', () => {
+    const data = roughData({ minX: 0, maxX: C * 2, minZ: 0, maxZ: C, cell: 4 }, 3);
+    // The second chunk is all deep sea floor; the first keeps land.
+    for (let iz = 0; iz < data.nz; iz++)
+      for (let ix = 0; ix < data.nx; ix++)
+        if (data.minX + ix * data.cell >= C) data.heights[iz * data.nx + ix] = -30 - (ix % 3);
+    const plain = createTerrain({ tier: 'high', data, createRocks: () => null });
+    const deep = createTerrain({
+      tier: 'high',
+      data,
+      createRocks: () => null,
+      seabed: { below: -15, level: 2 },
+    });
+    // Three levels for the land chunk; the deep chunk's three are one.
+    expect(plain.geometries().length).toBe(6);
+    expect(deep.geometries().length).toBe(4);
+    const camera = new PerspectiveCamera();
+    const chunk = (t: typeof deep, name: string) =>
+      (t.group.children as Mesh[]).find((m) => m.name === name)!;
+    for (const x of [C * 1.5, C * 0.5, 5000]) {
+      camera.position.set(x, 10, C * 0.5);
+      plain.update(camera);
+      deep.update(camera);
+      // The land chunk is the same in both.
+      expect(chunk(deep, 'terrain-chunk-0-0').geometry.getAttribute('position').count).toBe(
+        chunk(plain, 'terrain-chunk-0-0').geometry.getAttribute('position').count,
+      );
+      // The seabed chunk always draws the plain terrain's coarsest level's shape.
+      const coarse = chunk(deep, `terrain-chunk-${C}-0`).geometry.getAttribute('position');
+      plain.setLod(2);
+      const want = chunk(plain, `terrain-chunk-${C}-0`).geometry.getAttribute('position');
+      expect(Array.from(coarse.array)).toEqual(Array.from(want.array));
+      plain.setLod(null);
+    }
+    plain.dispose();
+    deep.dispose();
   });
 });

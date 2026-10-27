@@ -201,6 +201,26 @@ describe('the content checks report broken edits by entry', () => {
     );
   });
 
+  it('an appendix the snapshot hasn’t got, and a setup form’s citation that doesn’t resolve (issue 285)', () => {
+    const c = meta();
+    c.source = { ...c.source, appendices: ['git-worktrees', 'no-such-appendix'] };
+    const cites = c.setup!.branch.cites as Record<string, { chapter: string; anchor: string; hash: string }>;
+    cites.hint = { ...cites.hint, hash: '000000000000' };
+    cites.example = { ...cites.example, chapter: 'appendix:troubleshooting-reference' };
+    cites.nonsense = cites.intro;
+    expect(paths(issuesWith('course.json', c)).sort()).toEqual([
+      'setup.branch.cites.example',
+      'setup.branch.cites.hint',
+      'setup.branch.cites.nonsense',
+      'source.appendices[1]',
+    ]);
+    const l = lock();
+    delete l.appendices;
+    expect(paths(issuesWith('lock.json', l))).toEqual(
+      expect.arrayContaining(['source.appendices[0]', 'setup.branch.cites.hint']),
+    );
+  });
+
   it('puzzles: a mechanic the game doesn’t run there, a voice line or a citation that doesn’t resolve', () => {
     const helms = json<Record<string, unknown>>(`${PACK}/puzzles/three-helms.json`);
     expect(paths(issuesWith('puzzles/three-helms.json', { ...helms, mechanic: 'route' }))).toEqual(

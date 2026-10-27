@@ -18,6 +18,7 @@ import {
 import { freeInSlices, StreamLifecycle } from '../../stream-lifecycle';
 import { wreckWaterline } from '../../wreck/wreck';
 import { createIslandDepthTile } from '../depth-tile';
+import { applyIslandMood, resetMood as resetSkyMood } from '../../sky/mood';
 import { footprintDistance } from '../footprint';
 import type { IslandStream, IslandStreamCreateContext } from '../island-stream';
 import { SilhouetteSwap } from '../silhouette-swap';
@@ -88,6 +89,7 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
         prefilter: K.terrain.prefilter,
         maxMergedTriangles: K.terrain.maxMergedTriangles,
         morphFrames: K.terrain.morphFrames,
+        seabed: K.terrain.seabed,
         // Every level keeps the works' floors and pads level, and the apron covers the ramp between.
         pin: worksPin,
         skin: worksSkin(apron.value),
@@ -195,13 +197,7 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
   };
 
   const life = new StreamLifecycle<KeelhavenWorld>(build, teardown, ctx.disabled);
-  const resetMood = () => {
-    const mood = ctx.sky.mood;
-    mood.fogScale = 1;
-    for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1;
-    mood.fill = 1;
-    mood.exposure = 1;
-  };
+  const resetMood = () => resetSkyMood(ctx.sky.mood);
   const reach = ctx.island.skyReach ?? { reach: 1300, full: 800 };
 
   const self: KeelhavenStream & {
@@ -258,11 +254,7 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
       // The island's air eases in with its light (the passage blend, from the identity at sea).
       const k0 = Math.min(1, Math.max(0, (reach.reach - d) / (reach.reach - reach.full)));
       const k = k0 * k0 * (3 - 2 * k0);
-      const mood = ctx.sky.mood;
-      mood.fogScale = 1 + (K.mood.fogScale - 1) * k;
-      for (let i = 0; i < 3; i++) mood.hazeTint[i] = 1 + (K.mood.hazeTint[i]! - 1) * k;
-      mood.fill = 1 + (K.mood.fill - 1) * k;
-      mood.exposure = 1 + (K.mood.exposure - 1) * k;
+      applyIslandMood(ctx.sky.mood, K.mood, k);
       const off = footprintDistance(footprint, camera.position.x, camera.position.z);
       if (off < ranges.load && ctx.nearLoads()) void self.load();
       const near = !swap.update(off);

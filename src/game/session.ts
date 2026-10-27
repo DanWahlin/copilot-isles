@@ -26,7 +26,7 @@ import { COVE } from '../world/layout';
 import { windOnBow } from '../world/ship/dynamics';
 import { seaState } from '../world/ocean/sea-state';
 import { windAt } from '../world/wind';
-import { CollisionWorld, type SurfaceKind, type WalkSurface } from './collision';
+import { CollisionWorld, outsideBox, type SurfaceKind, type WalkSurface } from './collision';
 import type { CircleObstacle } from '../world/contracts';
 import { ShipCameraBlockers } from './ship-camera';
 import { Residency, type ResidencyDecision } from './residency';
@@ -403,6 +403,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     });
     if (walk) walks.push(walk);
   }
+  // An island's surfaces are skipped outside its box (one far off costs the camera's queries nothing).
+  for (const w of walks) if (w.box) for (const s of w.surfaces) s.box ??= w.box;
   const wading = walks.filter((w) => w.inland);
   /** The Gate Board, the Flag Hoist, Pell's letters or a market counter has the keys and the camera. */
   let overlayModal = false;
@@ -425,7 +427,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     // The islands' pools and streams, as they're drawn over this tier's ground: wade the shallows and
     // the streams, and the deep middle stops you.
     inland: (x, z, g, out) => {
-      for (let i = 0; i < wading.length; i++) if (wading[i]!.inland!(x, z, g, out)) return true;
+      for (let i = 0; i < wading.length; i++) {
+        const w = wading[i]!;
+        if (!outsideBox(w.box, x, z) && w.inland!(x, z, g, out)) return true;
+      }
       return false;
     },
   });

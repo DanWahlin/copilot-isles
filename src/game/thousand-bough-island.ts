@@ -56,6 +56,7 @@ export const THOUSAND_BOUGH_CODE: IslandCode = {
       return c ? (own.get(c) ?? null) : null;
     };
     return {
+      box: THOUSAND_BOUGH.bounds,
       surfaces: [
         {
           heightAt: (x, z, y) => tb()?.surface.heightAt(x, z, y) ?? null,

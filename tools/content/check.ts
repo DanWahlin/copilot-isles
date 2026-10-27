@@ -65,7 +65,7 @@ import { ISLAND_LIST } from '../../src/islands/registry';
 import { EFFORTS, grade, priceIn, refundIn, type Hire, type MarketJob } from '../../src/game/market/jobs';
 import { MARKET_STALLS } from '../../src/game/market/stalls';
 import { boardTopics, type CourseBoardTopic } from '../../src/learn/course-board';
-import type { CourseLock } from '../../src/learn/course/lock';
+import { appendixName, appendixPath, lockDoc, type CourseLock } from '../../src/learn/course/lock';
 import { normalizeForCompare, parseSections } from '../../src/learn/course/sections';
 import type { ChapterContent, SourceRef } from '../../src/learn/types';
 import type { LearningFile } from '../../src/learn/learning';
@@ -259,20 +259,32 @@ export function checkContent(
   if (!lock || !meta) return issues;
 
   const readmes = new Map<string, ReturnType<typeof parseSections>>();
+  /** A chapter's (or `appendix:<name>`'s) section, from the snapshot's file. */
   const sectionOf = (chapter: string, anchor: string) => {
-    const short = lock.chapters[chapter]?.short;
-    if (!short) return null;
-    if (!readmes.has(short)) {
-      const path = `${dir}/public/course/${short}/README.md`;
-      readmes.set(short, existsSync(join(root, path)) ? parseSections(read(path)) : []);
+    const name = appendixName(chapter);
+    const file =
+      name !== null
+        ? lock.appendices?.[name] && `course/${appendixPath(name)}`
+        : lock.chapters[chapter] && `course/${lock.chapters[chapter].short}/README.md`;
+    if (!file) return null;
+    if (!readmes.has(file)) {
+      const path = `${dir}/public/${file}`;
+      readmes.set(file, existsSync(join(root, path)) ? parseSections(read(path)) : []);
     }
-    return readmes.get(short)!.find((s) => s.anchor === anchor) ?? null;
+    return readmes.get(file)!.find((s) => s.anchor === anchor) ?? null;
   };
   /** An anchor and hash against the lock. */
   const cite = (rel: string, path: string, c: Cite) => {
-    const ch = lock.chapters[c.chapter];
+    const ch = lockDoc(lock, c.chapter);
     const s = ch?.sections[c.anchor];
-    if (!ch) issue(rel, path, `chapter ${c.chapter} isn't in the course snapshot`);
+    if (!ch)
+      issue(
+        rel,
+        path,
+        appendixName(c.chapter) !== null
+          ? `${c.chapter} isn't in the course snapshot: add "${appendixName(c.chapter)}" to course.json source.appendices and sync`
+          : `chapter ${c.chapter} isn't in the course snapshot`,
+      );
     else if (!s)
       issue(
         rel,
@@ -342,6 +354,27 @@ export function checkContent(
   for (const ch of Object.keys(lock.chapters))
     if (!chapterIds.has(ch))
       issue('course.json', 'source.chapters', `the snapshot has ${ch}, which isn't listed`);
+  // Appendices: each one the pack names is in the lock and the snapshot, and the lock has no other.
+  const named = new Set(meta.source.appendices ?? []);
+  (meta.source.appendices ?? []).forEach((name, i) => {
+    if (!lock.appendices?.[name])
+      issue('course.json', `source.appendices[${i}]`, `"${name}" isn't in the lock: run npm run course:sync`);
+    else if (!existsSync(join(root, dir, 'public', 'course', appendixPath(name))))
+      issue('course.json', `source.appendices[${i}]`, `course/${appendixPath(name)} isn't in the snapshot`);
+  });
+  for (const name of Object.keys(lock.appendices ?? {}))
+    if (!named.has(name))
+      issue('course.json', 'source.appendices', `the snapshot has appendix "${name}", which isn't listed`);
+  // The "Your setup" forms: each `cites` key is a field of its form, and its section is in the lock.
+  for (const [form, copy] of Object.entries(meta.setup ?? {}) as [string, Record<string, unknown>][]) {
+    if (!copy || typeof copy !== 'object') continue;
+    for (const [field, ref] of Object.entries((copy.cites ?? {}) as Record<string, Cite>)) {
+      const path = `setup.${form}.cites.${field}`;
+      if (field === 'cites' || typeof copy[field] !== 'string')
+        issue('course.json', path, `"${field}" isn't one of the form's words`);
+      cite('course.json', path, ref);
+    }
+  }
   /** A course island the game hasn't got yet (its content is written ahead of its wiring). */
   const aheadIsland = (island: string) => meta.islands.some((i) => i.island === island) && !BUILT.has(island);
   /** The chapter of such an island. */

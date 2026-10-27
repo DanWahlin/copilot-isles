@@ -10,6 +10,7 @@ import { releaseWaterDepthTexture } from './ocean/water-depth-texture';
 import { releaseTextureStandIns } from '../engine/texture-stand-in';
 import { skipSunShadows } from './sky/cached-sun-shadow';
 import { createSky, type SkySystem } from './sky/sky-system';
+import { resetMood } from './sky/mood';
 import { createCoastFoam } from './terrain/coast-foam';
 import { seaStackShipObstacle } from './terrain/sea-stack-shape';
 import { HEADLAND_CLIFF_AREA, headlandCaveShipObstacle } from './terrain/headland-cliff-shape';
@@ -492,6 +493,8 @@ export async function createCove(engine: Engine, o: CoveOptions = {}): Promise<C
       homeDetail.update(camera.position.x, camera.position.z);
       shipDetail.update(camera.position.x, camera.position.z);
       neighbour.update(camera.position.x, camera.position.z);
+      // The islands' streams apply their air over the open sea's (each only within its reach).
+      resetMood(sky.mood);
       for (const stream of streams) stream.update(camera, dt, t);
       vegetation?.update(camera);
       if (home) {

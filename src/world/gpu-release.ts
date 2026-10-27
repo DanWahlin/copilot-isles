@@ -46,12 +46,15 @@ const interleaved = (g: BufferGeometry) =>
  * (arrays, images, canvases), so the next draw uploads them again; three's render objects drop their
  * attribute cache on a geometry's `dispose` (skill §4). Interleaved geometries keep their buffers
  * (issue 251), as do instanced and skinned meshes' (see `plain`) and anything an object still in the
- * scene shares. Returns what it freed.
+ * scene shares. `extra` are plain geometries the roots draw at other times but don't hold now (a
+ * terrain's other levels of detail: Anchorage's kept 37 MB on High while dormant, issue 316).
+ * Returns what it freed.
  */
 export async function releaseGpuCopies(
   roots: readonly Object3D[],
   scene: Object3D,
   breathe: () => Promise<void> = () => Promise.resolve(),
+  extra: readonly BufferGeometry[] = [],
 ): Promise<{ geometries: number; textures: number }> {
   const keepGeometry = new Set<BufferGeometry>();
   const keepTexture = new Set<Texture>();
@@ -76,6 +79,7 @@ export async function releaseGpuCopies(
         geometries.add(m.geometry);
       for (const mat of materialsOf(m)) ownMaterials.add(mat);
     });
+  for (const g of extra) if (!keepGeometry.has(g) && !interleaved(g)) geometries.add(g);
   for (const mat of ownMaterials) materialTextures(mat, textures);
   let freedTextures = 0;
   // A few dozen a frame: each frees its buffers and drops the render objects' attribute caches.

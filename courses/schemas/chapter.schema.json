@@ -514,10 +514,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["chapter", "anchor", "hash"],
-      "description": "Where an item comes from in the course: the chapter, the README heading anchor, and the section's hash in the pack's lock.json when it was written (npm run course:refs).",
+      "description": "Where an item comes from in the course: the chapter (or an appendix in course.json `source.appendices`: `appendix:<name>`), the README heading anchor, and the section's hash in the pack's lock.json when it was written (npm run course:refs).",
       "properties": {
         "chapter": {
-          "$ref": "#/$defs/chapterId"
+          "$ref": "#/$defs/docId"
         },
         "anchor": {
           "type": "string",
@@ -570,6 +570,11 @@
           "$ref": "#/$defs/text"
         }
       }
+    },
+    "docId": {
+      "type": "string",
+      "pattern": "^(\\d{2}-[a-z0-9-]+|appendix:[a-z0-9-]+)$",
+      "description": "A chapter folder, or `appendix:<name>` for an appendix the pack snapshots."
     }
   }
 }

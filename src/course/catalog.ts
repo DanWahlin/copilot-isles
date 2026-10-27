@@ -123,6 +123,8 @@ export interface CourseMeta {
     license: string;
     copyright: string;
     chapters: readonly CourseChapterMeta[];
+    /** The course's appendices in the snapshot (`appendices/<name>.md`), cited as `appendix:<name>`. */
+    appendices?: readonly string[];
   };
   islands: readonly CourseIslandMeta[];
   /**
@@ -181,6 +183,8 @@ export interface SetupFormCopy {
   field?: string;
   read: string;
   hint?: string;
+  /** Where its words come from: a field's key → its course section (the content check reads them). */
+  cites?: Readonly<Record<string, { chapter: string; anchor: string; hash: string }>>;
 }
 
 export interface SetupCopy {

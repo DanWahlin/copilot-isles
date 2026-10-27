@@ -1,5 +1,6 @@
 import { naturalWaterAt } from '../world/islands/fresh-water-natural';
 import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
+import { MERIDIAN } from '../world/islands/meridian-layout';
 import type { MeridianTownSystem } from '../world/meridian-town';
 import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { MERIDIAN_CHESTS, currentQuest } from './cove-quests';
@@ -36,6 +37,7 @@ export const MERIDIAN_CODE: IslandCode = {
     sailHere: (q) => !currentQuest(q),
   },
   walk: ({ stream, tier }) => ({
+    box: MERIDIAN.bounds,
     surfaces: [
       {
         heightAt: (x, z) => (stream?.world as MeridianTownSystem | null)?.walkable(x, z) ?? null,

@@ -95,6 +95,22 @@
               }
             }
           },
+          "tracks": {
+            "type": "object",
+            "description": "A release the check's `output` has to follow, which the weekly refresh checks (tools/course/node-lts.ts; the game doesn't read it). `node-lts`: the output's first number is the major version nodejs.org marks LTS (https://nodejs.org/dist/index.json), a `stale` output's is lower, and the pack's lines that name the LTS name the same numbers.",
+            "additionalProperties": false,
+            "required": ["release"],
+            "properties": {
+              "release": {
+                "enum": ["node-lts"]
+              },
+              "engines": {
+                "type": "string",
+                "pattern": "^[\\w./-]+\\.json$",
+                "description": "A package.json in the course's repository (`source.repo` at `source.ref`) whose `engines.node` the output must meet."
+              }
+            }
+          },
           "notes": {
             "type": "object",
             "description": "A tip shown with the check's result on one kind of computer (the player's, from Your setup or the browser), as the keeper's caption.",

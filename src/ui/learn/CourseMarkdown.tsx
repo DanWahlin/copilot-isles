@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { excerptBlocks, parseMarkdown, type Block, type Inline } from '../../learn/course/markdown';
-import { COURSE_BLOB } from '../../learn/course/chapters';
+import { COURSE_BLOB, courseDoc } from '../../learn/course/chapters';
 import { createSlugger } from '../../learn/course/sections';
 import {
   chapterResolvers,
@@ -240,7 +240,7 @@ export function FromTheCourse({ source, maxChars = 420 }: { source: SourceRef; m
   if (!r?.section) return null;
   const blocks = excerptBlocks(
     parseMarkdown(r.section.markdown, {
-      ...chapterResolvers(source.chapter, r.origin),
+      ...chapterResolvers(courseDoc(source.chapter).dir, r.origin, courseDoc(source.chapter).file),
       refs: r.refs,
       dropDetails: true,
     }),
