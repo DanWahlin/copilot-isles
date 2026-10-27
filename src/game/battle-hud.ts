@@ -203,7 +203,10 @@ export class BattleHud {
   }
 
   show(on: boolean): void {
-    this.root.classList.toggle('show', on || this.briefing !== null);
+    const shown = on || this.briefing !== null;
+    this.root.classList.toggle('show', shown);
+    // The battle's HUD replaces the island's (game/hud.css `body.ci-battle`).
+    document.body.classList.toggle('ci-battle', shown);
   }
 
   /** True while the pre-battle briefing is open. */
@@ -276,6 +279,7 @@ export class BattleHud {
     go.innerHTML = 'Set sail <kbd>Enter</kbd>';
     this.briefing = box;
     this.root.classList.add('briefing', 'show');
+    document.body.classList.add('ci-battle');
     const close = () => {
       if (this.briefing !== box) return;
       removeEventListener('keydown', onKey, true);
@@ -483,5 +487,6 @@ export class BattleHud {
   dispose(): void {
     window.clearTimeout(this.captionTimer);
     this.root.remove();
+    document.body.classList.remove('ci-battle');
   }
 }

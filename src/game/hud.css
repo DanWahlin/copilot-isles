@@ -17,6 +17,22 @@
 .hud.cinematic > :not(.hud-fade):not(.hud-cine):not(.hud-chart):not(.hud-chart-sr) {
   visibility: hidden;
 }
+/* A modal card (ui/modal-watch.ts) or a sea battle (battle-hud.ts) has the screen: the island HUD's
+   panels step away, so none of them overlaps the card or the battle's own HUD (which replaces them). */
+body.ci-modal .ci-tracker,
+body.ci-modal .ci-purse,
+body.ci-modal .hud-compass,
+body.ci-modal .hud-sail,
+body.ci-modal .hud-help,
+body.ci-modal .hud-prompt,
+body.ci-modal .hud-toast,
+body.ci-battle .ci-tracker,
+body.ci-battle .hud-compass,
+body.ci-battle .hud-sail,
+body.ci-battle .hud-help,
+body.ci-battle .hud-prompt {
+  visibility: hidden;
+}
 
 .hud-prompt {
   position: absolute;
