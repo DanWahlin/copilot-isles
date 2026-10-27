@@ -186,13 +186,19 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["kind"],
-          "description": "An opt-in, read-only check on GitHub's public API: repoExists (the fork, a fork of the course), branchExists (branch in the fork), prOpened (a pull request in the fork, from branch when given). {practiceBranch} is course.json's practice.branch.",
+          "description": "An opt-in, read-only check on GitHub's public API: repoExists (the fork, a fork of the course), branchExists (branch in the fork), prOpened (a pull request in the fork, from branch when given; pull requests from excludeHeads don't count, e.g. the ones the course's setup script opens). {practiceBranch} is course.json's practice.branch.",
           "properties": {
             "kind": {
               "enum": ["repoExists", "branchExists", "prOpened"]
             },
             "branch": {
               "$ref": "#/$defs/text"
+            },
+            "excludeHeads": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "minItems": 1,
+              "uniqueItems": true
             }
           }
         }

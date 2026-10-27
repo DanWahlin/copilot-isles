@@ -56,7 +56,9 @@ export function checkUrl(check: AppTaskCheck, ctx: CheckContext): string {
   if (check.kind === 'repoExists') return repo;
   if (check.kind === 'branchExists') return `${repo}/branches/${enc(checkBranch(check, ctx))}`;
   const head = check.branch ? `&head=${enc(`${ctx.fork.owner}:${checkBranch(check, ctx)}`)}` : '';
-  return `${repo}/pulls?state=all&per_page=1${head}`;
+  // With heads to leave out, one page of the latest pull requests (a fork has a handful).
+  const page = check.excludeHeads?.length ? 30 : 1;
+  return `${repo}/pulls?state=all&per_page=${page}${head}`;
 }
 
 /** The API's rate-limit reply: 403 or 429 with no requests left (or a `retry-after`). */
@@ -106,11 +108,18 @@ export async function runCheck(
     return { status: 'error', reason: 'http' };
   }
   if (check.kind === 'prOpened')
-    return Array.isArray(body) && body.length > 0 ? { status: 'found' } : { status: 'missing' };
+    return prFound(body, check.excludeHeads) ? { status: 'found' } : { status: 'missing' };
   const repo = body as { fork?: unknown; parent?: { full_name?: unknown }; source?: { full_name?: unknown } };
   if (repo.fork !== true) return { status: 'missing', reason: 'notFork' };
   const up = ctx.upstream.toLowerCase();
   const parent = String(repo.parent?.full_name ?? '').toLowerCase();
   const source = String(repo.source?.full_name ?? '').toLowerCase();
   return parent === up || source === up ? { status: 'found' } : { status: 'missing', reason: 'otherParent' };
+}
+
+/** A pull request in the reply whose branch isn't one of `exclude` (any one, with no list). */
+function prFound(body: unknown, exclude: readonly string[] | undefined): boolean {
+  if (!Array.isArray(body)) return false;
+  if (!exclude?.length) return body.length > 0;
+  return body.some((pr: { head?: { ref?: unknown } }) => !exclude.includes(String(pr?.head?.ref ?? '')));
 }
