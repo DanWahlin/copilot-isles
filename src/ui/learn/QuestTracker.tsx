@@ -63,6 +63,8 @@ export function QuestTracker({
         ...tracker.tasks.filter((t) => t.status === 'active' && t.optional),
       ]
     : tracker.tasks;
+  // Once the island's done, its open optional tasks still show under the message (they don't end with it).
+  const extras = tracker.tasks.filter((t) => t.optional && t.status === 'active');
 
   return (
     <section
@@ -90,14 +92,19 @@ export function QuestTracker({
           </span>
         </span>
       </button>
-      {complete ? (
+      {complete && (
         <div className="ci-tracker-complete">
-          <p>Every task’s done. {tracker.island} is yours, Captain.</p>
-          {tracker.next && <p className="next">{tracker.next}</p>}
+          <p>
+            {extras.length
+              ? `Every main task’s done. ${tracker.island} is yours, Captain. There’s more if you want it:`
+              : `Every task’s done. ${tracker.island} is yours, Captain.`}
+          </p>
+          {tracker.next && !extras.length && <p className="next">{tracker.next}</p>}
         </div>
-      ) : (
+      )}
+      {(!complete || extras.length > 0) && (
         <ol className="ci-tracker-list">
-          {shown.map((t) => (
+          {(complete ? extras : shown).map((t) => (
             <li key={`${t.id}:${t.status}`} className={t.status}>
               <span className="mark" aria-hidden />
               <span className="text">
@@ -120,6 +127,7 @@ export function QuestTracker({
           ))}
         </ol>
       )}
+      {complete && extras.length > 0 && tracker.next && <p className="ci-tracker-next next">{tracker.next}</p>}
       <p className="ci-tracker-hint">
         <kbd>T</kbd> {collapsed ? 'All tasks' : 'Current task only'} · <kbd>J</kbd> Logbook
       </p>

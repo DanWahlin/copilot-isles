@@ -18,6 +18,8 @@ function headingUv(from: { u: number; v: number }, to: { u: number; v: number })
 }
 
 const berth = toWorld(BERTH.u, BERTH.v);
+/** Where the crew warps her as you board: 16 m on toward the mouth and 5 m off the quay (P10: she stuck). */
+const departure = toWorld(BERTH.u - 16, BERTH.v - 5);
 /** Where you step ashore: on the quay's deck by the gangway's foot (4 m aft of the ship's middle). */
 const LANDING_UV = { u: BERTH.u + 4, v: QUAY.v - QUAY.half + 3.2 };
 const landing = toWorld(LANDING_UV.u, LANDING_UV.v);
@@ -41,6 +43,8 @@ const camAt = (u: number, y: number, v: number, tu: number, ty: number, tv: numb
 export const KEELHAVEN_HARBOR = {
   /** Your ship alongside the quay: port side to its face, bow to the cove's mouth. */
   berth: { x: berth.x, z: berth.z, heading: INLAND + Math.PI },
+  /** Off the quay as you board, bow to the mouth, inside the berth's dredged pocket. */
+  departure: { x: departure.x, z: departure.z, heading: INLAND + Math.PI },
   /** Where you step ashore, facing the tavern and the town's street. */
   landing: { x: landing.x, z: landing.z, heading: headingUv(LANDING_UV, TAVERN_UV) },
   /** The quay's deck height. */

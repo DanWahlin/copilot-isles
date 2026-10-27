@@ -306,6 +306,11 @@ export const THOUSAND_BOUGH = {
     jetty: { x0: 1936, x1: 1942, z0: -1428, z1: -1350, height: 2.2, fenderEvery: 6 },
     /** Your ship alongside: port side to the wharf, bow south toward the mouth. */
     berth: { x: 1931.35, z: -1372, heading: 0 },
+    /**
+     * Where the crew warps her as you board: off the wharf's end at the lane's first point, her bow a
+     * little east of south (63° off the south-west wind) so the way out isn't head to wind.
+     */
+    departure: { x: 1916, z: -1330, heading: 0.17 },
     /** Where you step ashore, facing the tree. */
     landing: { x: 1939.2, z: -1376, heading: 2.77 },
     /**

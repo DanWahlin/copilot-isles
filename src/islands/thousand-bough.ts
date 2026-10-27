@@ -44,6 +44,7 @@ export const THOUSAND_BOUGH_ISLAND: IslandEntry = {
   berthLabel: 'Thousand-Bough Isle',
   dockLabel: 'Dock at the Root Wharf',
   mooring: TB.harbor.berth,
+  departure: TB.harbor.departure,
   // Up the Fern Walk to the great banyan: the wharf, the little sister tree and the trunk in one frame.
   landingHeading: TB.harbor.landing.heading,
   quay: TB.harbor.landing,

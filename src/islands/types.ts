@@ -34,6 +34,12 @@ export interface IslandBerth {
   dockLabel: string;
   /** Where the ship moors (the dock assist target); its port side lies against the quay. */
   mooring: Pose;
+  /**
+   * Where the crew warps her as you board (behind the fade), when the way out from the berth runs too
+   * close to the wind or the quay holds her: off the quay, her bow on a point of sail with the
+   * compass's first leg off the wind, so she sails off as the sails fill.
+   */
+  departure?: Pose;
   /** Which way you face after stepping ashore beside the gangway (toward the town). */
   landingHeading: number;
   /** A fast-travel spot on the quay by the berth. */

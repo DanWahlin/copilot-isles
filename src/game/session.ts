@@ -1809,6 +1809,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     void battles.prepare(island);
     await hud.fade(true);
     wingman?.landNow();
+    // Where the way out is close to the wind (or the quay holds her), the crew warps her off first.
+    const dep = berth.departure;
+    if (dep && Math.hypot(dyn.pose.x - berth.mooring.x, dyn.pose.z - berth.mooring.z) < 25)
+      dyn.reset(dep.x, dep.z, dep.heading);
     const a = ship.anchors.helm;
     ship.group.add(hero.group);
     hero.group.position.set(a.x, a.y, a.z);
