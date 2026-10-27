@@ -60,7 +60,7 @@ export interface KrakenActOptions {
  * beat starts: close, on a diagonal toward your side of it, so the beat is short.
  */
 const EVIDENCE_RANGE = 52;
-const APPROACH = 55;
+const APPROACH = 46;
 /** Her course's angle off the line from the evidence out to where she starts (radians, either side). */
 const APPROACH_SKEW = 0.6;
 /** The evidence's radius (m): the shadow and the ring. */
