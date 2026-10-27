@@ -5,8 +5,9 @@ import { islandSign } from '../course/active';
 import { puzzleContent, puzzleOn, textOf } from '../course/puzzles';
 import type { CircleObstacle } from '../world/contracts';
 import { naturalWaterAt } from '../world/islands/fresh-water-natural';
-import { KEELHAVEN_ANCHORS } from '../world/islands/keelhaven/anchors';
+import { headingUv, KEELHAVEN_ANCHORS } from '../world/islands/keelhaven/anchors';
 import { DeckIndex } from '../world/islands/keelhaven/decks';
+import { gateStairTreads } from '../world/islands/keelhaven/gate-stair';
 import { keelhavenWater } from '../world/islands/keelhaven/height';
 import type { KeelhavenWorld } from '../world/islands/keelhaven/index';
 import { KEELHAVEN, toWorld } from '../world/islands/keelhaven/layout';
@@ -543,6 +544,12 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         host.frame(shotUv(u + 6, yard + 8, -42, u, 2.5, -60));
       },
       lamp: (key: string) => circuits.debug.lamp(key),
+      stations: () => circuits.debug.spots(),
+      /** Every fourth tread of the Gate Light's stair, its middle and the way it climbs (tests push at its rails). */
+      railedTreads: () =>
+        gateStairTreads()
+          .filter((_, k) => k % 4 === 2)
+          .map((t) => ({ ...toWorld(t.u, t.v), y: t.y, heading: headingUv(t.tu, t.tv) })),
     },
     dispose() {
       disposed = true;

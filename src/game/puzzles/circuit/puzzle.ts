@@ -131,6 +131,8 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
       y: 0,
       z: 0,
       radius: 2.6,
+      // The station that waits wins the prompt over a neighbour (Cass by the work-order post).
+      bias: -1.2,
       enabled: () => !open && host.canAct() && !!run && !run.done && acts(run.station!.at) === place,
       onInteract: () => void openStation(),
     };

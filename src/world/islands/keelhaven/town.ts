@@ -33,8 +33,20 @@ export const SQUARE = { u0: 98, u1: 124, v0: 13, v1: 38 } as const;
 export const BOARD = { u: 112, v: 16.5 } as const;
 /** The square's shade tree (its seat is a ring of stone round it). */
 export const SQUARE_TREE = { u: 104.5, v: 21.5 } as const;
+/** A footbridge over the Keel River: its line along v (from `v0` to `v1`) at `u`, and its half-width. */
+export interface Footbridge {
+  readonly u: number;
+  readonly v0: number;
+  readonly v1: number;
+  readonly half: number;
+}
 /** The footbridge over the Keel River, from the square to the shipyard's gate (v falls north). */
-export const BRIDGE = { u: 112, v0: 12, v1: -6, half: 1.6 } as const;
+export const BRIDGE: Footbridge = { u: 112, v0: 12, v1: -6, half: 1.6 };
+/**
+ * The beach footbridge where the river crosses the sand, on the short way between the quay and the
+ * lock terrace (the compass's beach route), so the walk back to the ship doesn't go round by the square.
+ */
+export const BEACH_BRIDGE: Footbridge = { u: 16, v0: 9, v1: -7, half: 1.4 };
 /** The path on from the bridge to the yard's edge. */
 export const YARD_PATH: readonly Uv[] = [
   { u: 112, v: 12 },
@@ -375,6 +387,7 @@ export function inTown(u: number, v: number, margin = 0): boolean {
   if (streetDistance(u, v) < STREET_HALF + 1 + margin) return true;
   if (u > SQUARE.u0 - margin && u < SQUARE.u1 + margin && v > SQUARE.v0 - margin && v < SQUARE.v1 + margin)
     return true;
+  if (Math.abs(u - BEACH_BRIDGE.u) < 3 + margin && v < BEACH_BRIDGE.v0 + 2 && v > BEACH_BRIDGE.v1 - 2) return true;
   return Math.abs(u - BRIDGE.u) < 2.6 + margin && v < SQUARE.v0 && v > -22;
 }
 

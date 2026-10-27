@@ -23,6 +23,7 @@ import {
   type ShipyardOut,
 } from './shipyard';
 import {
+  BEACH_BRIDGE,
   BOARD,
   BRIDGE,
   GATE_LIGHT,
@@ -31,6 +32,7 @@ import {
   STREET,
   townHouseLook,
   townHouses,
+  type Footbridge,
   type TownHouse,
 } from './town';
 
@@ -545,9 +547,9 @@ function well(b: Buckets, out: ShipyardOut, u: number, v: number): void {
   out.circles.push({ x: p.x, z: p.z, r: 1.2, y0: g - 0.5, y1: g + 0.9, height: 0.9 });
 }
 
-/** The footbridge over the Keel River: plank deck on two stringers and stone abutments, rails each side. */
-function footbridge(b: Buckets, out: ShipyardOut): void {
-  const { u, v0, v1, half } = BRIDGE;
+/** A footbridge over the Keel River: plank deck on two stringers and stone abutments, rails each side. */
+function footbridge(b: Buckets, out: ShipyardOut, bridge: Footbridge): void {
+  const { u, v0, v1, half } = bridge;
   const g0 = ground(u, v0);
   const g1 = ground(u, v1);
   const y0 = g0 + 0.25;
@@ -1254,6 +1256,7 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
   const treads = gateStairTreads();
   let nextLamp = 30;
   let prevRail: { x: number; y: number; z: number } | null = null;
+  let prevHigh: { x: number; y: number; z: number } | null = null;
   for (let k = 0; k < treads.length; k++) {
     const { u, v, y, tu, tv, nu, nv, s } = treads[k]!;
     const dx = tu * FRAME.axis.x + tv * FRAME.across.x;
@@ -1272,7 +1275,9 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
       yaw,
       k % 7 ? YARD_PAINT.silver : YARD_PAINT.oak,
     );
-    // Walked tread by tread, with a fence along its drop edge (the rope rail).
+    // Walked tread by tread, with a fence along both edges (the rope rails): the drop's, and the high
+    // side's, where a tread bridging a gully stands over the slope too (the captain stepped off it and
+    // slid down the head to the sea). Each fence runs a little past its tread, so a turn leaves no gap.
     out.decks.push(
       lineDeck(
         [u - (tu * step) / 2, v - (tv * step) / 2, y],
@@ -1281,17 +1286,19 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
         true,
       ),
     );
-    const fence = at(u + nu * (half - 0.04), 0, v + nv * (half - 0.04));
-    out.colliders.push({
-      x: fence.x,
-      z: fence.z,
-      hx: step / 2 + 0.02,
-      hz: 0.06,
-      rot: yaw,
-      y0: y - 0.6,
-      y1: y + 1.1,
-      height: 1,
-    });
+    for (const side of [1, -1]) {
+      const fence = at(u + side * nu * (half - 0.04), 0, v + side * nv * (half - 0.04));
+      out.colliders.push({
+        x: fence.x,
+        z: fence.z,
+        hx: step / 2 + 0.25,
+        hz: 0.06,
+        rot: yaw,
+        y0: y - 0.6,
+        y1: y + 1.1,
+        height: 1,
+      });
+    }
     // A bearer under it, and a post down to the ground at its drop edge.
     const du = u + nu * (half - 0.08);
     const dv = v + nv * (half - 0.08);
@@ -1311,7 +1318,7 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
       if (k % 2 === 1)
         out.cameraBoxes.push({ x: q.x, z: q.z, hx: 0.06, hz: 0.06, rot: 0, y0: g - 0.3, y1: y });
     }
-    // The rail: a post every other tread, a rope between.
+    // The rails: a post every other tread on each edge, a rope between.
     if (k % 2 === 0) {
       const top = { x: q.x, y: y + 1.0, z: q.z };
       rod(b, 'wood', { x: q.x, y: y - 0.08, z: q.z }, top, 0.05, 5, YARD_PAINT.weathered);
@@ -1319,6 +1326,13 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
       if (prevRail && !lite && Math.hypot(top.x - prevRail.x, top.z - prevRail.z) < 4)
         rope(b, prevRail, top, 0.1, 0.02, YARD_PAINT.rope, 4);
       prevRail = top;
+      const hu = u - nu * (half - 0.08);
+      const hv = v - nv * (half - 0.08);
+      const hp = at(hu, y + 1.0, hv);
+      rod(b, 'wood', { x: hp.x, y: Math.min(y - 0.08, ground(hu, hv)), z: hp.z }, hp, 0.05, 5, YARD_PAINT.weathered);
+      if (prevHigh && !lite && Math.hypot(hp.x - prevHigh.x, hp.z - prevHigh.z) < 4)
+        rope(b, prevHigh, hp, 0.1, 0.02, YARD_PAINT.rope, 4);
+      prevHigh = hp;
     }
     if (s >= nextLamp) {
       nextLamp = s + 40;
@@ -1365,7 +1379,8 @@ export function* buildTown(
   squarePaving(b, lite);
   evidenceBoard(b, out);
   well(b, out, (SQUARE.u0 + SQUARE.u1) / 2 + 3, (SQUARE.v0 + SQUARE.v1) / 2 + 4);
-  footbridge(b, out);
+  footbridge(b, out, BRIDGE);
+  footbridge(b, out, BEACH_BRIDGE);
   // The shade tree's seat (the tree is the vegetation's: `townPlants`), benches round it and the board.
   treeSeat(b, out, SQUARE_TREE.u, SQUARE_TREE.v, 2.3);
   bench(b, out, SQUARE_TREE.u + 3.4, SQUARE_TREE.v + 1, Math.PI / 2 + 0.2, 1.8);

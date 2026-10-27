@@ -40,7 +40,7 @@ export function keelhavenExtras(anchors: Readonly<Record<string, { x: number; z:
     { id: 'kh_salter', name: 'Old Salter', anchor: 'extraFisher', clip: 'sit', seatDrop: 0.05 },
     { id: 'kh_kit', name: 'Kit', anchor: 'extraLamplighter', clip: 'idle' },
     // On his barge's deck in the cut (the ground under her is the cut's floor).
-    { id: 'kh_skipper', name: 'Skipper Rourke', anchor: 'extraTug', clip: 'idle', keepY: true },
+    { id: 'kh_skipper', name: 'Skipper Rourke', anchor: 'extraTug', clip: 'idle' },
   ];
   const stall = marketStall('keelhaven');
   extras.push({

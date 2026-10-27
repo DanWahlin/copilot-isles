@@ -9,8 +9,12 @@
 //     Thousand-Bough, and on to Keelhaven once its Seal is won; and after a chart jump back. Each time the compass ashore points at the gangway
 //     once the step says to board, and every quest step of every island has a compass target.
 //  4. In irons by Port Meridian's harbour, Wingman's tacking tip plays once a voyage.
-// node tools/wayfindtest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--only=legs,sea,sitting,tack]
-//                            [--islands=<id,…>] [--webgl] [--verbose]
+//  5. Reach: on each island in `--reach` (Keelhaven by default), a walker follows the compass's route
+//     from the landing to every interact point (each NPC, chest, bottle, board and circuit station, each
+//     part's spot) and must come within talking range; and on every stair with rails (Keelhaven's Gate
+//     Light), a walker pushed at each rail must stay on the treads.
+// node tools/wayfindtest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--only=legs,sea,sitting,tack,reach]
+//                            [--islands=<id,…>] [--reach=<id,…>] [--webgl] [--verbose]
 import { mkdirSync } from 'node:fs';
 import { collectLogs, launchChrome, parseFlags } from './lib/browser.mjs';
 import { ISLAND_IDS, OPEN_FLAGS, STREAMED } from './lib/islands.mjs';
@@ -19,7 +23,9 @@ const opt = parseFlags();
 const base = opt.base || 'http://127.0.0.1:5301';
 const out = opt.out || 'tmp/shots/wayfind';
 mkdirSync(out, { recursive: true });
-const only = opt.only ? String(opt.only).split(',') : ['legs', 'sea', 'sitting', 'tack'];
+const only = opt.only ? String(opt.only).split(',') : ['legs', 'sea', 'sitting', 'tack', 'reach'];
+/** `--reach=keelhaven,…`: the islands whose every interact point is walked to (no lifts on the way). */
+const reachIslands = opt.reach ? String(opt.reach).split(',') : ['keelhaven'];
 const tag = opt.webgl ? 'gl' : 'gpu';
 /** `--islands=keelhaven,…`: walk only these islands' legs. */
 const islands = opt.islands ? String(opt.islands).split(',') : ISLAND_IDS;
@@ -121,6 +127,76 @@ if (only.includes('legs')) {
     }, id);
     note(`${id}: ${r.legs} legs, ${r.bad.length} problems`);
     for (const b of r.bad) fail(`${id} walk: ${b}`);
+  }
+}
+
+// ---- 5. Reach: every interact point on foot, by the compass's route ------------------------------
+if (only.includes('reach')) {
+  for (const id of reachIslands) {
+    await ashore(id);
+    const r = await S(async (id) => {
+      const ISLAND_WAYS = await (await import('/src/world/islands/waypoints.ts')).loadIslandWays();
+      const { WalkGraph } = await import('/src/game/wayfinding/walk-graph.ts');
+      const s = window.__dev.session();
+      const w = s.world;
+      const graph = new WalkGraph(ISLAND_WAYS[id].walk);
+      const start = { x: s.player.x, y: s.player.y, z: s.player.z };
+      // Everything you can use on the island, and each circuit station where its part puts it.
+      const targets = s.debug
+        .near(start.x, start.z, 900)
+        .filter((t) => !/^(unstuck|ship:|pipe:|market@)/.test(t.id) && Math.abs(t.y - start.y) < 80);
+      const stations = s.debug.island(id)?.stations?.() ?? [];
+      targets.push(...stations);
+      const P = new s.player.constructor();
+      const intent = { moveX: 0, moveY: 1, run: true, jump: false };
+      const route = { x: 0, y: 0, z: 0, length: 0, node: -1 };
+      const REACH = 2.0;
+      const walkTo = (t) => {
+        P.teleport(w, start.x, start.z, 0, start.y + 0.5);
+        graph.route(P.x, P.y, P.z, t.x, t.y, t.z, route);
+        const steps = Math.ceil(((route.length / 3.5) * 1.8 + 12) * 60);
+        let best = Infinity;
+        let since = 0;
+        for (let i = 0; i < steps; i++) {
+          const d = Math.hypot(t.x - P.x, t.z - P.z);
+          if (d < REACH && Math.abs(P.y - t.y) < 2) return null;
+          graph.route(P.x, P.y, P.z, t.x, t.y, t.z, route);
+          if (route.length < best - 0.5) {
+            best = route.length;
+            since = 0;
+          } else if (++since > 6 * 60) break;
+          P.step(1 / 60, intent, Math.atan2(route.x - P.x, route.z - P.z), w, 0);
+        }
+        return `stuck at (${P.x.toFixed(1)}, ${P.y.toFixed(1)}, ${P.z.toFixed(1)}), ${Math.hypot(t.x - P.x, t.z - P.z).toFixed(1)} m short (route ${route.length.toFixed(0)} m)`;
+      };
+      const bad = [];
+      const retry = [];
+      for (const t of targets) if (walkTo(t)) retry.push(t);
+      // Townsfolk walk about: one more try a moment later.
+      if (retry.length) await new Promise((r) => setTimeout(r, 2500));
+      const now = new Map(s.debug.near(start.x, start.z, 900).map((t) => [t.id, t]));
+      for (const t of retry) {
+        const why = walkTo(now.get(t.id) ?? t);
+        if (why) bad.push(`${t.id}: ${why}`);
+      }
+      // The railed stairs: pushed at either rail from every few treads, you stay on the treads.
+      const rails = s.debug.island(id)?.railedTreads?.() ?? [];
+      const side = { moveX: 1, moveY: 0, run: true, jump: false };
+      for (const tr of rails) {
+        for (const dir of [1, -1]) {
+          P.teleport(w, tr.x, tr.z, tr.heading, tr.y + 0.3);
+          side.moveX = dir;
+          for (let i = 0; i < 90; i++) P.step(1 / 60, side, tr.heading, w, 0);
+          if (P.y < tr.y - 0.6 || Math.hypot(P.x - tr.x, P.z - tr.z) > 1.2)
+            bad.push(
+              `stair at (${tr.x.toFixed(1)}, ${tr.y.toFixed(1)}, ${tr.z.toFixed(1)}): pushed ${dir > 0 ? 'right' : 'left'}, off the treads at (${P.x.toFixed(1)}, ${P.y.toFixed(1)}, ${P.z.toFixed(1)})`,
+            );
+        }
+      }
+      return { targets: targets.length, treads: rails.length, bad };
+    }, id);
+    note(`${id}: ${r.targets} interact points, ${r.treads} stair treads pushed, ${r.bad.length} problems`);
+    for (const b of r.bad) fail(`${id} reach: ${b}`);
   }
 }
 
