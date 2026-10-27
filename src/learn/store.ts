@@ -39,6 +39,7 @@ import { pickRecap, recapCandidates, recapGapOk } from './recap';
 import { runCheck, type CheckResult } from './github-check';
 import { badgeData, courseComplete, type BadgeData } from './badge';
 import { resumeSummary, type ResumeSummary } from './resume';
+import { setVoyageSeed } from './option-order';
 
 export type LogbookTab = 'pages' | 'glossary' | 'quests' | 'map' | 'app' | 'starfish';
 
@@ -219,6 +220,8 @@ export class LearnStore {
 
   constructor(progress = new Progress()) {
     this.progress = progress;
+    // Answer options shuffle per voyage (src/learn/option-order.ts): the save's creation time seeds it.
+    setVoyageSeed(() => this.progress.data.created);
     this.state = {
       quiz: null,
       spyglass: null,

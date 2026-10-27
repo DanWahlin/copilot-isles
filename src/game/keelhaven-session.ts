@@ -166,6 +166,8 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         ...head,
         prompt: T('pick'),
         options: bars.map((b) => ({ id: b, label: T(b), tried: tried.has(b) })),
+        // A tune's bars, in order.
+        ordered: true,
       });
       if (!pick || !world) return card.close();
       // The second bar rings wrong (a red ripple on the music line).

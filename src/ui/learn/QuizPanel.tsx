@@ -5,6 +5,7 @@ import { courseUrl } from '../../learn/content/index';
 import { CourseLink } from './CourseMarkdown';
 import { plainSetupText } from '../../learn/setup';
 import { shuffled, type Answer } from '../../learn/grade';
+import { quizOptions } from '../../learn/option-order';
 import type { ActiveQuiz, LearnStore } from '../../learn/store';
 import type { ChoiceQuiz, MatchingQuiz, MultiQuiz, Option, OrderingQuiz } from '../../learn/types';
 import { Hotspot } from './Hotspot';
@@ -31,6 +32,11 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
   const answer = (a: Answer) => store.submit(a);
 
   const needsCheck = quiz.type === 'multi' || quiz.type === 'ordering' || quiz.type === 'matching';
+  // The options in the order they show (shuffled per quiz and voyage): the number keys follow it.
+  const shown = useMemo(
+    () => (quiz.type === 'mc' || quiz.type === 'scenario' || quiz.type === 'multi' ? quizOptions(quiz) : []),
+    [quiz],
+  );
   const primary = () => {
     if (last?.correct) store.closeQuiz();
     else if (last) store.retry();
@@ -52,7 +58,7 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
         store.hint();
       } else if (!last && (quiz.type === 'mc' || quiz.type === 'scenario')) {
         const n = Number(e.key);
-        const opt = n >= 1 ? quiz.options[n - 1] : undefined;
+        const opt = n >= 1 ? shown[n - 1] : undefined;
         if (opt) answer({ type: quiz.type, option: opt.id });
       }
     };
@@ -114,9 +120,11 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
 
         <div className="ci-quiz-body">
           {(quiz.type === 'mc' || quiz.type === 'scenario') && (
-            <ChoiceBody quiz={quiz} active={active} onAnswer={answer} />
+            <ChoiceBody quiz={quiz} options={shown} active={active} onAnswer={answer} />
           )}
-          {quiz.type === 'multi' && <MultiBody quiz={quiz} active={active} onChange={setPending} />}
+          {quiz.type === 'multi' && (
+            <MultiBody quiz={quiz} options={shown} active={active} onChange={setPending} />
+          )}
           {quiz.type === 'hotspot' && <Hotspot quiz={quiz} last={last} onAnswer={answer} />}
           {quiz.type === 'ordering' && <OrderingBody quiz={quiz} active={active} onChange={setPending} />}
           {quiz.type === 'matching' && <MatchingBody quiz={quiz} active={active} onChange={setPending} />}
@@ -175,10 +183,12 @@ export function QuizPanel({ store, active }: { store: LearnStore; active: Active
 
 function ChoiceBody({
   quiz,
+  options,
   active,
   onAnswer,
 }: {
   quiz: ChoiceQuiz;
+  options: readonly Option[];
   active: ActiveQuiz;
   onAnswer: (a: Answer) => void;
 }) {
@@ -188,7 +198,7 @@ function ChoiceBody({
   }, [active.last]);
   return (
     <ol className="ci-options">
-      {quiz.options.map((o, i) => {
+      {options.map((o, i) => {
         const state =
           active.last && picked === o.id
             ? active.last.correct
@@ -223,10 +233,12 @@ function ChoiceBody({
 
 function MultiBody({
   quiz,
+  options,
   active,
   onChange,
 }: {
   quiz: MultiQuiz;
+  options: readonly Option[];
   active: ActiveQuiz;
   onChange: (a: Answer | null) => void;
 }) {
@@ -243,7 +255,7 @@ function MultiBody({
   };
   return (
     <ul className="ci-options">
-      {quiz.options.map((o) => {
+      {options.map((o) => {
         const on = sel.has(o.id);
         const mark = marks ? (marks[o.id] ? (on ? 'good' : '') : 'bad') : '';
         return (

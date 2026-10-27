@@ -25,6 +25,7 @@ import {
   halyardOf,
   hoistContent,
   orderPicks,
+  shownChoices,
   pickFlag,
   rightPick,
   type HoistOrder,
@@ -223,7 +224,7 @@ export function createThousandBoughContent(host: ThousandBoughHost): ThousandBou
   const orderView = (o: HoistOrder) => ({
     title: o.kind === 'choice' ? o.title : null,
     order: o.text,
-    choices: o.kind === 'choice' ? o.choices.map(({ id, icon, text }) => ({ id, icon, text })) : null,
+    choices: o.kind === 'choice' ? shownChoices(o).map(({ id, icon, text }) => ({ id, icon, text })) : null,
   });
 
   async function hoistFlag(pick: string): Promise<void> {

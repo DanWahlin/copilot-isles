@@ -95,6 +95,10 @@
               "situation": {
                 "$ref": "#/$defs/text"
               },
+              "fixedOrder": {
+                "description": "Shows the options in the data's order (ordered options). Otherwise the game shuffles them, seeded per quiz and voyage.",
+                "type": "boolean"
+              },
               "options": {
                 "type": "array",
                 "minItems": 2,
@@ -145,6 +149,10 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "fixedOrder": {
+                "description": "Shows the options in the data's order (ordered options). Otherwise the game shuffles them, seeded per quiz and voyage.",
+                "type": "boolean"
               },
               "options": {
                 "type": "array",
@@ -568,6 +576,10 @@
         "feedback": {
           "description": "Shown when this wrong option is picked.",
           "$ref": "#/$defs/text"
+        },
+        "pinned": {
+          "description": "Keeps this option at its place when the others are shuffled (an \"All of the above\" last).",
+          "type": "boolean"
         }
       }
     },

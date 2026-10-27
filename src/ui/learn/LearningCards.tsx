@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { COURSE } from '../../course/catalog';
 import { courseUrl } from '../../learn/content/index';
 import { LEARNING } from '../../learn/learning';
+import { quizOptions } from '../../learn/option-order';
 import type { BadgeData } from '../../learn/badge';
 import type { CheckState, LearnState, LearnStore } from '../../learn/store';
 import type { ResumeSummary } from '../../learn/resume';
@@ -109,16 +110,21 @@ export function AppTaskCard({ store, state }: { store: LearnStore; state: LearnS
   useCardKeys(primary, back);
   usePadFocus(root, back);
   useInitialFocus(root, phase);
+  // "What did you see?" in the order it shows (shuffled per card and voyage); the number keys follow it.
+  const seenOptions = useMemo(
+    () => (task.seen ? quizOptions({ id: `seen:${task.id}`, ...task.seen }) : []),
+    [task],
+  );
   useEffect(() => {
     if (phase !== 'seen' || !task.seen) return;
     const key = (e: KeyboardEvent) => {
       const n = Number(e.key);
-      const opt = n >= 1 ? task.seen!.options[n - 1] : undefined;
+      const opt = n >= 1 ? seenOptions[n - 1] : undefined;
       if (opt && !e.repeat) store.appTaskSeen(opt.id);
     };
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [phase, task, store]);
+  }, [phase, task, store, seenOptions]);
   const right = a.answer !== null && a.answer === task.seen?.answer;
   return (
     <div className="ci-learn-backdrop">
@@ -185,7 +191,7 @@ export function AppTaskCard({ store, state }: { store: LearnStore; state: LearnS
                 <span className="ci-course-kicker">What did you see?</span> <Rich text={task.seen.prompt} />
               </p>
               <div className="ci-lj-options" role="group" aria-label={task.seen.prompt}>
-                {task.seen.options.map((o, i) => (
+                {seenOptions.map((o, i) => (
                   <button
                     key={o.id}
                     type="button"

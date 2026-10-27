@@ -1,3 +1,4 @@
+import { orderOptions } from '../learn/option-order';
 import type { SeaChoiceOption, SeaChoiceView } from '../ui/puzzles/SeaChoice';
 
 /** What a choice card asks: its heading, the question, and the options (each an id and its words). */
@@ -7,6 +8,11 @@ export interface ChoiceAsk {
   prompt: string;
   detail?: readonly string[];
   options: readonly SeaChoiceOption[];
+  /**
+   * Shows the options in the given order (ordered ones, like a tune's bars). Otherwise they're
+   * shuffled per card and voyage (src/learn/option-order.ts); a Leave or Skip (`·`) stays last.
+   */
+  ordered?: boolean;
 }
 
 /**
@@ -26,6 +32,13 @@ export interface ChoiceCard {
   choose(id: string): void;
   readonly view: SeaChoiceView;
   dispose(): void;
+}
+
+/** A card's shuffle key: its heading and its options' ids (a re-ask after a wrong pick keeps its order). */
+function cardKey(a: ChoiceAsk): string {
+  let ids = '';
+  for (const o of a.options) ids += `${o.id},`;
+  return `card:${a.eyebrow}|${a.title}|${ids}`;
 }
 
 export function createChoiceCard(o: { blocked(): boolean; reduced(): boolean }): ChoiceCard {
@@ -83,7 +96,7 @@ export function createChoiceCard(o: { blocked(): boolean; reduced(): boolean }):
         title: a.title,
         prompt: a.prompt,
         detail: a.detail ?? [],
-        options: a.options,
+        options: a.ordered ? a.options : orderOptions(a.options, cardKey(a), (x) => x.id.startsWith('·')),
         focus: 0,
         busy: false,
         reduced: o.reduced(),

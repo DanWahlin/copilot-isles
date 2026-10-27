@@ -27,8 +27,10 @@ export interface AppTaskCheck {
 /** "What did you see?": one question about what the app shows once the task's done. */
 export interface AppTaskSeen {
   prompt: string;
-  options: readonly { id: string; text: string }[];
+  options: readonly { id: string; text: string; pinned?: boolean }[];
   answer: string;
+  /** Shows the options in the data's order (else they're shuffled per card and voyage). */
+  fixedOrder?: boolean;
   /** Shown after any answer: what the course says you'll see. */
   explain: string;
 }

@@ -1329,7 +1329,15 @@ function gatePath(b: Buckets, out: ShipyardOut, lite: boolean): void {
       const hu = u - nu * (half - 0.08);
       const hv = v - nv * (half - 0.08);
       const hp = at(hu, y + 1.0, hv);
-      rod(b, 'wood', { x: hp.x, y: Math.min(y - 0.08, ground(hu, hv)), z: hp.z }, hp, 0.05, 5, YARD_PAINT.weathered);
+      rod(
+        b,
+        'wood',
+        { x: hp.x, y: Math.min(y - 0.08, ground(hu, hv)), z: hp.z },
+        hp,
+        0.05,
+        5,
+        YARD_PAINT.weathered,
+      );
       if (prevHigh && !lite && Math.hypot(hp.x - prevHigh.x, hp.z - prevHigh.z) < 4)
         rope(b, prevHigh, hp, 0.1, 0.02, YARD_PAINT.rope, 4);
       prevHigh = hp;

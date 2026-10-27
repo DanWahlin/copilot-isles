@@ -387,7 +387,8 @@ export function inTown(u: number, v: number, margin = 0): boolean {
   if (streetDistance(u, v) < STREET_HALF + 1 + margin) return true;
   if (u > SQUARE.u0 - margin && u < SQUARE.u1 + margin && v > SQUARE.v0 - margin && v < SQUARE.v1 + margin)
     return true;
-  if (Math.abs(u - BEACH_BRIDGE.u) < 3 + margin && v < BEACH_BRIDGE.v0 + 2 && v > BEACH_BRIDGE.v1 - 2) return true;
+  if (Math.abs(u - BEACH_BRIDGE.u) < 3 + margin && v < BEACH_BRIDGE.v0 + 2 && v > BEACH_BRIDGE.v1 - 2)
+    return true;
   return Math.abs(u - BRIDGE.u) < 2.6 + margin && v < SQUARE.v0 && v > -22;
 }
 

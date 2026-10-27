@@ -127,7 +127,9 @@ export function QuestTracker({
           ))}
         </ol>
       )}
-      {complete && extras.length > 0 && tracker.next && <p className="ci-tracker-next next">{tracker.next}</p>}
+      {complete && extras.length > 0 && tracker.next && (
+        <p className="ci-tracker-next next">{tracker.next}</p>
+      )}
       <p className="ci-tracker-hint">
         <kbd>T</kbd> {collapsed ? 'All tasks' : 'Current task only'} · <kbd>J</kbd> Logbook
       </p>

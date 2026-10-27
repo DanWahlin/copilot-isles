@@ -1557,3 +1557,68 @@ export function boardChanges(
     };
   });
 }
+
+/** A note for authors: it doesn't fail the check. */
+export interface ContentNote {
+  file: string;
+  message: string;
+}
+
+/**
+ * Where each chapter's right answers sit in the data, for authoring (the game shuffles what it shows,
+ * src/learn/option-order.ts, but a quiz with `fixedOrder`, a printed export or a review reads the data's
+ * order): a note when most of a chapter's one-answer choices (its quizzes and the circuits' choices with
+ * a wrong option) put the right one in the same place.
+ */
+export function answerClusters(root: string, course: string = DEFAULT_COURSE): ContentNote[] {
+  const notes: ContentNote[] = [];
+  const dir = `courses/${course}`;
+  const read = (p: string) => JSON.parse(readFileSync(join(root, p), 'utf8')) as unknown;
+  const byChapter = new Map<string, { file: string; at: number[] }>();
+  const add = (chapter: string, file: string, at: number) => {
+    const c = byChapter.get(chapter) ?? { file, at: [] };
+    c.at.push(at);
+    byChapter.set(chapter, c);
+  };
+  type Choice = { id: string; right?: boolean };
+  const chapters = existsSync(join(root, dir, 'chapters')) ? readdirSync(join(root, dir, 'chapters')) : [];
+  for (const f of chapters.filter((x) => x.endsWith('.json'))) {
+    const data = read(`${dir}/chapters/${f}`) as {
+      quizzes?: { type: string; options?: Choice[]; answer?: string; fixedOrder?: boolean }[];
+    };
+    for (const q of data.quizzes ?? [])
+      if ((q.type === 'mc' || q.type === 'scenario') && q.options && q.answer)
+        add(
+          f.replace(/\.json$/, ''),
+          `${dir}/chapters/${f}`,
+          q.options.findIndex((o) => o.id === q.answer),
+        );
+  }
+  const puzzles = existsSync(join(root, dir, 'puzzles')) ? readdirSync(join(root, dir, 'puzzles')) : [];
+  for (const f of puzzles.filter((x) => x.endsWith('.json'))) {
+    const p = read(`${dir}/puzzles/${f}`) as {
+      mechanic?: string;
+      chapter?: string;
+      laps?: { stations: { options?: Choice[] }[] }[];
+    };
+    if (p.mechanic !== 'circuit' || !p.chapter) continue;
+    for (const lap of p.laps ?? [])
+      for (const s of lap.stations) {
+        const opts = s.options ?? [];
+        const right = opts.findIndex((o) => o.right);
+        if (opts.length > 1 && right >= 0) add(`${p.chapter}-circuits`, `${dir}/puzzles/${f}`, right);
+      }
+  }
+  for (const [chapter, { file, at }] of byChapter) {
+    if (at.length < 5) continue;
+    const counts = new Map<number, number>();
+    for (const i of at) counts.set(i, (counts.get(i) ?? 0) + 1);
+    const [pos, n] = [...counts].sort((a, b) => b[1] - a[1])[0]!;
+    if (n / at.length >= 0.6)
+      notes.push({
+        file,
+        message: `${chapter}: the right answer is option ${pos + 1} in ${n} of ${at.length} one-answer choices. The game shuffles them, but vary the data's order too.`,
+      });
+  }
+  return notes;
+}

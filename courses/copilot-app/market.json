@@ -1,6 +1,7 @@
 {
   "$schema": "../schemas/market.schema.json",
   "$comment": "The Model Market's data (docs/specs/MODEL-MARKET.md, docs/content-data.md): prices in starfish, refunds and doubloons, the board rule's numbers, the stamps, the course quotes, the jobs, Gilda's lines (and `practiced`, hers alone) and the other stalls' keepers' own version of each, and a goodbye (`keepers`, by island). `sizes.*.quotes` are course sentences every work order of that size shows after its job's `why`. `house` is the house special (Copilot Fusion) and its own effort levels, lowest first. The grading rules stay in src/game/market/jobs.ts. Read from the active course pack by src/content/market.ts; checked by src/content/content.test.ts and `npm run content:check`. Quotes must be word for word in the cited section of this pack's snapshot (public/course/**); `hash` is the section's hash from `npm run course:refs -- 01`. Gilda's and the keepers' `text` must match their lines in voice/lines.json: change both, then regenerate the audio (docs/content-data.md).",
+  "picksInOrder": true,
   "categories": [
     {
       "id": "Lightweight",
