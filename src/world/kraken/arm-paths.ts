@@ -403,6 +403,119 @@ export function pullArc(out: Points, z: number, rise: number, press: number): vo
   out.push(Math.max(1.0, beam - 1.9), deck + 0.35, z - 1.5);
 }
 
+/** How high (m) a seize's arc rises over her rail (outside it: the square sails overhang it higher up). */
+export const SEIZE_LIFT = 4.4;
+
+/** One arm's place in a seize: over her rail at `z` (`sweep` m along her where it comes up), on her `side`, holding her `half` (0 stern, 1 bow) once she tears. */
+export interface SeizeSpot {
+  readonly z: number;
+  readonly sweep: number;
+  readonly side: 1 | -1;
+  readonly half: 0 | 1;
+}
+
+/** A seize's four arms: over her near rail forward and aft, over her far rail, and round her foremast. */
+export interface SeizeLayout {
+  readonly fore: SeizeSpot;
+  readonly aft: SeizeSpot;
+  readonly far: SeizeSpot;
+  readonly mast: SeizeSpot;
+}
+
+/**
+ * Where a battle's seize (`wrapAndBreak(ship, { seize })`) clamps her, by the side of her the kraken
+ * comes up on (+1 her +x side): over her rails in the gaps her sails leave, so every arm keeps clear
+ * of the canvas, set or furled, flat or full (rig-clearance.ts). Her yards are braced, so her square
+ * sails lie further aft on her −x side than on her +x side, and her staysails and spanker fill to one
+ * side: each side has its own spots, two arms on each half of her (she tears at z 1.8).
+ */
+export const SEIZE_LAYOUT: { readonly [side: number]: SeizeLayout } = {
+  1: {
+    fore: { z: 2.4, sweep: 3, side: 1, half: 1 },
+    aft: { z: -5.6, sweep: -3, side: 1, half: 0 },
+    far: { z: -6.2, sweep: -3, side: -1, half: 0 },
+    mast: { z: FORE.z, sweep: 0, side: 1, half: 1 },
+  },
+  [-1]: {
+    fore: { z: 1, sweep: 2.5, side: -1, half: 0 },
+    aft: { z: -6, sweep: -3, side: -1, half: 0 },
+    far: { z: 2, sweep: 2, side: 1, half: 1 },
+    mast: { z: FORE.z, sweep: 0, side: -1, half: 1 },
+  },
+};
+
+/** A seize's shape for `spot` (ship-local): round the foremast (`mast`) or over a rail, on its side. */
+export function seizeShape(out: Points, spot: SeizeSpot, mast: boolean, press: number): void {
+  if (mast) seizeMast(out, press);
+  else seizeRail(out, spot.z, press, spot.sweep);
+  if (spot.side < 0) mirrorX(out);
+}
+
+/**
+ * A battle's seize over her rail at `z` on her +x side (mirror it for the far side): a long arc up
+ * out of the sea beside her, `sweep` m along her (forward or aft) from where it comes over (so it
+ * reads as an arc from any side, not edge on), over the rail and down onto her deck, clamped across
+ * it to her centre line (under the staysails' feet). `press` (0…1) pulls it down tight.
+ */
+export function seizeRail(out: Points, z: number, press: number, sweep = 0, lift = SEIZE_LIFT): void {
+  const beam = halfBeamAt(z, 1.5);
+  const sheer = sheerHeightAt(z);
+  const deck = deckHeightAt(z);
+  // It peaks outside her rail (her square sails overhang it higher up), then comes over it and down.
+  const p = 0.8 * press;
+  out.push(beam + 5, 0.3, z + sweep);
+  out.push(beam + 4, sheer + lift * 0.52, z + sweep * 0.7);
+  out.push(beam + 2.5, sheer + lift * 0.9 - 0.4 * p, z + sweep * 0.38);
+  out.push(beam + 1, sheer + lift - p, z + sweep * 0.12);
+  out.push(beam + 0.2, sheer + lift * 0.6 - p, z);
+  out.push(beam - 0.9, sheer + 1.4 - 0.5 * p, z);
+  out.push(beam - 2.2, deck + 1.2 - 0.4 * p, z);
+  out.push(0, deck + 1.25 - 0.4 * p, z);
+}
+
+/**
+ * A battle's arm round the foremast: out of the sea by her bow on her +x side, over the rail, and
+ * half a turn round the mast's foot from its +x side round its after side (under the fore course
+ * and the staysails' feet, clear of the jib's clew ahead of it), clamped (`press` 0…1).
+ */
+export function seizeMast(out: Points, press: number): void {
+  const z0 = FORE.z;
+  const deck = deckHeightAt(z0);
+  // Wide enough that its tip bones (about 1.6 m) lay round the mast without cutting into it.
+  const r = 1.45 - 0.1 * press;
+  out.push(halfBeamAt(z0 + 2.4, 1.5) + 2.4, 0.3, z0 + 2.7);
+  out.push(halfBeamAt(z0 + 2.2, 1.5) + 0.9, deck + 1.9, z0 + 2.3);
+  out.push(2.1, deck + 1.1, z0 + 1.1);
+  for (let k = 0; k <= 5; k++) {
+    const a = ((60 + k * 40) * Math.PI) / 180;
+    out.push(Math.sin(a) * r, deck + 0.85 - 0.04 * k - 0.1 * press, z0 + Math.cos(a) * r);
+  }
+}
+
+/**
+ * Cuts `p` to the first `frac` (0…1) of its length, the last point moved back along its leg: an arm
+ * coming up along its shape, tip first.
+ */
+export function truncatePoints(p: Points, frac: number): void {
+  if (frac >= 1 || p.n < 2) return;
+  const want = p.length() * Math.max(0, frac);
+  const q = p.xyz;
+  let run = 0;
+  for (let i = 1; i < p.n; i++) {
+    const j = i * 3;
+    const leg = Math.hypot(q[j]! - q[j - 3]!, q[j + 1]! - q[j - 2]!, q[j + 2]! - q[j - 1]!);
+    if (run + leg >= want) {
+      const f = leg > 0 ? (want - run) / leg : 0;
+      q[j] = q[j - 3]! + (q[j]! - q[j - 3]!) * f;
+      q[j + 1] = q[j - 2]! + (q[j + 1]! - q[j - 2]!) * f;
+      q[j + 2] = q[j - 1]! + (q[j + 2]! - q[j - 1]!) * f;
+      p.n = i + 1;
+      return;
+    }
+    run += leg;
+  }
+}
+
 /** True when `out`'s points over the deck keep clear of every mast (tests). */
 export function clearOfMasts(out: Points, clearance = RIG_CLEARANCE): boolean {
   for (let i = 0; i < out.n; i++) {

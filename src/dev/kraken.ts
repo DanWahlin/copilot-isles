@@ -338,21 +338,31 @@ function setup(): void {
   if (flagship.group.visible) hullList.push(hulls.flagship!);
   if (raider.group.visible) hullList.push(hulls.raider!);
   kraken.setHulls(hullList);
-  if (scenario === 'wreck') flagship.restartMotion(0, 0, 0);
+  // Each ship's sails as her scenario sails her, placed before her first frame (`restartMotion`
+  // applies the helm's trim at once): a raider at rest is furled from the start, one under way set.
+  if (scenario === 'wreck') place(flagship, 0, 0, 0, 0);
   if (scenario === 'fight') {
     // Yours sails abeam of the flagship, on the far side from where the kraken rises, a little astern.
     const h = 0.9;
-    flagship.restartMotion(0, 0, h);
-    mine.restartMotion(-38 * Math.cos(h) - 22 * Math.sin(h), 38 * Math.sin(h) - 22 * Math.cos(h), h);
+    place(flagship, 0, 0, h, 0.7);
+    place(mine, -38 * Math.cos(h) - 22 * Math.sin(h), 38 * Math.sin(h) - 22 * Math.cos(h), h, 0.6);
   }
   if (scenario === 'dodge') {
-    mine.restartMotion(0, 0, COURSE);
+    place(mine, 0, 0, COURSE, 0.8);
     // Astern of you and off your port quarter, chasing.
     const s = Math.sin(COURSE);
     const c = Math.cos(COURSE);
-    raider.restartMotion(-s * 70 + c * 34, -c * 70 - s * 34, COURSE);
+    place(raider, -s * 70 + c * 34, -c * 70 - s * 34, COURSE, 0.95);
   }
-  if (scenario === 'sightings' || scenario === 'surface') mine.restartMotion(0, 0, 0);
+  if (scenario === 'sightings' || scenario === 'surface') place(mine, 0, 0, 0, 0);
+}
+
+/** Puts `ship` at rest at (x, z, heading) with her helm's `trim`: her sails show it from her first frame. */
+function place(ship: Brigantine, x: number, z: number, heading: number, trim: number): void {
+  ship.dynamics.setInput({ trim, rudder: 0 });
+  ship.restartMotion(x, z, heading);
+  ship.group.position.set(x, 0, z);
+  ship.group.rotation.set(0, heading, 0);
 }
 
 /** One step of the scenario: its script, the ships, the kraken. */
@@ -362,11 +372,17 @@ function advance(dt: number, t: number): void {
     if (once('wrap', 1)) kraken.wrapAndBreak(flagship, { finale: true });
     flagship.dynamics.setInput({ trim: 0, rudder: 0 });
   } else if (scenario === 'fight') {
-    // Both under sail on a broad reach; the kraken takes the flagship mid-fight.
-    // She sails on until its arms close on her (from then the kraken holds her).
-    if (st < 3 + kraken.beats.grip - 2) steer(flagship, 0.9, 0.7);
+    // Both under sail on a broad reach; the kraken seizes the flagship mid-fight (the battle's take:
+    // quick and hard, her sails set). She sails on until it has her (from then it holds her).
+    if (st < 3) steer(flagship, 0.9, 0.7);
     steer(mine, 0.9, st > 14 ? 0.3 : 0.6);
-    if (once('wrap', 3)) kraken.wrapAndBreak(flagship);
+    // From the side your ship is on (as the battle does), so you see it come over her rail.
+    if (once('wrap', 3)) {
+      const f = flagship.dynamics.pose;
+      const m = mine.dynamics.pose;
+      const x = (m.x - f.x) * Math.cos(f.heading) - (m.z - f.z) * Math.sin(f.heading);
+      kraken.wrapAndBreak(flagship, { seize: true, side: x >= 0 ? 1 : -1 });
+    }
   } else if (scenario === 'dodge') {
     // On course; at the lookout's call, hard over away from the evidence, then back on course.
     if (st >= turnAt) {
@@ -813,6 +829,7 @@ const stats = () => ({
 dev.__kraken = {
   ready: true,
   kraken,
+  camera,
   sightings,
   ships: { flagship, mine, raider },
   stats,
@@ -865,6 +882,8 @@ dev.__kraken = {
     director = true;
   },
   hitches: () => engine.counters.hitches.slice(),
+  /** Times each ship's sails were drawn in another state than the frame before (must stay 0). */
+  sailJumps: () => ({ flagship: flagship.sailJumps, mine: mine.sailJumps, raider: raider.sailJumps }),
   bends,
   unlockAudio: unlock,
   halfLength: BRIGANTINE_HALF_LENGTH,

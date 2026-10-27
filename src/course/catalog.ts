@@ -50,6 +50,35 @@ export interface BattleHooks {
   chapter: string;
   won: string;
   waves: readonly { quiz: string; raiders: readonly string[] }[];
+  /** A battle with the kraken in it (battle 3): its flagship and the crew's lines. */
+  kraken?: KrakenHooks;
+}
+
+/**
+ * The kraken's course part (docs/specs/BATTLES.md §2.0c): the raiders' flagship it takes, and the
+ * crew's voiced lines (ids in `voice/lines.json`) at each of its beats.
+ */
+export interface KrakenHooks {
+  /** The flagship's name board. */
+  flagship: string;
+  lines: {
+    /** The lookout sees the evidence (bubbles, the shadow, the swirl) ahead. */
+    evidence: string;
+    /** The flagship sails on, straight over it. */
+    flagship: string;
+    /** It has taken her: why (the lesson). */
+    taken: string;
+    /** It's still down there: read the signs, steer clear, and lead raiders over them. */
+    stays: string;
+    /** The first tell in the fight. */
+    tell: string;
+    /** The first time an arm strikes your hull. */
+    hit: string;
+    /** The first raider it takes in the fight. */
+    lured: string;
+    /** It goes back down after the last raider. */
+    retreat: string;
+  };
 }
 
 /** Everything the game asks a course for by id rather than finding it in a script. */

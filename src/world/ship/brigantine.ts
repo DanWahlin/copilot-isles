@@ -123,6 +123,12 @@ export interface Brigantine {
    * updates gives the same pose (frozen shots, `CoveScene.holdStill`).
    */
   restartMotion(x: number, z: number, heading: number): void;
+  /**
+   * How many times her sails were drawn further from their last drawn state than the crew can haul
+   * them in the time between (`SAIL_RATE`): a ship never shows one sail state for a frame and then
+   * another. A restart (`restartMotion`) places them without counting. Tests read it.
+   */
+  readonly sailJumps: number;
   waterlineTable: Float32Array;
   stations: readonly BuoyancyStation[];
   capsules: readonly HullCapsule[];
@@ -180,6 +186,11 @@ interface ShipAnchors {
 }
 
 const WATERLINE_POLYGON_POINTS = 32;
+/**
+ * How fast (trim a second) the crew sets or hands the canvas: the drawn sails follow the helm's trim
+ * at this rate at most, so they never jump. `restartMotion` places them at once.
+ */
+export const SAIL_RATE = 1.2;
 const BOW_Z = BRIGANTINE_HALF_LENGTH + 0.28;
 const BOW_STEM = { x: 0, y: 1.9, z: 13.18 } as const;
 const STERN_Z = -BRIGANTINE_HALF_LENGTH - 0.15;
@@ -444,7 +455,8 @@ export function createBrigantine({
   const dynamics = new ShipDynamics();
   const startSails = sailPalette(DEFAULT_SAIL_PALETTE);
   const uniforms: BrigantineUniforms = {
-    trim: uniform(1),
+    // At rest, as her dynamics start: a ship is drawn with the sails her helm has from her first frame.
+    trim: uniform(0),
     luff: uniform(0),
     sailCloth: uniform(new Color(raider ? RAIDER_CLOTH : startSails.cloth)),
     sailStripe: uniform(new Color(raider ? RAIDER_STRIPE : startSails.stripe)),
@@ -545,7 +557,19 @@ export function createBrigantine({
     addMesh(brigRig, createBundledCanvasGeometry(tier), shipMaterial, 'furled canvas bundles', false),
   ];
   if (lowTier) mergeStaticParts(brigRig, spars, 'spars and furled canvas (merged)');
-  smallParts.push(addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails'));
+  const sails = addMesh(brigRig, createSailGeometry(tier), canvasMaterial, 'billowed procedural sails');
+  smallParts.push(sails);
+  // The sail state check: each draw of the canvas (its pieces too, ship-break.ts) compares it with the last.
+  let drawnTrim = Number.NaN;
+  let sailAllowance = 0;
+  let sailJumps = 0;
+  const sailsDrawn = () => {
+    const now = uniforms.trim.value;
+    if (!Number.isNaN(drawnTrim) && Math.abs(now - drawnTrim) > sailAllowance + 1e-3) sailJumps++;
+    drawnTrim = now;
+    sailAllowance = 0;
+  };
+  sails.onAfterRender = sailsDrawn;
   const flags = addMesh(
     brigRig,
     createFlagGeometry(raider ? RAIDER_BRIGANTINE_FLAGS : BRIGANTINE_FLAGS),
@@ -566,7 +590,12 @@ export function createBrigantine({
     cutterRig.visible = false;
     group.add(cutterRig);
     addMesh(cutterRig, createCutterSparGeometry(tier), shipMaterial, 'cutter mast gaff boom bowsprit', false);
-    addMesh(cutterRig, createCutterSailGeometry(tier), canvasMaterial, 'cutter gaff sails and headsails');
+    addMesh(
+      cutterRig,
+      createCutterSailGeometry(tier),
+      canvasMaterial,
+      'cutter gaff sails and headsails',
+    ).onAfterRender = sailsDrawn;
     addMesh(cutterRig, createFlagGeometry(cutterLayout), flagMaterial, 'cutter colours and pennant', false);
     const cutterLines = new LineSegments(createCutterRiggingGeometry(tier), riggingLineMaterial);
     cutterLines.name = 'cutter rigging lines';
@@ -704,6 +733,9 @@ export function createBrigantine({
     get figurehead() {
       return figurehead;
     },
+    get sailJumps() {
+      return sailJumps;
+    },
     uniforms,
     anchors,
     pipes: pipeSystem,
@@ -790,6 +822,10 @@ export function createBrigantine({
       blockX = blockZ = blockVx = blockVz = 0;
       uniforms.flagPhase.value = 0;
       flagEased = false;
+      // Her sails as her helm has them, at once (before she's drawn), and not counted as a jump.
+      uniforms.trim.value = dynamics.control.trim;
+      uniforms.luff.value = 0;
+      drawnTrim = Number.NaN;
     },
     update(dt: number, t: number, env: BrigantineEnv): void {
       accumulator = Math.min(accumulator + Math.max(0, dt), fixed * 5);
@@ -814,7 +850,11 @@ export function createBrigantine({
       const shake = current.shake * Math.sin(t * 37) * 0.018;
       group.position.set(x, heave + Math.abs(shake) * 0.3, z);
       group.rotation.set(pitch + shake * 0.5, yaw, roll + shake, 'YXZ');
-      uniforms.trim.value = dynamics.control.trim;
+      // The canvas follows the helm's trim as fast as the crew can haul it, never in one jump.
+      const step = SAIL_RATE * Math.max(0, dt);
+      const drawn = uniforms.trim.value;
+      uniforms.trim.value = drawn + MathUtils.clamp(dynamics.control.trim - drawn, -step, step);
+      sailAllowance += step;
       uniforms.luff.value = dynamics.pose.luff;
       // Flags stream down the apparent wind: the true wind less the ship's own way through the water.
       windAt(x, z, t, flagWind);

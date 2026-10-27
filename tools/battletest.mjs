@@ -11,7 +11,11 @@
 //   on its own fixed sea, today's Breeze, and the harbour must show the setting's)
 //   [--battle=3] (battle 3, "Trust the Evidence": Chapters 00-02 done, the chart to Thousand-Bough Isle,
 //   then out toward Keelhaven; its peak must stay at or under 140 programs with Keelhaven in memory, its
-//   end must bring the passage's "next morning", and you dock at Keelhaven)
+//   end must bring the passage's "next morning", and you dock at Keelhaven). Battle 3's kraken: after
+//   wave 1 the evidence and the flagship seized and taken (its beat: under 22 s from the call, its arms
+//   never within 0.45 m of a sail, a yard or a mast), then in wave 2 a tell near you, a dodge, a
+//   lure (a raider led over a tell and taken) and a hit on your hull, and its retreat after the last
+//   raider; no ship's sails may jump (`sailJumps`). --nokraken plays it without (a census without it).
 import { collectLogs, launchChrome, parseFlags, waitForTitle } from './lib/browser.mjs';
 import { passLearningPauses } from './lib/learning-cards.mjs';
 
@@ -20,7 +24,8 @@ const base = opt.base || 'http://localhost:5301';
 const out = opt.out || '/tmp/shots/battle';
 const tier = opt.tier || 'high';
 const tag = `${opt.webgl ? 'gl' : 'gpu'}-${tier}`;
-const url = `${base}/?debug&tier=${tier}${opt.webgl ? '&webgl' : ''}`;
+// --nokraken: battle 3 without its kraken (its census without it).
+const url = `${base}/?debug&tier=${tier}${opt.webgl ? '&webgl' : ''}${opt.nokraken ? '&nokraken' : ''}`;
 const BATTLE = Number(opt.battle ?? 1);
 if (BATTLE !== 1 && BATTLE !== 3) throw new Error('--battle=1 or --battle=3');
 // Battle 3 has an island on each side of its passage in memory: its peak keeps room for the next.
@@ -231,6 +236,169 @@ async function waitPhase(page, phases, ms = 60_000) {
   return snap(page);
 }
 
+// ---- Battle 3's kraken -----------------------------------------------------------------------
+const K = (page, js) => S(page, `(() => { const k = s.debug.battleRun().kraken; return ${js}; })()`);
+const krakenLog = (page) => K(page, 'k ? { ...k.log, stage: k.stage, wrap: k.encounter.phase() } : null');
+
+/**
+ * How near the kraken's arms come to the canvas, yards and masts of the ship they hold (m, from an
+ * arm's line; its girth is under half a metre up there): each arm's bones and the points between them,
+ * in her own frame (or her half's), checked against her sails flat and full (rig-clearance.ts).
+ */
+const RIG_CHECK = `(async () => {
+  const { sailDistance, yardDistance, mastDistance } = await import('/src/world/kraken/rig-clearance.ts');
+  const enc = s.debug.battleRun()?.kraken?.encounter;
+  if (!enc || enc.mode !== 'wrap' || !enc.wreck) return null;
+  const w = enc.time - enc.startAt;
+  if (w > enc.beats.break) return null;
+  const V = enc.group.position.constructor;
+  const M = enc.group.matrixWorld.constructor;
+  const v = new V(), u = new V(), inv = new M();
+  let sail = Infinity, rig = Infinity, at = '';
+  for (const st of enc.states) {
+    if (!st.active || !st.arm.shown || st.arm.sink > 0) continue;
+    const frame = enc.frameFor(enc.roleOf(st), w);
+    frame.updateWorldMatrix(true, false);
+    inv.copy(frame.matrixWorld).invert();
+    const bones = st.arm.poser.bones;
+    for (let i = 0; i < bones.length; i++) {
+      bones[i].getWorldPosition(v);
+      for (const f of i + 1 < bones.length ? [0, 0.5] : [0]) {
+        if (f) { bones[i + 1].getWorldPosition(u); u.lerp(v, 0.5); } else u.copy(v);
+        u.applyMatrix4(inv);
+        if (u.y < 1.2) continue;
+        const d = sailDistance(u.x, u.y, u.z);
+        const r = Math.min(yardDistance(u.x, u.y, u.z), mastDistance(u.x, u.y, u.z));
+        if (d < sail) { sail = d; at = enc.roleOf(st) + ' bone ' + i + ' at ' + [u.x, u.y, u.z].map((n) => n.toFixed(1)).join(','); }
+        rig = Math.min(rig, r);
+      }
+    }
+  }
+  return { w: +w.toFixed(1), sail: +sail.toFixed(2), rig: +rig.toFixed(2), at };
+})()`;
+/** An arm's line keeps this far (m) from canvas, yards and masts: its girth near its tip, and air. */
+const ARM_CLEAR = 0.45;
+
+/**
+ * After wave 1: the cut to the evidence, the flagship close and sailing into it, seized and taken
+ * quick and hard (about 10 s), then the battle carries on (wave 2). Its arms never touch her sails.
+ */
+async function krakenBeat(page, res) {
+  const s = await waitPhase(page, ['event'], 10_000);
+  if (s?.phase !== 'event') return fail(`no kraken beat after wave 1 (${s?.phase})`);
+  const t0 = Date.now();
+  const beat = { tips: 0, grip: 0, under: 0, end: 0, sail: Infinity, rig: Infinity, at: '' };
+  const shots = new Set();
+  const take = async (name, ok) => {
+    if (!ok || shots.has(name)) return;
+    shots.add(name);
+    await shot(page, name);
+  };
+  for (;;) {
+    const age = Date.now() - t0;
+    const st = await S(
+      page,
+      `(() => { const r = s.debug.battleRun(); return { phase: r.battle.phase, wrap: r.kraken?.encounter.phase(), stage: r.kraken?.stage }; })()`,
+    );
+    if (st.phase !== 'event') {
+      beat.end = age;
+      break;
+    }
+    if (age > 40_000) {
+      fail(`the kraken's beat never ended (${JSON.stringify(st)})`);
+      break;
+    }
+    if (!beat.tips && st.stage === 'wrap') beat.tips = age;
+    if (!beat.grip && (st.wrap === 'grip' || st.wrap === 'squeeze')) beat.grip = age;
+    if (!beat.under && (st.wrap === 'under' || st.wrap === 'withdraw')) beat.under = age;
+    const c = await S(page, RIG_CHECK);
+    if (c && c.sail < beat.sail) Object.assign(beat, { sail: c.sail, at: c.at });
+    if (c) beat.rig = Math.min(beat.rig, c.rig);
+    await take('kraken-evidence', age > 1500);
+    await take('kraken-flagship', st.stage === 'approach' && age > 3500);
+    await take('kraken-taken', beat.grip > 0 && age > beat.grip + 600);
+    await take('kraken-broken', beat.under > 0);
+    if (age > 1500 && age < 2500) await sample(page, 'kraken evidence');
+    if (beat.grip && age > beat.grip + 400 && age < beat.grip + 1400) await sample(page, 'kraken taken');
+    await page.waitForTimeout(120);
+  }
+  const s2 = (ms) => Math.round(ms / 100) / 10;
+  res.kraken = {
+    beat: await krakenLog(page),
+    seconds: { total: s2(beat.end), seized: s2(beat.grip - beat.tips), fromTips: s2(beat.end - beat.tips) },
+    clearance: { sail: beat.sail, rig: beat.rig, at: beat.at },
+  };
+  if (!res.kraken.beat?.flagshipTaken) fail('the flagship was never taken');
+  if (!beat.grip) fail('the kraken never gripped the flagship');
+  // Quick and hard: about 18–20 s from the call, 12–15 s from its arms to the battle carrying on.
+  if (beat.end > 22_000) fail(`the kraken's beat is too long (${s2(beat.end)} s)`);
+  if (beat.end - beat.tips > 16_000)
+    fail(`the take is too long (${s2(beat.end - beat.tips)} s from its arms)`);
+  if (beat.grip - beat.tips > 3000) fail(`the seize is slow (${s2(beat.grip - beat.tips)} s)`);
+  if (!(beat.sail >= ARM_CLEAR)) fail(`an arm went through a sail (${beat.sail} m: ${beat.at})`);
+  if (!(beat.rig >= ARM_CLEAR)) fail(`an arm went through a yard or a mast (${beat.rig} m)`);
+}
+
+/**
+ * Wave 2 with the kraken: your helmsman steers clear of its tells (a dodge); a tell on a raider's
+ * course (she's led over it and taken: a lure); then you hold your course over one (a hit). Returns
+ * `step()` for the fight loop (true while you hold the helm yourself) and `done()`.
+ */
+function krakenWave(page, t0) {
+  let lure = -1e9;
+  let onYou = 0;
+  let tookHelm = 0;
+  const seen = new Set();
+  const once = async (key, l, ok, wait = 0) => {
+    if (seen.has(key) || !ok) return;
+    seen.add(key);
+    if (wait) await page.waitForTimeout(wait);
+    await shot(page, key);
+    if (key === 'kraken-tell') await sample(page, 'kraken tell');
+  };
+  return {
+    done: () => Date.now() - t0 > 45_000,
+    async step() {
+      const age = Date.now() - t0;
+      const l = await krakenLog(page);
+      if (!l) return false;
+      await once('kraken-tell', l, l.tells > 0, 1500);
+      await once('kraken-dodge', l, l.dodged > 0);
+      await once('kraken-lure', l, l.taken > 0, 2500);
+      await once('kraken-player-hit', l, l.playerHits > 0);
+      // A tell on a raider's course every 9 s from 8 s until one is led over it.
+      if (l.taken === 0 && age > 8_000 && age - lure > 9_000 && (await K(page, 'k.debugTell("lure")')))
+        lure = age;
+      // Take the helm (a helm key) and hold her course over a tell on it.
+      // (Its arms may all be up: try again each poll for a while.)
+      if (!onYou && age > 20_000 && l.playerHits === 0) {
+        if (!tookHelm) {
+          await tap(page, 'KeyW');
+          tookHelm = age;
+        }
+        if (await K(page, 'k.debugTell("onYou")')) onYou = Date.now();
+        else if (age - tookHelm > 15_000) {
+          fail('no tell could be placed on your course');
+          onYou = Date.now();
+        }
+      }
+      return (tookHelm > 0 && !onYou) || (onYou > 0 && Date.now() - onYou < 8_000);
+    },
+  };
+}
+
+/** After the last raider: the kraken goes back down before the win card. */
+async function krakenRetreat(page, res) {
+  await page.waitForTimeout(2000);
+  const l = await krakenLog(page);
+  if (l?.stage !== 'gone') fail(`the kraken didn't retreat after the last raider (${l?.stage})`);
+  await shot(page, 'kraken-retreat');
+  res.kraken = { ...(res.kraken ?? {}), retreat: l };
+  const w2 = res.kraken.wave2 ?? {};
+  for (const k of ['tells', 'dodged', 'taken', 'playerHits'])
+    if (!(w2[k] > 0)) fail(`no kraken ${k} in wave 2 (${JSON.stringify(w2)})`);
+}
+
 // ---- Play battle 1 to the end ---------------------------------------------------------------
 async function play() {
   const page = await voyage();
@@ -270,15 +438,20 @@ async function play() {
     let hit = false;
     let struck = false;
     const t0 = Date.now();
+    // Battle 3's kraken through wave 2: a while to see it work before the raiders are hurried.
+    const kraken = BATTLE === 3 && wave === 1 && !opt.nokraken;
+    const kr = kraken ? krakenWave(page, t0) : null;
     while (Date.now() - t0 < 150_000) {
       const s = await snap(page);
       if (!s || s.phase !== 'fight') break;
-      if (!s.assist) await page.keyboard.press('KeyR');
+      const holding = kr ? await kr.step() : false;
+      if (!s.assist && !holding) await page.keyboard.press('KeyR');
       // Hurry the raiders along a little (each still has to be hit to strike).
-      await S(
-        page,
-        's.debug.battleRun().battle.raiders().forEach((r, i) => s.debug.battleRun().battle.debugHull(i, 14))',
-      );
+      if (!kr || kr.done())
+        await S(
+          page,
+          's.debug.battleRun().battle.raiders().forEach((r, i) => s.debug.battleRun().battle.debugHull(i, 14))',
+        );
       if (s.bears[0] || s.bears[1]) {
         const before = await S(page, 's.debug.battleRun().battle.raiders().map((r) => r.hull)');
         await page.keyboard.press('Space');
@@ -302,7 +475,9 @@ async function play() {
         }
       } else await page.waitForTimeout(400);
     }
+    if (kr) res.kraken = { ...(res.kraken ?? {}), wave2: await krakenLog(page) };
     const s = await waitPhase(page, ['lull', 'question'], 30_000);
+    if (BATTLE === 3 && !opt.nokraken && wave === waves - 1) await krakenRetreat(page, res);
     res.waves.push({
       wave: wave + 1,
       fired,
@@ -346,9 +521,19 @@ async function play() {
     await page.waitForTimeout(150);
     await page.keyboard.press('KeyE');
     await page.waitForTimeout(800);
+    if (BATTLE === 3 && !opt.nokraken && wave === 0) await krakenBeat(page, res);
   }
   const won = await waitPhase(page, ['won'], 20_000);
   if (won?.phase !== 'won') fail(`the battle wasn't won (${won?.phase})`);
+  if (BATTLE === 3) {
+    // Every ship's sails, the flagship's and the broken hulls' pieces too: never one state, then another.
+    const jumps = await S(
+      page,
+      '[...s.debug.battleRun().battle.ships(), ...(s.debug.battleRun().kraken ? [s.debug.battleRun().kraken.flagship] : [])].map((sh) => sh.sailJumps)',
+    );
+    res.sailJumps = jumps;
+    if (jumps.some((j) => j > 0)) fail(`sails jumped: ${JSON.stringify(jumps)}`);
+  }
   await page.waitForTimeout(2500);
   await shot(page, 'won');
   await sample(page, 'won');

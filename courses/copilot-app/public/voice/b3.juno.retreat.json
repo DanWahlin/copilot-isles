@@ -1,0 +1,72 @@
+{
+  "id": "b3.juno.retreat",
+  "speaker": "Juno",
+  "text": "It's going back down. We read the signs, Captain, and we're still afloat.",
+  "words": [
+    {
+      "word": "It's",
+      "start": 0,
+      "end": 0.267
+    },
+    {
+      "word": "going",
+      "start": 0.267,
+      "end": 0.448
+    },
+    {
+      "word": "back",
+      "start": 0.448,
+      "end": 0.72
+    },
+    {
+      "word": "down",
+      "start": 0.72,
+      "end": 1.387
+    },
+    {
+      "word": "We",
+      "start": 1.387,
+      "end": 1.968
+    },
+    {
+      "word": "read",
+      "start": 1.968,
+      "end": 2.18
+    },
+    {
+      "word": "the",
+      "start": 2.18,
+      "end": 2.307
+    },
+    {
+      "word": "signs",
+      "start": 2.307,
+      "end": 2.7
+    },
+    {
+      "word": "Captain",
+      "start": 2.7,
+      "end": 3.32
+    },
+    {
+      "word": "and",
+      "start": 3.32,
+      "end": 3.467
+    },
+    {
+      "word": "we're",
+      "start": 3.467,
+      "end": 3.64
+    },
+    {
+      "word": "still",
+      "start": 3.64,
+      "end": 3.88
+    },
+    {
+      "word": "afloat",
+      "start": 3.88,
+      "end": 4.13
+    }
+  ]
+}

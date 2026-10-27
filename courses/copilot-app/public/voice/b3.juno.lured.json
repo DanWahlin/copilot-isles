@@ -1,0 +1,57 @@
+{
+  "id": "b3.juno.lured",
+  "speaker": "Juno",
+  "text": "They sailed right over the bubbles, and it's got them!",
+  "words": [
+    {
+      "word": "They",
+      "start": 0,
+      "end": 0.309
+    },
+    {
+      "word": "sailed",
+      "start": 0.309,
+      "end": 0.773
+    },
+    {
+      "word": "right",
+      "start": 0.773,
+      "end": 1.088
+    },
+    {
+      "word": "over",
+      "start": 1.088,
+      "end": 1.3
+    },
+    {
+      "word": "the",
+      "start": 1.3,
+      "end": 1.42
+    },
+    {
+      "word": "bubbles",
+      "start": 1.42,
+      "end": 2.1
+    },
+    {
+      "word": "and",
+      "start": 2.1,
+      "end": 2.747
+    },
+    {
+      "word": "it's",
+      "start": 2.747,
+      "end": 3.18
+    },
+    {
+      "word": "got",
+      "start": 3.18,
+      "end": 3.44
+    },
+    {
+      "word": "them",
+      "start": 3.44,
+      "end": 3.69
+    }
+  ]
+}

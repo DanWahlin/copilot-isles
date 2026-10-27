@@ -1,0 +1,42 @@
+{
+  "id": "b3.juno.tell",
+  "speaker": "Juno",
+  "text": "Bubbles, Captain! Steer clear of the ring!",
+  "words": [
+    {
+      "word": "Bubbles",
+      "start": 0,
+      "end": 0.67
+    },
+    {
+      "word": "Captain",
+      "start": 0.67,
+      "end": 1.04
+    },
+    {
+      "word": "Steer",
+      "start": 1.04,
+      "end": 1.493
+    },
+    {
+      "word": "clear",
+      "start": 1.493,
+      "end": 1.813
+    },
+    {
+      "word": "of",
+      "start": 1.813,
+      "end": 1.94
+    },
+    {
+      "word": "the",
+      "start": 1.94,
+      "end": 2.08
+    },
+    {
+      "word": "ring",
+      "start": 2.08,
+      "end": 2.33
+    }
+  ]
+}

@@ -10,6 +10,8 @@ export interface BattleHudActions {
   calm(on: boolean): void;
   /** "Bring her round": hand the helm to your helmsman, or take it back. */
   assist(on: boolean): void;
+  /** Skips a mid-battle event (the kraken's beat) while it plays. */
+  skipEvent?(): void;
 }
 
 /** What the HUD asks the battle for readiness (no arrays built per update). */
@@ -126,8 +128,17 @@ export class BattleHud {
 
     const skip = noFocus(el('button', 'bh-skip', this.root));
     skip.type = 'button';
-    skip.textContent = 'Skip battle';
+    // A phone shows "Skip" only (battle-hud.css): it sits beside the purse there.
+    skip.innerHTML = 'Skip<span class="bh-skip-word"> battle</span>';
+    skip.setAttribute('aria-label', 'Skip battle');
     skip.onclick = () => this.actions.skip();
+
+    // Skip a mid-battle event (shown only while one plays): E or the gamepad's A, too.
+    const skipEvent = noFocus(el('button', 'bh-skip-event', this.root));
+    skipEvent.type = 'button';
+    skipEvent.innerHTML = '<span>Skip</span><kbd>E</kbd>';
+    skipEvent.setAttribute('aria-label', 'Skip this scene');
+    skipEvent.onclick = () => this.actions.skipEvent?.();
 
     this.captionBox = el('div', 'bh-captions', this.root);
     this.captionBox.setAttribute('role', 'status');
@@ -168,6 +179,7 @@ export class BattleHud {
     this.rowsReady = [portRow, starRow];
 
     el('div', 'bh-veil', this.root);
+    el('div', 'bh-dip', this.root).setAttribute('aria-hidden', 'true');
     this.card = el('div', 'bh-card', this.root);
     this.card.setAttribute('role', 'dialog');
   }
@@ -193,7 +205,10 @@ export class BattleHud {
   }
 
   show(on: boolean): void {
-    this.root.classList.toggle('show', on || this.briefing !== null);
+    const shown = on || this.briefing !== null;
+    this.root.classList.toggle('show', shown);
+    // The battle's HUD replaces the island's (game/hud.css `body.ci-battle`).
+    document.body.classList.toggle('ci-battle', shown);
   }
 
   /** True while the pre-battle briefing is open. */
@@ -266,6 +281,7 @@ export class BattleHud {
     go.innerHTML = 'Set sail <kbd>Enter</kbd>';
     this.briefing = box;
     this.root.classList.add('briefing', 'show');
+    document.body.classList.add('ci-battle');
     const close = () => {
       if (this.briefing !== box) return;
       removeEventListener('keydown', onKey, true);
@@ -351,9 +367,11 @@ export class BattleHud {
     this.waveText.textContent =
       s.phase === 'won'
         ? 'The passage is clear'
-        : s.phase === 'lull' || s.phase === 'question'
-          ? `Wave ${s.wave + 1} of ${s.waves} beaten`
-          : `Wave ${s.wave + 1} of ${s.waves} · ${s.raidersLeft} ${s.raidersLeft === 1 ? 'raider' : 'raiders'} left`;
+        : s.phase === 'event'
+          ? `Wave ${s.wave} of ${s.waves} beaten`
+          : s.phase === 'lull' || s.phase === 'question'
+            ? `Wave ${s.wave + 1} of ${s.waves} beaten`
+            : `Wave ${s.wave + 1} of ${s.waves} · ${s.raidersLeft} ${s.raidersLeft === 1 ? 'raider' : 'raiders'} left`;
     const bits: string[] = [];
     if (s.doubleShot) bits.push('Double-shotted');
     if (s.stores.powder) bits.push('Dry powder');
@@ -471,5 +489,6 @@ export class BattleHud {
   dispose(): void {
     window.clearTimeout(this.captionTimer);
     this.root.remove();
+    document.body.classList.remove('ci-battle');
   }
 }

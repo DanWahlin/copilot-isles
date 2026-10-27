@@ -22,12 +22,14 @@ interface Pools {
     player: boolean;
     state: string;
     scale: number;
+    struckAt: number;
+    underAt: number;
     ship: { dynamics: { pose: { x: number; z: number; heading: number } } };
   }[];
 }
 
 describe('battle splashes', () => {
-  it('makes every splash where a ball goes into the sea or along a sinking hull, and none on a hit', () => {
+  it('makes every splash where a ball goes into the sea or along a sinking hull (while she shows), and none on a hit', () => {
     const player = createBrigantine({ tier: 'medium', oceanInteraction: false });
     let hits = 0;
     const battle = new Battle({
@@ -61,13 +63,15 @@ describe('battle splashes', () => {
           return;
         }
       }
-      // Air out of a sinking hull: on her centre line, within her length.
+      // Air out of a sinking hull: on her centre line (her stem head as she rolls), within her length.
       for (const c of pools.combatants) {
         if (c.player || c.state !== 'struck') continue;
         const p = c.ship.dynamics.pose;
         const along = (x - p.x) * Math.sin(p.heading) + (z - p.z) * Math.cos(p.heading);
         const across = (x - p.x) * Math.cos(p.heading) - (z - p.z) * Math.sin(p.heading);
-        if (Math.abs(across) < 0.5 && Math.abs(along) <= 10 * c.scale) {
+        // Only while some of her shows: her bow under for a moment at most.
+        const shows = Number.isNaN(c.underAt) || now - c.struckAt <= c.underAt + 1.05;
+        if (Math.abs(across) < c.scale && Math.abs(along) <= 12 * c.scale && shows) {
           sinking++;
           return;
         }

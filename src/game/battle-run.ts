@@ -6,6 +6,7 @@ import { loadQuizParts } from '../course/load';
 import { QUIZZES } from '../learn/content';
 import type { ChoiceQuiz } from '../learn/types';
 import { BATTLE_PLANS, Battle, emptyBattleSnapshot, type BattlePlan } from '../world/battle/battle';
+import type { KrakenAct } from '../world/battle/kraken-act';
 import type { HeightField } from '../world/contracts';
 import type { CoveScene } from '../world/cove-scene';
 import { unreflected } from '../world/reflection';
@@ -35,12 +36,16 @@ export interface BattleRunOptions {
   onEnd(how: 'won' | 'skipped'): void;
   /** Once, when the first wave starts (after the briefing): the battle's chart label. */
   onStart?(): void;
+  /** Plays voiced lines of the course's (the crew's calls in a battle with the kraken), one run at a time. */
+  say?(ids: readonly string[]): Promise<void>;
 }
 
 /** The briefing shows before every battle until you tick "Don't show this again". */
 const BRIEF_KEY = 'kraken-isles.battleBriefing.hidden';
 /** After the win, the camera holds its turn round your ship this long (s) before it's yours again. */
 const WON_HOLD = 9;
+/** How much way your ship loses while a mid-battle event plays (`ShipDynamics.held`). */
+const HEAVE_TO = 0.85;
 /** How far a stick or key must go before it moves between the question's choices. */
 const NAV_EDGE = 0.6;
 
@@ -70,7 +75,7 @@ export class BattleRun {
   private navHeld = false;
   private wasDirecting = false;
   private readonly snap = emptyBattleSnapshot();
-  private readonly focusAt = { x: 0, z: 0 };
+  private readonly focusAt = { x: 0, z: 0, d: 0, cut: false };
   private readonly look = { x: 0, y: 3, z: 0 };
   private readonly dcam = { x: 0, y: 0, z: 0 };
   private readonly dtarget = { x: 0, y: 0, z: 0 };
@@ -82,6 +87,11 @@ export class BattleRun {
   private suspended = false;
   /** Lets the leaping fish and dolphins back into the sea (they stay out while the battle's on). */
   private unquiet: (() => void) | null = null;
+  /** Battle 3's kraken (its own chunk), once it's built; null in a battle without one. */
+  kraken: KrakenAct | null = null;
+  /** The crew's lines waiting their turn (one plays at a time). */
+  private readonly lineQueue: string[] = [];
+  private speaking = false;
 
   constructor(private readonly o: BattleRunOptions) {
     const { engine, cove, audio } = o;
@@ -92,6 +102,7 @@ export class BattleRun {
       answer: (pick) => this.battle.answer(pick),
       calm: (on) => this.battle.setCalm(on),
       assist: (on) => this.battle.setAssist(on),
+      skipEvent: () => this.kraken?.skip(),
     });
     this.hud.setWonText(this.plan.won);
     this.director = new BattleCamera(() => world.reducedMotion.value > 0.5);
@@ -106,6 +117,9 @@ export class BattleRun {
       onBeat: (beat, x, z) => this.director.beat(beat, x, z),
       openWater: o.openWater,
       ground: o.ground ?? null,
+      events: this.plan.events,
+      // The kraken's beat plays once it's built (it always is by the time a wave is beaten).
+      onEvent: (e, t) => e.kind === 'kraken' && !!this.kraken && this.kraken.begin(t),
     });
     const group = this.battle.group;
     // The raiders draw like your ship: no sun-shadow shaders of their own.
@@ -122,17 +136,73 @@ export class BattleRun {
     this.ready = engine.counters.excuse(Promise.all([this.warm(), quizzes]).then(() => undefined));
   }
 
+  /** Battle 3's kraken: its code, the tentacle, the flagship and every hull it may break, built now. */
+  private async buildKraken(): Promise<KrakenAct | null> {
+    const event = this.plan.events.find((e) => e.kind === 'kraken');
+    const hooks = this.plan.kraken;
+    // ?nokraken: the battle without it (a census without it), like ?nowreck.
+    if (!event || !hooks || new URLSearchParams(location.search).has('nokraken')) return null;
+    const { engine, cove, audio } = this.o;
+    const { KrakenAct } = await import('../world/battle/kraken-act');
+    const act = await KrakenAct.create({
+      tier: engine.tier,
+      waves: cove.ocean.field,
+      battle: this.battle,
+      hooks,
+      openWater: this.o.openWater,
+      onSound: audio ? createBattleAudio(audio, this.listener) : undefined,
+      say: (id) => this.say(id),
+      caption: (text) => this.hud.caption(text),
+      beat: (beat, x, z) => this.director.beat(beat, x, z),
+      seed: (this.o.seed ?? 0xba771e) ^ 0x6b72,
+    });
+    if (this.disposed) {
+      act.dispose();
+      return null;
+    }
+    // The flagship draws like the raiders: no sun-shadow shaders of her own.
+    if (engine.tier.shadowCascades > 0) skipSunShadows(act.flagship.group);
+    unreflected.add(act.group);
+    engine.scene.add(act.group);
+    audio?.preloadVoice(Object.values(hooks.lines));
+    return act;
+  }
+
   private async warm(): Promise<void> {
     // The raiders' figureheads first: added after the warm, their first draws uploaded them
     // mid-battle (High draws a lighter one for them than for your ship, so it loads then).
-    await this.battle.shipsReady();
+    const [act] = await Promise.all([this.buildKraken(), this.battle.shipsReady()]);
+    if (this.disposed) return;
+    this.kraken = act;
+    const event = this.plan.events.find((e) => e.kind === 'kraken');
+    // Every hull the kraken may break is cut now, as it'll be (her pieces are drawn in the warm).
+    if (act && event) act.prepare(event.afterWave);
     const restore = this.battle.stageWarm();
+    const restoreKraken = act?.stageWarm();
     try {
-      await this.o.cove.warmLate([this.battle.group]);
+      await this.o.cove.warmLate(act ? [this.battle.group, act.group] : [this.battle.group]);
     } finally {
       restore();
+      restoreKraken?.();
     }
     this.warmed = true;
+  }
+
+  /** A crew line (the course's, by id): after the one playing, never over it. */
+  private say(id: string): void {
+    if (!this.o.say) return;
+    this.lineQueue.push(id);
+    if (this.speaking) return;
+    this.speaking = true;
+    const next = (): void => {
+      const line = this.lineQueue.shift();
+      if (line === undefined || this.disposed) {
+        this.speaking = false;
+        return;
+      }
+      void this.o.say!([line]).then(next, next);
+    };
+    next();
   }
 
   /** True from the lookout's call until the battle is won or skipped (paused ones too). */
@@ -220,6 +290,10 @@ export class BattleRun {
    * waits (the helm keys move between its choices). True when it took the helm this frame.
    */
   steer(dt: number, s: InputState, helm: Helm, dyn: ShipDynamics): boolean {
+    // While a mid-battle event plays (the kraken's beat) the crew heaves to and watches: her way comes
+    // off (her sails stay set), and comes back after.
+    const watching = this.active && this.battle.phase === 'event';
+    dyn.held = watching ? Math.min(HEAVE_TO, dyn.held + dt * 0.4) : Math.max(0, dyn.held - dt * 0.5);
     if (!this.active) return false;
     if (this.hud.choosing) {
       helm.update(dt, 0, 0, dyn);
@@ -256,6 +330,9 @@ export class BattleRun {
           this.navHeld = true;
         } else this.navHeld = false;
         if (s.interact) this.hud.press();
+      } else if (b.phase === 'event') {
+        // E or A skips the kraken's beat.
+        if (s.interact) this.kraken?.skip();
       } else if (!this.ended) {
         if (s.fire) b.fire('bearing');
         if (s.firePort) b.fire('port');
@@ -265,6 +342,7 @@ export class BattleRun {
     }
     // The ocean is drawn at the world's clock; the battle samples it there (its own clock differs).
     b.update(dt, t, world.time.value);
+    this.kraken?.update(dt, t, world.time.value, camera);
 
     // The director frames the battle's beats until you drag the view, and stands off after the win.
     const director = this.director;
@@ -283,6 +361,10 @@ export class BattleRun {
       this.dtarget.z = camera.position.z + this.lookDir.z * 30;
     }
     director.setFocus(b.focus(this.focusAt), this.focusAt.x, this.focusAt.z);
+    // The kraken's beat holds its own shot on what it's doing (the evidence, the flagship, the wreck),
+    // from a cut under the HUD's dip.
+    if (b.phase === 'event' && this.kraken?.focus(this.focusAt))
+      director.hold('kraken', this.focusAt.x, this.focusAt.z, this.focusAt.d, this.focusAt.cut);
     director.update(dt, t, p.x, p.z, p.heading, this.look, this.dcam, this.dtarget);
     const directing = this.started && director.directing && b.phase !== 'idle';
     if (directing) {
@@ -343,9 +425,17 @@ export class BattleRun {
     this.setMusic(false);
     engine.scene.remove(this.battle.group);
     unreflected.delete(this.battle.group);
+    if (this.kraken) {
+      engine.scene.remove(this.kraken.group);
+      unreflected.delete(this.kraken.group);
+      this.kraken.dispose();
+      this.kraken = null;
+    }
+    this.lineQueue.length = 0;
     this.battle.dispose();
     this.hud.dispose();
-    // Your ship comes out of it patched: no shot holes, scorch, or guns run in.
+    // Your ship comes out of it patched: no shot holes, scorch, or guns run in; and free to sail.
+    cove.ship.dynamics.held = 0;
     cove.ship.clearScorch();
     cove.ship.uniforms.sailHoles.value = 0;
   }

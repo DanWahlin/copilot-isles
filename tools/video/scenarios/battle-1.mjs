@@ -50,6 +50,12 @@ async function sailToward(api, x, z, ms, done) {
  * The battle as a scenario. `rightFirst`: the first wave's question is answered right too (no
  * mistake), and `firstWaveOnly`: the take stops after that question and its reward. `labelsSeen`:
  * the game's own chart label for the battle is marked as shown off camera (the reel adds its own).
+ * Battle 3 (battle-3.mjs) adds: `fightCut(wave)`, the trim of each fight; `hurry(wave, ms)`, whether
+ * to bring the raiders' hulls down (as tools/battletest.mjs does) so a long fight ends;
+ * `duringFight(api, wave, ms)`, a step each poll (true while you hold the helm yourself);
+ * `afterReward(page, api, wave)`, what plays between a wave's reward and the next; and `reading`,
+ * how long (ms) each question is read before it's answered; `answered`, how long its answer shows; and
+ * `lullCut`, the trim of the lull between a wave and its question.
  */
 export function battleScenario({
   rightFirst = false,
@@ -58,6 +64,13 @@ export function battleScenario({
   board = null,
   toward = async () => ({ x: 747, z: -700 }),
   afterWin = null,
+  fightCut = () => ({ head: 28_000, tail: 14_000 }),
+  hurry = () => false,
+  duringFight = null,
+  afterReward = null,
+  reading = 4500,
+  answered = 5500,
+  lullCut = null,
   ...meta
 } = {}) {
   return {
@@ -128,37 +141,43 @@ export function battleScenario({
         await api.press('KeyR');
         // The fight: keep her round and fire whenever a battery bears. The middle of a long fight
         // is trimmed; its first broadsides and the strike stay.
-        await api.cutWhile(
-          async () => {
-            const t0 = Date.now();
-            while (Date.now() - t0 < 240_000) {
-              const s = await snap(api);
-              if (!s || s.phase !== 'fight') break;
-              if (!s.assist) await api.press('KeyR');
-              if (s.bears[0] || s.bears[1]) {
-                api.mark('fire');
-                await api.press('Space');
-                await api.pause(1300);
-              } else await api.pause(350);
-            }
-          },
-          { head: 28_000, tail: 14_000 },
-        );
-        await waitPhase(api, ['question'], 40_000);
+        await api.cutWhile(async () => {
+          const t0 = Date.now();
+          while (Date.now() - t0 < 240_000) {
+            const s = await snap(api);
+            if (!s || s.phase !== 'fight') break;
+            const ms = Date.now() - t0;
+            const holding = duringFight ? await duringFight(api, wave, ms) : false;
+            if (hurry(wave, ms))
+              await api.S(() => {
+                const b = window.__dev.session().debug.battleRun().battle;
+                b.raiders().forEach((r, i) => b.debugHull(i, 14));
+              });
+            if (!s.assist && !holding) await api.press('KeyR');
+            if (s.bears[0] || s.bears[1]) {
+              api.mark('fire');
+              await api.press('Space');
+              await api.pause(1300);
+            } else await api.pause(350);
+          }
+        }, fightCut(wave));
+        if (lullCut) await api.cutWhile(() => waitPhase(api, ['question'], 40_000), lullCut);
+        else await waitPhase(api, ['question'], 40_000);
         api.mark(`question ${wave + 1}`);
         // The bosun's question: read it, then answer with the mouse (wave 1 wrong, wave 2 right).
-        await api.pause(4500);
+        await api.pause(reading);
         const right = await quiz(wave);
         const n = await api.S(() => document.querySelectorAll('.bh-options .bh-choice').length);
         const pick = wave === 0 && !rightFirst ? (right + 1) % n : right;
         api.mark(`answer ${wave + 1}`);
         await api.click(`.bh-options .bh-choice:nth-child(${pick + 1})`);
-        await api.pause(5500);
+        await api.pause(answered);
         // Wave 1: "Make repairs and sail on" (or, answered right, the first reward). Then quick
         // repairs and the double-shotted volley in turn.
         api.mark(`reward ${wave + 1}`);
         await api.click(wave % 2 === 0 ? '.bh-picks .bh-choice' : '.bh-picks .bh-choice:nth-of-type(2)');
         await api.pause(1500);
+        if (afterReward) await afterReward(page, api, wave);
         if (firstWaveOnly) {
           await api.pause(1500);
           await captions();

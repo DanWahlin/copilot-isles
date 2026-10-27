@@ -15,6 +15,7 @@ const HOLD: Record<BattleBeat, number> = {
   clear: 4,
   won: 10,
   breakoff: 3,
+  kraken: 3,
 };
 const PRIORITY: Record<BattleBeat, number> = {
   incoming: 1,
@@ -24,6 +25,7 @@ const PRIORITY: Record<BattleBeat, number> = {
   breakoff: 3,
   strike: 4,
   won: 5,
+  kraken: 6,
 };
 /** Gun beats don't move the camera more often than this (s), so it doesn't hunt. */
 const GUN_COOLDOWN = 9;
@@ -47,6 +49,8 @@ export class BattleCamera {
    */
   follow = true;
   private hasFocus = false;
+  /** How far the held shot stands back from its focus (m), toward your ship; 0 its own choice. */
+  private holdDistance = 0;
   private focusX = 0;
   private focusZ = 0;
   /** The follow view's direction (heading convention), eased at a capped turn rate. */
@@ -93,6 +97,24 @@ export class BattleCamera {
     this.fz = z;
     this.cut = this.reducedMotion();
     this.sgn = 0;
+  }
+
+  /**
+   * Holds a shot on a moving focus (a mid-battle event: the kraken's beat), called each frame while it
+   * lasts: it starts like a beat, then follows (x, z) and stays until the calls stop. `cut`: it
+   * starts with a cut, not a swoop (the HUD's dip hides it).
+   */
+  hold(kind: BattleBeat, x: number, z: number, distance = 0, cut = false): void {
+    if (!this.enabled) return;
+    this.holdDistance = distance;
+    if (this.shot === kind && this.now < this.shotUntil) {
+      this.fx = x;
+      this.fz = z;
+      this.shotUntil = this.now + HOLD[kind];
+      return;
+    }
+    this.beat(kind, x, z);
+    if (cut) this.cut = true;
   }
 
   /** The raider to keep in frame this frame (`has` false: none, so the camera looks ahead). */
@@ -279,6 +301,15 @@ export class BattleCamera {
         const fz = Math.cos(heading);
         set(want, sx - fx * 34 + nx * 10, this.shot === 'clear' ? 24 : 30, sz - fz * 34 + nz * 10);
         set(aim, sx, 3, sz);
+        break;
+      }
+      case 'kraken': {
+        // On the line from your ship to what it's doing, off to one side and high: from behind your
+        // ship while the evidence and the flagship show (the fog well beyond), then closer, to read
+        // the arms on the hull (the distance its driver holds it at).
+        const d = this.holdDistance > 0 ? this.holdDistance : Math.min(range * 0.65, 62);
+        set(want, this.fx - ux * d + nx * 22, 14, this.fz - uz * d + nz * 22);
+        set(aim, this.fx, 4, this.fz);
         break;
       }
       case 'won': {

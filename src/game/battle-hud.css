@@ -203,6 +203,36 @@
   border-color: var(--gold);
 }
 
+/* Skip a mid-battle event (the kraken's beat): only while it plays. */
+.bh-skip-event {
+  position: absolute;
+  right: 1.4rem;
+  bottom: 9rem;
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--glass);
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.bh-skip-event:hover,
+.bh-skip-event:focus-visible {
+  border-color: var(--gold);
+}
+.bh[data-phase='event'] .bh-skip-event {
+  display: inline-flex;
+}
+/* Your guns are held while it plays. */
+.bh[data-phase='event'] .bh-guns {
+  opacity: 0.45;
+}
+
 /* ---- Captions ---- */
 .bh-captions {
   position: absolute;
@@ -322,7 +352,8 @@
 }
 .bh-key,
 .bh-fire kbd,
-.bh-assist kbd {
+.bh-assist kbd,
+.bh-skip-event kbd {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.66rem;
   letter-spacing: 0;
@@ -464,6 +495,30 @@
   opacity: 0;
   transition: opacity 0.8s ease;
 }
+/* A mid-battle event (the kraken's beat) opens with a cut: a short dip to dark, darkest at about
+   0.35 s (kraken-act.ts CUT_AT), when its ship and its camera come in. */
+.bh-dip {
+  position: absolute;
+  inset: 0;
+  background: #05090d;
+  opacity: 0;
+  pointer-events: none;
+}
+.bh[data-phase='event'] .bh-dip {
+  animation: bh-dip 0.9s ease-in-out;
+}
+@keyframes bh-dip {
+  0% {
+    opacity: 0;
+  }
+  38%,
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 /* The battle is over: the guns and Skip step away (hidden also takes them out of the tab order). */
 .bh-guns,
 .bh-skip {
@@ -513,8 +568,26 @@
   top: 24%;
   pointer-events: none;
 }
+/* The bosun's question and the break-off card: between the hull box and the bottom of the screen
+   (the guns are held while one is up, so they step away), never over the hull box. */
+.bh[data-phase='question'] .bh-guns,
+.bh[data-phase='breakoff'] .bh-guns {
+  visibility: hidden;
+}
+.bh-card.show:not(.slim):not(.banner) {
+  top: calc(50% + 3.3rem);
+  max-height: calc(100% - 8.6rem);
+}
+@media (max-width: 760px) {
+  .bh-card.show:not(.slim):not(.banner) {
+    top: calc(50% + 4.6rem);
+    max-height: calc(100% - 10.8rem);
+  }
+}
 .bh-card.banner {
-  top: 18%;
+  /* Its top under the hull and wave box (it overlapped the box's lower edge). */
+  top: max(18%, 7rem);
+  transform: translate(-50%, 0);
   background: none;
   border-color: transparent;
   backdrop-filter: none;
@@ -634,6 +707,39 @@
   cursor: pointer;
 }
 
+/* The briefing and the bosun's card fit the screen whole (their padding inside their size). */
+.bh-brief,
+.bh-card {
+  box-sizing: border-box;
+}
+/* A phone: the hull bar and the wave banner sit under the purse (top right), and Skip (its word
+   only) takes the top left beside the purse, so none overlaps another. */
+@media (max-width: 760px) {
+  .bh-top {
+    top: 4.4rem;
+  }
+  .bh-skip {
+    top: 1.1rem;
+    right: auto;
+    left: 0.8rem;
+    padding: 0 0.8rem;
+  }
+  .bh-skip-word {
+    display: none;
+  }
+  .bh-card.banner {
+    top: 9.6rem;
+  }
+  /* The helm's hint wraps over the guns rather than running off the screen. */
+  .bh-helm {
+    width: calc(100vw - 1.6rem);
+    justify-content: center;
+  }
+  .bh-hint {
+    white-space: normal;
+    text-align: center;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .bh-caption {
     animation: none;
@@ -651,4 +757,28 @@
 :root.reduced-motion .bh-fire,
 :root.reduced-motion .bh-pennant {
   transition: none;
+}
+
+/* The crew's voiced lines in a battle (battle 3's kraken): under the hull and wave box and the wave's
+   banner at the top, above the lookout's captions, the helm hint and the powder rows at the bottom. */
+body:has(.bh.show) .hud-subtitle {
+  /* Under the wave's banner too (.bh-card.banner, its top at max(18%, 7rem)). */
+  top: max(15rem, 18% + 8rem);
+  bottom: auto;
+}
+/* The passage's chart label sits bottom left in a battle: the lines don't move up for it. */
+body:has(.bh.show) .hud.has-label .hud-subtitle.show {
+  transform: translate(-50%, 0);
+}
+/* A phone: the passage's chart label goes under the hull box and the wave banner, and the voiced
+   lines under the label. */
+@media (max-width: 760px) {
+  :root:has(.bh.show) .hud-chart {
+    --lt-room: 100vw;
+    /* Under the wave's title card too (game/hud.css .hud-card, 21vh down). */
+    top: calc(env(safe-area-inset-top, 0px) + max(15.5rem, 21vh + 4.5rem));
+  }
+  body:has(.bh.show) .hud-subtitle {
+    top: max(24.5rem, 21vh + 13.5rem);
+  }
 }

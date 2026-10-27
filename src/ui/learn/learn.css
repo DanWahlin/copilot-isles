@@ -83,6 +83,12 @@
   background: rgba(3, 7, 11, 0.86);
 }
 
+/* Every card's size includes its padding and border, so its max-height and width keep the whole
+   card on the screen (content-box let a tall Seal card or a phone's quiz run past the edges). */
+.ci-learn [role='dialog'] {
+  box-sizing: border-box;
+}
+
 /* ---- Quiz ---- */
 .ci-quiz,
 .ci-page-card,

@@ -349,7 +349,20 @@
       },
       "passage-thousand-bough-keelhaven": {
         "chapter": "02",
-        "won": "The raiders are back in the fog. Keelhaven lies ahead.",
+        "won": "The raiders sailed on a confident guess. You read the evidence, and Keelhaven lies ahead.",
+        "kraken": {
+          "flagship": "Sure Thing",
+          "lines": {
+            "evidence": "b3.juno.evidence",
+            "flagship": "b3.juno.flagship",
+            "taken": "b3.wingman.taken",
+            "stays": "b3.wingman.stays",
+            "tell": "b3.juno.tell",
+            "hit": "b3.juno.hit",
+            "lured": "b3.juno.lured",
+            "retreat": "b3.juno.retreat"
+          }
+        },
         "waves": [
           {
             "quiz": "N2.1",

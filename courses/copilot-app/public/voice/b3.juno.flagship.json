@@ -1,0 +1,37 @@
+{
+  "id": "b3.juno.flagship",
+  "speaker": "Juno",
+  "text": "Their flagship's sailing right over it!",
+  "words": [
+    {
+      "word": "Their",
+      "start": 0,
+      "end": 0.142
+    },
+    {
+      "word": "flagship's",
+      "start": 0.142,
+      "end": 0.77
+    },
+    {
+      "word": "sailing",
+      "start": 0.77,
+      "end": 1.173
+    },
+    {
+      "word": "right",
+      "start": 1.173,
+      "end": 1.52
+    },
+    {
+      "word": "over",
+      "start": 1.52,
+      "end": 1.973
+    },
+    {
+      "word": "it",
+      "start": 1.973,
+      "end": 2.223
+    }
+  ]
+}

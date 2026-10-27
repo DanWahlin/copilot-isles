@@ -537,7 +537,7 @@
         },
         "battles": {
           "type": "object",
-          "description": "The game's sea battles by plan id: the course chapter they test, the line when they're won, and each wave's quiz and its raiders' names.",
+          "description": "The game's sea battles by plan id: the course chapter they test, the line when they're won, each wave's quiz and its raiders' names, and (battle 3) the kraken's flagship and lines.",
           "additionalProperties": {
             "type": "object",
             "additionalProperties": false,
@@ -549,6 +549,32 @@
               },
               "won": {
                 "$ref": "#/$defs/text"
+              },
+              "kraken": {
+                "type": "object",
+                "description": "A battle with the kraken in it (battle 3, docs/specs/BATTLES.md §2.0c): the raiders' flagship it takes, and the crew's voiced lines at each of its beats.",
+                "additionalProperties": false,
+                "required": ["flagship", "lines"],
+                "properties": {
+                  "flagship": {
+                    "$ref": "#/$defs/text"
+                  },
+                  "lines": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["evidence", "flagship", "taken", "stays", "tell", "hit", "lured", "retreat"],
+                    "properties": {
+                      "evidence": { "$ref": "#/$defs/line" },
+                      "flagship": { "$ref": "#/$defs/line" },
+                      "taken": { "$ref": "#/$defs/line" },
+                      "stays": { "$ref": "#/$defs/line" },
+                      "tell": { "$ref": "#/$defs/line" },
+                      "hit": { "$ref": "#/$defs/line" },
+                      "lured": { "$ref": "#/$defs/line" },
+                      "retreat": { "$ref": "#/$defs/line" }
+                    }
+                  }
+                }
               },
               "waves": {
                 "type": "array",

@@ -379,6 +379,13 @@ export class KrakenHazards {
     return h.stage === 'stand';
   }
 
+  /** Every hazard that's up (telling, striking or standing), its area written into `out`. */
+  areas(out: HazardArea[]): HazardArea[] {
+    out.length = 0;
+    for (const h of this.hazards) if (h.stage !== 'off') out.push(h.area);
+    return out;
+  }
+
   /** True when a hull touches a hazard that can hurt now. */
   hitsHull(bowX: number, bowZ: number, sternX: number, sternZ: number, halfBeam: number): boolean {
     for (const h of this.hazards)
@@ -441,6 +448,19 @@ export class KrakenHazards {
     return false;
   }
 
+  /** Sends hazard `id` down (its standing arm withdraws, freeing it for the next hazard). */
+  down(id: number): void {
+    for (const h of this.hazards)
+      if (h.id === id && h.stage !== 'off' && h.downAt === Infinity) h.downAt = h.age;
+  }
+
+  /** How many hazards are up (telling, striking or standing). */
+  get count(): number {
+    let n = 0;
+    for (const h of this.hazards) if (h.stage !== 'off') n++;
+    return n;
+  }
+
   /** Sends every hazard down. */
   retreat(): void {
     for (const h of this.hazards) if (h.stage !== 'off' && h.downAt === Infinity) h.downAt = h.age;
@@ -490,8 +510,9 @@ export class KrakenHazards {
       m.arc = a.arc;
       m.foam = 0;
       m.spin = age * (0.8 + told);
-      // Bubbles: a few at first, more as it comes.
-      if (age < tell + spec.windUp * 0.5 && t >= this.bubbleAt) {
+      // Bubbles: a few at first, more as it comes; none before the shadow under them reads (a splash
+      // needs a cause you can see).
+      if (told > 0.4 && age < tell + spec.windUp * 0.5 && t >= this.bubbleAt) {
         this.bubbleAt = t + (gentle ? 0.35 : 0.18) * (1.4 - Math.min(1, age / tell));
         const r = Math.sqrt(this.rand()) * spec.radius * 0.45;
         const ang = this.rand() * Math.PI * 2;

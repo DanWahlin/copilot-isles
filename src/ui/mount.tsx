@@ -1,4 +1,5 @@
 import { createRoot, type Root } from 'react-dom/client';
+import { watchModals } from './modal-watch';
 import { TitleMenu } from './TitleMenu';
 import { DEFAULT_SETTINGS, type GameBridge, type GraphicsInfo, type UiState } from './bridge';
 import { DEFAULT_COURSE_ID, PLAYABLE_COURSES } from '../course/catalog';
@@ -80,5 +81,10 @@ export function mountUi(el: HTMLElement, bridge: GameBridge): () => void;
 export function mountUi(el: HTMLElement, bridge: GameBridge = fallbackBridge()): () => void {
   const root: Root = createRoot(el);
   root.render(<TitleMenu bridge={bridge} />);
-  return () => root.unmount();
+  // While a modal card is open, the HUD's panels behind it step away (none overlaps it).
+  const stopWatch = watchModals();
+  return () => {
+    stopWatch();
+    root.unmount();
+  };
 }

@@ -161,6 +161,11 @@ export class ShipDynamics {
 
   forwardSpeed = 0;
   lateralSpeed = 0;
+  /**
+   * Something holds her (0 free … 1 fast: a kraken's arms round her hull): her way and her turn come
+   * off by this share whatever her sails, so she stops with them set. Reset frees her.
+   */
+  held = 0;
   headingRate = 0;
   crewOffset = 0;
   /** Seconds left of "fending off": the hull touched a pile or boat, so the helm keeps steerage. */
@@ -209,6 +214,7 @@ export class ShipDynamics {
     this.forwardSpeed = 0;
     this.lateralSpeed = 0;
     this.headingRate = 0;
+    this.held = 0;
     this.crewOffset = 0;
     this.fendOff = 0;
     this.heaveVelocity = 0;
@@ -438,6 +444,8 @@ export class ShipDynamics {
       targetYaw += sea.yaw * (this.waveVelocity[0] * c0 - this.waveVelocity[1] * s0);
     if (finite(command.targetSpeedOverride)) targetSpeed = command.targetSpeedOverride;
     if (finite(command.targetYawOverride)) targetYaw = command.targetYawOverride;
+    targetSpeed *= 1 - this.held;
+    targetYaw *= 1 - this.held;
 
     this.headingRate += (targetYaw - this.headingRate) * clamp(3.8 * sea.helm * dt, 0, 1);
     this.headingRate = clamp(this.headingRate, -MAX_YAW_RATE, MAX_YAW_RATE);

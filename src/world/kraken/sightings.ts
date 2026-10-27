@@ -145,8 +145,9 @@ export class SightingsPlanner {
     const p = gates.player;
     for (let attempt = 0; attempt < 40; attempt++) {
       const d = force?.distance ?? r.minDistance + this.rng() * (r.maxDistance - r.minDistance);
-      // Well inside the frame, so it's seen whole.
-      const off = (this.rng() - 0.5) * 2 * halfFov * 0.6;
+      // Inside the frame, so it's seen whole; off to one side (a follow camera looks along her
+      // course, and her course is kept clear).
+      const off = (this.rng() - 0.5) * 2 * halfFov * 0.85;
       const c = Math.cos(off);
       const s = Math.sin(off);
       const dx = view.forwardX * c - view.forwardZ * s;

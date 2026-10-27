@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-25T22:26:56.230Z",
+  "generatedAt": "2026-10-27T03:04:22.961Z",
   "set": "testcove",
   "lines": [
     {
@@ -46043,6 +46043,568 @@
         }
       ],
       "voice": "JbAJPrBwqw2dm8hxfklG"
+    },
+    {
+      "id": "b3.juno.evidence",
+      "speaker": "Juno",
+      "text": "Bubbles ahead, Captain, and a dark shadow! That's evidence: something's down there.",
+      "duration": 5.508,
+      "files": {
+        "webm": "b3.juno.evidence.webm",
+        "m4a": "b3.juno.evidence.m4a"
+      },
+      "hash": "266c1df7a3e6b706",
+      "words": [
+        {
+          "word": "Bubbles",
+          "start": 0,
+          "end": 0.373
+        },
+        {
+          "word": "ahead",
+          "start": 0.373,
+          "end": 0.91
+        },
+        {
+          "word": "Captain",
+          "start": 0.91,
+          "end": 1.38
+        },
+        {
+          "word": "and",
+          "start": 1.38,
+          "end": 1.48
+        },
+        {
+          "word": "a",
+          "start": 1.48,
+          "end": 1.584
+        },
+        {
+          "word": "dark",
+          "start": 1.584,
+          "end": 1.92
+        },
+        {
+          "word": "shadow",
+          "start": 1.92,
+          "end": 2.784
+        },
+        {
+          "word": "That's",
+          "start": 2.784,
+          "end": 3.191
+        },
+        {
+          "word": "evidence",
+          "start": 3.191,
+          "end": 4.04
+        },
+        {
+          "word": "something's",
+          "start": 4.04,
+          "end": 4.624
+        },
+        {
+          "word": "down",
+          "start": 4.624,
+          "end": 4.92
+        },
+        {
+          "word": "there",
+          "start": 4.92,
+          "end": 5.17
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "b3.juno.flagship",
+      "speaker": "Juno",
+      "text": "Their flagship's sailing right over it!",
+      "duration": 2.568,
+      "files": {
+        "webm": "b3.juno.flagship.webm",
+        "m4a": "b3.juno.flagship.m4a"
+      },
+      "hash": "05baee29f5923212",
+      "words": [
+        {
+          "word": "Their",
+          "start": 0,
+          "end": 0.142
+        },
+        {
+          "word": "flagship's",
+          "start": 0.142,
+          "end": 0.77
+        },
+        {
+          "word": "sailing",
+          "start": 0.77,
+          "end": 1.173
+        },
+        {
+          "word": "right",
+          "start": 1.173,
+          "end": 1.52
+        },
+        {
+          "word": "over",
+          "start": 1.52,
+          "end": 1.973
+        },
+        {
+          "word": "it",
+          "start": 1.973,
+          "end": 2.223
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "b3.wingman.taken",
+      "speaker": "Wingman",
+      "text": "They were sure the sea was clear, and never checked. A confident guess isn't proof.",
+      "duration": 5.507,
+      "files": {
+        "webm": "b3.wingman.taken.webm",
+        "m4a": "b3.wingman.taken.m4a"
+      },
+      "hash": "27144a3c95184786",
+      "words": [
+        {
+          "word": "They",
+          "start": 0,
+          "end": 0.112
+        },
+        {
+          "word": "were",
+          "start": 0.112,
+          "end": 0.288
+        },
+        {
+          "word": "sure",
+          "start": 0.288,
+          "end": 0.5
+        },
+        {
+          "word": "the",
+          "start": 0.5,
+          "end": 0.62
+        },
+        {
+          "word": "sea",
+          "start": 0.62,
+          "end": 0.84
+        },
+        {
+          "word": "was",
+          "start": 0.84,
+          "end": 1.027
+        },
+        {
+          "word": "clear",
+          "start": 1.027,
+          "end": 1.5
+        },
+        {
+          "word": "and",
+          "start": 1.5,
+          "end": 1.72
+        },
+        {
+          "word": "never",
+          "start": 1.72,
+          "end": 1.99
+        },
+        {
+          "word": "checked",
+          "start": 1.99,
+          "end": 2.96
+        },
+        {
+          "word": "A",
+          "start": 2.96,
+          "end": 3.248
+        },
+        {
+          "word": "confident",
+          "start": 3.248,
+          "end": 3.76
+        },
+        {
+          "word": "guess",
+          "start": 3.76,
+          "end": 4.26
+        },
+        {
+          "word": "isn't",
+          "start": 4.26,
+          "end": 4.733
+        },
+        {
+          "word": "proof",
+          "start": 4.733,
+          "end": 4.983
+        }
+      ],
+      "voice": "tfsEebr1nWcNraaptkk3"
+    },
+    {
+      "id": "b3.wingman.stays",
+      "speaker": "Wingman",
+      "text": "It's still down there. When you see bubbles, steer clear, and lead the raiders over them.",
+      "duration": 6.407,
+      "files": {
+        "webm": "b3.wingman.stays.webm",
+        "m4a": "b3.wingman.stays.m4a"
+      },
+      "hash": "34e956ed02372f90",
+      "words": [
+        {
+          "word": "It's",
+          "start": 0,
+          "end": 0.2
+        },
+        {
+          "word": "still",
+          "start": 0.2,
+          "end": 0.448
+        },
+        {
+          "word": "down",
+          "start": 0.448,
+          "end": 0.68
+        },
+        {
+          "word": "there",
+          "start": 0.68,
+          "end": 1.888
+        },
+        {
+          "word": "When",
+          "start": 1.888,
+          "end": 2.6
+        },
+        {
+          "word": "you",
+          "start": 2.6,
+          "end": 2.74
+        },
+        {
+          "word": "see",
+          "start": 2.74,
+          "end": 2.87
+        },
+        {
+          "word": "bubbles",
+          "start": 2.87,
+          "end": 3.653
+        },
+        {
+          "word": "steer",
+          "start": 3.653,
+          "end": 4
+        },
+        {
+          "word": "clear",
+          "start": 4,
+          "end": 4.84
+        },
+        {
+          "word": "and",
+          "start": 4.84,
+          "end": 5.008
+        },
+        {
+          "word": "lead",
+          "start": 5.008,
+          "end": 5.22
+        },
+        {
+          "word": "the",
+          "start": 5.22,
+          "end": 5.344
+        },
+        {
+          "word": "raiders",
+          "start": 5.344,
+          "end": 5.808
+        },
+        {
+          "word": "over",
+          "start": 5.808,
+          "end": 6.032
+        },
+        {
+          "word": "them",
+          "start": 6.032,
+          "end": 6.282
+        }
+      ],
+      "voice": "tfsEebr1nWcNraaptkk3"
+    },
+    {
+      "id": "b3.juno.tell",
+      "speaker": "Juno",
+      "text": "Bubbles, Captain! Steer clear of the ring!",
+      "duration": 2.808,
+      "files": {
+        "webm": "b3.juno.tell.webm",
+        "m4a": "b3.juno.tell.m4a"
+      },
+      "hash": "4f4465265f4aa3c4",
+      "words": [
+        {
+          "word": "Bubbles",
+          "start": 0,
+          "end": 0.67
+        },
+        {
+          "word": "Captain",
+          "start": 0.67,
+          "end": 1.04
+        },
+        {
+          "word": "Steer",
+          "start": 1.04,
+          "end": 1.493
+        },
+        {
+          "word": "clear",
+          "start": 1.493,
+          "end": 1.813
+        },
+        {
+          "word": "of",
+          "start": 1.813,
+          "end": 1.94
+        },
+        {
+          "word": "the",
+          "start": 1.94,
+          "end": 2.08
+        },
+        {
+          "word": "ring",
+          "start": 2.08,
+          "end": 2.33
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "b3.juno.hit",
+      "speaker": "Juno",
+      "text": "It hit our hull! Watch for the bubbles before it strikes.",
+      "duration": 3.608,
+      "files": {
+        "webm": "b3.juno.hit.webm",
+        "m4a": "b3.juno.hit.m4a"
+      },
+      "hash": "7245529a34d041a6",
+      "words": [
+        {
+          "word": "It",
+          "start": 0,
+          "end": 0.2
+        },
+        {
+          "word": "hit",
+          "start": 0.2,
+          "end": 0.38
+        },
+        {
+          "word": "our",
+          "start": 0.38,
+          "end": 0.64
+        },
+        {
+          "word": "hull",
+          "start": 0.64,
+          "end": 1.16
+        },
+        {
+          "word": "Watch",
+          "start": 1.16,
+          "end": 1.8
+        },
+        {
+          "word": "for",
+          "start": 1.8,
+          "end": 1.94
+        },
+        {
+          "word": "the",
+          "start": 1.94,
+          "end": 2.05
+        },
+        {
+          "word": "bubbles",
+          "start": 2.05,
+          "end": 2.434
+        },
+        {
+          "word": "before",
+          "start": 2.434,
+          "end": 2.693
+        },
+        {
+          "word": "it",
+          "start": 2.693,
+          "end": 2.88
+        },
+        {
+          "word": "strikes",
+          "start": 2.88,
+          "end": 3.13
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "b3.juno.lured",
+      "speaker": "Juno",
+      "text": "They sailed right over the bubbles, and it's got them!",
+      "duration": 4.108,
+      "files": {
+        "webm": "b3.juno.lured.webm",
+        "m4a": "b3.juno.lured.m4a"
+      },
+      "hash": "7f89aa24bfb5ed9d",
+      "words": [
+        {
+          "word": "They",
+          "start": 0,
+          "end": 0.309
+        },
+        {
+          "word": "sailed",
+          "start": 0.309,
+          "end": 0.773
+        },
+        {
+          "word": "right",
+          "start": 0.773,
+          "end": 1.088
+        },
+        {
+          "word": "over",
+          "start": 1.088,
+          "end": 1.3
+        },
+        {
+          "word": "the",
+          "start": 1.3,
+          "end": 1.42
+        },
+        {
+          "word": "bubbles",
+          "start": 1.42,
+          "end": 2.1
+        },
+        {
+          "word": "and",
+          "start": 2.1,
+          "end": 2.747
+        },
+        {
+          "word": "it's",
+          "start": 2.747,
+          "end": 3.18
+        },
+        {
+          "word": "got",
+          "start": 3.18,
+          "end": 3.44
+        },
+        {
+          "word": "them",
+          "start": 3.44,
+          "end": 3.69
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "b3.juno.retreat",
+      "speaker": "Juno",
+      "text": "It's going back down. We read the signs, Captain, and we're still afloat.",
+      "duration": 4.508,
+      "files": {
+        "webm": "b3.juno.retreat.webm",
+        "m4a": "b3.juno.retreat.m4a"
+      },
+      "hash": "23e76b5b10798cde",
+      "words": [
+        {
+          "word": "It's",
+          "start": 0,
+          "end": 0.267
+        },
+        {
+          "word": "going",
+          "start": 0.267,
+          "end": 0.448
+        },
+        {
+          "word": "back",
+          "start": 0.448,
+          "end": 0.72
+        },
+        {
+          "word": "down",
+          "start": 0.72,
+          "end": 1.387
+        },
+        {
+          "word": "We",
+          "start": 1.387,
+          "end": 1.968
+        },
+        {
+          "word": "read",
+          "start": 1.968,
+          "end": 2.18
+        },
+        {
+          "word": "the",
+          "start": 2.18,
+          "end": 2.307
+        },
+        {
+          "word": "signs",
+          "start": 2.307,
+          "end": 2.7
+        },
+        {
+          "word": "Captain",
+          "start": 2.7,
+          "end": 3.32
+        },
+        {
+          "word": "and",
+          "start": 3.32,
+          "end": 3.467
+        },
+        {
+          "word": "we're",
+          "start": 3.467,
+          "end": 3.64
+        },
+        {
+          "word": "still",
+          "start": 3.64,
+          "end": 3.88
+        },
+        {
+          "word": "afloat",
+          "start": 3.88,
+          "end": 4.13
+        }
+      ],
+      "voice": "XEQBC9sleaE3f5ff82UR"
     }
   ]
 }

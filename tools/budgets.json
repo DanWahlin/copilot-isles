@@ -66,8 +66,9 @@
       },
       "lite": {
         "trackedMB": 242,
-        "heapMB": 103
-      }
+        "heapMB": 119
+      },
+      "$liteHeap": "2026-10-27 (Keelhaven spec decision 8, approved by Dan): Lite's heap ceiling 103 → 119 MB, the measured peak plus 15 %. The round trips now visit four islands (Anchorage, Meridian, Thousand-Bough, Keelhaven), and Lite's peak is Thousand-Bough on its second trip, which read 103.0 MB against the 103 ceiling before battle 3's kraken branch, then 103.4 MB on it (WebGL2; WebGPU 100.4) with the kraken's sightings off on Lite (104.2 with them on). The same stop moves about 1 MB from run to run, so a ceiling at the peak failed on noise."
     }
   },
   "perf": {

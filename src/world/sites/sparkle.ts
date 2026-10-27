@@ -16,6 +16,19 @@ type AnyNode = any;
  * vertex colours (additive blending turns black into nothing), so shafts and stars fade out with no alpha.
  * It reads by day and night, unlike the kit's glow and halo, which only light up after dusk.
  */
+/**
+ * The sparkle's slow shimmer: a brightness wave over the world (0.44…1), dimmed a little at night.
+ * Written once for the shader and the CPU (the kraken's tell marks draw with this material and write
+ * their vertex colours against it).
+ */
+export const SPARKLE_PULSE = { speed: 3.1, kx: 0.9, kz: 0.7, amp: 0.28, base: 0.72, night: 0.35 } as const;
+
+/** The shimmer the shader multiplies a vertex's colour by at (x, z), time `t` and `night` (0…1). */
+export function sparklePulse(x: number, z: number, t: number, night: number): number {
+  const P = SPARKLE_PULSE;
+  return (Math.sin(t * P.speed + x * P.kx + z * P.kz) * P.amp + P.base) * (1 - night * P.night);
+}
+
 export function createSparkleMaterial(): MeshBasicNodeMaterial {
   const m = new MeshBasicNodeMaterial({
     transparent: true,
@@ -27,10 +40,13 @@ export function createSparkleMaterial(): MeshBasicNodeMaterial {
   });
   m.forceSinglePass = true;
   const p = positionWorld as AnyNode;
-  const pulse = sin((world.time as AnyNode).mul(3.1).add(p.x.mul(0.9)).add(p.z.mul(0.7)))
-    .mul(0.28)
-    .add(0.72);
-  m.colorNode = (attribute('color', 'vec3') as AnyNode).mul(pulse).mul(float(1).sub(world.night.mul(0.35)));
+  const P = SPARKLE_PULSE;
+  const pulse = sin((world.time as AnyNode).mul(P.speed).add(p.x.mul(P.kx)).add(p.z.mul(P.kz)))
+    .mul(P.amp)
+    .add(P.base);
+  m.colorNode = (attribute('color', 'vec3') as AnyNode)
+    .mul(pulse)
+    .mul(float(1).sub(world.night.mul(P.night)));
   return m;
 }
 

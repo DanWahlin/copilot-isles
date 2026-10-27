@@ -2595,6 +2595,46 @@
       "id": "kh.bram.market.bye",
       "speaker": "Bram",
       "text": "Off to the yard? Your starfish and your jobs go with you."
+    },
+    {
+      "id": "b3.juno.evidence",
+      "speaker": "Juno",
+      "text": "Bubbles ahead, Captain, and a dark shadow! That's evidence: something's down there."
+    },
+    {
+      "id": "b3.juno.flagship",
+      "speaker": "Juno",
+      "text": "Their flagship's sailing right over it!"
+    },
+    {
+      "id": "b3.wingman.taken",
+      "speaker": "Wingman",
+      "text": "They were sure the sea was clear, and never checked. A confident guess isn't proof."
+    },
+    {
+      "id": "b3.wingman.stays",
+      "speaker": "Wingman",
+      "text": "It's still down there. When you see bubbles, steer clear, and lead the raiders over them."
+    },
+    {
+      "id": "b3.juno.tell",
+      "speaker": "Juno",
+      "text": "Bubbles, Captain! Steer clear of the ring!"
+    },
+    {
+      "id": "b3.juno.hit",
+      "speaker": "Juno",
+      "text": "It hit our hull! Watch for the bubbles before it strikes."
+    },
+    {
+      "id": "b3.juno.lured",
+      "speaker": "Juno",
+      "text": "They sailed right over the bubbles, and it's got them!"
+    },
+    {
+      "id": "b3.juno.retreat",
+      "speaker": "Juno",
+      "text": "It's going back down. We read the signs, Captain, and we're still afloat."
     }
   ]
 }
