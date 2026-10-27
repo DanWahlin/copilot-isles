@@ -31,15 +31,15 @@ const sighting = (api) =>
 /** Asks for a sighting of `kind` and waits (sailing on) for it to show and end. */
 async function watchOne(api, kind, label) {
   for (let tries = 0; tries < 6; tries++) {
-    await api.S((k) => window.__dev.session().debug.sightings().system?.force(k, 220), kind);
-    await sailToward(api, 1400, -1100, 1500);
+    await api.S((k) => window.__dev.session().debug.sightings().system?.force(k, 280), kind);
+    await sailToward(api, 3300, -1560, 1500);
     if ((await sighting(api)).current) break;
   }
   const s = await sighting(api);
   if (!s.current) return api.log(`no ${kind} sighting (${JSON.stringify(s)})`);
   api.mark(label);
   const t0 = Date.now();
-  while (Date.now() - t0 < 20_000 && (await sighting(api)).current) await sailToward(api, 1400, -1100, 1000);
+  while (Date.now() - t0 < 20_000 && (await sighting(api)).current) await sailToward(api, 3300, -1560, 1000);
 }
 
 export default {
@@ -58,8 +58,8 @@ export default {
   async setup(page, api) {
     await api.S(() => window.__dev.session().debug.board());
     await page.waitForFunction(() => window.__dev.state().mode === 'sail', null, { timeout: 20_000 });
-    // Out past the harbour's reach already, bow to the open sea (north-east).
-    await api.S(() => window.__dev.session().debug.sailTo(520, -560, 2.3));
+    // Out between Thousand-Bough and Keelhaven, far from either harbour, bow to the east.
+    await api.S(() => window.__dev.session().debug.sailTo(2600, -1500, 1.6));
     await page.waitForFunction(() => !!window.__dev.session().debug.sightings().system, null, {
       timeout: 90_000,
     });
@@ -68,9 +68,12 @@ export default {
 
   async play(page, api) {
     await api.hold('KeyW', 2500);
-    await sailToward(api, 1400, -1100, 4000);
+    await sailToward(api, 3300, -1560, 4000);
+    // A look out over her beam, as a captain would.
+    const yaw = await api.S(() => window.__dev.session().camera.yaw);
+    await api.easeLook(yaw + 0.7, 0.1, 1800);
     await watchOne(api, 'tip', 'a tip, far off');
     await watchOne(api, 'group', 'a group of arms');
-    await sailToward(api, 1400, -1100, 3000);
+    await sailToward(api, 3300, -1560, 3000);
   },
 };
