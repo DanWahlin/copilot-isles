@@ -17,11 +17,16 @@ export interface AppTaskCheck {
   /**
    * `repoExists`: the player's fork is on GitHub and is a fork of the course's repository.
    * `branchExists`: `branch` is in the fork. `prOpened`: the fork has a pull request (from `branch`,
-   * when given).
+   * when given), and not only from `excludeHeads`.
    */
   kind: AppCheckKind;
   /** A branch name; `{practiceBranch}` is the course's practice branch (`course.json` → `practice`). */
   branch?: string;
+  /**
+   * `prOpened`: pull requests from these branches don't count (the ones the course's setup script
+   * opens), so the check passes only on a pull request the player opened.
+   */
+  excludeHeads?: readonly string[];
 }
 
 /** "What did you see?": one question about what the app shows once the task's done. */

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseSections } from '../course/sections';
 import type { ChapterContent, Quiz } from '../types';
+import type { AppTaskCheck } from '../learning';
 
 /*
  * Chapter 03 (Keelhaven, docs/specs/ISLAND-03-keelhaven.md §1.4, §4, §6, §11). The island is in build,
@@ -98,9 +99,16 @@ describe('Chapter 03 content', () => {
     for (const name of new Set(texts.flatMap(bold))) expect(README, name).toContain(name);
   });
 
-  it('has ten app cards, none with a GitHub check', () => {
+  it("has ten app cards; only A3.6 has a GitHub check, and it leaves out the setup's pull requests", () => {
     expect(TASKS.map((t) => t.id)).toEqual(Array.from({ length: 10 }, (_, i) => `A3.${i + 1}`));
-    for (const t of TASKS) expect(t.check, t.id).toBeUndefined();
+    for (const t of TASKS) if (t.id !== 'A3.6') expect(t.check, t.id).toBeUndefined();
+    const check = TASKS.find((t) => t.id === 'A3.6')!.check as AppTaskCheck;
+    expect(check.kind).toBe('prOpened');
+    expect(check.excludeHeads).toEqual([
+      'fix-empty-state-copy',
+      'practice-failing-stats-check',
+      'feature-reading-dashboard',
+    ]);
   });
 
   it('runs a ten-item scenario Trial over every key takeaway, with no answer hint', () => {

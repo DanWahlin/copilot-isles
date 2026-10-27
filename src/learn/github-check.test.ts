@@ -107,6 +107,28 @@ describe('the opt-in GitHub checks', () => {
     ).toBe('found');
   });
 
+  it("counts only a pull request the player opened when the setup's branches are left out", async () => {
+    const seeded = ['fix-empty-state-copy', 'practice-failing-stats-check', 'feature-reading-dashboard'];
+    const check = { kind: 'prOpened' as const, excludeHeads: seeded };
+    expect(checkUrl(check, ctx)).toBe(
+      'https://api.github.com/repos/robin-sample/course-repo/pulls?state=all&per_page=30',
+    );
+    const run = async (body: unknown) =>
+      (
+        await runCheck(
+          check,
+          ctx,
+          vi.fn(async () => reply(200, body)),
+          0,
+        )
+      ).status;
+    expect(await run(seeded.map((ref) => ({ head: { ref } })))).toBe('missing');
+    expect(await run([])).toBe('missing');
+    expect(
+      await run([...seeded.map((ref) => ({ head: { ref } })), { head: { ref: 'robin-bright-otter' } }]),
+    ).toBe('found');
+  });
+
   it('waits out a rate limit without asking again', async () => {
     const limited = vi.fn(async () =>
       reply(

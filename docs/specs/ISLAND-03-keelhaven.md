@@ -39,7 +39,7 @@
 | K5 | **Signature puzzle Two Circuits** (`P3.1`) in two rounds that the player walks: the Drydock Ring (inner loop, two laps) and the Lock Flight (outer loop) | Learn by doing (PLAN §1). Every station is one decision that the course asks the learner to make |
 | K6 | **Ten quests at eight stops, in the course's order, one direction, no walk back.** Route 726 m, plus two laps of the ring (140 m each). Longest gap between stops 147 m (82 s) | The Chapter 00 and 02 audits: doubling back (195 m and 220 m) and long talks lost players. §3.10 measures it |
 | K7 | **Ten "Do this in the app" cards** (A3.1–A3.10), each with the exact course steps, **I did it** / **Later**, and a "What did you see?" question that tests understanding. **Later never blocks the story** | Chapter 03 is mostly real-app work (75 minutes). The learning-journey review asked for honest hand-offs |
-| K8 | **No GitHub check on Chapter 03's cards** (D5) | `prOpened` without a branch passes on the three seeded pull requests. With a branch, it needs the session's generated working branch, which the check cannot fill in. A check that cannot fail tells the player nothing |
+| K8 | **One GitHub check on Chapter 03's cards: A3.6** (Dan, 2026-10-27, issue 359) | A plain `prOpened` passes on the three pull requests the course's setup script opens, and the session's generated branch can't be named. So A3.6's check leaves out the setup's branches (`excludeHeads`: `fix-empty-state-copy`, `practice-failing-stats-check`, `feature-reading-dashboard`; `.github/scripts/setup-training-scenarios.js` at `8c403d7`) and passes only on a pull request the player opened. Opt-in, read-only, no token, like Chapter 00's checks |
 | K9 | **Screenshots:** the course retook the Chapter 03 screenshots for app 1.1.30 and later (2026-10-25). No question uses the **Ready to merge** button in `app-pr-failing-check` | §1.4 |
 | K10 | **Reuse every shared material.** Expect **0 new shader modules**; at most 2, and only if a census proves the need (Thousand-Bough's budget was 4; PLAN §15.4 goal ≤ 135). The wall look is one new region key (`paliWall`) in the shared terrain material, not a new material | The checklist's census: Thousand-Bough peaks at 133 on Ultra WebGPU |
 | K11 | **Stable ids:** island id `keelhaven` everywhere (chart, `IslandId`, saves, music key, packs, story). Quest ids `Q3.1`–`Q3.10`, `Q3.A`, `Q3.B`; app tasks `A3.1`–`A3.10`; Trial `T3` | The chart and `course.json` already use `keelhaven` |
@@ -1767,7 +1767,7 @@ web**), `ledgerIssues`, `ledgerPulls`, `ledgerAll`, `ledgerFork` (the ledgers an
 - `course.json` → `hooks.islands.keelhaven` (Juno's landing, Wingman's welcome and tips) and
   `islands[keelhaven].arrival` are in place.
 - App cards need no hook: the scripts hand off A3.1–A3.10 with `{ "appTask": … }` (A3.9 and A3.10 quiet
-  at the brief, `orStop` at the return). No card has a GitHub check (K8).
+  at the brief, `orStop` at the return). Only A3.6 has a GitHub check (K8).
 
 ### W.9 Voice
 
