@@ -92,10 +92,10 @@ export default battleScenario({
     if (wave !== 0) return;
     // The kraken's beat, played whole (about 17 s): the cut to the evidence, the flagship close and
     // sailing over it, seized, torn in two and under, and the battle carries on.
-    const l = await krakenUntil(api, (k) => k.stage === 'evidence', 10_000);
+    const l = await krakenUntil(api, (k) => k.stage !== 'off', 10_000);
     if (!l) return api.log('no kraken beat after wave 1');
     api.mark('evidence');
-    await krakenUntil(api, (k) => k.stage === 'approach', 10_000);
+    await krakenUntil(api, (k) => k.stage === 'approach' || k.stage === 'wrap', 10_000);
     api.mark('flagship');
     await krakenUntil(api, (k) => k.wrap === 'grip' || k.wrap === 'squeeze', 20_000);
     api.mark('seized');

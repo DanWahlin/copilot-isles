@@ -79,7 +79,7 @@ const TAKE_AFTER = 10;
 /** Wingman's word on it plays at the withdraw; the battle carries on this long (s) after it starts. */
 const TAKEN_HOLD = 5;
 /** The beat's camera: this far from the evidence (beyond your ship's bow), and from the wreck after. */
-const EVIDENCE_VIEW = 38;
+const EVIDENCE_VIEW = 60;
 const WRAP_VIEW = 40;
 /** The first tell of each wave's fight comes this long after the guns run out (s), then every GAP s. */
 const FIRST_TELL = 4;
@@ -341,8 +341,8 @@ export class KrakenAct {
       return true;
     }
     const p = this.flagship.dynamics.pose;
-    out.x = this.spot.x * 0.6 + p.x * 0.4;
-    out.z = this.spot.z * 0.6 + p.z * 0.4;
+    out.x = this.spot.x * 0.75 + p.x * 0.25;
+    out.z = this.spot.z * 0.75 + p.z * 0.25;
     out.d = EVIDENCE_VIEW;
     return true;
   }
