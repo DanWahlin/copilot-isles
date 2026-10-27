@@ -121,7 +121,7 @@ async function boot(): Promise<void> {
   const upgradePost = async (_cove?: unknown, opts: { warm?: boolean } = {}) => {
     if (richPostReady) return post;
     postSwaps++;
-    const rich = await createPost(renderer, engine.scene, engine.camera, tier);
+    const rich = await createPost(renderer, engine.scene, engine.camera, tier, { temporal: !q.has('notaa') });
     if (!rich) {
       post?.dispose();
       post = null;
