@@ -1,4 +1,4 @@
-import type { CourseLock } from '../learn/course/lock';
+import { APPENDIX, type AppendixLock, type CourseLock, type SectionLock } from '../learn/course/lock';
 import type { LearningFile } from '../learn/learning';
 import type { ChapterContent } from '../learn/types';
 import type { CourseMeta } from './catalog';
@@ -13,7 +13,8 @@ import { PUZZLE_ISLANDS, SHARED_PUZZLES } from './puzzle-islands';
  * puzzle's mechanic, quest and steps. Each chapter has a **part** with the rest: the chapter's
  * quizzes, pages and voiced and cited lines, and its island's compass targets, beats, scripts and
  * barks and its puzzles' content. A part loads when its island streams in, or when something asks for it
- * (src/course/load.ts).
+ * (src/course/load.ts). An appendix the snapshot holds (`lock.json` → `appendices`) goes in the part of
+ * the one chapter that uses it (`appendixChapter`), or in the core when more than one does.
  *
  * Both work on the pack's files by path, so a part merges into the core file by file
  * (`mergePackPart`) and `assemblePack` builds the pack from the result. The Vite plugin
@@ -54,6 +55,46 @@ export function puzzlePartChapter(
   return null;
 }
 
+/** The appendices (by name) that a file's `SourceRef`s cite (`"chapter": "appendix:<name>"`). */
+function citedAppendices(value: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) for (const v of value) citedAppendices(v, out);
+  else if (value && typeof value === 'object') {
+    const chapter = (value as { chapter?: unknown }).chapter;
+    if (typeof chapter === 'string' && chapter.startsWith(APPENDIX)) out.add(chapter.slice(APPENDIX.length));
+    for (const v of Object.values(value)) citedAppendices(v, out);
+  }
+  return out;
+}
+
+/** The chapter a pack file's part belongs to (chapters, quests and puzzles), or null for the core. */
+function fileChapter(meta: Pick<CourseMeta, 'islands'>, files: PackFiles, path: string): string | null {
+  const file = files[path];
+  if (/^chapters\/[^/]+\.json$/.test(path)) return (file as ChapterContent).chapter;
+  if (/^quests\/[^/]+\.json$/.test(path)) return islandChapter(meta, (file as IslandQuestsFile).island);
+  const puzzle = /^puzzles\/([^/]+)\.json$/.exec(path)?.[1];
+  return puzzle ? puzzlePartChapter(meta, files, puzzle) : null;
+}
+
+/**
+ * The chapter part an appendix goes in: the one chapter that uses it, or null (the core) when none or
+ * more than one does. A chapter uses it when its README links to it (`linkedFrom`, written by the
+ * sync) or its part's files cite it. Only a chapter with an island has a part that loads.
+ */
+export function appendixChapter(
+  meta: Pick<CourseMeta, 'islands'>,
+  files: PackFiles,
+  name: string,
+): string | null {
+  const lock = files['lock.json'] as CourseLock | undefined;
+  const parted = new Set(meta.islands.map((i) => i.chapter));
+  const users = new Set((lock?.appendices?.[name]?.linkedFrom ?? []).filter((c) => parted.has(c)));
+  for (const path of Object.keys(files)) {
+    const chapter = fileChapter(meta, files, path);
+    if (chapter && citedAppendices(files[path]).has(name)) users.add(chapter);
+  }
+  return users.size === 1 ? [...users][0] : null;
+}
+
 /** A pack split into its core and its chapters' parts (each by path in the pack). */
 export interface PackSplit {
   core: Record<string, unknown>;
@@ -88,21 +129,31 @@ function divide(o: object, keep: readonly string[]): [Record<string, unknown>, R
   return [a, b];
 }
 
-/** The lock as the game reads it: each chapter's title and its sections' titles and levels. */
+const trimSections = (doc: { sections: Record<string, SectionLock> }) =>
+  Object.fromEntries(Object.entries(doc.sections).map(([a, s]) => [a, { title: s.title, level: s.level }]));
+
+/** An appendix as the game reads it: its file, title, and sections' titles and levels. */
+const trimAppendix = (a: AppendixLock) => ({ path: a.path, title: a.title, sections: trimSections(a) });
+
+/**
+ * The lock as the game reads it: each chapter's title and its sections' titles and levels, and the
+ * same for each appendix it has (`appendices`: the split puts each with its chapter, `appendixChapter`).
+ */
 export function trimLock(lock: CourseLock): CourseLock {
   return {
     chapters: Object.fromEntries(
       Object.entries(lock.chapters).map(([id, c]) => [
         id,
-        {
-          short: c!.short,
-          title: c!.title,
-          sections: Object.fromEntries(
-            Object.entries(c!.sections).map(([a, s]) => [a, { title: s.title, level: s.level }]),
-          ),
-        },
+        { short: c!.short, title: c!.title, sections: trimSections(c!) },
       ]),
     ),
+    ...(lock.appendices
+      ? {
+          appendices: Object.fromEntries(
+            Object.entries(lock.appendices).map(([name, a]) => [name, trimAppendix(a!)]),
+          ),
+        }
+      : {}),
   } as unknown as CourseLock;
 }
 
@@ -125,8 +176,24 @@ export function splitPack(meta: CourseMeta, files: PackFiles, o: SplitOptions = 
         : puzzle
           ? puzzlePartChapter(meta, files, puzzle)
           : null;
+    if (path === 'lock.json') {
+      const lock = (o.trim ? trimLock(file as CourseLock) : file) as CourseLock;
+      const { appendices, ...rest } = lock;
+      const shared: Record<string, unknown> = {};
+      for (const [name, a] of Object.entries(appendices ?? {})) {
+        const owner = appendixChapter(meta, files, name);
+        if (owner) {
+          const part = ((parts[owner] ??= {})[path] ??= { appendices: {} }) as {
+            appendices: Record<string, unknown>;
+          };
+          part.appendices[name] = a;
+        } else shared[name] = a;
+      }
+      core[path] = appendices ? { ...rest, appendices: shared } : rest;
+      continue;
+    }
     if (!chapter) {
-      core[path] = !o.trim ? file : path === 'lock.json' ? trimLock(file as CourseLock) : divide(file, [])[1];
+      core[path] = !o.trim ? file : divide(file, [])[1];
       continue;
     }
     if (chapterFile) {
@@ -188,10 +255,21 @@ export function withoutIslandsAhead<P>(
   return { core, parts };
 }
 
-/** Merges a chapter's part into the pack's files (a new record; the files it had stay as they were). */
+/**
+ * Merges a chapter's part into the pack's files (a new record; the files it had stay as they were). A
+ * field both have as an object (the lock's `appendices`) gets the part's keys added.
+ */
 export function mergePackPart(files: PackFiles, part: PackFiles): Record<string, unknown> {
   const out: Record<string, unknown> = { ...files };
-  for (const [path, rest] of Object.entries(part))
-    out[path] = { ...(files[path] as object), ...(rest as object) };
+  for (const [path, rest] of Object.entries(part)) {
+    const base = (files[path] ?? {}) as Record<string, unknown>;
+    const merged: Record<string, unknown> = { ...base };
+    for (const [k, v] of Object.entries(rest as object)) {
+      const was = base[k];
+      const plain = (x: unknown) => !!x && typeof x === 'object' && !Array.isArray(x);
+      merged[k] = plain(was) && plain(v) ? { ...(was as object), ...(v as object) } : v;
+    }
+    out[path] = merged;
+  }
   return out;
 }

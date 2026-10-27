@@ -3,7 +3,7 @@
   "repo": "github/copilot-app-for-beginners",
   "ref": "main",
   "sha": "f24b52105ca870cfecd675e7ae0e9672738ecd53",
-  "syncedAt": "2026-10-25",
+  "syncedAt": "2026-10-26",
   "catalog": [
     {
       "id": "00-setup",
@@ -969,6 +969,79 @@
           "hash": "f816fbfda86c"
         }
       }
+    }
+  },
+  "appendices": {
+    "git-worktrees": {
+      "path": "appendices/git-worktrees.md",
+      "title": "Git Worktrees",
+      "hash": "1e93f3e37f57",
+      "sections": {
+        "git-worktrees": {
+          "title": "Git Worktrees",
+          "level": 1,
+          "hash": "4cc8be2f75b2",
+          "terms": ["Settings", "Sessions", "Archive", "Delete"]
+        },
+        "plain-english-definition": {
+          "title": "Plain-English definition",
+          "level": 2,
+          "hash": "0a512ca0137f"
+        },
+        "worktree-branch-and-session": {
+          "title": "Worktree, branch, and session",
+          "level": 2,
+          "hash": "fc312a6dfb34",
+          "terms": ["Settings", "Sessions"]
+        },
+        "why-the-app-uses-worktrees": {
+          "title": "Why the app uses worktrees",
+          "level": 2,
+          "hash": "4caafb795ce3"
+        },
+        "safe-inspection-checklist": {
+          "title": "Safe inspection checklist",
+          "level": 2,
+          "hash": "3d916b8b7992"
+        },
+        "what-not-to-do": {
+          "title": "What not to do",
+          "level": 2,
+          "hash": "95f687ba7760"
+        },
+        "port-and-resource-conflicts": {
+          "title": "Port and resource conflicts",
+          "level": 2,
+          "hash": "293d4cddd100"
+        },
+        "example-web-server-port-conflict": {
+          "title": "Example: Web server port conflict",
+          "level": 3,
+          "hash": "633af054fb17"
+        },
+        "example-shared-local-files": {
+          "title": "Example: Shared local files",
+          "level": 3,
+          "hash": "9f689ce5ae02"
+        },
+        "example-containers-and-services": {
+          "title": "Example: Containers and services",
+          "level": 3,
+          "hash": "db3fc8e3b06a"
+        },
+        "cleanup": {
+          "title": "Cleanup",
+          "level": 2,
+          "hash": "ed8013e6aa20",
+          "terms": ["Archive", "Delete"]
+        },
+        "troubleshooting": {
+          "title": "Troubleshooting",
+          "level": 2,
+          "hash": "7ca67113cb76"
+        }
+      },
+      "linkedFrom": ["02-sessions-worktrees-context"]
     }
   },
   "glossary": {

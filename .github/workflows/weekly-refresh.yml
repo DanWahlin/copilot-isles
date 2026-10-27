@@ -5,7 +5,8 @@
 # path is courses/$COURSE/, and each pack gets its own PR.
 #
 #   1 Course check   compare upstream main with the pack's lock.json (no dependencies needed)
-#   2 Content        tools/course/sync.mjs: READMEs, GLOSSARY.md, LICENSE, sections, and hashes
+#   2 Content        tools/course/sync.mjs: READMEs, the appendices the pack names, GLOSSARY.md, LICENSE,
+#                    sections, and hashes
 #   3 Screenshots    the same run copies referenced images byte-for-byte (pinned ones are kept) and
 #                    saves upstream copies of changed pinned images for before/after montages
 #   4 Drift report   tools/course/drift.ts, including the UI-term check
@@ -18,6 +19,10 @@
 #   6 Voices         only when voice lines changed AND the Azure Speech secrets exist; safe to skip.
 #                    A text-only course ("voice": false) just rewrites its captions (no secrets)
 #   7 Other sources  not yet (follow-up: tools/music/fetch.sh --check and the ASSETS.md list)
+#  7b Node.js LTS    a job of its own, every week whether or not a course changed: tools/course/node-lts.ts
+#                    reads nodejs.org's release index, and fails when a checklist check that `tracks` the
+#                    LTS (the gear rack's `node -v`) or a line that names the LTS no longer matches it.
+#                    Then it opens an issue with the list (or comments on the open one).
 #   8 Verify         typecheck, lint, unit tests (every SourceRef resolves against the snapshot),
 #                    build, budgets, secret scan, and the Playwright suite
 #   9 Deliver        one PR per pack, "Weekly refresh: <course> @ <sha>", labelled needs-content-review when
@@ -47,6 +52,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  node-lts:
+    name: Node.js LTS · the samples that follow it
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write # open the issue, and create its label the first time
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Check
+        id: lts
+        run: npm run course:node-lts -- --out="$RUNNER_TEMP/node-lts.md"
+      - name: Open or update the issue
+        if: failure() && steps.lts.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body="$RUNNER_TEMP/node-lts.md"
+          if [ ! -s "$body" ]; then
+            echo "The check failed before it wrote a report (nodejs.org or the course's repository didn't answer); see the log." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          cat "$body" >> "$GITHUB_STEP_SUMMARY"
+          title="Node.js LTS changed: update the gear rack's node -v sample"
+          gh label create needs-content-review --color D93F0B \
+            --description 'The course changed under authored content (PLAN §8.4)' 2> /dev/null || true
+          number=$(gh issue list --state open --label needs-content-review --json number,title \
+            -q ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body-file "$body"
+          else
+            gh issue create --title "$title" --body-file "$body" --label needs-content-review
+          fi
+
   packs:
     name: Course packs
     runs-on: ubuntu-latest

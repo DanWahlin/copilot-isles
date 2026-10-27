@@ -576,6 +576,18 @@ hook (release it when the site is freed).
   over a few frames (`morphFrames`: its vertex buffers change, no new geometry or shader). A merged far
   block may show only when all its chunks are at its level, or a coarser chunk jumps to it uneased.
   Measure with the pop metric (frozen clock, 1 m camera steps, 16 px blocks).
+- **The follow camera in drawn geometry (issue 312):** the camera keeps out of colliders and of
+  camera-only boxes (`addCameraBox`, an island's `cameraBoxes`), never out of what's drawn. Every part
+  that stands past its walker box needs a camera box: awnings and their counters, hanging boards,
+  veranda rails, the legs under boardwalks and stairs, retaining walls, raised paving over a beach.
+  A camera-only box the pivot is inside (a rock's rough box you walk through) doesn't count. One whose
+  pad the pivot is in (the captain under an awning, beside a wall) keeps a pad of 85 % of the pivot's
+  own gap to it (`pivotPad`, collision.ts): the eye goes where the pivot is, never nearer the cloth.
+  Give an awning's box its cloth's span (`y0` at the scallops), not the ground: then the pivot ducks
+  under it (`cameraCeilingAt`) and stays outside. A collider turns with its house's `rotY` (a gatehouse
+  turned 90° from its boxes had a drawn wall 0.8 m outside them). Thin dressing whose box would pull
+  the camera in each time you walk under it (bunting, garlands) stays without one.
+  `node tools/cameratest.mjs --explain` lists the hits; one seed's count moves by up to 6 between runs.
 
 ### CPU and GPU time (issues 11 and 29)
 

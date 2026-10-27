@@ -88,6 +88,12 @@ export interface VerandaHouseInfo {
     y0: number;
     y1: number;
   }[];
+  /**
+   * The verandas' rails between their posts, and the gallery's posts (world): each from `a` to `b`
+   * (a post: the same point), from `y0` to `y1` (for camera blockers: the walker has the deck's edge
+   * and the ground floor's `posts`).
+   */
+  rails: { a: { x: number; z: number }; b: { x: number; z: number }; y0: number; y1: number }[];
 }
 
 const H = HOUSE_STOREY_HEIGHT;
@@ -573,6 +579,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
   const posts: { x: number; z: number }[] = [];
   const decks: VerandaHouseInfo['decks'] = [];
   const shades: Shade[] = [];
+  const rails: VerandaHouseInfo['rails'] = [];
   const verandaSides = new Set(spec.veranda?.sides ?? []);
   const vd = spec.veranda?.depth ?? 0;
   for (const s of verandaSides) out[s] = vd;
@@ -844,6 +851,9 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
             );
           const wp = toWorld(p[0], p[2]);
           posts.push(wp);
+        } else {
+          const wp = toWorld(p[0], p[2]);
+          rails.push({ a: wp, b: wp, y0: spec.origin.y + level, y1: spec.origin.y + postTop });
         }
         // Rails between this post and the next (a gap where the steps come up to the door).
         if (q + 1 < n) {
@@ -851,6 +861,12 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
           if (doorAt !== null && doorAt > along && doorAt < next) continue;
           const ra = onWall(wf, along + 0.08, 0, vd - 0.12);
           const rb = onWall(wf, next - 0.08, 0, vd - 0.12);
+          rails.push({
+            a: toWorld(ra[0], ra[2]),
+            b: toWorld(rb[0], rb[2]),
+            y0: spec.origin.y + level + 0.1,
+            y1: spec.origin.y + level + 1.0,
+          });
           for (const y of [level + 0.95, level + 0.16])
             sheet('plaster').bar([ra[0], y, ra[2]], [rb[0], y, rb[2]], 0.07, 0.07, trimCol);
           if (!lite) {
@@ -913,7 +929,7 @@ export function addVerandaHouse(b: Buckets, kit: VillageKit, spec: VerandaHouseS
     h.y0 += spec.origin.y;
     h.y1 += spec.origin.y;
   }
-  return { top: spec.origin.y + roofTop, posts, out, decks, shades };
+  return { top: spec.origin.y + roofTop, posts, out, decks, shades, rails };
 }
 
 function xzOf(p: V3): [number, number] {

@@ -93,6 +93,35 @@ describe('CollisionWorld.cameraBlockedAt', () => {
     expect(w.cameraBlockedAt(0, 2, 0.6, 0.7, 0, 2, 1.0)).toBe(true);
   });
 
+  it('keeps the eye out of an awning’s cloth while the captain stands under it (issue 312)', () => {
+    const w = new CollisionWorld({ ground: seabed });
+    // The cloth 2.15-2.65 m up; the pivot 0.6 m under it, in the 0.7 m pad a high eye has.
+    w.addCameraBox({ x: 0, z: 0, hx: 2.3, hz: 1, rot: 0, y0: 2.15, y1: 2.65 });
+    const pivot = [0, 1.55, 0.5] as const;
+    // Up through the cloth from under it: blocked short of the cloth, by most of the pivot's gap.
+    expect(w.cameraBlockedAt(0, 2.4, 0.5, 0.7, ...pivot)).toBe(true);
+    expect(w.cameraBlockedAt(0, 1.75, 0.5, 0.7, ...pivot)).toBe(true);
+    expect(w.cameraBlockedAt(0, 1.6, 0.5, 0.7, ...pivot)).toBe(false);
+    // Out from under its front edge and up past it: blocked near the edge, free once clear of it.
+    expect(w.cameraBlockedAt(0, 2.4, 1.3, 0.7, ...pivot)).toBe(true);
+    expect(w.cameraBlockedAt(0, 2.4, 1.6, 0.7, ...pivot)).toBe(false);
+    // The same at a round blocker (a parasol).
+    w.addCameraCircle({ x: 10, z: 0, r: 1.2, y0: 2.1, y1: 2.5 });
+    expect(w.cameraBlockedAt(10, 2.3, 0.5, 0.7, 10, 1.55, 0)).toBe(true);
+    expect(w.cameraBlockedAt(10, 1.6, 0.5, 0.7, 10, 1.55, 0)).toBe(false);
+  });
+
+  it('keeps the eye no nearer a face than the pivot is, even with the pivot right at it', () => {
+    const w = new CollisionWorld({ ground: seabed });
+    w.addCameraBox({ x: 0, z: 0, hx: 2, hz: 0.5, rot: 0, y0: -3, y1: 4 });
+    // The pivot 0.05 m off the face: the eye may stay level with it, not go nearer or in.
+    expect(w.cameraBlockedAt(1, 2, 0.55, 0.25, 0, 2, 0.55)).toBe(false);
+    expect(w.cameraBlockedAt(1, 2, 0.5, 0.25, 0, 2, 0.55)).toBe(true);
+    expect(w.cameraBlockedAt(1, 2, 0.2, 0.25, 0, 2, 0.55)).toBe(true);
+    // The pivot inside it (walking through a rock's rough box): it doesn't count.
+    expect(w.cameraBlockedAt(1, 2, 0.2, 0.25, 0, 2, 0.3)).toBe(false);
+  });
+
   it('checks moving camera blockers (a pushed crate) where they are now', () => {
     const w = new CollisionWorld({ ground: seabed });
     const crate = { x: 0, z: 0, r: 0.7, height: 1.3 };

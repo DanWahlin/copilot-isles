@@ -436,7 +436,7 @@ function occlude(g: BufferGeometry): void {
 /**
  * Adds the stall's geometry to the town's buckets (in world space), and its colliders: walls, piers,
  * the counter, the barrel, pots and planter stop the walker; the camera also keeps out of the arcade's
- * wall and upper storey, the counter and the shelves. `lite` builds the small dressing cheaper.
+ * wall and upper storey, the counter, the shelves, the awning and the hanging boards. `lite` builds the small dressing cheaper.
  */
 export function addModelMarketStall(
   buckets: Buckets,
@@ -511,5 +511,18 @@ export function addModelMarketStall(
     at(cx, COUNTER.z, cw / 2, COUNTER.d / 2, 0, COUNTER.h + 0.1),
     at(0, BACK + 0.2, INNER, 0.22, 1.2, 2.8),
     at(PIERS[3], 1.3, 0.6, 0.6, 0, 3.0),
+    // The awning over the counter (its scallops hang 0.2 m under its front edge), and each board in
+    // its arch with the beam it hangs from (a board's rim comes 0.1 m under its face): issue 312.
+    at(
+      0,
+      (AWNING.zFront + AWNING.zBack) / 2,
+      AWNING.x1 + 0.05,
+      (AWNING.zFront - AWNING.zBack) / 2 + 0.06,
+      AWNING.yFront - 0.25,
+      AWNING.yBack + 0.06,
+    ),
+    ...MARKET_LAYOUT.boards.map((b) =>
+      at(b.x, (BEAM.z + MARKET_LAYOUT.boardZ) / 2, R_IN + 0.03, 0.15, b.top - b.h - 0.15, b.beam + BEAM.h),
+    ),
   );
 }

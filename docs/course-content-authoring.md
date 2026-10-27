@@ -36,6 +36,7 @@ the GitHub REST API. The chapter must be in `course.json` → `source.chapters`.
 
 ```bash
 npm run course:refs -- 02
+npm run course:refs -- appendix:git-worktrees   # an appendix in course.json → source.appendices
 ```
 
 The output has one line per README heading, ready to paste as a `source`:

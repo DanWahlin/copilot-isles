@@ -701,6 +701,11 @@ function addHarbour(
   );
   addBox(buckets, 'paving', 684.2, extraBenchFloor - 0.09, -764.2, 5.4, 0.18, 3.6, 0, 0xf0d7aa);
   addBox(buckets, 'stone', 684.2, extraBenchFloor + 0.08, -762.4, 5.8, 0.28, 0.36, 0, LIMESTONE_LIGHT);
+  // The camera keeps out of the platform and its back (issue 312).
+  colliders.camera?.push(
+    { x: 684.2, z: -764.2, hx: 3.0, hz: 2.0, rot: 0, y0: deck - 0.1, y1: extraBenchFloor },
+    { x: 684.2, z: -762.4, hx: 2.9, hz: 0.18, rot: 0, y0: extraBenchFloor, y1: extraBenchFloor + 0.36 },
+  );
   const extraBenchY = addBenchSeat(buckets, 684.2, extraBenchFloor, -764.2, 0, 1.0);
   anchor('extraBench', {
     x: 684.2,
@@ -865,8 +870,8 @@ function addEastArmArrivalDressing(
   addRopeCoil(buckets, arm.x1 - 4.2, deck + 0.05, -727.6, 0.56);
   addRopeCoil(buckets, arm.x0 + 2.2, deck + 0.05, -692.5, 0.64);
 
-  addFishStall(buckets, arm.x0 + 1.8, deck, -690.5, 0, CLOTH_GREEN);
-  addFishStall(buckets, arm.x1 - 2.2, deck, -704.5, Math.PI / 2, CLOTH_GREEN);
+  addFishStall(buckets, arm.x0 + 1.8, deck, -690.5, 0, CLOTH_GREEN, colliders.camera);
+  addFishStall(buckets, arm.x1 - 2.2, deck, -704.5, Math.PI / 2, CLOTH_GREEN, colliders.camera);
   addLobsterPots(buckets, arm.x0 + 2.2, deck + 0.08, -695.5, 0.62);
   for (const [x, z, rot, colour] of [
     [arm.x0 + 2.1, -681.8, 0.08, 0x7b5636],
@@ -882,9 +887,9 @@ function addEastArmArrivalDressing(
   addBarrelCluster(buckets, colliders, arm.x1 + 5.2, deck, -690.5, 0.55);
   addCargoGroup(buckets, colliders, arm.x0 + 2.6, deck, -756.5, 6 * DEG);
   addCargoGroup(buckets, colliders, arm.x0 + 2.7, deck, -682.5, -8 * DEG);
-  addFishStall(buckets, arm.x1 + 5.4, deck, -760.5, Math.PI / 2, CLOTH_BLUE);
-  addFishStall(buckets, arm.x1 + 5.8, deck, -704.0, Math.PI / 2, CLOTH_GOLD);
-  if (!low) addFishStall(buckets, arm.x1 + 5.3, deck, -748.5, Math.PI / 2, CLOTH_RED);
+  addFishStall(buckets, arm.x1 + 5.4, deck, -760.5, Math.PI / 2, CLOTH_BLUE, colliders.camera);
+  addFishStall(buckets, arm.x1 + 5.8, deck, -704.0, Math.PI / 2, CLOTH_GOLD, colliders.camera);
+  if (!low) addFishStall(buckets, arm.x1 + 5.3, deck, -748.5, Math.PI / 2, CLOTH_RED, colliders.camera);
 
   addLampPost(buckets, colliders, perches, arm.x1 - 2.2, deck, -706.5, Math.PI / 2);
   addLampPost(buckets, colliders, perches, arm.x0 + 2.2, deck, -732.5, -Math.PI / 2);
@@ -1449,6 +1454,8 @@ function addShipyard(
   void low;
   const y = MERIDIAN.harbor.quay.height;
   addBox(buckets, 'paving', 590.5, y - 0.08, -756, 42, 0.16, 34, 0, 0xe8cf9a);
+  // The yard's paving stands over the beach at its west edge: the camera keeps out from under it.
+  colliders.camera?.push({ x: 590.5, z: -756, hx: 21, hz: 17, rot: 0, y0: y - 1.4, y1: y });
   addBox(buckets, 'wood', 579.4, -1.0, -742.2, 9.0, 0.32, 22, -15 * DEG, 0x7d5735);
   addBox(buckets, 'wood', 579.4, 0.1, -746.2, 7.8, 0.25, 20, -15 * DEG, 0x8a6541);
   addHullUnderConstruction(buckets, colliders, perches, 579.5, y, -762.2, 8 * DEG);
@@ -3862,14 +3869,24 @@ function addLobsterPots(buckets: Buckets, x: number, y: number, z: number, s: nu
   }
 }
 
-function addFishStall(buckets: Buckets, x: number, y: number, z: number, rot: number, cloth: number): void {
+function addFishStall(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  rot: number,
+  cloth: number,
+  camera: VillageBoxCollider[] | undefined,
+): void {
   addBox(buckets, 'wood', x, y + 0.62, z, 4.0, 0.2, 1.55, rot, 0x7a5232);
   for (const lx of [-1.7, 1.7])
     for (const lz of [-0.55, 0.55]) {
       const p = localToWorld(x, z, rot, lx, lz);
       addCylinderGeom(buckets.wood, p.x, y, p.z, 0.055, 0.07, 2.35, 6, 0, DARK_WOOD);
     }
-  addAwning(buckets, x, y + 2.25, z, rot, 4.2, 1.9, cloth, LIMESTONE_LIGHT);
+  addAwning(buckets, x, y + 2.25, z, rot, 4.2, 1.9, cloth, LIMESTONE_LIGHT, camera);
+  // The camera keeps out of the table too (issue 312); the walker passes the stall as before.
+  camera?.push({ x, z, hx: 2.05, hz: 0.82, rot, y0: y, y1: y + 0.8 });
   for (const lx of [-1.2, -0.35, 0.5, 1.25]) {
     const p = localToWorld(x, z, rot, lx, -0.1);
     addBox(buckets, 'metal', p.x, y + 0.78, p.z, 0.58, 0.06, 0.18, rot + 0.2, 0xa7c9c6);

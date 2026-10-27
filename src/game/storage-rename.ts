@@ -4,8 +4,11 @@
  * the same origin (danwahlin.github.io) at the new path, so a player's old keys are still there.
  *
  * On start, `renameStorageKeys` moves each old key: it copies the value to the new key only when the
- * new key has none (it never overwrites newer data), then removes the old key. A second run finds
- * nothing to move. It imports nothing, so boot can run it before it reads a setting.
+ * new key has none (it never overwrites newer data), then removes the old key. One exception: when a
+ * course has a save under both names, the save with the later `savedAt` wins, and its progress goes
+ * with it. A tab of the old build that stayed open after the move can still write the old keys, and
+ * its voyage can be the newer one (issue 321). A second run finds nothing to move. It imports nothing,
+ * so boot can run it before it reads a setting.
  */
 export interface KeyedStorage {
   readonly length: number;
@@ -38,6 +41,66 @@ export function renamedKey(old: string): string | null {
   return STORAGE_PREFIX + old.slice(OLD_STORAGE_PREFIX.length);
 }
 
+/** The Pages path the game had as Copilot Isles. Its service worker registration is the old build's. */
+export const OLD_PAGES_PATH = '/copilot-isles/';
+
+/** True for a service worker registration of the old path (`https://danwahlin.github.io/copilot-isles/`). */
+export function isOldScope(scope: string): boolean {
+  try {
+    return new URL(scope).pathname === OLD_PAGES_PATH;
+  } catch {
+    return false;
+  }
+}
+
+const SAVE_SUFFIX = '.save.v1';
+const PROGRESS_SUFFIX = '.progress.v1';
+
+function savedAt(value: string | null): number {
+  if (value === null) return -Infinity;
+  try {
+    const at = (JSON.parse(value) as { savedAt?: unknown } | null)?.savedAt;
+    return typeof at === 'number' && Number.isFinite(at) ? at : -Infinity;
+  } catch {
+    return -Infinity;
+  }
+}
+
+/**
+ * When a course has a save under both names and the old one is newer, it replaces the new one, and
+ * the old progress (when there is one) replaces the new progress: a save and its progress stay a pair.
+ */
+function keepNewerSaves(
+  storage: KeyedStorage,
+  old: readonly string[],
+  moved: string[],
+  keep: Set<string>,
+): void {
+  for (const key of old) {
+    if (!key.endsWith(SAVE_SUFFIX)) continue;
+    const to = renamedKey(key)!;
+    try {
+      const value = storage.getItem(key);
+      const current = storage.getItem(to);
+      if (value === null || current === null || savedAt(value) <= savedAt(current)) continue;
+      const oldProgress = key.slice(0, -SAVE_SUFFIX.length) + PROGRESS_SUFFIX;
+      keep.add(key).add(oldProgress);
+      const progress = storage.getItem(oldProgress);
+      if (progress !== null) {
+        const toProgress = renamedKey(oldProgress)!;
+        storage.setItem(toProgress, progress);
+        moved.push(toProgress);
+      }
+      storage.setItem(to, value);
+      moved.push(to);
+      keep.delete(key);
+      keep.delete(oldProgress);
+    } catch {
+      // Full storage: the old save and progress stay, and the next start tries again.
+    }
+  }
+}
+
 /** Moves every old key to its new name. Returns the new keys that got a value. */
 export function renameStorageKeys(storage: KeyedStorage | null): string[] {
   if (!storage) return [];
@@ -52,7 +115,10 @@ export function renameStorageKeys(storage: KeyedStorage | null): string[] {
   } catch {
     return moved;
   }
+  const keep = new Set<string>();
+  keepNewerSaves(storage, old, moved, keep);
   for (const key of old) {
+    if (keep.has(key)) continue;
     const to = renamedKey(key)!;
     try {
       const value = storage.getItem(key);

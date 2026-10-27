@@ -27,6 +27,7 @@
     "course:sync": "node tools/course/sync.mjs",
     "course:drift": "tsx tools/course/drift.ts",
     "course:refs": "node tools/course/refs.mjs",
+    "course:node-lts": "tsx tools/course/node-lts.ts",
     "models:sync": "node tools/models/sync.mjs",
     "content:check": "tsx tools/content/report.ts",
     "toolchain": "bash tools/setup-toolchain.sh",

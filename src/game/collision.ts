@@ -62,8 +62,11 @@ interface Bucket {
 
 const CELL = 16;
 const NO_BUCKET: Bucket = { circles: [], boxes: [] };
-/** The share of the camera pad a camera-only blocker keeps when the pivot is in its pad. */
-const PIVOT_PAD = 0.35;
+/**
+ * A camera-only blocker whose pad the pivot is in keeps its pad down to this share of the pivot's own
+ * gap to it, so the eye never comes nearer to it than the pivot is (issue 312).
+ */
+const PIVOT_SHARE = 0.85;
 /** Boxes this tall (m) or more are buildings, whose roofs can rise over their `height` (see cameraBlockedAt). */
 const ROOF_MIN = 2.5;
 const ROOF_PITCH = 0.8;
@@ -310,20 +313,17 @@ export class CollisionWorld {
       for (const c of b.circles) if (this.circleBlocksEye(c, x, y, z, pad)) return true;
     }
     const k = this.cameraGrid.get(this.key(Math.floor(x / CELL), Math.floor(z / CELL))) ?? NO_BUCKET;
-    // A camera-only blocker the pivot is in too (the player walks through a cliff's overhang or by
-    // a rock's rough box) doesn't count, or the camera would fold onto the player's head. A pivot only
-    // in its pad (the player beside a wall) keeps a thinner pad, so the eye can't slide into the face.
-    const thin = pad * PIVOT_PAD;
-    for (const box of k.boxes)
-      if (
-        this.boxBlocksEye(box, x, y, z, pad) &&
-        (!this.boxBlocksEye(box, px, py, pz, pad) ||
-          (this.boxBlocksEye(box, x, y, z, thin) && !this.boxBlocksEye(box, px, py, pz, thin)))
-      )
-        return true;
-    for (const c of k.circles) if (this.cameraCircleBlocks(c, x, y, z, pad, thin, px, py, pz)) return true;
-    for (const c of this.cameraDynamic)
-      if (this.cameraCircleBlocks(c, x, y, z, pad, thin, px, py, pz)) return true;
+    // A camera-only blocker the pivot is in (the player walks through a cliff's overhang or by a
+    // rock's rough box) doesn't count, or the camera would fold onto the player's head. One whose pad
+    // the pivot is in (the player under an awning, beside a wall) keeps a pad of most of the pivot's
+    // own gap to it: the eye can go where the pivot is, never nearer the cloth or the face (issue 312).
+    for (const box of k.boxes) {
+      if (!this.boxBlocksEye(box, x, y, z, pad)) continue;
+      const near = pivotPad(this.boxGap(box, px, py, pz), pad);
+      if (near > 0 && (near === pad || this.boxBlocksEye(box, x, y, z, near))) return true;
+    }
+    for (const c of k.circles) if (this.cameraCircleBlocks(c, x, y, z, pad, px, py, pz)) return true;
+    for (const c of this.cameraDynamic) if (this.cameraCircleBlocks(c, x, y, z, pad, px, py, pz)) return true;
     return false;
   }
 
@@ -421,14 +421,31 @@ export class CollisionWorld {
     y: number,
     z: number,
     pad: number,
-    thin: number,
     px: number,
     py: number,
     pz: number,
   ): boolean {
     if (!this.circleBlocksEye(c, x, y, z, pad)) return false;
-    if (!this.circleBlocksEye(c, px, py, pz, pad)) return true;
-    return this.circleBlocksEye(c, x, y, z, thin) && !this.circleBlocksEye(c, px, py, pz, thin);
+    const near = pivotPad(this.circleGap(c, px, py, pz), pad);
+    return near > 0 && (near === pad || this.circleBlocksEye(c, x, y, z, near));
+  }
+
+  /**
+   * How far (x, y, z) is outside a box (the largest of its distances past the sides, the underside
+   * and the top, as the pad tests measure), ≤ 0 inside it, NaN for a missing point.
+   */
+  private boxGap(box: BoxCollider, x: number, y: number, z: number): number {
+    const [lx, lz] = toLocal(box, x, z);
+    const out = Math.max(Math.abs(lx) - box.hx, Math.abs(lz) - box.hz);
+    if (box.y1 !== undefined) return Math.max(out, (box.y0 ?? -Infinity) - y, y - (box.eyeTop ?? box.y1));
+    return Math.max(out, y - this.groundAt(box.x, box.z) - (box.height ?? 9));
+  }
+
+  /** `boxGap` for a round collider. */
+  private circleGap(c: CircleObstacle, x: number, y: number, z: number): number {
+    const out = Math.hypot(x - c.x, z - c.z) - c.r;
+    if (c.y1 !== undefined) return Math.max(out, (c.y0 ?? -Infinity) - y, y - c.y1);
+    return Math.max(out, y - this.groundAt(c.x, c.z) - (c.height ?? (c.r >= 1.5 ? 12 : 2)));
   }
 
   private circleBlocksEye(c: CircleObstacle, x: number, y: number, z: number, pad: number): boolean {
@@ -453,6 +470,16 @@ export class CollisionWorld {
     }
     return false;
   }
+}
+
+/**
+ * The pad a camera-only blocker keeps for an eye when the pivot is `gap` m outside it: the whole pad
+ * (no pivot, or a pivot outside the pad), most of the pivot's gap (a pivot in the pad), or none (≤ 0:
+ * the pivot is in the blocker, which then doesn't count).
+ */
+function pivotPad(gap: number, pad: number): number {
+  if (!(gap === gap) || gap >= pad) return pad;
+  return gap > 0 ? Math.min(pad, gap * PIVOT_SHARE) : 0;
 }
 
 /** Whether a collider spans the walker's feet `y` (always, without a span or a `y`). */

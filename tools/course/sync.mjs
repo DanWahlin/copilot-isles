@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Course snapshot sync (PLAN §8.2, §8.4 steps 1-3). Pulls the course's root README (the chapter
- * list), GLOSSARY.md, LICENSE, each snapshotted chapter's README.md, and every image those READMEs
- * reference from raw.githubusercontent.com at one commit, copies them byte-for-byte into the course
+ * list), GLOSSARY.md, LICENSE, each snapshotted chapter's README.md, the appendices the pack names
+ * (`source.appendices`: `appendices/<name>.md`, to `course/appendices/<name>.md`), and every image
+ * those files reference from raw.githubusercontent.com at one commit, copies them byte-for-byte into the course
  * pack's snapshot (`courses/<id>/public/course/**`), and writes the pack's `lock.json` with the
  * commit SHA and a hash per section and image. It never calls the GitHub REST API: the commit comes
  * from `git ls-remote`. The course's repository and chapters are the pack's `course.json` → `source`.
@@ -53,13 +54,21 @@ const LOCK = join(PACK, 'lock.json');
 const PUBLIC = join(PACK, 'public');
 const COURSE_REPO = META.source.repo;
 const COURSE_CHAPTERS = META.source.chapters;
-let repoPath, snapshotPathIn, chapterLock, glossaryLock, parseCatalog, HASH_LENGTH;
+const COURSE_APPENDICES = META.source.appendices ?? [];
+let repoPath,
+  snapshotPathIn,
+  chapterLock,
+  appendixLock,
+  linksAppendix,
+  glossaryLock,
+  parseCatalog,
+  HASH_LENGTH;
 const snapshotPath = (path) => snapshotPathIn(COURSE_CHAPTERS, path);
 
 async function loadHelpers() {
   const { tsImport } = await import('tsx/esm/api');
   ({ repoPath, snapshotPathIn } = await tsImport('../../src/learn/course/chapters.ts', import.meta.url));
-  ({ chapterLock, glossaryLock, parseCatalog, HASH_LENGTH } = await tsImport(
+  ({ chapterLock, appendixLock, linksAppendix, glossaryLock, parseCatalog, HASH_LENGTH } = await tsImport(
     '../../src/learn/course/lock.ts',
     import.meta.url,
   ));
@@ -181,6 +190,7 @@ async function main() {
   await put('course/README.md', rootReadme);
 
   const chapters = {};
+  const readmes = {}; // chapter id → its README's text (for the appendices' links)
   const referenced = new Map(); // snapshot path → upstream path
   for (const num of wanted) {
     const known = COURSE_CHAPTERS.find((c) => c.id.startsWith(`${num}-`));
@@ -200,6 +210,25 @@ async function main() {
       repoPath,
     );
     chapters[id] = entry;
+    readmes[id] = readme.toString('utf8');
+    for (const s of Object.values(entry.sections))
+      for (const p of s.images ?? []) {
+        const snap = snapshotPath(p);
+        if (snap && RASTER.test(p) && !DERIVED[snap]) referenced.set(snap, p);
+      }
+  }
+
+  // Appendices: like a chapter's README, kept as course/appendices/<name>.md, with the chapters that link to it.
+  const appendices = {};
+  for (const name of COURSE_APPENDICES) {
+    const path = `appendices/${name}.md`;
+    const data = await getFile(sha, path);
+    if (!data) throw new Error(`${path} is missing upstream (renamed?): fix course.json source.appendices`);
+    await put(`course/${path}`, data);
+    const text = data.toString('utf8');
+    const linkedFrom = Object.keys(readmes).filter((id) => linksAppendix(readmes[id], name));
+    const entry = appendixLock(text, name, linkedFrom, (t) => sha256(t), repoPath);
+    appendices[name] = entry;
     for (const s of Object.values(entry.sections))
       for (const p of s.images ?? []) {
         const snap = snapshotPath(p);
@@ -279,6 +308,7 @@ async function main() {
     syncedAt: lock?.sha === sha && !written.length ? lock.syncedAt : new Date().toISOString().slice(0, 10),
     catalog,
     chapters,
+    ...(COURSE_APPENDICES.length ? { appendices } : {}),
     glossary: glossary ? glossaryLock(glossary.toString('utf8'), (t) => sha256(t)) : { hash: '', terms: {} },
     license: { hash: license ? sha256(license).slice(0, HASH_LENGTH) : '' },
     images,
@@ -301,7 +331,9 @@ async function main() {
     }
   }
 
-  console.log(`Course @ ${short(sha)} (was ${short(lock?.sha)}): ${Object.keys(chapters).join(', ')}`);
+  console.log(
+    `Course @ ${short(sha)} (was ${short(lock?.sha)}): ${[...Object.keys(chapters), ...COURSE_APPENDICES.map((n) => `appendix:${n}`)].join(', ')}`,
+  );
   console.log(
     `  ${written.length} snapshot file(s) written${written.length ? `: ${written.join(', ')}` : ''}`,
   );
