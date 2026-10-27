@@ -617,7 +617,10 @@ export function ropeCoil(b: Buckets, u: number, v: number, y: number, r = 0.42):
   );
 }
 
-/** A camera blocker round each propped shutter of a veranda house (they stand out up to a metre). */
+/**
+ * Camera blockers for a veranda house's parts that stand out of its boxes: each propped shutter (they
+ * stand out up to a metre), and the verandas' rails and the gallery's posts (issue 312).
+ */
 export function shadeBlockers(info: VerandaHouseInfo, cams: CameraBlockerBox[]): void {
   for (const h of info.shades)
     cams.push({
@@ -629,6 +632,19 @@ export function shadeBlockers(info: VerandaHouseInfo, cams: CameraBlockerBox[]):
       y0: h.y0 - 0.1,
       y1: h.y1 + 0.1,
     });
+  for (const r of info.rails) {
+    const dx = r.b.x - r.a.x;
+    const dz = r.b.z - r.a.z;
+    cams.push({
+      x: (r.a.x + r.b.x) / 2,
+      z: (r.a.z + r.b.z) / 2,
+      hx: Math.hypot(dx, dz) / 2 + 0.08,
+      hz: 0.08,
+      rot: Math.atan2(-dz, dx),
+      y0: r.y0,
+      y1: r.y1,
+    });
+  }
 }
 
 /** Casks and crates in a loose group (each keeps the camera out when `cams` is given). */
@@ -1382,11 +1398,13 @@ export function* buildShipyard(
   yield;
   // The gatehouse by the lower lock (the lock keeper's: a stone ground floor, a timber upper storey).
   const gate = at(26, PADS.locks.y, -74.5);
+  // Its colliders turn with it (its 6 m runs along v): issue 312.
+  const gateYaw = HEADING_U + Math.PI;
   const gatehouse = addVerandaHouse(b, kit, {
     footprint: { w: 6, d: 4 },
     storeys: 2,
     origin: { x: gate.x, y: gate.y, z: gate.z },
-    rotY: HEADING_U + Math.PI,
+    rotY: gateYaw,
     seed: 3,
     walls: 'plaster',
     wall: 0xe9e3d3,
@@ -1399,13 +1417,13 @@ export function* buildShipyard(
     lite,
     groundAt: (x, z) => keelhavenHeight(x, z),
   });
-  out.colliders.push({ x: gate.x, z: gate.z, hx: 3.2, hz: 2.2, rot: YAW_U, height: 6 });
+  out.colliders.push({ x: gate.x, z: gate.z, hx: 3.2, hz: 2.2, rot: gateYaw, height: 6 });
   out.cameraBoxes.push({
     x: gate.x,
     z: gate.z,
     hx: 3.3,
     hz: 2.3,
-    rot: YAW_U,
+    rot: gateYaw,
     y0: gate.y - 0.5,
     y1: gate.y + 6.5,
   });

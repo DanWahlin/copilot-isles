@@ -17,6 +17,11 @@ export interface CourseLock {
   /** Every chapter the course lists in its README, snapshotted or not (new ones show as uncharted). */
   catalog: { id: string; num: string; title: string }[];
   chapters: Partial<Record<ChapterId, ChapterLock>>;
+  /**
+   * The course's appendices the pack names (`course.json` → `source.appendices`), by name: a line
+   * cites one as `{"chapter": "appendix:<name>", …}` (`APPENDIX`). Older locks have none.
+   */
+  appendices?: Partial<Record<string, AppendixLock>>;
   glossary: { hash: string; terms: Record<string, SectionLock> };
   license: { hash: string };
   /** Keyed by snapshot path under `public/`, e.g. `course/ch00/app-sign-in.webp`. */
@@ -29,6 +34,40 @@ export interface ChapterLock {
   /** Hash of the whole README. */
   hash: string;
   sections: Record<string, SectionLock>;
+}
+
+/** One appendix (`appendices/<name>.md`): like a chapter, without a snapshot folder of its own. */
+export interface AppendixLock {
+  /** Its file in the course's repository, e.g. `appendices/git-worktrees.md`. */
+  path: string;
+  title: string;
+  /** Hash of the whole file. */
+  hash: string;
+  sections: Record<string, SectionLock>;
+  /** The snapshotted chapters whose README links to it (src/course/split.ts puts it with one). */
+  linkedFrom: ChapterId[];
+}
+
+/** What a `SourceRef` cites: a chapter's README or an appendix. */
+export type DocLock = Pick<ChapterLock, 'title' | 'hash' | 'sections'>;
+
+/** A `SourceRef.chapter` that names an appendix: `appendix:git-worktrees`. */
+export const APPENDIX = 'appendix:';
+
+/** The appendix a `SourceRef.chapter` names, or null for a chapter. */
+export function appendixName(id: string): string | null {
+  return id.startsWith(APPENDIX) ? id.slice(APPENDIX.length) : null;
+}
+
+/** A course appendix's file in the course's repository. */
+export function appendixPath(name: string): string {
+  return `appendices/${name}.md`;
+}
+
+/** The chapter or appendix a `SourceRef.chapter` names, from the lock (undefined when it isn't in it). */
+export function lockDoc(lock: Pick<CourseLock, 'chapters' | 'appendices'>, id: string): DocLock | undefined {
+  const name = appendixName(id);
+  return name === null ? lock.chapters[id] : lock.appendices?.[name];
 }
 
 export interface SectionLock {
@@ -87,6 +126,28 @@ export function chapterLock(
 
 export function sectionHash(markdown: string, hash: HashFn): string {
   return hash(normalizeForCompare(markdown)).slice(0, HASH_LENGTH);
+}
+
+/** One appendix → its lock entry: its sections as a chapter's, and the chapters that link to it. */
+export function appendixLock(
+  markdown: string,
+  name: string,
+  linkedFrom: readonly ChapterId[],
+  hash: HashFn,
+  resolve: (dir: string, path: string) => string | null,
+): AppendixLock {
+  const path = appendixPath(name);
+  const title = /^#\s+(.+?)\s*#*\s*$/m.exec(markdown)?.[1] ?? name;
+  const { sections, hash: whole } = chapterLock(markdown, 'appendices', title, '', hash, resolve);
+  return { path, title, hash: whole, sections, linkedFrom: [...linkedFrom] };
+}
+
+/** True when a chapter README links to the appendix (`](../appendices/<name>.md#…)`, or a reference link). */
+export function linksAppendix(readme: string, name: string): boolean {
+  const file = `appendices/${name}.md`.replace(/[.\\-]/g, (c) => `\\${c}`);
+  return new RegExp(`(?:\\]\\(|^\\[[^\\]]+\\]:\\s*)(?:\\.\\.?/)*${file}(?:#[\\w-]*)?(?=[)\\s]|$)`, 'm').test(
+    readme,
+  );
 }
 
 /** The glossary's `## Term` sections, keyed by anchor. */

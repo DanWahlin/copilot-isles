@@ -3,6 +3,7 @@ import {
   COURSE_RAW,
   COURSE_REPO,
   chapterUrl,
+  courseDoc,
   repoPath,
   snapshotPath,
   type ChapterId,
@@ -67,6 +68,7 @@ export function liveUrl(path: string, ref = courseRef()): string {
 /** Bundled snapshot URL for a course repo path (null when we don't bundle that file). */
 export function snapshotUrl(path: string): string | null {
   if (path === 'GLOSSARY.md' || path === 'README.md') return `${base()}course/${path}`;
+  if (/^appendices\/[a-z0-9-]+\.md$/.test(path)) return `${base()}course/${path}`;
   const readme = /^([0-9]{2}-[a-z0-9-]+)\/README\.md$/.exec(path);
   if (readme) {
     const ch = COURSE_CHAPTERS.find((c) => c.id === readme[1]);
@@ -88,16 +90,17 @@ async function fetchText(url: string): Promise<string> {
   }
 }
 
+/** A chapter's README, or an appendix (`appendix:<name>`, chapters.ts `courseDoc`). */
 function buildChapter(chapter: ChapterId, origin: Origin, markdown: string): ChapterDoc {
   const sections = parseSections(markdown);
-  // A README with no chapter headings means the folder moved or the file isn't markdown any more.
+  // A file with no chapter headings means the folder moved or the file isn't markdown any more.
   if (!sections.some((s) => s.level === 2)) throw new Error('unexpected README');
   const byAnchor = new Map(sections.map((s) => [s.anchor, s]));
   const images = new Map<string, CourseImageInfo>();
   // Deepest section first, so an image belongs to the innermost heading that shows it.
   for (const s of [...sections].sort((a, b) => b.level - a.level))
     for (const ref of imageRefs(s.markdown)) {
-      const path = repoPath(chapter, ref.path);
+      const path = repoPath(courseDoc(chapter).dir, ref.path);
       if (path && !images.has(path)) images.set(path, { path, alt: ref.alt.trim(), anchor: s.anchor });
     }
   return { chapter, origin, sections, byAnchor, images, refs: linkRefs(markdown) };
@@ -120,7 +123,7 @@ function once<T>(name: string, load: () => Promise<T>): Promise<T> {
 /** The bundled snapshot of a chapter (rejects when the chapter isn't in the snapshot). */
 export function snapshotChapter(chapter: ChapterId): Promise<ChapterDoc> {
   return once(`snap:${chapter}`, async () => {
-    const url = snapshotUrl(`${chapter}/README.md`);
+    const url = snapshotUrl(courseDoc(chapter).path);
     if (!url) throw new Error(`no snapshot for ${chapter}`);
     return buildChapter(chapter, 'snapshot', await fetchText(url));
   });
@@ -139,7 +142,7 @@ export function loadChapter(chapter: ChapterId): Promise<ChapterDoc> {
 async function readChapter(chapter: ChapterId, ref: string | null): Promise<ChapterDoc> {
   if (ref) {
     try {
-      return buildChapter(chapter, 'live', await fetchText(liveUrl(`${chapter}/README.md`, ref)));
+      return buildChapter(chapter, 'live', await fetchText(liveUrl(courseDoc(chapter).path, ref)));
     } catch {
       // Offline, blocked, renamed, or unparseable: the snapshot covers it.
     }

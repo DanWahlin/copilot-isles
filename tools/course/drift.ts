@@ -3,8 +3,9 @@
  * images against its `lock.json` (`--course=<id>`, default copilot-app) and lists everything the
  * course moved underneath:
  *
- * - quizzes, Logbook pages, and voiced lines (and cited puzzle text, and learning.json's app tasks,
- *   objectives and reflections) whose source section changed or disappeared,
+ * - quizzes, Logbook pages, and voiced lines (and cited puzzle text, learning.json's app tasks,
+ *   objectives and reflections, and the setup forms' `cites`) whose source section changed or
+ *   disappeared, in a chapter or in an appendix the pack snapshots (`appendix:<name>`),
  * - pinned screenshots (hotspot rects, captions) whose upstream file changed, with before/after
  *   montages when `sync.mjs --report=<dir>` saved the upstream copies,
  * - the UI-term check: bolded UI names the course dropped since the previous lock that authored
@@ -19,7 +20,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { CHAPTERS, IMAGES, PAGES, QUIZZES } from '../../src/learn/content/index';
 import { activateCourseFromDisk, coursePaths, DEFAULT_COURSE } from '../course-pack/read';
-import type { CourseLock } from '../../src/learn/course/lock';
+import { courseDoc } from '../../src/learn/course/chapters';
+import { APPENDIX, appendixPath, lockDoc, type CourseLock } from '../../src/learn/course/lock';
 import type { SourceRef } from '../../src/learn/types';
 
 const args = Object.fromEntries(
@@ -43,7 +45,7 @@ const voice = JSON.parse(await readFile(paths.lines, 'utf8')) as {
 const voiceText = new Map(voice.lines.map((l) => [l.id, l.text]));
 
 interface Item {
-  kind: 'quiz' | 'page' | 'voiced' | 'cited' | 'appTask' | 'objective' | 'reflection';
+  kind: 'quiz' | 'page' | 'voiced' | 'cited' | 'appTask' | 'objective' | 'reflection' | 'setup';
   id: string;
   ref: SourceRef;
   text: string;
@@ -67,6 +69,16 @@ for (const o of pack.learning.objectives)
   items.push({ kind: 'objective', id: o.id, ref: o.source, text: o.text });
 for (const r of pack.learning.reflections)
   items.push({ kind: 'reflection', id: r.chapter, ref: r.source, text: JSON.stringify(r) });
+// The "Your setup" forms' words (course.json `setup`), by the section each field cites.
+for (const [form, copy] of Object.entries(pack.meta.setup ?? {}))
+  if (copy && typeof copy === 'object')
+    for (const [field, ref] of Object.entries((copy as { cites?: Record<string, SourceRef> }).cites ?? {}))
+      items.push({
+        kind: 'setup',
+        id: `${form}.${field}`,
+        ref,
+        text: String((copy as unknown as Record<string, unknown>)[field] ?? ''),
+      });
 
 const lines: string[] = [];
 const say = (s = '') => lines.push(s);
@@ -86,8 +98,7 @@ say();
 const changed = new Map<string, Item[]>();
 const missing: Item[] = [];
 for (const it of items) {
-  const ch = lock.chapters[it.ref.chapter];
-  const sec = ch?.sections[it.ref.anchor];
+  const sec = lockDoc(lock, it.ref.chapter)?.sections[it.ref.anchor];
   if (!sec) missing.push(it);
   else if (sec.hash !== it.ref.hash) {
     const key = `${it.ref.chapter}#${it.ref.anchor}`;
@@ -100,8 +111,9 @@ if (!changed.size && !missing.length)
   say('None. Every quiz, page, voiced line, cited teaching line and learning item matches its section.');
 for (const [key, list] of changed) {
   const [chapter, anchor] = key.split('#');
+  const sec = lockDoc(lock, chapter)!.sections[anchor];
   say(
-    `- **[${chapter} · ${lock.chapters[chapter as SourceRef['chapter']]!.sections[anchor].title}](${COURSE}/blob/${lock.sha}/${chapter}/README.md#${anchor})** (now \`${lock.chapters[chapter as SourceRef['chapter']]!.sections[anchor].hash}\`, written against \`${list[0].ref.hash}\`)`,
+    `- **[${chapter} · ${sec.title}](${COURSE}/blob/${lock.sha}/${courseDoc(chapter).path}#${anchor})** (now \`${sec.hash}\`, written against \`${list[0].ref.hash}\`)`,
   );
   say(`  - ${list.map((i) => `${i.kind} \`${i.id}\``).join(', ')}`);
 }
@@ -173,10 +185,8 @@ if (args.report && drifted.length) {
 
 // 3 · UI-term check
 const BOLD = /\*\*(?!\s)([^*\n]+?)\*\*/g;
-const termsOf = (l: CourseLock | null, chapter: string) =>
-  new Set(
-    Object.values(l?.chapters[chapter as SourceRef['chapter']]?.sections ?? {}).flatMap((s) => s.terms ?? []),
-  );
+const termsOf = (l: CourseLock | null, doc: string) =>
+  new Set(Object.values((l && lockDoc(l, doc)?.sections) ?? {}).flatMap((s) => s.terms ?? []));
 const glossaryTerms = (l: CourseLock | null) =>
   new Set(Object.values(l?.glossary.terms ?? {}).flatMap((t) => [t.title, ...(t.terms ?? [])]));
 const readme = new Map<string, string>();
@@ -184,12 +194,21 @@ for (const [id, ch] of Object.entries(lock.chapters)) {
   const f = join(paths.snapshot, ch!.short, 'README.md');
   if (existsSync(f)) readme.set(id, await readFile(f, 'utf8'));
 }
+for (const name of Object.keys(lock.appendices ?? {})) {
+  const f = join(paths.snapshot, appendixPath(name));
+  if (existsSync(f)) readme.set(`${APPENDIX}${name}`, await readFile(f, 'utf8'));
+}
+/** Every chapter and appendix in the lock, as a `SourceRef.chapter`. */
+const docs = [
+  ...Object.keys(lock.chapters),
+  ...Object.keys(lock.appendices ?? {}).map((n) => `${APPENDIX}${n}`),
+];
 
 const dropped: string[] = [];
 if (previous)
-  for (const chapter of Object.keys(lock.chapters)) {
-    const now = new Set([...termsOf(lock, chapter), ...glossaryTerms(lock)]);
-    for (const t of termsOf(previous, chapter)) if (!now.has(t)) dropped.push(t);
+  for (const doc of docs) {
+    const now = new Set([...termsOf(lock, doc), ...glossaryTerms(lock)]);
+    for (const t of termsOf(previous, doc)) if (!now.has(t)) dropped.push(t);
   }
 const droppedHits: string[] = [];
 for (const t of new Set(dropped)) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LEGACY_KEYS, renameStorageKeys, renamedKey, type KeyedStorage } from './storage-rename';
+import { LEGACY_KEYS, isOldScope, renameStorageKeys, renamedKey, type KeyedStorage } from './storage-rename';
 
 class Mem implements KeyedStorage {
   readonly m = new Map<string, string>();
@@ -91,5 +91,63 @@ describe('the move from Copilot Isles to Kraken Isles (storage keys)', () => {
     expect(s.getItem('copilot-isles.copilot-app.save.v1')).toBe('{"captain":"woman"}');
     s.failWrites = false;
     expect(renameStorageKeys(s)).toEqual(['kraken-isles.copilot-app.save.v1']);
+  });
+});
+
+describe('a tab of the old build that stayed open (issue 321)', () => {
+  const save = (savedAt: number, place: string) =>
+    JSON.stringify({ captain: 'woman', x: 1, z: 2, savedAt, place });
+
+  it('keeps the newer save, and its progress goes with it', () => {
+    const s = new Mem();
+    s.setItem('kraken-isles.copilot-app.save.v1', save(100, 'Anchorage'));
+    s.setItem('kraken-isles.copilot-app.progress.v1', '{"v":1,"doubloons":5}');
+    s.setItem('copilot-isles.copilot-app.save.v1', save(200, 'Port Meridian'));
+    s.setItem('copilot-isles.copilot-app.progress.v1', '{"v":1,"doubloons":40}');
+    s.setItem('copilot-isles.settings.v1', '{"quality":"low"}');
+    s.setItem('kraken-isles.settings.v1', '{"quality":"high"}');
+    expect(renameStorageKeys(s).sort()).toEqual([
+      'kraken-isles.copilot-app.progress.v1',
+      'kraken-isles.copilot-app.save.v1',
+    ]);
+    expect(s.getItem('kraken-isles.copilot-app.save.v1')).toBe(save(200, 'Port Meridian'));
+    expect(s.getItem('kraken-isles.copilot-app.progress.v1')).toBe('{"v":1,"doubloons":40}');
+    expect(s.getItem('kraken-isles.settings.v1')).toBe('{"quality":"high"}');
+    expect([...s.m.keys()].some((k) => k.startsWith('copilot-isles.'))).toBe(false);
+  });
+
+  it('keeps the new save when it’s newer, or when the old one has no time', () => {
+    for (const old of [save(50, 'old'), '{"captain":"man"}', 'not json']) {
+      const s = new Mem();
+      s.setItem('kraken-isles.copilot-app.save.v1', save(100, 'new'));
+      s.setItem('kraken-isles.copilot-app.progress.v1', '{"v":1,"doubloons":5}');
+      s.setItem('copilot-isles.copilot-app.save.v1', old);
+      s.setItem('copilot-isles.copilot-app.progress.v1', '{"v":1,"doubloons":40}');
+      expect(renameStorageKeys(s)).toEqual([]);
+      expect(s.getItem('kraken-isles.copilot-app.save.v1')).toBe(save(100, 'new'));
+      expect(s.getItem('kraken-isles.copilot-app.progress.v1')).toBe('{"v":1,"doubloons":5}');
+      expect(s.m.size).toBe(2);
+    }
+  });
+
+  it('keeps the old save and progress when storage is full, so the next start can try again', () => {
+    const s = new Mem();
+    s.setItem('kraken-isles.copilot-app.save.v1', save(100, 'new'));
+    s.setItem('copilot-isles.copilot-app.save.v1', save(200, 'old'));
+    s.setItem('copilot-isles.copilot-app.progress.v1', '{"v":1}');
+    s.failWrites = true;
+    expect(renameStorageKeys(s)).toEqual([]);
+    expect(s.getItem('copilot-isles.copilot-app.save.v1')).toBe(save(200, 'old'));
+    expect(s.getItem('copilot-isles.copilot-app.progress.v1')).toBe('{"v":1}');
+    s.failWrites = false;
+    renameStorageKeys(s);
+    expect(s.getItem('kraken-isles.copilot-app.save.v1')).toBe(save(200, 'old'));
+  });
+
+  it('knows the old path’s service worker scope', () => {
+    expect(isOldScope('https://danwahlin.github.io/copilot-isles/')).toBe(true);
+    expect(isOldScope('https://danwahlin.github.io/kraken-isles/')).toBe(false);
+    expect(isOldScope('http://127.0.0.1:4173/')).toBe(false);
+    expect(isOldScope('nonsense')).toBe(false);
   });
 });

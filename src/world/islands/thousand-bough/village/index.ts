@@ -89,6 +89,7 @@ export async function createTreeVillage(
   // Lani's Model Market on Bough Landing (docs/specs/MODEL-MARKET.md §2; scenery without the market).
   addThousandBoughMarket(buckets, out, o.tier.tier === 'lite' || o.tier.tier === 'low');
   out.colliders.push(...flume.colliders);
+  out.cameraBoxes.push(...flume.cameraBoxes);
   group.add(flume.group);
   await breathe();
   for (const l of out.lanterns) {

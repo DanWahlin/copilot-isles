@@ -53,7 +53,8 @@
         "short": "ch07",
         "title": "Automations"
       }
-    ]
+    ],
+    "appendices": ["git-worktrees"]
   },
   "islands": [
     {
@@ -178,7 +179,7 @@
     "repoName": "copilot-app-for-beginners"
   },
   "setup": {
-    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch} (the practice branch: a session's base branch), {os} and {keys} are filled in. `branch.hint` and `branch.example` follow the course's appendices/git-worktrees.md, Worktree, branch, and session (the app names a new session branch with your branch prefix and generated words; not in the snapshot). `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
+    "$comment": "The \"Your setup\" forms (src/ui/learn/SetupForm.tsx): what each asks, and where the course says to look. `label` is the form's kicker and the Logbook's note; `**bold**` and `code` spans render as such; {issue}, {issueTitle}, {branch} (the practice branch: a session's base branch), {os} and {keys} are filled in. A form's `cites` names the course section each of its fields follows: `branch.hint` and `branch.example` cite the course's appendix (`appendix:git-worktrees`, Worktree, branch, and session: the app names a new session branch with your branch prefix and generated words), which the snapshot holds (`source.appendices`). `os.shortcut` is the shortcut shown with your computer's keys (src/learn/setup.ts formatKeys).",
     "os": {
       "label": "Your computer",
       "title": "Change your computer",
@@ -210,7 +211,29 @@
       "hint": "The app names it with your branch prefix and a few words, like `octocat-bookish-invention`.",
       "example": "octocat-bookish-invention",
       "base": "That’s the **base branch**, where your session started. Your session works on a branch of its own: select the session name at the top of the window to see it.",
-      "skip": "I haven’t done it yet"
+      "skip": "I haven’t done it yet",
+      "cites": {
+        "intro": {
+          "chapter": "02-sessions-worktrees-context",
+          "anchor": "exercise-start-a-session-from-a-branch-and-attach-an-issue",
+          "hash": "25403dfc8620"
+        },
+        "base": {
+          "chapter": "02-sessions-worktrees-context",
+          "anchor": "exercise-check-the-session-with-slash-commands",
+          "hash": "b3a17e3a13fd"
+        },
+        "hint": {
+          "chapter": "appendix:git-worktrees",
+          "anchor": "worktree-branch-and-session",
+          "hash": "fc312a6dfb34"
+        },
+        "example": {
+          "chapter": "appendix:git-worktrees",
+          "anchor": "worktree-branch-and-session",
+          "hash": "fc312a6dfb34"
+        }
+      }
     },
     "model": {
       "label": "Your model",
