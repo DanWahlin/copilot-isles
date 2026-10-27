@@ -403,16 +403,33 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
         host.sfx('lamp', host.player);
       }
     })();
+    // The gate's options (an approval: the seal, and wrong calls with their reasons), or just the seal.
+    const options = s.options ?? [{ id: SEAL, text: T('sealIt'), right: true as const }];
+    const tried = new Set<string>();
     for (;;) {
       const pick = await host.ask({
         ...head(s),
         prompt: s.prompt ?? '',
         detail: detail(),
-        options: [{ id: SEAL, label: T('sealIt') }, leave()],
+        options: [...options.map((o) => ({ id: o.id, label: o.text, tried: tried.has(o.id) })), leave()],
       });
       if (!pick || pick === LEAVE) {
         stop = true;
         return leaveStation(s);
+      }
+      const o = options.find((x) => x.id === pick);
+      if (!o) continue;
+      if (!o.right) {
+        // A wrong call: its reason, and the gate waits for yours.
+        tried.add(pick);
+        host.sfx('wrong', host.player);
+        host.card.message(('reason' in o && o.reason) || T('lampNotReady'), 'bad');
+        if ('line' in o && o.line) {
+          host.card.busy(true);
+          await host.say([o.line]);
+          host.card.busy(false);
+        } else await wait(1600);
+        continue;
       }
       const dark = gateDark(s, lit);
       if (dark) {
@@ -428,7 +445,8 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
     r.pass();
     lampOf(s, 'ready');
     host.stage.station(where(s), 'pass');
-    host.card.message(T('lampReady'), 'good');
+    const right = options.find((o) => o.right);
+    host.card.message((right && 'result' in right && right.result) || T('lampReady'), 'good');
     await wait(1300);
     save();
     return true;

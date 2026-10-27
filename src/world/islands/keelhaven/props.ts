@@ -41,8 +41,8 @@ export const KEELHAVEN_SET = {
   chestTo: { u: 172.8, v: DOCKS.v[1] - 3.2 },
   /** Stroud's two ledgers, Issues then Pull requests, facing the yard. */
   ledgers: [
-    { u: 57.6, v: -49.4, sign: 'ledgerIssues', dial: 'ledgerFork' },
-    { u: 62.4, v: -49.4, sign: 'ledgerPulls', dial: 'ledgerAll' },
+    { u: 57.6, v: -49.4, sign: 'ledgerIssues', dial: 'ledgerIssuesQuery' },
+    { u: 62.4, v: -49.4, sign: 'ledgerPulls', dial: 'ledgerPullsQuery' },
   ],
   /** The strata cut by the yard path, its face to the path. */
   strata: { u: 105.2, v: -14.6 },

@@ -440,6 +440,10 @@
         "anchor": "confirm-the-sample-app-is-ready",
         "hash": "a02a5f393061"
       },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#confirm-the-sample-app-is-ready"
+      },
       "seen": {
         "prompt": "How many tests passed?",
         "options": [
@@ -469,13 +473,17 @@
         "Select **Create from**, then **Branches**, then `practice-unread-count-bug`.",
         "Type `#2` and select **Keep unread stats correct when filters are active** (another number? Type `#` and pick it by title).",
         "In **Plan** mode, ask for a fix and validation plan. Select **Exit plan mode and I will prompt myself** (if **Review plan** stays open, select **Continue**), check the mode is **Interactive**, and ask Copilot to implement it.",
-        "Inspect **Changes**, check the tests and build, run `npm run dev`, and open **Browser** with the **Local** URL. Set **Fantasy** and **Unread**, then stop the server with `Ctrl+C`."
+        "Inspect **Changes**. In **Terminal**, run `npm install` in `samples/book-app-web`, then check the tests and build. Run `npm run dev`, open **Browser** with the **Local** URL, leave the search empty, and set **Fantasy** and **Unread**. Stop the server with `Ctrl+C`."
       ],
       "why": "One full inner-loop cycle: plan, change, inspect, test, build and preview.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "1-review-and-fix-a-bug",
         "hash": "d1ea06a6a686"
+      },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#1-review-and-fix-a-bug"
       },
       "seen": {
         "prompt": "With **Fantasy** and **Unread**, what does the unread count say now?",
@@ -514,6 +522,10 @@
         "anchor": "2-add-a-regression-test",
         "hash": "cc75e9d58ac3"
       },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#2-add-a-regression-test"
+      },
       "seen": {
         "prompt": "What does your new test check?",
         "options": [
@@ -551,6 +563,10 @@
         "anchor": "3-ask-for-a-second-opinion",
         "hash": "245981caca80"
       },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#3-ask-for-a-second-opinion"
+      },
       "seen": {
         "prompt": "What did you get back?",
         "options": [
@@ -579,14 +595,18 @@
       "steps": [
         "Open **Issues** and stay on **Assigned to me**.",
         "Select the filter icon at the right end of the tab row, then **Query filter mode** (`<>`). Add `repo:YOUR-OWNER/copilot-app-for-beginners` to the existing query (your fork’s owner), keep `state:open assignee:@me`, and press `Enter`.",
-        "Open **Pull requests**, select **Authored by me**, and add the same `repo:` term to its query: each view has its own filter.",
+        "Open **Pull requests**, select **Authored by me**, and add the same `repo:` term to its query (keep `state:open author:@me`): filters belong to the selected view.",
         "Open a practice pull request. It shows its title, repository, number and status."
       ],
-      "why": "Each view has its own filter, so set your fork in both.",
+      "why": "Filters belong to the selected view: add your fork’s `repo:` term in each, and check the query when you change tabs.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
         "hash": "f929b99a9973"
+      },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#4-find-work-in-issues-and-pull-requests"
       },
       "seen": {
         "prompt": "Which of these is a pull request on **Authored by me**?",
@@ -605,7 +625,7 @@
           }
         ],
         "answer": "stats",
-        "explain": "**Failing stats check practice** and **Improve empty-state copy** are the seeded pull requests. The other two are issues."
+        "explain": "**Failing stats check practice** and **Improve empty-state copy** are the two seeded pull requests this chapter uses. The other two are issues."
       }
     },
     {
@@ -616,14 +636,18 @@
       "steps": [
         "Open **Make search case-insensitive** in **Issues**. Its **New session** starts from `main`, so select **Create from**, then **Branches**, then `practice-search-case-bug`, and type `#1`.",
         "In **Plan** mode, ask for a plan that names the files and the checks. Select **Exit plan mode and I will prompt myself** (if **Review plan** stays open, select **Continue**), check the mode is **Interactive**, and ask for the fix with a focused regression test.",
-        "Inspect **Changes**, run the tests and build, and preview: `hobbit` and `HOBBIT` give the same result. Stop the server with {key:ctrl+C}.",
+        "Inspect **Changes**. In **Terminal**, change to `samples/book-app-web` and run `npm install`, the tests and the build. Preview: `hobbit` and `HOBBIT` give the same result. Stop the server with {key:ctrl+C}.",
         "Ask for a pull request summary that claims only checks you saw, select **Create PR**, and don’t merge it."
       ],
-      "why": "Main already has the fix, so this pull request is practice: it stays open.",
+      "why": "Main already has the fix, so this pull request is practice: it stays open. No check starts on it? New forks turn workflows off: turn them on in your fork’s **Actions** tab.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "5-start-from-an-issue-and-open-a-pull-request",
         "hash": "b564b37adbb4"
+      },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#5-start-from-an-issue-and-open-a-pull-request"
       },
       "seen": {
         "prompt": "What does your pull request’s summary claim?",
@@ -662,6 +686,10 @@
         "anchor": "respond-to-a-review-comment",
         "hash": "b36cced0ba51"
       },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#respond-to-a-review-comment"
+      },
       "seen": {
         "prompt": "What does the new message tell the reader?",
         "options": [
@@ -689,8 +717,8 @@
       "title": "Fix a failing check",
       "steps": [
         "Open **Failing stats check practice** and read the failed **Book app web** check.",
-        "Select **New session**. With your own prompt, ask Copilot to analyze the failing check and propose the smallest fix, without weakening the failing test.",
-        "Inspect the diff (favorites count for read and unread books, and the test is unchanged), then run the tests, build and preview. Stop the server.",
+        "Select **New session**. The **PR** tab has a **Fix failing checks** button, but use your own prompt: ask Copilot to analyze the failing check and propose the smallest fix, without weakening the failing test.",
+        "Inspect the diff (favorites count for read and unread books, and the test is unchanged). In `samples/book-app-web`, run `npm install`, the tests and the build, and preview. Stop the server.",
         "Commit and push, then check that **Book app web** runs again and passes."
       ],
       "why": "Don’t mark a pull request ready until the local and GitHub evidence agree.",
@@ -698,6 +726,10 @@
         "chapter": "03-development-workflows",
         "anchor": "fix-a-failing-check",
         "hash": "f2156f9ed67c"
+      },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#fix-a-failing-check"
       },
       "seen": {
         "prompt": "What did **Book app web** show after your push?",
@@ -730,11 +762,15 @@
         "Run `npm test -- --run` and `npm run build`, and preview at a wide and a narrow width (drag the review panel’s left edge).",
         "Open a pull request whose summary lists only the validation you did, and check in **Pull requests** that its checks pass."
       ],
-      "why": "Both loops, on your own: one focused change with honest evidence.",
+      "why": "Both loops, on your own: one focused change with honest evidence. No check starts on your pull request? New forks turn workflows off: turn them on in your fork’s **Actions** tab.",
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "assignment",
         "hash": "8bece86eb9dd"
+      },
+      "link": {
+        "label": "The course’s exact prompts",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#assignment"
       }
     },
     {
@@ -753,6 +789,10 @@
         "chapter": "03-development-workflows",
         "anchor": "3-ask-for-a-second-opinion",
         "hash": "245981caca80"
+      },
+      "link": {
+        "label": "Pick & Polish’s exact steps",
+        "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#3-ask-for-a-second-opinion"
       },
       "seen": {
         "prompt": "What showed in the prompt box after you picked the card?",
@@ -1064,7 +1104,8 @@
       },
       "covers": {
         "quests": ["Q3.3"],
-        "appTasks": ["A3.1"]
+        "appTasks": ["A3.1"],
+        "quizzes": ["T3.13"]
       }
     },
     {
@@ -1094,7 +1135,7 @@
       "covers": {
         "quests": ["Q3.7", "Q3.8"],
         "puzzles": ["lock-flight"],
-        "quizzes": ["K3.7", "T3.6", "T3.7"],
+        "quizzes": ["K3.7", "T3.6", "T3.7", "T3.11"],
         "appTasks": ["A3.5", "A3.6"]
       }
     },
@@ -1109,7 +1150,7 @@
       },
       "covers": {
         "quests": ["Q3.9"],
-        "quizzes": ["T3.8", "T3.9"],
+        "quizzes": ["T3.8"],
         "appTasks": ["A3.7", "A3.8"]
       }
     },
@@ -1125,7 +1166,7 @@
       "covers": {
         "quests": ["Q3.2"],
         "puzzles": ["drydock-ring", "lock-flight"],
-        "quizzes": ["K3.2", "T3.1", "T3.10"]
+        "quizzes": ["K3.2", "T3.1"]
       }
     }
   ],

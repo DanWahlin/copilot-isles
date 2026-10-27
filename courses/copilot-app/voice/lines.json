@@ -2339,7 +2339,7 @@
     {
       "id": "kh.stroud.03",
       "speaker": "Stroud",
-      "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both."
+      "text": "Two ledgers, two queries. Filters belong to the view, so add your fork's repo term to each."
     },
     {
       "id": "kh.stroud.04",
@@ -2495,6 +2495,11 @@
       "id": "kh.otto.03",
       "speaker": "Ottoline",
       "text": "Next, Guildcrest. Its guild reuses this workflow with a review skill and a custom agent."
+    },
+    {
+      "id": "kh.otto.more",
+      "speaker": "Ottoline",
+      "text": "And one more job, if you want it, Captain. Talk to me again when you're ready."
     },
     {
       "id": "kh.otto.retry",

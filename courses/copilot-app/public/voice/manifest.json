@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T03:04:22.961Z",
+  "generatedAt": "2026-10-27T19:29:16.337Z",
   "set": "testcove",
   "lines": [
     {
@@ -41113,103 +41113,98 @@
     {
       "id": "kh.stroud.03",
       "speaker": "Stroud",
-      "text": "Two ledgers: Issues and Pull requests. Each view has its own filter, so set your fork in both.",
-      "duration": 9.108,
+      "text": "Two ledgers, two queries. Filters belong to the view, so add your fork's repo term to each.",
+      "duration": 8.808,
       "files": {
         "webm": "kh.stroud.03.webm",
         "m4a": "kh.stroud.03.m4a"
       },
-      "hash": "2b7ee2fc329e6a5d",
+      "hash": "ecf361ded652ce5b",
       "words": [
         {
           "word": "Two",
           "start": 0,
-          "end": 0.32
+          "end": 0.24
         },
         {
           "word": "ledgers",
-          "start": 0.32,
-          "end": 1.2
+          "start": 0.24,
+          "end": 1.32
         },
         {
-          "word": "Issues",
-          "start": 1.2,
-          "end": 2.26
+          "word": "two",
+          "start": 1.32,
+          "end": 1.53
         },
         {
-          "word": "and",
-          "start": 2.26,
-          "end": 2.624
+          "word": "queries",
+          "start": 1.53,
+          "end": 2.54
         },
         {
-          "word": "Pull",
-          "start": 2.624,
-          "end": 2.969
+          "word": "Filters",
+          "start": 2.54,
+          "end": 4.126
         },
         {
-          "word": "requests",
-          "start": 2.969,
-          "end": 4.304
+          "word": "belong",
+          "start": 4.126,
+          "end": 4.453
         },
         {
-          "word": "Each",
-          "start": 4.304,
-          "end": 4.8
+          "word": "to",
+          "start": 4.453,
+          "end": 4.58
+        },
+        {
+          "word": "the",
+          "start": 4.58,
+          "end": 4.72
         },
         {
           "word": "view",
-          "start": 4.8,
-          "end": 5.16
-        },
-        {
-          "word": "has",
-          "start": 5.16,
-          "end": 5.34
-        },
-        {
-          "word": "its",
-          "start": 5.34,
-          "end": 5.58
-        },
-        {
-          "word": "own",
-          "start": 5.58,
-          "end": 5.84
-        },
-        {
-          "word": "filter",
-          "start": 5.84,
-          "end": 7.12
+          "start": 4.72,
+          "end": 5.573
         },
         {
           "word": "so",
-          "start": 7.12,
-          "end": 7.34
+          "start": 5.573,
+          "end": 5.9
         },
         {
-          "word": "set",
-          "start": 7.34,
-          "end": 7.552
+          "word": "add",
+          "start": 5.9,
+          "end": 6.112
         },
         {
           "word": "your",
-          "start": 7.552,
-          "end": 7.792
+          "start": 6.112,
+          "end": 6.32
         },
         {
-          "word": "fork",
-          "start": 7.792,
-          "end": 8.347
+          "word": "fork's",
+          "start": 6.32,
+          "end": 6.816
         },
         {
-          "word": "in",
-          "start": 8.347,
-          "end": 8.64
+          "word": "repo",
+          "start": 6.816,
+          "end": 7.296
         },
         {
-          "word": "both",
-          "start": 8.64,
-          "end": 8.89
+          "word": "term",
+          "start": 7.296,
+          "end": 7.813
+        },
+        {
+          "word": "to",
+          "start": 7.813,
+          "end": 8.192
+        },
+        {
+          "word": "each",
+          "start": 8.192,
+          "end": 8.442
         }
       ],
       "voice": "q1h5HGdnfVxp4TXTJRNN"
@@ -46605,6 +46600,100 @@
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
+    },
+    {
+      "id": "kh.otto.more",
+      "speaker": "Ottoline",
+      "text": "And one more job, if you want it, Captain. Talk to me again when you're ready.",
+      "duration": 5.208,
+      "files": {
+        "webm": "kh.otto.more.webm",
+        "m4a": "kh.otto.more.m4a"
+      },
+      "hash": "b57db9bffe1a963d",
+      "words": [
+        {
+          "word": "And",
+          "start": 0,
+          "end": 0.22
+        },
+        {
+          "word": "one",
+          "start": 0.22,
+          "end": 0.448
+        },
+        {
+          "word": "more",
+          "start": 0.448,
+          "end": 0.74
+        },
+        {
+          "word": "job",
+          "start": 0.74,
+          "end": 1.253
+        },
+        {
+          "word": "if",
+          "start": 1.253,
+          "end": 1.4
+        },
+        {
+          "word": "you",
+          "start": 1.4,
+          "end": 1.584
+        },
+        {
+          "word": "want",
+          "start": 1.584,
+          "end": 1.893
+        },
+        {
+          "word": "it",
+          "start": 1.893,
+          "end": 2.14
+        },
+        {
+          "word": "Captain",
+          "start": 2.14,
+          "end": 2.8
+        },
+        {
+          "word": "Talk",
+          "start": 2.8,
+          "end": 3.493
+        },
+        {
+          "word": "to",
+          "start": 3.493,
+          "end": 3.653
+        },
+        {
+          "word": "me",
+          "start": 3.653,
+          "end": 3.813
+        },
+        {
+          "word": "again",
+          "start": 3.813,
+          "end": 4.128
+        },
+        {
+          "word": "when",
+          "start": 4.128,
+          "end": 4.34
+        },
+        {
+          "word": "you're",
+          "start": 4.34,
+          "end": 4.533
+        },
+        {
+          "word": "ready",
+          "start": 4.533,
+          "end": 4.783
+        }
+      ],
+      "voice": "A3TiUH9xcSptIzvOUBnB"
     }
   ]
 }

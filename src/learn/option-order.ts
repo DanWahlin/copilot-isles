@@ -56,7 +56,7 @@ export function orderOptions<T>(
 }
 
 /** A quiz's options as shown: shuffled unless the quiz keeps its order, pinned ones in place. */
-export function quizOptions<O extends { pinned?: boolean }>(quiz: {
+export function quizOptions<O extends { id: string; pinned?: boolean }>(quiz: {
   id: string;
   options: readonly O[];
   fixedOrder?: boolean;

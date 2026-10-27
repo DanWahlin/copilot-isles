@@ -128,32 +128,63 @@
           "at": "slate",
           "kind": "choose",
           "title": "Diff",
-          "prompt": "Read the marks on the slate.",
+          "prompt": "Read the marks on the slate. Is the diff ready for Gate 1?",
           "options": [
             {
               "id": "focused",
-              "text": "Only the search fix and its test: focused",
+              "text": "Yes: only the search fix and its test",
               "right": true,
               "result": "The diff is focused."
+            },
+            {
+              "id": "polish",
+              "text": "Not yet: add the book card’s polish while the hull’s in",
+              "reason": "That isn’t this issue. The Changes tab should hold only the focused search fix and its test.",
+              "backTo": "slate",
+              "cite": "start"
             }
           ],
-          "cite": "start"
+          "cite": "start",
+          "hints": [
+            "What does the issue ask for?",
+            "One fix, and the test that proves it.",
+            "Yes: only the search fix and its test."
+          ]
         },
         {
           "id": "gate1",
           "at": "gate1",
           "kind": "seal",
           "title": "Approval gate",
-          "prompt": "The diff is focused. Seal Gate 1?",
+          "prompt": "Your approval gate. Read the evidence: the slate shows the search fix and its test. Seal Gate 1, or send it back?",
           "options": [
             {
               "id": "seal",
-              "text": "Seal Gate 1",
+              "text": "Seal it: the diff holds only the search fix and its test",
               "right": true,
               "result": "Your seal goes on Gate 1, and the lock opens."
+            },
+            {
+              "id": "test",
+              "text": "Send it back: a test file changed too",
+              "reason": "The test is part of the job: the plan asked for a focused regression test. Send back only what isn’t.",
+              "backTo": "gate1",
+              "cite": "start"
+            },
+            {
+              "id": "claim",
+              "text": "Seal it: Copilot says the fix works",
+              "reason": "A confident response isn’t validated software. Seal on what the diff shows.",
+              "backTo": "gate1",
+              "cite": "evidence"
             }
           ],
-          "cite": "outer"
+          "cite": "outer",
+          "hints": [
+            "What’s on the slate?",
+            "The fix and its test are the job.",
+            "Seal it: the diff holds only the search fix and its test."
+          ]
         },
         {
           "id": "petition",
@@ -213,10 +244,29 @@
         {
           "id": "basin",
           "at": "seaGate",
-          "kind": "watch",
-          "title": "No merge",
-          "text": "The hull moves down to wait in the basin, above the shut Sea Gate.",
-          "seconds": 3,
+          "kind": "choose",
+          "title": "The merge",
+          "prompt": "Your hull’s through Lock 1, her pull request open. The Sea Gate is the merge. Open it?",
+          "options": [
+            {
+              "id": "shut",
+              "text": "Keep it shut: it’s practice, and main already has the fix",
+              "right": true,
+              "result": "The Sea Gate stays shut, and your hull waits above it: open, not merged."
+            },
+            {
+              "id": "open",
+              "text": "Open it: every lamp is green",
+              "reason": "Not this one. Don’t merge this practice pull request: the correct search behavior is already on main.",
+              "backTo": "seaGate",
+              "cite": "start"
+            }
+          ],
+          "hints": [
+            "Where does the search fix already live?",
+            "main has it. This one’s practice.",
+            "Keep it shut."
+          ],
           "cite": "start"
         }
       ]
@@ -274,7 +324,7 @@
           "at": "lamps",
           "kind": "watch",
           "title": "Push",
-          "text": "Commit and push: the note is wiped, and Lockfall runs the lamp again. Green.",
+          "text": "Commit and push. The pull request shows your new commit, and Lockfall runs the lamp again. Green.",
           "line": "kh.arlo.04",
           "seconds": 4,
           "cite": "comment"
@@ -343,7 +393,7 @@
           "at": "gate2",
           "kind": "gate",
           "title": "Approval gate",
-          "prompt": "Gate 2 opens when its four lamps agree. The last one is your seal.",
+          "prompt": "Gate 2 opens when its four lamps agree. Read them as they light. The last one is your review.",
           "line": "kh.arlo.07",
           "lamps": [
             {
@@ -363,17 +413,59 @@
               "text": "Your review"
             }
           ],
-          "cite": "takeaways"
+          "cite": "takeaways",
+          "options": [
+            {
+              "id": "seal",
+              "text": "Seal it: the diff, local validation, the checks and your review agree",
+              "right": true,
+              "result": "Your seal goes on Gate 2."
+            },
+            {
+              "id": "green",
+              "text": "Seal it now: the Book app web check is green",
+              "reason": "One green lamp isn’t enough. A change is ready only when the diff, local validation, GitHub checks and human review agree.",
+              "backTo": "gate2",
+              "cite": "takeaways"
+            },
+            {
+              "id": "tug",
+              "text": "Leave it to the tug (Agent Merge)",
+              "reason": "Agent Merge is a finishing aid, not a replacement for human review. The last lamp is your own review.",
+              "backTo": "gate2",
+              "cite": "check"
+            }
+          ],
+          "hints": [
+            "How many lamps must agree?",
+            "All four. The last is yours.",
+            "Seal it once the diff, local validation and checks are lit, and you’ve reviewed it."
+          ]
         },
         {
           "id": "sea",
           "at": "seaGate",
-          "kind": "watch",
-          "title": "No merge",
-          "text": "The Sea Gate stays shut. The hulls wait in the basin with a white pennant: done, and not merged.",
-          "line": "kh.arlo.08",
-          "seconds": 4,
-          "cite": "start"
+          "kind": "choose",
+          "title": "The merge",
+          "prompt": "Both hulls are through, Gate 2 sealed. The Sea Gate is the merge. Open it?",
+          "options": [
+            {
+              "id": "shut",
+              "text": "Keep it shut: these are practice pull requests",
+              "right": true,
+              "result": "The hulls wait in the basin with a white pennant: done, and not merged.",
+              "line": "kh.arlo.08"
+            },
+            {
+              "id": "open",
+              "text": "Open it: Gate 2 is sealed",
+              "reason": "Gate 2 says they’re ready. The course doesn’t ask you to merge these practice pull requests: they stay open.",
+              "backTo": "seaGate",
+              "cite": "practice"
+            }
+          ],
+          "hints": ["Does the course ask you to merge them?", "They’re practice.", "Keep it shut."],
+          "cite": "practice"
         }
       ]
     }
@@ -421,6 +513,14 @@
     "takeaways": {
       "anchor": "key-takeaways",
       "hash": "81bc07b99b37"
+    },
+    "evidence": {
+      "anchor": "core-concept-trust-the-evidence",
+      "hash": "46abd535804e"
+    },
+    "practice": {
+      "anchor": "6-address-review-comments-and-failing-checks",
+      "hash": "48bb6fea7ce8"
     }
   }
 }

@@ -126,8 +126,8 @@ export function chapterIndex(c: Pick<ChapterContent, 'chapter' | 'quizzes' | 'pa
  */
 export const ISLAND_SIGNS: Readonly<Record<string, readonly string[]>> = {
   'thousand-bough': ['loft'],
-  // Keelhaven's boards, plates, ledgers, hull names, strata bands and Dory's two ways to run a snippet
-  // (src/world/islands/keelhaven/props.ts).
+  // Keelhaven's boards, plates, ledgers (their query plates and Stroud's card), hull names, strata bands
+  // and Dory's two ways to run a snippet (src/world/islands/keelhaven/props.ts, keelhaven-session.ts).
   keelhaven: [
     'dock1',
     'dock2',
@@ -136,8 +136,20 @@ export const ISLAND_SIGNS: Readonly<Record<string, readonly string[]>> = {
     'lampPlate',
     'ledgerIssues',
     'ledgerPulls',
-    'ledgerAll',
-    'ledgerFork',
+    'ledgerIssuesQuery',
+    'ledgerPullsQuery',
+    'ledgerIssuesAsk',
+    'ledgerAddRepo',
+    'ledgerReplace',
+    'ledgerPick',
+    'ledgerKeep',
+    'ledgerNoList',
+    'ledgerIssuesDone',
+    'ledgerPullsAsk',
+    'ledgerSame',
+    'ledgerShared',
+    'ledgerPerView',
+    'ledgerPullsDone',
     'hullSearch',
     'hullNote',
     'hullLamp',

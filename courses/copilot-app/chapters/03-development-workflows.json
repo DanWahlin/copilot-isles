@@ -1,6 +1,6 @@
 {
   "$schema": "../../schemas/chapter.schema.json",
-  "$comment": "Chapter 03 (Development and GitHub Workflows) on Keelhaven (docs/specs/ISLAND-03-keelhaven.md §6). Six app screenshots are from before app 1.1.30 (upstream issue github/copilot-app-for-beginners#50): no caption over them names the sidebar, and no hotspot targets them. The island is in build: the game leaves this chapter out until Keelhaven is in the registry (src/course/split.ts withoutIslandsAhead).",
+  "$comment": "Chapter 03 (Development and GitHub Workflows) on Keelhaven (docs/specs/ISLAND-03-keelhaven.md §6). The app screenshots are the course’s current ones (app 1.1.30 and later), and the hotspots fit them.",
   "chapter": "03-development-workflows",
   "images": [
     {
@@ -440,37 +440,37 @@
     {
       "id": "K3.7",
       "type": "mc",
-      "prompt": "You limited **Issues** to your fork. **Pull requests** still lists work from every repository. Why?",
+      "prompt": "You added your fork’s `repo:` term to the **Issues** query. **Pull requests** › **Authored by me** still lists work from every repository. Why?",
       "options": [
         {
           "id": "own",
-          "text": "Each view has its own filter: limit **Pull requests** to your fork too"
+          "text": "Filters belong to the selected view: add the same `repo:` term to its query"
         },
         {
           "id": "deleted",
           "text": "Your pull requests were deleted",
-          "feedback": "They’re still there. This view just isn’t limited to your fork yet."
+          "feedback": "They’re still there. This view’s query just doesn’t have the `repo:` term yet."
         },
         {
           "id": "worktree",
           "text": "You need a new worktree first",
-          "feedback": "Worktrees are for sessions. This is the view’s own filter."
+          "feedback": "Worktrees are for sessions. This is the view’s own query."
         },
         {
           "id": "broken",
           "text": "The filter is broken",
-          "feedback": "It works, one view at a time. Set it in **Pull requests** too."
+          "feedback": "It works, one view at a time. Add the `repo:` term to this view’s query too."
         }
       ],
       "answer": "own",
       "explain": {
-        "correct": "Right. Each view has its own filter, so set your fork in **Issues** and in **Pull requests**. The practice pull requests are on **Authored by me**.",
-        "wrong": "You set the filter in one view. What about the other?"
+        "correct": "Right. Filters belong to the selected view. When you change tabs, check the query and add the `repo:` term again. The practice pull requests are on **Authored by me**.",
+        "wrong": "You added the term in one view. What about the other?"
       },
       "hints": [
-        "Where did you set the filter?",
-        "Two views, two filters.",
-        "Each view has its own filter: limit **Pull requests** to your fork too."
+        "Where did you add the `repo:` term?",
+        "Two views, two queries.",
+        "Filters belong to the selected view: add the same `repo:` term to its query."
       ],
       "source": {
         "chapter": "03-development-workflows",
@@ -516,8 +516,8 @@
         "wrong": "Read the success criteria again: what does it say about the summary, and about a merge?"
       },
       "hints": [
-        "What does the success criteria line ask for?",
-        "Nothing in it merges, and the summary is honest.",
+        "What do the steps and the success criteria ask for?",
+        "Nothing in them merges, and the summary is honest.",
         "Everything but the merge and the \"every check passed\" summary."
       ],
       "source": {
@@ -913,30 +913,35 @@
     {
       "id": "T3.11",
       "type": "scenario",
-      "situation": "You set **Issues** to your fork, then open **Pull requests**.",
-      "prompt": "What do you expect?",
+      "situation": "You added your fork’s `repo:` term to the **Issues** query on **Assigned to me**. Now you open **Pull requests** and select **Authored by me**.",
+      "prompt": "What do you check first?",
       "options": [
         {
           "id": "own",
-          "text": "Pull requests has its own filter: set your fork there too"
+          "text": "Its query: add the same `repo:` term if it isn’t there"
         },
         {
           "id": "same",
-          "text": "The same fork, already set",
-          "feedback": "Each view has its own filter. Check it in each view."
+          "text": "Nothing: the `repo:` term carries over from **Issues**",
+          "feedback": "Filters belong to the selected view. Check the query each time you change tabs."
         },
         {
           "id": "none",
-          "text": "No pull requests at all",
-          "feedback": "They’re there. The view just isn’t limited to your fork yet."
+          "text": "That the pull requests were deleted",
+          "feedback": "They’re there. The view’s query just isn’t limited to your fork yet."
+        },
+        {
+          "id": "branch",
+          "text": "The session’s branch",
+          "feedback": "The branch is a session’s. This is the view’s own query."
         }
       ],
       "answer": "own",
       "explain": {
-        "correct": "Right. Each view has its own filter, so check it whenever you change views.",
-        "wrong": "Is the filter shared?"
+        "correct": "Right. Filters belong to the selected view. When you change tabs, check the query and add the `repo:` term again if needed.",
+        "wrong": "Is the query shared between views?"
       },
-      "hints": ["One view, one filter.", "Set it in each view.", ""],
+      "hints": ["One view, one query.", "Check it in each view.", ""],
       "source": {
         "chapter": "03-development-workflows",
         "anchor": "4-find-work-in-issues-and-pull-requests",
@@ -974,6 +979,44 @@
         "chapter": "03-development-workflows",
         "anchor": "tests-fail-only-in-one-session",
         "hash": "f47217f9c6c2"
+      }
+    },
+    {
+      "id": "T3.13",
+      "type": "scenario",
+      "situation": "A minute ago you ran `cd samples/book-app-web` in the session’s **Terminal**. Now Copilot’s reply shows `npm test -- --run`, with a **Run** button next to it.",
+      "prompt": "What happens when you select **Run**?",
+      "options": [
+        {
+          "id": "reuse",
+          "text": "It runs in the session’s terminal, which reuses its shell: so it runs in `samples/book-app-web`"
+        },
+        {
+          "id": "root",
+          "text": "A new terminal opens at the repository’s root",
+          "feedback": "The terminal reuses the existing shell when it can, so the working directory carries over."
+        },
+        {
+          "id": "paste",
+          "text": "Nothing: you have to copy and paste it",
+          "feedback": "Copy and paste is the other way. **Run** runs the snippet in the session’s terminal for you."
+        },
+        {
+          "id": "ci",
+          "text": "It runs on GitHub, as a check",
+          "feedback": "It runs on your machine, in the session’s terminal. Checks run on a pull request."
+        }
+      ],
+      "answer": "reuse",
+      "explain": {
+        "correct": "Right. **Run** runs the snippet in the session’s terminal, without copying and pasting. The terminal reuses the existing shell when it can, so the environment and the working folder carry over.",
+        "wrong": "Where does a snippet run, and which folder is it in?"
+      },
+      "hints": ["Where does **Run** run it?", "In the session’s terminal, which keeps its shell.", ""],
+      "source": {
+        "chapter": "03-development-workflows",
+        "anchor": "running-code-snippets-in-the-terminal",
+        "hash": "59d78fd08c7f"
       }
     }
   ],
@@ -1352,7 +1395,7 @@
     {
       "id": "rubber-duck",
       "term": "Rubber duck",
-      "definition": "`/rubber-duck`: a constructive critic that uses a different model to find missing evidence or assumptions before you open a pull request."
+      "definition": "`/rubber-duck`: a constructive critic that uses a different model, when a suitable one is available, to find missing evidence or assumptions before you open a pull request."
     },
     {
       "id": "pick-and-polish",
@@ -1369,7 +1412,7 @@
     {
       "id": "T3",
       "title": "The Gate Light Trial",
-      "items": ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7", "T3.8", "T3.9", "T3.10"],
+      "items": ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T3.7", "T3.8", "T3.13", "T3.11"],
       "reward": {
         "seal": "Seal of Keelhaven",
         "doubloons": 70
@@ -1729,8 +1772,8 @@
     },
     "kh.arlo.08": {
       "chapter": "03-development-workflows",
-      "anchor": "5-start-from-an-issue-and-open-a-pull-request",
-      "hash": "b564b37adbb4"
+      "anchor": "6-address-review-comments-and-failing-checks",
+      "hash": "48bb6fea7ce8"
     },
     "kh.arlo.tug": {
       "chapter": "03-development-workflows",

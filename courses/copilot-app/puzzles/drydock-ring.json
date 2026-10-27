@@ -136,7 +136,12 @@
           "again": "Already sounded. If the crew already ran the tests and build, don’t run them again.",
           "line": "kh.cass.04",
           "planks": 4,
-          "cite": "validate"
+          "cite": "validate",
+          "hints": [
+            "Each lit plank is a test. Tap every one.",
+            "Then pull the sluice: that’s the build.",
+            "Tap each plank once, one after another."
+          ]
         },
         {
           "id": "preview",
@@ -287,16 +292,29 @@
           "at": "slate",
           "kind": "choose",
           "title": "Inspect",
-          "prompt": "Check the slate.",
+          "prompt": "Check the slate. What did the crew change?",
           "options": [
             {
               "id": "focused",
               "text": "One new gauge that checks the books shown and the tally; no old mark moved",
               "right": true,
               "result": "The slate is clean."
+            },
+            {
+              "id": "moved",
+              "text": "A new gauge, and the old high-water mark moved down to match",
+              "reason": "An old mark moved: that weakens an existing expectation. The test should check the books the filters show.",
+              "backTo": "stack",
+              "cite": "regression",
+              "line": "kh.cass.gauge.lower"
             }
           ],
-          "cite": "regression"
+          "cite": "regression",
+          "hints": [
+            "Did any old mark move?",
+            "A new gauge only. Old marks stay.",
+            "One new gauge that checks the books shown and the tally; no old mark moved."
+          ]
         },
         {
           "id": "sound",
@@ -306,7 +324,12 @@
           "text": "Five planks now: four old ones and the new gauge. Sound them, then float her.",
           "again": "Already sounded.",
           "planks": 5,
-          "cite": "regression"
+          "cite": "regression",
+          "hints": [
+            "Each lit plank is a test. Tap every one.",
+            "Then pull the sluice: that’s the build.",
+            "Tap each plank once, one after another."
+          ]
         },
         {
           "id": "look",
@@ -329,9 +352,22 @@
               "text": "Seal it: the new test checks what the filters show, and the tests and build pass",
               "right": true,
               "result": "Your seal goes on the post."
+            },
+            {
+              "id": "claim",
+              "text": "Seal it: Copilot says the test is done",
+              "reason": "That’s a claim, not evidence. Seal on a test that fails with the bug and passes with the fix.",
+              "backTo": "post",
+              "cite": "trust",
+              "line": "kh.cass.claim"
             }
           ],
-          "cite": "trust"
+          "cite": "trust",
+          "hints": [
+            "What does your seal rest on?",
+            "The test, the tests and build, not a claim.",
+            "Seal it: the new test checks what the filters show, and the tests and build pass."
+          ]
         }
       ]
     }
