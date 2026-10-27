@@ -568,6 +568,22 @@
   top: 24%;
   pointer-events: none;
 }
+/* The bosun's question and the break-off card: between the hull box and the bottom of the screen
+   (the guns are held while one is up, so they step away), never over the hull box. */
+.bh[data-phase='question'] .bh-guns,
+.bh[data-phase='breakoff'] .bh-guns {
+  visibility: hidden;
+}
+.bh-card.show:not(.slim):not(.banner) {
+  top: calc(50% + 3.3rem);
+  max-height: calc(100% - 8.6rem);
+}
+@media (max-width: 760px) {
+  .bh-card.show:not(.slim):not(.banner) {
+    top: calc(50% + 4.6rem);
+    max-height: calc(100% - 10.8rem);
+  }
+}
 .bh-card.banner {
   /* Its top under the hull and wave box (it overlapped the box's lower edge). */
   top: max(18%, 7rem);

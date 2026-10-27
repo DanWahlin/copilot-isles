@@ -3,7 +3,7 @@
 // reflection, the Continue card, a recap, the Logbook, the Model Market when its island is in) must
 // not intersect any visible HUD panel, and must fit the screen; and in a sea battle the battle's own
 // panels (the hull bar and wave banner, the voiced line, the Skip buttons, the gun rows, the helm
-// hint) must not overlap each other. At desktop 1280×720 and 1920×1080, touch 390×844, and with
+// hint, the bosun's question) must not overlap each other. At desktop 1280×720 and 1920×1080, touch 390×844, and with
 // reduced motion.
 //
 //   node tools/cardtest.mjs --base=http://127.0.0.1:5301 [--views=desktop-1280,touch-390,…]
@@ -47,6 +47,7 @@ const HUD = [
 ];
 /** The battle's panels during a fight: none may overlap another. */
 const BATTLE_PANELS = [
+  '.bh-card.show:not(.banner)',
   '.bh-top',
   '.bh-guns',
   '.bh-skip',
@@ -206,6 +207,23 @@ for (const view of VIEWS) {
       for (const at of [3000, 9000]) {
         await page.waitForTimeout(at === 3000 ? 3000 : 6000);
         await checkBattlePanels(page, view, `fight-${at / 1000}s`);
+      }
+      // The wave beaten: the bosun's question (a card of the battle's own).
+      await S(page, 's.debug.battleRun().battle.debugStrikeAll()');
+      const asked = await page
+        .waitForFunction(
+          () => document.querySelector('.bh')?.getAttribute('data-phase') === 'question',
+          null,
+          {
+            timeout: 40_000,
+          },
+        )
+        .then(() => true)
+        .catch(() => false);
+      if (!asked) fails.push(`${view.name}: no bosun's question`);
+      else {
+        await checkCard(page, view, "bosun's question", '.bh-card.show');
+        await checkBattlePanels(page, view, 'question');
       }
     }
   }
