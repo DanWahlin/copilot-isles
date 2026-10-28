@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T19:29:16.337Z",
+  "generatedAt": "2026-10-28T07:27:33.641Z",
   "set": "testcove",
   "lines": [
     {
@@ -25168,113 +25168,133 @@
     {
       "id": "juno.cabin.02",
       "speaker": "Juno",
-      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course. Finish its quests to earn its seal.",
-      "duration": 7.607,
+      "text": "Every island out there teaches a chapter of the GitHub Copilot app for Beginners course. Finish an island’s quests, and you’ll earn its Seal.",
+      "duration": 8.407,
       "files": {
         "webm": "juno.cabin.02.webm",
         "m4a": "juno.cabin.02.m4a"
       },
-      "hash": "6f2c330e0039338a",
+      "hash": "5002a3d7324f3c17",
       "words": [
         {
-          "word": "Each",
+          "word": "Every",
           "start": 0,
-          "end": 0.281
+          "end": 0.354
         },
         {
           "word": "island",
-          "start": 0.281,
-          "end": 0.718
+          "start": 0.354,
+          "end": 0.764
+        },
+        {
+          "word": "out",
+          "start": 0.764,
+          "end": 0.921
+        },
+        {
+          "word": "there",
+          "start": 0.921,
+          "end": 1.218
         },
         {
           "word": "teaches",
-          "start": 0.718,
-          "end": 1.2
+          "start": 1.218,
+          "end": 1.673
         },
         {
           "word": "a",
-          "start": 1.2,
-          "end": 1.291
+          "start": 1.673,
+          "end": 1.809
         },
         {
           "word": "chapter",
-          "start": 1.291,
-          "end": 1.77
+          "start": 1.809,
+          "end": 2.279
         },
         {
           "word": "of",
-          "start": 1.77,
-          "end": 1.982
+          "start": 2.279,
+          "end": 2.345
         },
         {
           "word": "the",
-          "start": 1.982,
-          "end": 2.088
+          "start": 2.345,
+          "end": 2.463
         },
         {
           "word": "GitHub",
-          "start": 2.088,
-          "end": 2.473
+          "start": 2.463,
+          "end": 2.909
         },
         {
           "word": "Copilot",
-          "start": 2.473,
-          "end": 3.055
+          "start": 2.909,
+          "end": 3.473
         },
         {
           "word": "app",
-          "start": 3.055,
-          "end": 3.309
+          "start": 3.473,
+          "end": 3.673
         },
         {
           "word": "for",
-          "start": 3.309,
-          "end": 3.469
+          "start": 3.673,
+          "end": 3.825
         },
         {
           "word": "Beginners",
-          "start": 3.469,
-          "end": 4
+          "start": 3.825,
+          "end": 4.281
         },
         {
           "word": "course",
-          "start": 4,
-          "end": 4.769
+          "start": 4.281,
+          "end": 5.06
         },
         {
           "word": "Finish",
-          "start": 4.769,
-          "end": 5.491
+          "start": 5.06,
+          "end": 5.77
         },
         {
-          "word": "its",
-          "start": 5.491,
-          "end": 5.683
+          "word": "an",
+          "start": 5.77,
+          "end": 5.87
+        },
+        {
+          "word": "island’s",
+          "start": 5.87,
+          "end": 6.327
         },
         {
           "word": "quests",
-          "start": 5.683,
-          "end": 6.279
+          "start": 6.327,
+          "end": 7.018
         },
         {
-          "word": "to",
-          "start": 6.279,
-          "end": 6.531
+          "word": "and",
+          "start": 7.018,
+          "end": 7.145
+        },
+        {
+          "word": "you’ll",
+          "start": 7.145,
+          "end": 7.316
         },
         {
           "word": "earn",
-          "start": 6.531,
-          "end": 6.836
+          "start": 7.316,
+          "end": 7.527
         },
         {
           "word": "its",
-          "start": 6.836,
-          "end": 7.113
+          "start": 7.527,
+          "end": 7.724
         },
         {
-          "word": "seal",
-          "start": 7.113,
-          "end": 7.363
+          "word": "Seal",
+          "start": 7.724,
+          "end": 7.974
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
@@ -25282,68 +25302,93 @@
     {
       "id": "juno.cabin.03",
       "speaker": "Juno",
-      "text": "Quests fill your Logbook and your purse. Then we sail on!",
-      "duration": 4.007,
+      "text": "Each quest fills your Logbook, and your purse too. Then it’s on to the next island!",
+      "duration": 5.007,
       "files": {
         "webm": "juno.cabin.03.webm",
         "m4a": "juno.cabin.03.m4a"
       },
-      "hash": "7b24b726d406121d",
+      "hash": "77deabe9896f7ea8",
       "words": [
         {
-          "word": "Quests",
+          "word": "Each",
           "start": 0,
-          "end": 0.422
+          "end": 0.218
         },
         {
-          "word": "fill",
-          "start": 0.422,
-          "end": 0.684
+          "word": "quest",
+          "start": 0.218,
+          "end": 0.643
+        },
+        {
+          "word": "fills",
+          "start": 0.643,
+          "end": 0.96
         },
         {
           "word": "your",
-          "start": 0.684,
-          "end": 0.873
+          "start": 0.96,
+          "end": 1.091
         },
         {
           "word": "Logbook",
-          "start": 0.873,
-          "end": 1.364
+          "start": 1.091,
+          "end": 1.709
         },
         {
           "word": "and",
-          "start": 1.364,
-          "end": 1.556
+          "start": 1.709,
+          "end": 1.833
         },
         {
           "word": "your",
-          "start": 1.556,
-          "end": 1.757
+          "start": 1.833,
+          "end": 1.964
         },
         {
           "word": "purse",
-          "start": 1.757,
-          "end": 2.487
+          "start": 1.964,
+          "end": 2.4
+        },
+        {
+          "word": "too",
+          "start": 2.4,
+          "end": 3.011
         },
         {
           "word": "Then",
-          "start": 2.487,
-          "end": 2.957
+          "start": 3.011,
+          "end": 3.491
         },
         {
-          "word": "we",
-          "start": 2.957,
-          "end": 3.258
-        },
-        {
-          "word": "sail",
-          "start": 3.258,
-          "end": 3.588
+          "word": "it’s",
+          "start": 3.491,
+          "end": 3.734
         },
         {
           "word": "on",
-          "start": 3.588,
-          "end": 3.838
+          "start": 3.734,
+          "end": 3.83
+        },
+        {
+          "word": "to",
+          "start": 3.83,
+          "end": 3.945
+        },
+        {
+          "word": "the",
+          "start": 3.945,
+          "end": 4.044
+        },
+        {
+          "word": "next",
+          "start": 4.044,
+          "end": 4.281
+        },
+        {
+          "word": "island",
+          "start": 4.281,
+          "end": 4.531
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
@@ -25351,63 +25396,143 @@
     {
       "id": "juno.cabin.04",
       "speaker": "Juno",
-      "text": "And look out for starfish. They hide on every island.",
-      "duration": 3.407,
+      "text": "Oh, and keep an eye out for starfish on every island. At the Model Market, you’ll spend them to hire the right model for each job.",
+      "duration": 7.827,
       "files": {
         "webm": "juno.cabin.04.webm",
         "m4a": "juno.cabin.04.m4a"
       },
-      "hash": "8c0aa797e3ad38a5",
+      "hash": "fcf54400e316798a",
       "words": [
         {
-          "word": "And",
+          "word": "Oh",
           "start": 0,
-          "end": 0.189
+          "end": 0.327
         },
         {
-          "word": "look",
-          "start": 0.189,
-          "end": 0.4
+          "word": "and",
+          "start": 0.327,
+          "end": 0.698
+        },
+        {
+          "word": "keep",
+          "start": 0.698,
+          "end": 0.921
+        },
+        {
+          "word": "an",
+          "start": 0.921,
+          "end": 1.055
+        },
+        {
+          "word": "eye",
+          "start": 1.055,
+          "end": 1.218
         },
         {
           "word": "out",
-          "start": 0.4,
-          "end": 0.545
+          "start": 1.218,
+          "end": 1.4
         },
         {
           "word": "for",
-          "start": 0.545,
-          "end": 0.727
+          "start": 1.4,
+          "end": 1.527
         },
         {
           "word": "starfish",
-          "start": 0.727,
-          "end": 1.484
-        },
-        {
-          "word": "They",
-          "start": 1.484,
-          "end": 1.935
-        },
-        {
-          "word": "hide",
-          "start": 1.935,
-          "end": 2.157
+          "start": 1.527,
+          "end": 2.109
         },
         {
           "word": "on",
-          "start": 2.157,
-          "end": 2.327
+          "start": 2.109,
+          "end": 2.352
         },
         {
           "word": "every",
-          "start": 2.327,
-          "end": 2.764
+          "start": 2.352,
+          "end": 2.919
         },
         {
           "word": "island",
-          "start": 2.764,
-          "end": 3.014
+          "start": 2.919,
+          "end": 3.757
+        },
+        {
+          "word": "At",
+          "start": 3.757,
+          "end": 4.018
+        },
+        {
+          "word": "the",
+          "start": 4.018,
+          "end": 4.121
+        },
+        {
+          "word": "Model",
+          "start": 4.121,
+          "end": 4.436
+        },
+        {
+          "word": "Market",
+          "start": 4.436,
+          "end": 5.127
+        },
+        {
+          "word": "you’ll",
+          "start": 5.127,
+          "end": 5.357
+        },
+        {
+          "word": "spend",
+          "start": 5.357,
+          "end": 5.629
+        },
+        {
+          "word": "them",
+          "start": 5.629,
+          "end": 5.794
+        },
+        {
+          "word": "to",
+          "start": 5.794,
+          "end": 5.935
+        },
+        {
+          "word": "hire",
+          "start": 5.935,
+          "end": 6.145
+        },
+        {
+          "word": "the",
+          "start": 6.145,
+          "end": 6.303
+        },
+        {
+          "word": "right",
+          "start": 6.303,
+          "end": 6.594
+        },
+        {
+          "word": "model",
+          "start": 6.594,
+          "end": 6.873
+        },
+        {
+          "word": "for",
+          "start": 6.873,
+          "end": 7.025
+        },
+        {
+          "word": "each",
+          "start": 7.025,
+          "end": 7.291
+        },
+        {
+          "word": "job",
+          "start": 7.291,
+          "end": 7.541
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"
@@ -25415,53 +25540,53 @@
     {
       "id": "juno.cabin.chest",
       "speaker": "Juno",
-      "text": "Now, open the chest, Captain. Our chart’s inside.",
-      "duration": 2.848,
+      "text": "Now, open that chest, Captain. Our chart’s inside.",
+      "duration": 3.307,
       "files": {
         "webm": "juno.cabin.chest.webm",
         "m4a": "juno.cabin.chest.m4a"
       },
-      "hash": "f32e48185c303502",
+      "hash": "50395ca4dfb2be9e",
       "words": [
         {
           "word": "Now",
           "start": 0,
-          "end": 0.305
+          "end": 0.378
         },
         {
           "word": "open",
-          "start": 0.305,
-          "end": 0.673
+          "start": 0.378,
+          "end": 0.771
         },
         {
-          "word": "the",
-          "start": 0.673,
-          "end": 0.788
+          "word": "that",
+          "start": 0.771,
+          "end": 0.994
         },
         {
           "word": "chest",
-          "start": 0.788,
-          "end": 1.295
+          "start": 0.994,
+          "end": 1.355
         },
         {
           "word": "Captain",
-          "start": 1.295,
-          "end": 1.636
+          "start": 1.355,
+          "end": 1.855
         },
         {
           "word": "Our",
-          "start": 1.636,
-          "end": 2
+          "start": 1.855,
+          "end": 2.23
         },
         {
           "word": "chart’s",
-          "start": 2,
-          "end": 2.317
+          "start": 2.23,
+          "end": 2.618
         },
         {
           "word": "inside",
-          "start": 2.317,
-          "end": 2.567
+          "start": 2.618,
+          "end": 2.868
         }
       ],
       "voice": "XEQBC9sleaE3f5ff82UR"

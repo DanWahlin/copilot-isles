@@ -1,57 +1,137 @@
 {
   "id": "juno.cabin.04",
   "speaker": "Juno",
-  "text": "And look out for starfish. They hide on every island.",
+  "text": "Oh, and keep an eye out for starfish on every island. At the Model Market, you’ll spend them to hire the right model for each job.",
   "words": [
     {
-      "word": "And",
+      "word": "Oh",
       "start": 0,
-      "end": 0.189
+      "end": 0.327
     },
     {
-      "word": "look",
-      "start": 0.189,
-      "end": 0.4
+      "word": "and",
+      "start": 0.327,
+      "end": 0.698
+    },
+    {
+      "word": "keep",
+      "start": 0.698,
+      "end": 0.921
+    },
+    {
+      "word": "an",
+      "start": 0.921,
+      "end": 1.055
+    },
+    {
+      "word": "eye",
+      "start": 1.055,
+      "end": 1.218
     },
     {
       "word": "out",
-      "start": 0.4,
-      "end": 0.545
+      "start": 1.218,
+      "end": 1.4
     },
     {
       "word": "for",
-      "start": 0.545,
-      "end": 0.727
+      "start": 1.4,
+      "end": 1.527
     },
     {
       "word": "starfish",
-      "start": 0.727,
-      "end": 1.484
-    },
-    {
-      "word": "They",
-      "start": 1.484,
-      "end": 1.935
-    },
-    {
-      "word": "hide",
-      "start": 1.935,
-      "end": 2.157
+      "start": 1.527,
+      "end": 2.109
     },
     {
       "word": "on",
-      "start": 2.157,
-      "end": 2.327
+      "start": 2.109,
+      "end": 2.352
     },
     {
       "word": "every",
-      "start": 2.327,
-      "end": 2.764
+      "start": 2.352,
+      "end": 2.919
     },
     {
       "word": "island",
-      "start": 2.764,
-      "end": 3.014
+      "start": 2.919,
+      "end": 3.757
+    },
+    {
+      "word": "At",
+      "start": 3.757,
+      "end": 4.018
+    },
+    {
+      "word": "the",
+      "start": 4.018,
+      "end": 4.121
+    },
+    {
+      "word": "Model",
+      "start": 4.121,
+      "end": 4.436
+    },
+    {
+      "word": "Market",
+      "start": 4.436,
+      "end": 5.127
+    },
+    {
+      "word": "you’ll",
+      "start": 5.127,
+      "end": 5.357
+    },
+    {
+      "word": "spend",
+      "start": 5.357,
+      "end": 5.629
+    },
+    {
+      "word": "them",
+      "start": 5.629,
+      "end": 5.794
+    },
+    {
+      "word": "to",
+      "start": 5.794,
+      "end": 5.935
+    },
+    {
+      "word": "hire",
+      "start": 5.935,
+      "end": 6.145
+    },
+    {
+      "word": "the",
+      "start": 6.145,
+      "end": 6.303
+    },
+    {
+      "word": "right",
+      "start": 6.303,
+      "end": 6.594
+    },
+    {
+      "word": "model",
+      "start": 6.594,
+      "end": 6.873
+    },
+    {
+      "word": "for",
+      "start": 6.873,
+      "end": 7.025
+    },
+    {
+      "word": "each",
+      "start": 7.025,
+      "end": 7.291
+    },
+    {
+      "word": "job",
+      "start": 7.291,
+      "end": 7.541
     }
   ]
 }
