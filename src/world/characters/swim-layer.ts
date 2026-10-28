@@ -94,7 +94,7 @@ export class SwimLayer {
 }
 
 /**
- * The front crawl's arms (game/swimming, issue 361), drawn procedurally over the clip: the UAL swim
+ * The front crawl's arms (game/swimming, issue 362), drawn procedurally over the clip: the UAL swim
  * clip moves both arms together, up and down. Each hand follows a loop around its own shoulder, in
  * the character's frame (x out from the body, y up, z forward, metres): it enters the water ahead
  * of the shoulder, glides, catches with the elbow high, pulls back under the chest, pushes past the
