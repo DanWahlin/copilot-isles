@@ -18,7 +18,7 @@ import type { Engine } from '../engine/engine';
 import type { Input, InputState } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
 import type { CharacterGrounding } from '../world/characters/types';
-import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
+import { ParrotFlight, travelDirection, type FlightView } from '../world/characters/parrot-flight';
 import { clearCharacterLodView, setCharacterLodView } from '../world/characters/character-lod';
 import type { CoveScene } from '../world/cove-scene';
 import type { FarCull } from '../world/far-cull';
@@ -268,8 +268,8 @@ export interface GameSession {
      * (`resume`), Wingman's recap (`recap`, leaving out `except`'s chapter), or both.
      */
     learningPause(what: { resume?: boolean; recap?: boolean; except?: string }): void;
-    /** Wingman's flight phase and position (tests). */
-    wingman(): { phase: string; x: number; y: number; z: number } | null;
+    /** Wingman's flight phase, position and the way his body faces (yaw, rad; tests). */
+    wingman(): { phase: string; x: number; y: number; z: number; yaw: number } | null;
     /** The arrival flyover's phase and seconds in (tests). */
     arrival(): { island: string; phase: ArrivalPhase; time: number; eye: number } | null;
     /** Plays an island's arrival flyover again (tests, screenshots); `fromChart`: the short one. */
@@ -574,12 +574,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     height: number;
     eye: Vector3;
     ahead: { x: number; z: number } | null;
+    travel: { x: number; z: number } | null;
   } = {
     captain: new Vector3(),
     height: hero.capsule.height,
     eye: new Vector3(),
     ahead: null,
+    travel: null,
   };
+  /** The swimming captain's travel, for Wingman's escort (`flightView.travel` while he swims). */
+  const swimTravel = { x: 0, z: 1 };
   const updateWingman = (dt: number) => {
     if (!wingman || wingman.phase === 'perched') return;
     hero.group.getWorldPosition(flightView.captain);
@@ -2279,6 +2283,9 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     }
     if (!wingman) return;
     const afloat = player.mode === 'swim' && player.afloat > 0.6;
+    // Off the shoulder for a swim he escorts you, facing the way you're going (parrot-flight.ts).
+    flightView.travel =
+      afloat || wingmanSwimming ? travelDirection(player.vx, player.vz, player.heading, swimTravel) : null;
     if (afloat && !wingmanSwimming && wingman.phase === 'perched' && !welcomeRunning && !scriptRunning) {
       hero.group.getWorldPosition(flightView.captain);
       camera.getWorldPosition(flightView.eye);
@@ -2286,6 +2293,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       wingmanSwimming = true;
     } else if (wingmanSwimming && player.afloat < 0.3) {
       wingmanSwimming = false;
+      flightView.travel = null;
       wingman.land();
     }
   };
@@ -3218,6 +3226,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               x: +wingman.root.position.x.toFixed(2),
               y: +wingman.root.position.y.toFixed(2),
               z: +wingman.root.position.z.toFixed(2),
+              yaw: +Math.atan2(
+                2 *
+                  (wingman.root.quaternion.x * wingman.root.quaternion.z +
+                    wingman.root.quaternion.w * wingman.root.quaternion.y),
+                1 - 2 * (wingman.root.quaternion.x ** 2 + wingman.root.quaternion.y ** 2),
+              ).toFixed(3),
             }
           : null,
       arrival: () =>
