@@ -148,6 +148,8 @@ export interface Character {
   /** A one-off wave hello (standing NPCs, not mid-conversation); a nod when a hand carries a prop. */
   greet(): void;
   update(dt: number): void;
+  /** Swimming the crawl: the hands that went into the water since last asked (bit 1 left, 2 right). */
+  strokeEntries(): number;
   readonly capsule: { readonly radius: number; readonly height: number };
   dispose(): void;
 }

@@ -344,8 +344,9 @@ const SIGHTING_SHORE = 8;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
-/** Metres a swim stroke carries you (one pull of the arms: a ripple and a soft splash). */
-const STROKE_LENGTH = 1.25;
+/** Where a hand goes into the water swimming the crawl, from the feet's spot (m out, m ahead). */
+const ENTRY_OUT = 0.42;
+const ENTRY_AHEAD = 0.32;
 /** Treading water, a ripple about this often (s). */
 const TREAD_RIPPLE = 1.4;
 const DOCK_RANGE = 38;
@@ -2227,15 +2228,14 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     );
   };
 
-  /** Ripples where the hands pull through the surface, either side of the head. */
-  const puffHand = (side: number, intensity: number) => {
+  /** Ripples where a hand (side 1 the left) pulls through the surface, beside the head. */
+  const puffHand = (side: number, intensity: number, out = 0.32, ahead = 0.25 + 0.25 * player.stroke) => {
     const s = Math.sin(player.heading);
     const c = Math.cos(player.heading);
-    const ahead = 0.25 + 0.25 * player.stroke;
     footstepPuffs.spawn(
-      player.x + c * side * 0.32 + s * ahead,
+      player.x + c * side * out + s * ahead,
       player.waterY,
-      player.z - s * side * 0.32 + c * ahead,
+      player.z - s * side * out + c * ahead,
       'water',
       player.heading,
       intensity,
@@ -2245,24 +2245,23 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     puffHand(-1, intensity);
     puffHand(1, intensity);
   };
-  /** Distance swum toward the next stroke, the next ripple treading water, and the edge's tip shown. */
-  let strokeRun = 0;
+  /** The next ripple treading water, and the edge's tip shown. */
   let treadIn = TREAD_RIPPLE;
   let swimEdgeTold = false;
   /**
-   * Afloat: a soft splash and ripples each stroke, a ripple now and then treading water, and
-   * Wingman off the shoulder (he'd be in the water) until you're standing again.
+   * Afloat: a soft splash and a ripple as each hand goes in (the crawl's own timing), a ripple now and
+   * then treading water, and Wingman off the shoulder (he'd be in the water) until you're standing again.
    */
   const updateSwim = (dt: number) => {
+    // Asked every frame, so a hand that went in while wading doesn't splash later.
+    const entries = hero.strokeEntries();
     if (player.mode === 'swim') {
       const pace = player.animSpeed;
       if (pace > 0.25 && player.stroke > 0.3) {
-        strokeRun += pace * dt;
-        if (strokeRun > STROKE_LENGTH) {
-          strokeRun -= STROKE_LENGTH;
-          audio?.sfx.footstep('water', player);
-          puffStroke(0.55 + 0.35 * Math.min(1, pace / player.tune.swimRunSpeed));
-        }
+        const intensity = 0.55 + 0.35 * Math.min(1, pace / player.tune.swimRunSpeed);
+        if (entries) audio?.sfx.footstep('water', player);
+        if (entries & 1) puffHand(1, intensity, ENTRY_OUT, ENTRY_AHEAD);
+        if (entries & 2) puffHand(-1, intensity, ENTRY_OUT, ENTRY_AHEAD);
         treadIn = TREAD_RIPPLE;
       } else if ((treadIn -= dt) <= 0) {
         treadIn = TREAD_RIPPLE;
@@ -2277,7 +2276,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         swimEdgeTold = true;
         hud.toast('That’s as far out as you can swim. The shore’s behind you.', 4);
       }
-    } else strokeRun = 0;
+    }
     if (!wingman) return;
     const afloat = player.mode === 'swim' && player.afloat > 0.6;
     if (afloat && !wingmanSwimming && wingman.phase === 'perched' && !welcomeRunning && !scriptRunning) {

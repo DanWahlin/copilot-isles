@@ -27,7 +27,15 @@ import { GesturePlanner, newPose, type ArmPose, type GestureFrame, type Side } f
 import { HandRig } from './hand-rig';
 import { STAGE_REST, type StageLight } from './stage-light';
 import { LegIk } from './leg-ik';
-import { SwimLayer } from './swim-layer';
+import {
+  CRAWL_ARM,
+  CRAWL_ENTRY,
+  SwimLayer,
+  crawlHand,
+  crawlPole,
+  crawlRoll,
+  crawlShoulder,
+} from './swim-layer';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
   CHARACTER_CLIPS,
@@ -89,6 +97,17 @@ const SWIM_STROKE_METERS = 1.25;
 const SWIM_BACK = 0.24;
 /** The chin lifts this much (rad) in the stroke, so the head rides up out of the water. */
 const SWIM_CHIN = 0.65;
+/**
+ * The crawl's body roll toward the pulling arm at its deepest (rad, ~24°), the share of it the neck
+ * takes back so the head stays near level, and the head's turn to breathe on the other side (per rad
+ * of roll).
+ */
+const CRAWL_ROLL = 0.42;
+const CRAWL_HEAD_LEVEL = 0.6;
+const CRAWL_BREATHE = 0.35;
+/** How far the shoulder blade swings forward to reach (and back at the push), and up in the recovery (rad). */
+const CRAWL_REACH = 0.35;
+const CRAWL_LIFT = 0.12;
 /** The swim clips play through the swim layer (swim-layer.ts), not the mixer. */
 const SWIM_CLIPS: ReadonlySet<CharacterClip> = new Set(['swim', 'tread']);
 /** The wrist stops this far short of the grip, so the hand, not the wrist, closes on it (m). */
@@ -232,6 +251,9 @@ export class RuntimeCharacter implements Character {
   /** The player's swim stroke and treading water, over the mixer's pose (null for NPCs). */
   private readonly swim: SwimLayer | null;
   private swimRate = 1;
+  /** The crawl's last left-arm phase (-1 out of the stroke), and the hands that went in since asked. */
+  private crawlPhase = -1;
+  private crawlEntries = 0;
   /** Props put away while afloat (`userData.stowAfloat`: the sheathed cutlass), and whether they are. */
   private readonly stowAfloat: Object3D[] = [];
   private stowed = false;
@@ -502,6 +524,8 @@ export class RuntimeCharacter implements Character {
       }
       this.handPoseL = this.handPoseR = REST_POSE;
       this.applyProceduralPolish(step);
+      if (this.swim && this.afloat * this.stroke > 0.001) this.applyCrawl(this.afloat * this.stroke);
+      else this.crawlPhase = -1;
       this.applyHands();
     }
     // Back in view: the head's spring catches up on the time it missed before it aims.
@@ -780,6 +804,75 @@ export class RuntimeCharacter implements Character {
   }
 
   /**
+   * The front crawl over the swim clip (swim-layer.ts), `k` of it: the body rolls toward the pulling
+   * arm, the head turns a little the other way (a breath on the recovering arm's side), and each hand
+   * reaches for its spot on the stroke's loop round its shoulder, the right half a cycle behind.
+   */
+  private applyCrawl(k: number): void {
+    const left = this.swim!.phase;
+    if (this.crawlPhase >= 0 && k > 0.5) {
+      if (passed(this.crawlPhase, left, CRAWL_ENTRY)) this.crawlEntries |= 1;
+      if (passed(this.crawlPhase, left, CRAWL_ENTRY + 0.5)) this.crawlEntries |= 2;
+    }
+    this.crawlPhase = left;
+    const roll = crawlRoll(left) * CRAWL_ROLL * k;
+    // About the spine's own line (hips to neck), which lies along the water.
+    if (this.body && this.neck)
+      this.rootPoint(this.neck, CRAWL_AXIS).sub(this.rootPoint(this.body, CRAWL_TARGET)).normalize();
+    else CRAWL_AXIS.copy(AXIS_Z);
+    this.rotateInRoot(this.abdomen, CRAWL_AXIS, roll * 0.4);
+    this.rotateInRoot(this.torso, CRAWL_AXIS, roll * 0.6);
+    this.rotateInRoot(this.neck, CRAWL_AXIS, -roll * CRAWL_HEAD_LEVEL);
+    if (!this.lookTarget) this.rotateInRoot(this.head, AXIS_Y, roll * CRAWL_BREATHE);
+    this.crawlArm(1, left, k);
+    this.crawlArm(-1, left + 0.5, k);
+  }
+
+  private crawlArm(side: Side, phase: number, k: number): void {
+    const upper = side === 1 ? this.upperArmL : this.upperArmR;
+    const lower = side === 1 ? this.lowerArmL : this.lowerArmR;
+    const wrist = side === 1 ? this.wristL : this.wristR;
+    if (!upper || !lower || !wrist) return;
+    const blade = crawlShoulder(phase);
+    const shoulder = side === 1 ? this.shoulderL : this.shoulderR;
+    this.rotateInRoot(shoulder, AXIS_Y, -side * CRAWL_REACH * blade.reach * k);
+    this.rotateInRoot(shoulder, AXIS_Z, side * CRAWL_LIFT * blade.lift * k);
+    CRAWL_UPPER.copy(upper.quaternion);
+    CRAWL_LOWER.copy(lower.quaternion);
+    // The loop is drawn for an arm CRAWL_ARM long; a longer one (the Captain's hook arm) swings wider.
+    const s = upper.getWorldPosition(IK_S);
+    const e = lower.getWorldPosition(IK_E);
+    const length = s.distanceTo(e) + e.distanceTo(wrist.getWorldPosition(IK_H));
+    crawlHand(phase, CRAWL_OFFSET).multiplyScalar(length / CRAWL_ARM);
+    this.rootPoint(upper, CRAWL_TARGET);
+    CRAWL_TARGET.x += side * CRAWL_OFFSET.x;
+    CRAWL_TARGET.y += CRAWL_OFFSET.y;
+    CRAWL_TARGET.z += CRAWL_OFFSET.z;
+    crawlPole(phase, CRAWL_POLE_V);
+    CRAWL_POLE_V.x *= side;
+    this.reachArm(side, CRAWL_TARGET, CRAWL_POLE_V.normalize());
+    if (k >= 1) return;
+    CRAWL_SOLVED.copy(upper.quaternion);
+    upper.quaternion.copy(CRAWL_UPPER).slerp(CRAWL_SOLVED, k);
+    CRAWL_SOLVED.copy(lower.quaternion);
+    lower.quaternion.copy(CRAWL_LOWER).slerp(CRAWL_SOLVED, k);
+  }
+
+  /** Hands that went into the water (bit 1 left, bit 2 right) since the last call. */
+  strokeEntries(): number {
+    const e = this.crawlEntries;
+    this.crawlEntries = 0;
+    return e;
+  }
+
+  /** A bone's position in the character's own frame (metres from the feet, not scaled). */
+  private rootPoint(bone: Object3D, out: Vector3): Vector3 {
+    this.group.getWorldQuaternion(ROOT_Q);
+    this.group.getWorldPosition(CRAWL_ORIGIN);
+    return bone.getWorldPosition(out).sub(CRAWL_ORIGIN).applyQuaternion(ROOT_Q.invert());
+  }
+
+  /**
    * Poses both arms and hands from the gesture frame. The torso never pitches forward and back while
    * talking (a repeated lean reads as an odd body thrust): the shoulders only turn, and nods are
    * head-only.
@@ -809,9 +902,10 @@ export class RuntimeCharacter implements Character {
 
   /**
    * Two-bone reach: bends the elbow to span the distance, swings the arm so the wrist lands on
-   * `target` (the character's own frame, metres from the feet), then rolls the elbow toward the pole.
+   * `target` (the character's own frame, metres from the feet), then rolls the elbow toward the pole
+   * (`pole` in the same frame, else down, out and back).
    */
-  private reachArm(side: Side, target: Vector3): void {
+  private reachArm(side: Side, target: Vector3, pole?: Vector3): void {
     const upper = side === 1 ? this.upperArmL : this.upperArmR;
     const lower = side === 1 ? this.lowerArmL : this.lowerArmR;
     const wrist = side === 1 ? this.wristL : this.wristR;
@@ -845,9 +939,11 @@ export class RuntimeCharacter implements Character {
     lower.getWorldPosition(IK_E);
     IK_U.subVectors(IK_E, s);
     IK_U.addScaledVector(dir, -IK_U.dot(dir));
-    IK_H.copy(GRIP_POLE)
-      .setX(side * GRIP_POLE.x)
-      .applyQuaternion(ROOT_Q);
+    if (pole) IK_H.copy(pole).applyQuaternion(ROOT_Q);
+    else
+      IK_H.copy(GRIP_POLE)
+        .setX(side * GRIP_POLE.x)
+        .applyQuaternion(ROOT_Q);
     IK_H.addScaledVector(dir, -IK_H.dot(dir));
     if (IK_U.lengthSq() < 1e-10 || IK_H.lengthSq() < 1e-10) return;
     const roll = Math.atan2(dir.dot(IK_AXIS.crossVectors(IK_U, IK_H)), IK_U.dot(IK_H));
@@ -1156,6 +1252,21 @@ const IK_T = new Vector3();
 const IK_U = new Vector3();
 const IK_V = new Vector3();
 const IK_AXIS = new Vector3();
+const CRAWL_AXIS = new Vector3();
+const CRAWL_TARGET = new Vector3();
+const CRAWL_OFFSET = new Vector3();
+const CRAWL_POLE_V = new Vector3();
+const CRAWL_ORIGIN = new Vector3();
+const CRAWL_UPPER = new Quaternion();
+const CRAWL_LOWER = new Quaternion();
+const CRAWL_SOLVED = new Quaternion();
+
+/** Whether a phase moving `from` → `to` (forward, under half a cycle) went past `at` (all 0-1, wrapping). */
+function passed(from: number, to: number, at: number): boolean {
+  const a = (((from - at) % 1) + 1) % 1;
+  const b = (((to - at) % 1) + 1) % 1;
+  return b < a && a - b > 0.5;
+}
 
 function bindableClip(clip: AnimationClip, root: Group): AnimationClip {
   const tracks = clip.tracks.filter((track) => {

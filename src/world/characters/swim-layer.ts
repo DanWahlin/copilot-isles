@@ -57,6 +57,11 @@ export class SwimLayer {
     }
   }
 
+  /** Where the stroke is in its cycle (0-1): the left arm's crawl phase. */
+  get phase(): number {
+    return this.swimTime / this.swimDuration;
+  }
+
   /** Moves both clips on: treading at its own pace, the stroke at `swimRate` × its own. */
   advance(dt: number, swimRate: number): void {
     this.treadTime = (this.treadTime + dt) % this.treadDuration;
@@ -87,3 +92,98 @@ export class SwimLayer {
     }
   }
 }
+
+/**
+ * The front crawl's arms (game/swimming, issue 361), drawn procedurally over the clip: the UAL swim
+ * clip moves both arms together, up and down. Each hand follows a loop around its own shoulder, in
+ * the character's frame (x out from the body, y up, z forward, metres): it enters the water ahead
+ * of the shoulder, glides, catches with the elbow high, pulls back under the chest, pushes past the
+ * hip, then recovers over the water with the elbow bent and high. Phase 0 is the entry; the other
+ * arm runs half a cycle behind. Eight keys, evenly spaced, timed as a heads-up (water-polo) crawl:
+ * entry and catch 25 %, pull 25 %, push ~12 %, recovery ~38 % of the cycle. The captains' heads and
+ * hats are wider than their shoulders (beard and brim 0.25-0.39 m out), so the loop runs wide of
+ * them, measured by `swim.test.ts` against the skinned head, hat and trunk.
+ */
+// prettier-ignore
+const CRAWL_HAND = [
+  0.23, -0.13, 0.32, //  entry, at the surface ahead of the shoulder, wide of the head
+  0.22, -0.22, 0.29, //  glide, the arm long
+  0.08, -0.36, 0.12, //  catch, the hand drops under the elbow (and the beard)
+  -0.04, -0.38, -0.05, // pull, under the chest
+  0.08, -0.27, -0.24, // push, back past the hip
+  0.13, -0.1, -0.3, //   exit, by the thigh
+  0.28, 0.08, -0.04, //  recovery, elbow high, the hand swung up and out of the water
+  0.28, 0.04, 0.23, //   reaching forward over the water to the entry
+];
+/** Where the elbow points, key by key (same frame): out and up through the pull, out (under the brim) in the recovery. */
+// prettier-ignore
+const CRAWL_POLE = [
+  1, 0.4, -0.2,
+  0.9, 0.5, 0,
+  1, 0.6, 0,
+  1, 0.4, 0,
+  0.8, 0.3, -0.2,
+  1, 0.4, -0.4,
+  1, 0.2, -0.3,
+  1, 0.2, -0.2,
+];
+const CRAWL_KEYS = CRAWL_HAND.length / 3;
+/** Phase of the left arm's pull's deepest point, where the body has rolled furthest toward it. */
+const ROLL_PEAK = 0.4;
+
+/** A periodic uniform Catmull-Rom through `keys` (xyz per key) at `phase` (0-1). */
+function loop(keys: readonly number[], phase: number, out: Vector3): Vector3 {
+  const f = (((phase % 1) + 1) % 1) * CRAWL_KEYS;
+  const i = Math.floor(f);
+  const t = f - i;
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const w0 = 0.5 * (2 * t2 - t - t3);
+  const w1 = 0.5 * (2 - 5 * t2 + 3 * t3);
+  const w2 = 0.5 * (t + 4 * t2 - 3 * t3);
+  const w3 = 0.5 * (t3 - t2);
+  const a = ((i + CRAWL_KEYS - 1) % CRAWL_KEYS) * 3;
+  const b = (i % CRAWL_KEYS) * 3;
+  const c = ((i + 1) % CRAWL_KEYS) * 3;
+  const d = ((i + 2) % CRAWL_KEYS) * 3;
+  return out.set(
+    keys[a]! * w0 + keys[b]! * w1 + keys[c]! * w2 + keys[d]! * w3,
+    keys[a + 1]! * w0 + keys[b + 1]! * w1 + keys[c + 1]! * w2 + keys[d + 1]! * w3,
+    keys[a + 2]! * w0 + keys[b + 2]! * w1 + keys[c + 2]! * w2 + keys[d + 2]! * w3,
+  );
+}
+
+/** The hand's spot (the wrist) relative to its shoulder at `phase`, x out from the body (m). */
+export function crawlHand(phase: number, out: Vector3): Vector3 {
+  return loop(CRAWL_HAND, phase, out);
+}
+
+/** Where the elbow points at `phase` (unnormalised, x out from the body). */
+export function crawlPole(phase: number, out: Vector3): Vector3 {
+  return loop(CRAWL_POLE, phase, out);
+}
+
+/**
+ * The shoulder blade's part (-1-1): `reach` forward through the entry and glide (back through the
+ * push), and `lift` up through the recovery, so the short-armed captains reach past the head.
+ */
+export function crawlShoulder(phase: number): { reach: number; lift: number } {
+  SHOULDER.reach = Math.cos((phase - 0.05) * Math.PI * 2);
+  SHOULDER.lift = Math.max(0, Math.cos((phase - 0.92) * Math.PI * 2));
+  return SHOULDER;
+}
+const SHOULDER = { reach: 0, lift: 0 };
+
+/**
+ * The body's roll toward the pulling arm, from the left arm's phase: -1 rolled fully onto the left
+ * (its pull's deepest), +1 onto the right half a cycle later.
+ */
+export function crawlRoll(leftPhase: number): number {
+  return -Math.sin((leftPhase - ROLL_PEAK + 0.25) * Math.PI * 2);
+}
+
+/** The arm (shoulder to wrist, m) the crawl's loop is drawn for; a longer arm's loop scales up. */
+export const CRAWL_ARM = 0.39;
+
+/** The crawl's phase where a hand goes into the water (its loop's first key). */
+export const CRAWL_ENTRY = 0;

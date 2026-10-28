@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs';
-import { Group, SkinnedMesh, Vector3 } from 'three/webgpu';
+import { Group, SkinnedMesh, Vector3, type Mesh } from 'three/webgpu';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { describe, expect, it } from 'vitest';
 import { BODY_CONFIG, shortenForearms } from './index';
 import { parseLocoPack } from './loco-pack';
-import { parseCharacterGlb, type RigSource } from './prop-audit';
+import { BodySurface, parseCharacterGlb, type RigSource } from './prop-audit';
 import { stowPlayerWeapon } from './props';
 import { RuntimeCharacter } from './runtime-character';
+import type { SwimLayer } from './swim-layer';
 import type { CharacterClip, CharacterGroundMode } from './types';
 
 /**
@@ -51,6 +52,37 @@ function build(rig: RigSource, clips: Map<CharacterClip, never>, body: 'man' | '
   });
   return { character, group };
 }
+
+/** The skinned body (the largest skinned mesh: body, head and hat). */
+function bodyOf(group: Group): SkinnedMesh {
+  let best: SkinnedMesh | null = null;
+  group.traverse((o) => {
+    if (
+      o instanceof SkinnedMesh &&
+      (!best || o.geometry.attributes.position!.count > best.geometry.attributes.position!.count)
+    )
+      best = o;
+  });
+  return best!;
+}
+
+/** Each vertex's bone with the most weight. */
+function mainBones(mesh: SkinnedMesh): string[] {
+  const index = mesh.geometry.getAttribute('skinIndex');
+  const weight = mesh.geometry.getAttribute('skinWeight');
+  const names: string[] = [];
+  for (let i = 0; i < index.count; i++) {
+    let best = 0;
+    for (let k = 1; k < 4; k++) if (weight.getComponent(i, k) > weight.getComponent(i, best)) best = k;
+    names.push(mesh.skeleton.bones[index.getComponent(i, best)]!.name);
+  }
+  return names;
+}
+
+const TRUNK = /^(Body|Hips|Abdomen|Torso|Neck|Head)$/;
+/** The forearm, hand and fingers (the hook on the Captain's left) of one side. */
+const forearm = (side: 'L' | 'R') =>
+  new RegExp(`^(LowerArm|Middle\\d|Index\\d|Pinky\\d|Thumb\\d|Ring\\d)${side}$`);
 
 const at = (group: Group, name: string, out = new Vector3()) => {
   group.updateMatrixWorld(true);
@@ -102,6 +134,75 @@ describe('swimming captains', () => {
         lowTread = Math.min(lowTread, head.y - TREAD_FLOAT);
       });
       expect(lowTread).toBeGreaterThan(0.1);
+      character.dispose();
+    });
+
+  for (const body of ['man', 'woman'] as const)
+    it(`swims ${body === 'man' ? 'the Captain' : 'Anne'}’s crawl hand over hand, clear of the head, hat and body`, async () => {
+      const { rig, clips } = await captain(body);
+      const { character, group } = build(rig, clips, body);
+      const swim = (character as unknown as { swim: SwimLayer }).swim;
+      const mesh = bodyOf(group);
+      const bones = mainBones(mesh);
+      // The trunk, head and hat: what a hand or forearm mustn't go through.
+      const trunk = new BodySurface(mesh as Mesh, (v) => TRUNK.test(bones[v]!));
+      const arms = { L: [] as number[], R: [] as number[] };
+      bones.forEach((name, v) => {
+        if (forearm('L').test(name)) arms.L.push(v);
+        if (forearm('R').test(name)) arms.R.push(v);
+      });
+      expect(arms.L.length).toBeGreaterThan(20);
+      expect(arms.R.length).toBeGreaterThan(20);
+      play(character, 1, 1, 0.95, 1);
+      const v = new Vector3();
+      const deepest = { L: 0, R: 0 };
+      const hand = { L: new Vector3(), R: new Vector3() };
+      const reach = { L: [Infinity, -Infinity], R: [Infinity, -Infinity] };
+      // The forward swing's first harmonic per arm, by the stroke's phase.
+      const wave = { L: [0, 0], R: [0, 0] };
+      // Each hand's entries (the ripple hook): when, and how far over the surface.
+      const entries: { side: 'L' | 'R'; t: number; over: number }[] = [];
+      let t = 0;
+      character.strokeEntries();
+      play(character, 1, 1, 0.95, 2.7, 'swim', () => {
+        t += 1 / 60;
+        group.updateMatrixWorld(true);
+        // A vertex more than REACH (8 cm) inside reads as outside, but the arms move a centimetre
+        // or two a frame, so anything going in is caught on its way through the skin.
+        trunk.update();
+        const turn = swim.phase * Math.PI * 2;
+        const went = character.strokeEntries();
+        for (const side of ['L', 'R'] as const) {
+          for (const i of arms[side]) {
+            mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
+            deepest[side] = Math.max(deepest[side], trunk.signed(v, null));
+          }
+          at(group, side === 'L' ? 'Middle1L' : 'Middle1R', hand[side]);
+          reach[side][0] = Math.min(reach[side][0]!, hand[side].z);
+          reach[side][1] = Math.max(reach[side][1]!, hand[side].z);
+          wave[side][0] += hand[side].z * Math.cos(turn);
+          wave[side][1] += hand[side].z * Math.sin(turn);
+          if (went & (side === 'L' ? 1 : 2)) entries.push({ side, t, over: hand[side].y - STROKE_FLOAT });
+        }
+      });
+      // Within a centimetre of the skin, as the held-prop audit allows (prop-audit.test.ts).
+      expect(deepest.L).toBeLessThan(0.01);
+      expect(deepest.R).toBeLessThan(0.01);
+      // Each hand reaches well ahead of the shoulders and pulls back to the hip.
+      for (const side of ['L', 'R'] as const) {
+        expect(reach[side][1]).toBeGreaterThan(0.25);
+        expect(reach[side][0]).toBeLessThan(-0.15);
+      }
+      // Left then right: the arms are half a cycle apart (within a twentieth of one).
+      const gap = Math.atan2(wave.L[1]!, wave.L[0]!) - Math.atan2(wave.R[1]!, wave.R[0]!);
+      const half = Math.abs(Math.abs(Math.atan2(Math.sin(gap), Math.cos(gap))) - Math.PI) / (Math.PI * 2);
+      expect(half).toBeLessThan(0.05);
+      // The hands go in by turns, each at the surface (within a hand's length), evenly spaced.
+      expect(entries.length).toBeGreaterThanOrEqual(3);
+      for (let i = 1; i < entries.length; i++) expect(entries[i]!.side).not.toBe(entries[i - 1]!.side);
+      for (const e of entries) expect(Math.abs(e.over)).toBeLessThan(0.12);
+      const beats = entries.slice(1).map((e, i) => e.t - entries[i]!.t);
+      for (const b of beats) expect(b).toBeCloseTo(beats[0]!, 1);
       character.dispose();
     });
 
