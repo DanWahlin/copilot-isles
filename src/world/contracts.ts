@@ -39,6 +39,11 @@ export interface CircleObstacle {
    */
   y0?: number;
   y1?: number;
+  /**
+   * False: only walkers keep out of it, and the follow camera and sight lines pass through it (a
+   * plant's trunk or base: the camera goes through foliage).
+   */
+  camera?: boolean;
 }
 
 /** The shared wind field (CPU side; the GPU side is built from the same constants in wind.ts). */

@@ -32,6 +32,9 @@ import { KEELHAVEN_PLANT_LOOK } from './vegetation';
 import { worksApronSteps, worksPin, worksSeaFloor } from './works';
 import { KEELHAVEN_WRECKS } from './wrecks';
 
+/** No plant colliders (the island's plants aren't in). */
+const NO_COLLIDERS: readonly CircleObstacle[] = [];
+
 /** Keelhaven's stream (its registry entry holds its ranges and outline): its world is the town and works. */
 export interface KeelhavenStream extends IslandStream<KeelhavenWorld> {
   readonly system: KeelhavenWorld | null;
@@ -213,6 +216,9 @@ export function createKeelhavenStream(ctx: IslandStreamCreateContext): Keelhaven
     system: null,
     ready: false,
     detail,
+    get plantColliders() {
+      return plants?.colliders ?? NO_COLLIDERS;
+    },
     get world() {
       return self.system;
     },

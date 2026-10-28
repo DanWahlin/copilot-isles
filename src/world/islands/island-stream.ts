@@ -1,5 +1,6 @@
 import type { Group, Mesh, Object3D, PerspectiveCamera } from 'three/webgpu';
 import type { IslandEntry } from '../../islands/types';
+import type { CircleObstacle } from '../contracts';
 import type { FarCull } from '../far-cull';
 import type { IslandStreamContext } from '../island-parts';
 import type { StreamState } from '../stream-lifecycle';
@@ -46,6 +47,8 @@ export interface IslandStream<W = unknown> extends ResidentIsland {
   readonly foam: Mesh | null;
   /** True once its ground is in (terrain and foam), before the rest of its world. */
   readonly ready: boolean;
+  /** Walkers' colliders round its trunks and big plants while its plants are in (none before). */
+  readonly plantColliders: readonly CircleObstacle[];
   /** The island's world, once streamed. */
   readonly world: W | null;
   load(priority?: RequestPriority, retry?: boolean): Promise<W | null>;

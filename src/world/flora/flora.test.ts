@@ -11,10 +11,16 @@ import { Object3D, Scene } from 'three/webgpu';
 import {
   FLORA_PUSHERS,
   FLORA_SPECIES_MAX,
+  PUSH_EASE,
+  PUSH_RADIUS,
+  floraPushAt,
+  floraPushTails,
   floraPushers,
   floraSpeciesIndex,
   updateFloraPushers,
+  type PushMath,
 } from './nodes';
+import { smoothstep } from '../../util/math';
 import { floraFeet } from './feet';
 import { createFlowerGeometry } from './heads';
 import { floraDriftRows } from './ground-nodes';
@@ -384,5 +390,73 @@ describe('flora pushers', () => {
     floraFeet.delete(loose);
     updateFloraPushers(0, 0);
     expect(floraPushers.every((p) => p.value.w === 0)).toBe(true);
+  });
+});
+
+const NUM: PushMath<number> = {
+  k: (v) => v,
+  add: (a, b) => a + b,
+  sub: (a, b) => a - b,
+  mul: (a, b) => a * b,
+  div: (a, b) => a / b,
+  max: Math.max,
+  min: Math.min,
+  sqrt: Math.sqrt,
+  smoothstep,
+};
+
+/** The push's length on a blade at (x, z) from feet at (hx, hz) with a tail at (tx, tz). */
+const pushLen = (x: number, z: number, hx = 0, hz = 0, tx = hx, tz = hz) => {
+  const p = floraPushAt(NUM, x, z, hx, hz, tx, tz, PUSH_RADIUS, 1);
+  return { len: Math.hypot(p.x, p.z), x: p.x, z: p.z };
+};
+
+describe('flora push', () => {
+  it('bends blades within about a metre straight away from still feet, most nearest them', () => {
+    const near = pushLen(0.25, 0);
+    const mid = pushLen(0.6, 0);
+    expect(near.len).toBeCloseTo(1, 5);
+    expect(mid.len).toBeGreaterThan(0.2);
+    expect(mid.len).toBeLessThan(near.len);
+    expect(pushLen(PUSH_RADIUS + 0.01, 0).len).toBe(0);
+    // Away from the feet.
+    const side = pushLen(0, -0.4);
+    expect(side.x).toBeCloseTo(0, 6);
+    expect(side.z).toBeLessThan(0);
+  });
+
+  it('eases blades back upright along the trail behind moving feet', () => {
+    // Feet at the origin, moving +x, the tail 2 m behind.
+    const atFeet = pushLen(0, 0.3, 0, 0, -2, 0).len;
+    const halfway = pushLen(-1, 0.3, 0, 0, -2, 0).len;
+    const atTail = pushLen(-2, 0.3, 0, 0, -2, 0).len;
+    expect(atFeet).toBeGreaterThan(halfway);
+    expect(halfway).toBeGreaterThan(atTail);
+    expect(atTail).toBeCloseTo(0, 6);
+    // Ahead of the feet, as for still feet.
+    expect(pushLen(0.3, 0, 0, 0, -2, 0).len).toBeCloseTo(pushLen(0.3, 0).len, 6);
+  });
+
+  it('tails follow the feet over the ease, at once with reduced motion', () => {
+    const scene = new Scene();
+    const o = new Object3D();
+    scene.add(o);
+    floraFeet.add(o);
+    scene.updateMatrixWorld();
+    updateFloraPushers(0, 0, 10);
+    o.position.set(2, 0, 0);
+    scene.updateMatrixWorld();
+    updateFloraPushers(0, 0, 10.05);
+    const tail = floraPushTails[0]!.value;
+    expect(floraPushers[0]!.value.x).toBe(2);
+    expect(tail.x).toBeGreaterThan(0);
+    expect(tail.x).toBeLessThan(1);
+    for (let t = 10.1; t <= 10.05 + PUSH_EASE + 1e-9; t += 0.05) updateFloraPushers(0, 0, t);
+    expect(tail.x).toBeGreaterThan(1.9);
+    o.position.set(4, 0, 0);
+    scene.updateMatrixWorld();
+    updateFloraPushers(0, 0, 11, true);
+    expect(tail.x).toBe(4);
+    floraFeet.delete(o);
   });
 });

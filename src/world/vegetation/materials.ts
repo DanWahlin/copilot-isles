@@ -48,6 +48,7 @@ import {
   select,
   sin,
   smoothstep,
+  sqrt,
   step,
   texture,
   uniform,
@@ -62,7 +63,15 @@ import { terrainNoiseTexture } from '../terrain/noise-texture';
 import { gustNode } from '../wind-nodes';
 import { trackedPosition } from '../../engine/motion-vectors';
 import { ownMap, ownNormalMap } from '../../engine/own-map';
-import { FLORA_SPECIES_MAX, FLOWER_REACH, floraPushers, floraSpeciesTable } from '../flora/nodes';
+import {
+  FLORA_SPECIES_MAX,
+  FLOWER_REACH,
+  floraPushAt,
+  floraPushers,
+  floraPushTails,
+  floraSpeciesTable,
+  type PushMath,
+} from '../flora/nodes';
 import type { HeightGrid } from './types';
 import { BLADE_RANK_STEP, MID_ALONG, bladeBandShape, type BandMath, type BladeBands } from './blade-bands';
 
@@ -476,6 +485,19 @@ const NODE_MATH: BandMath<AnyNode> = {
   smoothstep: (e0, e1, x) => smoothstep(e0, e1, x),
 };
 
+/** `PushMath` on TSL nodes: the grass shader's side of `floraPushAt`. */
+const PUSH_NODES: PushMath<AnyNode> = {
+  k: (v) => float(v),
+  add: (a, b) => a.add(b),
+  sub: (a, b) => a.sub(b),
+  mul: (a, b) => a.mul(b),
+  div: (a, b) => a.div(b),
+  max: (a, b) => max(a, b),
+  min: (a, b) => min(a, b),
+  sqrt: (a) => sqrt(a),
+  smoothstep: (e0, e1, x) => smoothstep(e0, e1, x),
+};
+
 /** How an island's grass is coloured beyond its blade tints (from its flora palette). */
 export interface GrassLook {
   /** The ground's tone under the blades (sRGB hex): the roots fade into it, so no pale soil shows. */
@@ -618,22 +640,20 @@ export function createGrassMaterial(
     .mul(bladeGate)
     .mul(motion);
 
-  // Feet push the blades and flowers aside (and a little down), most at the tips.
+  // Feet push the blades and flowers aside (and a little down), most at the tips, and the blades
+  // they've passed ease back upright as each push's tail comes by (`floraPushAt`).
   let push: AnyNode = vec2(0, 0);
-  for (const pusher of floraPushers) {
-    const p = pusher as AnyNode;
-    const away = worldXZ.sub(p.xy);
-    const d = away.length();
-    const k = float(1)
-      .sub(smoothstep(p.z.mul(0.3), p.z, d))
-      .mul(p.w);
-    push = push.add(away.div(max(d, float(0.05))).mul(k));
+  for (let i = 0; i < floraPushers.length; i++) {
+    const p = floraPushers[i] as AnyNode;
+    const tail = floraPushTails[i] as AnyNode;
+    const k = floraPushAt(PUSH_NODES, worldXZ.x, worldXZ.y, p.x, p.y, tail.x, tail.y, p.z, p.w);
+    push = push.add((vec2 as AnyNode)(k.x, k.z));
   }
   const bend = edgeGate(0, 0.45, MID_ALONG).mul(sizeFade);
   const pushLen = min(push.length(), float(1));
   const pushXZ = push
     .mul(bend)
-    .mul(0.3)
+    .mul(0.34)
     .mul(float(1).sub(world.reducedMotion.mul(0.5)));
   // Far blades turn their width toward the camera (wider at the root), so they never thin to a line.
   const view = worldXZ.sub((vec2 as AnyNode)(cameraPosition.x, cameraPosition.z));

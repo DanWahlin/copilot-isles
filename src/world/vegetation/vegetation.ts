@@ -19,10 +19,11 @@ import { buildSlice } from '../../engine/build-slice';
 import { markInstancesChanged, sharedInstancedMesh } from '../../engine/instancing';
 import { islandsTakeSunShadows, tierSettings, type TierSettings } from '../../engine/quality';
 import { assignCaster } from '../shadow-casters';
-import type { Tier } from '../contracts';
+import type { CircleObstacle, Tier } from '../contracts';
 import { createHeightDataTexture } from './materials';
 import { GrassField } from './grass';
 import { updateFloraPushers } from '../flora/nodes';
+import { world } from '../uniforms';
 import { ImpostorBatch, bakeImpostorAtlas } from './impostors';
 import {
   loadVegetationGeometries,
@@ -32,6 +33,7 @@ import {
   type VegetationModelPart,
 } from './model-loader';
 import { scatterVegetationAsync } from './scatter';
+import { plantColliders } from './blockers';
 import type {
   PlantPatchLook,
   CreateVegetationOptions,
@@ -423,6 +425,8 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     return out;
   };
   const batches = buildBatches(scatter.plants, group);
+  // Trunks and big plants block walkers (the island's own plants: its scatter and hand-placed ones).
+  const homeColliders: readonly CircleObstacle[] = plantColliders(Object.values(scatter.plants).flat());
 
   const heightTexture = options.flora ? createHeightDataTexture(options.heightGrid) : null;
   const grass =
@@ -486,7 +490,12 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
     group,
     update(camera) {
       setPlantFrustum(camera);
-      updateFloraPushers(camera.position.x, camera.position.z);
+      updateFloraPushers(
+        camera.position.x,
+        camera.position.z,
+        performance.now() / 1000,
+        world.reducedMotion.value > 0.5,
+      );
       if (homeAwake) {
         for (const batch of batches) updateBatch(batch, camera);
         grass?.update(camera);
@@ -609,7 +618,10 @@ export async function createVegetation(options: CreateVegetationOptions): Promis
         ownsBake,
       });
       group.add(patchGroup);
-      return { group: patchGroup };
+      return { group: patchGroup, colliders: plantColliders(list) };
+    },
+    homeColliders() {
+      return homeColliders;
     },
     home() {
       return [

@@ -22,6 +22,7 @@ import {
 } from './materials';
 import { buildCypress, buildMaquisBush, buildPricklyPear } from './cactus';
 import { buildPalmFar, buildPalmNear, buildYoungPalm } from './palms';
+import { PLANT_SPECIES } from './blockers';
 import type { PlantSpecies } from './types';
 
 const MODEL_BASE = '/packs/testcove/vegetation/models/';
@@ -38,20 +39,7 @@ const MODEL_BY_SPECIES: Partial<Record<PlantSpecies, string>> = {
 export type PalmVariant = 'a' | 'b';
 export type PalmLod = 'hero' | 'grove';
 
-const TARGET_HEIGHT: Record<PlantSpecies, number> = {
-  palmTall: 12.4,
-  palmCluster: 7.8,
-  palmYoung: 4.8,
-  banana: 3.4,
-  fern: 1.25,
-  shrub: 1.65,
-  broadleafTree: 9.4,
-  flowerBush: 0.85,
-  log: 0.9,
-  cactus: 2.1,
-  brush: 1.45,
-  cypress: 8.5,
-};
+const TARGET_HEIGHT = (species: PlantSpecies): number => PLANT_SPECIES[species].height;
 
 const tmpBox = new Box3();
 const tmpSize = new Vector3();
@@ -271,7 +259,7 @@ function createPalmParts(
   species: PlantSpecies,
   variant: PalmVariant,
   lod: PalmLod,
-  targetHeight = TARGET_HEIGHT[species],
+  targetHeight = TARGET_HEIGHT(species),
 ): VegetationModelPart[] {
   const seed =
     (variant === 'a' ? 11 : 29) + (species === 'palmCluster' ? 100 : 0) + (species === 'palmYoung' ? 200 : 0);
@@ -324,7 +312,7 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
         }),
       },
     ];
-    normalizeParts(parts, TARGET_HEIGHT[species]);
+    normalizeParts(parts, TARGET_HEIGHT(species));
     return parts;
   }
   const model = MODEL_BY_SPECIES[species];
@@ -341,7 +329,7 @@ async function loadSpecies(loader: GLTFLoader, species: PlantSpecies): Promise<V
     parts.push({ geometry, material: toVegetationMaterials(mesh.material, species) });
   });
   if (parts.length === 0) throw new Error(`Vegetation model has no meshes: ${species}`);
-  normalizeParts(parts, TARGET_HEIGHT[species]);
+  normalizeParts(parts, TARGET_HEIGHT(species));
   return parts;
 }
 

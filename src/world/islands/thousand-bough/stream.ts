@@ -32,6 +32,9 @@ import {
 import { freeInSlices, StreamLifecycle } from '../../stream-lifecycle';
 import type { VegetationPatch } from '../../vegetation/types';
 
+/** No plant colliders (the island's plants aren't in). */
+const NO_COLLIDERS: readonly CircleObstacle[] = [];
+
 /** The boulders cast the sun's shadow on High and Ultra (Low and Medium spend those triangles elsewhere). */
 const ROCK_SHADOWS = (tier: TierSettings['tier']) => tier === 'high' || tier === 'ultra';
 
@@ -195,6 +198,9 @@ export function createThousandBoughStream(ctx: IslandStreamCreateContext): Thous
     system: null,
     ready: false,
     detail,
+    get plantColliders() {
+      return plants?.colliders ?? NO_COLLIDERS;
+    },
     get world() {
       return self.system;
     },

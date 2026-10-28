@@ -460,8 +460,10 @@ const clusters = await page.evaluate(async (cfg) => {
         return [ux * k * cs + uz * k * sn, -ux * k * sn + uz * k * cs];
       });
     }
+    // Plants' walker-only colliders (`camera: false`) don't move the camera, so no spots beside them.
     for (const c of circles)
-      if (c.r >= 0.25) around(c.x, c.z, 6, (a) => [Math.cos(a) * (c.r + pad), Math.sin(a) * (c.r + pad)]);
+      if (c.r >= 0.25 && c.camera !== false)
+        around(c.x, c.z, 6, (a) => [Math.cos(a) * (c.r + pad), Math.sin(a) * (c.r + pad)]);
     shuffle(grid);
     shuffle(ring);
     const take = ring.slice(0, Math.floor(cfg.samples / 2));

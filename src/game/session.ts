@@ -434,6 +434,8 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       ...village.colliders.circles,
       ...sites.colliders.circles,
       ...walks.flatMap((w) => w.circles ?? []),
+      // Anchorage's trunks and big plants (a streamed island's come and go with it: `islandPlants`).
+      ...(cove.vegetation?.homeColliders() ?? []),
     ],
     boxes: [...village.colliders.boxes, ...sites.colliders.boxes],
     // The islands' pools and streams, as they're drawn over this tier's ground: wade the shallows and
@@ -1442,9 +1444,25 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     site.group.removeFromParent();
     site.dispose();
   };
+  /** Each streamed island's plant colliders while they're in the world (`IslandStream.plantColliders`). */
+  const islandPlants = new Map<IslandId, readonly CircleObstacle[]>();
+  const addIslandPlants = (id: IslandId) => {
+    const list = cove.islands[id]?.plantColliders ?? [];
+    if (islandPlants.has(id) || list.length === 0) return;
+    for (const c of list) world.addCircle(c);
+    islandPlants.set(id, list);
+  };
+  const removeIslandPlants = (id: IslandId) => {
+    const list = islandPlants.get(id);
+    if (!list) return;
+    world.remove(list);
+    islandPlants.delete(id);
+  };
   /** A streamed island's world is in: its content goes on it, then its course board and market stall. */
   const onIslandWorld = (id: IslandId, built: unknown) =>
     runSetup(id, async () => {
+      // Its plants block walkers in every course, with or without its content.
+      addIslandPlants(id);
       const content = contents.get(id);
       if (!content || disposed || !inCourse(id)) return noSetup;
       const setup = await content.setup(built);
@@ -1484,6 +1502,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
             for (const r of currentSetup[id]?.roots ?? []) r.traverse((o) => void leaving.push(o));
           currentSetup[id] = undefined;
           nextSetup[id] = deferred();
+          removeIslandPlants(id);
           const content = contents.get(id);
           if (content) {
             content.teardown();

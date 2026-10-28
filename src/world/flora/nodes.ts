@@ -58,18 +58,79 @@ export function floraSpeciesTable(): { shape: AnyNode; eye: AnyNode } {
 /** How many feet part the grass and flowers at once: the nearest characters to the camera. */
 export const FLORA_PUSHERS = 3;
 
-/** Feet only part the grass this close to the camera (m). */
+/** Feet only part the grass this close to the camera (m); their push fades out over the last third. */
 const PUSH_RANGE = 30;
 /** How far (m) round a character's feet the blades lean away. */
-const PUSH_RADIUS = 0.6;
+export const PUSH_RADIUS = 1;
+/**
+ * How long (s) the push's tail takes to catch up with the feet: blades a character has passed ease
+ * back upright over about this long (`floraPushAt`). Reduced motion has no tail (no spring).
+ */
+export const PUSH_EASE = 0.5;
+/** A pusher whose tail wasn't updated for this long (s) starts again at its feet (no streak). */
+const TAIL_STALE = 0.3;
 
-/** Each pusher as (x, z, radius m, strength 0-1); strength 0 is off. Shared by every grass material. */
+/**
+ * Each pusher as (x, z, radius m, strength 0-1); strength 0 is off. Shared by every grass material.
+ * The feet are its head; `floraPushTails` holds where its tail is (x, z).
+ */
 export const floraPushers = Array.from({ length: FLORA_PUSHERS }, (_, i) =>
   uniform(new Vector4(0, 0, PUSH_RADIUS, 0)).setName(`floraPush${i}`),
 );
+export const floraPushTails = Array.from({ length: FLORA_PUSHERS }, (_, i) =>
+  uniform(new Vector4(0, 0, 0, 0)).setName(`floraPushTail${i}`),
+);
+
+/** Operations `floraPushAt` needs, on numbers (CPU, tests) or TSL nodes (the shader). */
+export interface PushMath<T> {
+  k(v: number): T;
+  add(a: T, b: T): T;
+  sub(a: T, b: T): T;
+  mul(a: T, b: T): T;
+  div(a: T, b: T): T;
+  max(a: T, b: T): T;
+  min(a: T, b: T): T;
+  sqrt(a: T): T;
+  smoothstep(e0: T, e1: T, x: T): T;
+}
+
+/**
+ * One pusher's push on a blade at (px, pz): its feet at (hx, hz) and its tail at (tx, tz), radius `r`
+ * and strength `w`. Blades within `r` of the line from the tail to the feet lean straight away from it,
+ * most at the feet and none at the tail, so a blade the feet have passed eases back as the tail comes
+ * by. Returns the push (x, z), up to `w` long. Written once for the CPU and the shader.
+ */
+export function floraPushAt<T>(
+  M: PushMath<T>,
+  px: T,
+  pz: T,
+  hx: T,
+  hz: T,
+  tx: T,
+  tz: T,
+  r: T,
+  w: T,
+): { x: T; z: T } {
+  const ax = M.sub(px, hx),
+    az = M.sub(pz, hz);
+  const bx = M.sub(tx, hx),
+    bz = M.sub(tz, hz);
+  const len2 = M.add(M.mul(bx, bx), M.mul(bz, bz));
+  // Along the line from the feet (0) to the tail (1); a still character's line is a point (0).
+  const s = M.min(M.max(M.div(M.add(M.mul(ax, bx), M.mul(az, bz)), M.max(len2, M.k(1e-4))), M.k(0)), M.k(1));
+  const dx = M.sub(ax, M.mul(bx, s)),
+    dz = M.sub(az, M.mul(bz, s));
+  const d = M.sqrt(M.add(M.mul(dx, dx), M.mul(dz, dz)));
+  const near = M.sub(M.k(1), M.smoothstep(M.mul(r, M.k(0.3)), r, d));
+  const fresh = M.sub(M.k(1), M.smoothstep(M.k(0), M.k(1), s));
+  const k = M.div(M.mul(M.mul(near, fresh), w), M.max(d, M.k(0.05)));
+  return { x: M.mul(dx, k), z: M.mul(dz, k) };
+}
 
 const nearest: (Object3D | null)[] = Array.from({ length: FLORA_PUSHERS }, () => null);
 const nearestD = new Float64Array(FLORA_PUSHERS);
+/** Each character's tail: x, z and when (s) it was last moved. */
+const tails = new WeakMap<Object3D, Float64Array>();
 
 /** Whether `o` and every parent up to its scene are visible. */
 function shown(o: Object3D): boolean {
@@ -102,9 +163,16 @@ function considerFeet(o: Object3D): void {
 
 /**
  * Points the pushers at the feet of the characters nearest the camera at (x, z), each frame (no
- * allocation). Positions come from the characters' world matrices, so they lag a frame at most.
+ * allocation but a character's first tail). Positions come from the characters' world matrices, so
+ * they lag a frame at most. Each tail follows its feet, `PUSH_EASE` s behind (at once with reduced
+ * motion: `reduced`). `now` is in seconds.
  */
-export function updateFloraPushers(x: number, z: number): void {
+export function updateFloraPushers(
+  x: number,
+  z: number,
+  now = performance.now() / 1000,
+  reduced = false,
+): void {
   eyeX = x;
   eyeZ = z;
   nearest.fill(null);
@@ -114,10 +182,25 @@ export function updateFloraPushers(x: number, z: number): void {
   for (let i = 0; i < FLORA_PUSHERS; i++) {
     const o = nearest[i];
     const v = floraPushers[i]!.value;
+    const tail = floraPushTails[i]!.value;
     if (!o) {
       v.w = 0;
       continue;
     }
-    v.set(o.matrixWorld.elements[12]!, o.matrixWorld.elements[14]!, PUSH_RADIUS, 1);
+    const fx = o.matrixWorld.elements[12]!,
+      fz = o.matrixWorld.elements[14]!;
+    let t = tails.get(o);
+    if (!t) tails.set(o, (t = new Float64Array([fx, fz, now])));
+    const dt = now - t[2]!;
+    // A third of the ease's length is its time constant: about 95 % caught up after `PUSH_EASE`.
+    const follow = reduced || dt > TAIL_STALE || dt < 0 ? 1 : 1 - Math.exp((-3 * dt) / PUSH_EASE);
+    t[0] = t[0]! + (fx - t[0]!) * follow;
+    t[1] = t[1]! + (fz - t[1]!) * follow;
+    t[2] = now;
+    // Faded out with distance from the camera, so a far character's push never switches on at once.
+    const d = Math.sqrt(nearestD[i]!);
+    const w = 1 - Math.min(1, Math.max(0, (d - PUSH_RANGE * 0.66) / (PUSH_RANGE * 0.34)));
+    v.set(fx, fz, PUSH_RADIUS, w * w * (3 - 2 * w));
+    tail.set(t[0]!, t[1]!, 0, 0);
   }
 }
