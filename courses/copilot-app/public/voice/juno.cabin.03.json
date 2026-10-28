@@ -1,62 +1,87 @@
 {
   "id": "juno.cabin.03",
   "speaker": "Juno",
-  "text": "Quests fill your Logbook and your purse. Then we sail on!",
+  "text": "Each quest fills your Logbook, and your purse too. Then it’s on to the next island!",
   "words": [
     {
-      "word": "Quests",
+      "word": "Each",
       "start": 0,
-      "end": 0.422
+      "end": 0.218
     },
     {
-      "word": "fill",
-      "start": 0.422,
-      "end": 0.684
+      "word": "quest",
+      "start": 0.218,
+      "end": 0.643
+    },
+    {
+      "word": "fills",
+      "start": 0.643,
+      "end": 0.96
     },
     {
       "word": "your",
-      "start": 0.684,
-      "end": 0.873
+      "start": 0.96,
+      "end": 1.091
     },
     {
       "word": "Logbook",
-      "start": 0.873,
-      "end": 1.364
+      "start": 1.091,
+      "end": 1.709
     },
     {
       "word": "and",
-      "start": 1.364,
-      "end": 1.556
+      "start": 1.709,
+      "end": 1.833
     },
     {
       "word": "your",
-      "start": 1.556,
-      "end": 1.757
+      "start": 1.833,
+      "end": 1.964
     },
     {
       "word": "purse",
-      "start": 1.757,
-      "end": 2.487
+      "start": 1.964,
+      "end": 2.4
+    },
+    {
+      "word": "too",
+      "start": 2.4,
+      "end": 3.011
     },
     {
       "word": "Then",
-      "start": 2.487,
-      "end": 2.957
+      "start": 3.011,
+      "end": 3.491
     },
     {
-      "word": "we",
-      "start": 2.957,
-      "end": 3.258
-    },
-    {
-      "word": "sail",
-      "start": 3.258,
-      "end": 3.588
+      "word": "it’s",
+      "start": 3.491,
+      "end": 3.734
     },
     {
       "word": "on",
-      "start": 3.588,
-      "end": 3.838
+      "start": 3.734,
+      "end": 3.83
+    },
+    {
+      "word": "to",
+      "start": 3.83,
+      "end": 3.945
+    },
+    {
+      "word": "the",
+      "start": 3.945,
+      "end": 4.044
+    },
+    {
+      "word": "next",
+      "start": 4.044,
+      "end": 4.281
+    },
+    {
+      "word": "island",
+      "start": 4.281,
+      "end": 4.531
     }
   ]
 }

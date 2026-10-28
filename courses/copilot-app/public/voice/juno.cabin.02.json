@@ -1,107 +1,127 @@
 {
   "id": "juno.cabin.02",
   "speaker": "Juno",
-  "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course. Finish its quests to earn its seal.",
+  "text": "Every island out there teaches a chapter of the GitHub Copilot app for Beginners course. Finish an island’s quests, and you’ll earn its Seal.",
   "words": [
     {
-      "word": "Each",
+      "word": "Every",
       "start": 0,
-      "end": 0.281
+      "end": 0.354
     },
     {
       "word": "island",
-      "start": 0.281,
-      "end": 0.718
+      "start": 0.354,
+      "end": 0.764
+    },
+    {
+      "word": "out",
+      "start": 0.764,
+      "end": 0.921
+    },
+    {
+      "word": "there",
+      "start": 0.921,
+      "end": 1.218
     },
     {
       "word": "teaches",
-      "start": 0.718,
-      "end": 1.2
+      "start": 1.218,
+      "end": 1.673
     },
     {
       "word": "a",
-      "start": 1.2,
-      "end": 1.291
+      "start": 1.673,
+      "end": 1.809
     },
     {
       "word": "chapter",
-      "start": 1.291,
-      "end": 1.77
+      "start": 1.809,
+      "end": 2.279
     },
     {
       "word": "of",
-      "start": 1.77,
-      "end": 1.982
+      "start": 2.279,
+      "end": 2.345
     },
     {
       "word": "the",
-      "start": 1.982,
-      "end": 2.088
+      "start": 2.345,
+      "end": 2.463
     },
     {
       "word": "GitHub",
-      "start": 2.088,
-      "end": 2.473
+      "start": 2.463,
+      "end": 2.909
     },
     {
       "word": "Copilot",
-      "start": 2.473,
-      "end": 3.055
+      "start": 2.909,
+      "end": 3.473
     },
     {
       "word": "app",
-      "start": 3.055,
-      "end": 3.309
+      "start": 3.473,
+      "end": 3.673
     },
     {
       "word": "for",
-      "start": 3.309,
-      "end": 3.469
+      "start": 3.673,
+      "end": 3.825
     },
     {
       "word": "Beginners",
-      "start": 3.469,
-      "end": 4
+      "start": 3.825,
+      "end": 4.281
     },
     {
       "word": "course",
-      "start": 4,
-      "end": 4.769
+      "start": 4.281,
+      "end": 5.06
     },
     {
       "word": "Finish",
-      "start": 4.769,
-      "end": 5.491
+      "start": 5.06,
+      "end": 5.77
     },
     {
-      "word": "its",
-      "start": 5.491,
-      "end": 5.683
+      "word": "an",
+      "start": 5.77,
+      "end": 5.87
+    },
+    {
+      "word": "island’s",
+      "start": 5.87,
+      "end": 6.327
     },
     {
       "word": "quests",
-      "start": 5.683,
-      "end": 6.279
+      "start": 6.327,
+      "end": 7.018
     },
     {
-      "word": "to",
-      "start": 6.279,
-      "end": 6.531
+      "word": "and",
+      "start": 7.018,
+      "end": 7.145
+    },
+    {
+      "word": "you’ll",
+      "start": 7.145,
+      "end": 7.316
     },
     {
       "word": "earn",
-      "start": 6.531,
-      "end": 6.836
+      "start": 7.316,
+      "end": 7.527
     },
     {
       "word": "its",
-      "start": 6.836,
-      "end": 7.113
+      "start": 7.527,
+      "end": 7.724
     },
     {
-      "word": "seal",
-      "start": 7.113,
-      "end": 7.363
+      "word": "Seal",
+      "start": 7.724,
+      "end": 7.974
     }
   ]
 }

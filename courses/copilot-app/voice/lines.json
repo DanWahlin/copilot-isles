@@ -1405,7 +1405,7 @@
       "prosody": {
         "rate": "+10%"
       },
-      "text": "Each island teaches a chapter of the GitHub Copilot app for Beginners course. Finish its quests to earn its seal."
+      "text": "Every island out there teaches a chapter of the GitHub Copilot app for Beginners course. Finish an island’s quests, and you’ll earn its Seal."
     },
     {
       "id": "juno.cabin.03",
@@ -1413,7 +1413,7 @@
       "prosody": {
         "rate": "+10%"
       },
-      "text": "Quests fill your Logbook and your purse. Then we sail on!"
+      "text": "Each quest fills your Logbook, and your purse too. Then it’s on to the next island!"
     },
     {
       "id": "juno.cabin.04",
@@ -1421,7 +1421,7 @@
       "prosody": {
         "rate": "+10%"
       },
-      "text": "And look out for starfish. They hide on every island."
+      "text": "Oh, and keep an eye out for starfish on every island. At the Model Market, you’ll spend them to hire the right model for each job."
     },
     {
       "id": "juno.cabin.chest",
@@ -1429,7 +1429,7 @@
       "prosody": {
         "rate": "+10%"
       },
-      "text": "Now, open the chest, Captain. Our chart’s inside."
+      "text": "Now, open that chest, Captain. Our chart’s inside."
     },
     {
       "id": "juno.tb.arrive",

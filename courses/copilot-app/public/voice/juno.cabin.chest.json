@@ -1,47 +1,47 @@
 {
   "id": "juno.cabin.chest",
   "speaker": "Juno",
-  "text": "Now, open the chest, Captain. Our chart’s inside.",
+  "text": "Now, open that chest, Captain. Our chart’s inside.",
   "words": [
     {
       "word": "Now",
       "start": 0,
-      "end": 0.305
+      "end": 0.378
     },
     {
       "word": "open",
-      "start": 0.305,
-      "end": 0.673
+      "start": 0.378,
+      "end": 0.771
     },
     {
-      "word": "the",
-      "start": 0.673,
-      "end": 0.788
+      "word": "that",
+      "start": 0.771,
+      "end": 0.994
     },
     {
       "word": "chest",
-      "start": 0.788,
-      "end": 1.295
+      "start": 0.994,
+      "end": 1.355
     },
     {
       "word": "Captain",
-      "start": 1.295,
-      "end": 1.636
+      "start": 1.355,
+      "end": 1.855
     },
     {
       "word": "Our",
-      "start": 1.636,
-      "end": 2
+      "start": 1.855,
+      "end": 2.23
     },
     {
       "word": "chart’s",
-      "start": 2,
-      "end": 2.317
+      "start": 2.23,
+      "end": 2.618
     },
     {
       "word": "inside",
-      "start": 2.317,
-      "end": 2.567
+      "start": 2.618,
+      "end": 2.868
     }
   ]
 }
