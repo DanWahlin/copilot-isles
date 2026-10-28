@@ -27,6 +27,7 @@ import { GesturePlanner, newPose, type ArmPose, type GestureFrame, type Side } f
 import { HandRig } from './hand-rig';
 import { STAGE_REST, type StageLight } from './stage-light';
 import { LegIk } from './leg-ik';
+import { SwimLayer } from './swim-layer';
 import { contactsOf, inContact, type FootContactMap } from './loco-pack';
 import {
   CHARACTER_CLIPS,
@@ -79,6 +80,17 @@ const RUN_STRIDE_METERS = 2.12;
 const WALK_SPEED = 1.35;
 const JOG_SPEED = 2.35;
 const RUN_SPEED = 4.15;
+/** Metres a swim stroke cycle carries the swimmer (the clip's 1.33 s cycle at the swim speed). */
+const SWIM_STROKE_METERS = 1.25;
+/**
+ * Swimming, the body lies along the water: its middle (the chest) comes over the feet's spot, so the
+ * head doesn't reach out past the walker's radius into a quay wall (m, back along the facing).
+ */
+const SWIM_BACK = 0.24;
+/** The chin lifts this much (rad) in the stroke, so the head rides up out of the water. */
+const SWIM_CHIN = 0.45;
+/** The swim clips play through the swim layer (swim-layer.ts), not the mixer. */
+const SWIM_CLIPS: ReadonlySet<CharacterClip> = new Set(['swim', 'tread']);
 /** The wrist stops this far short of the grip, so the hand, not the wrist, closes on it (m). */
 const GRIP_HAND = 0.06;
 /** Elbows drop down, out and a touch back when both hands hold something in front. */
@@ -94,6 +106,8 @@ const LOCOMOTION_CLIPS = new Set<CharacterClip>([
   'jumpLoop',
   'jumpLand',
   'wade',
+  'swim',
+  'tread',
 ]);
 
 interface PlantState {
@@ -211,6 +225,16 @@ export class RuntimeCharacter implements Character {
   /** Head-only nod (radians, down), set by the 'nod' gesture. */
   private nodPitch = 0;
   private groundMode: CharacterGroundMode = 'ground';
+  /** How far the body floats (CharacterGrounding.afloat), and how much of that is the stroke. */
+  private afloat = 0;
+  private stroke = 0;
+  private strokeGiven: number | null = null;
+  /** The player's swim stroke and treading water, over the mixer's pose (null for NPCs). */
+  private readonly swim: SwimLayer | null;
+  private swimRate = 1;
+  /** Props put away while afloat (`userData.stowAfloat`: the sheathed cutlass), and whether they are. */
+  private readonly stowAfloat: Object3D[] = [];
+  private stowed = false;
   private airTime = 0;
   private verticalSpeed = 0;
   private lastVerticalSpeed = 0;
@@ -250,7 +274,7 @@ export class RuntimeCharacter implements Character {
     this.mixer = new AnimationMixer(group);
     for (const clipName of CHARACTER_CLIPS) {
       const clip = clips.get(clipName);
-      if (!clip) continue;
+      if (!clip || SWIM_CLIPS.has(clipName)) continue;
       const action = this.mixer.clipAction(bindableClip(clip, group));
       action.loop = LoopRepeat;
       action.enabled = true;
@@ -259,6 +283,7 @@ export class RuntimeCharacter implements Character {
       action.play();
       this.actions.set(clipName, action);
     }
+    this.swim = this.npc ? null : SwimLayer.of(group, clips);
     this.body = bone(group, 'Body');
     this.hips = bone(group, 'Hips');
     this.abdomen = bone(group, 'Abdomen');
@@ -295,6 +320,7 @@ export class RuntimeCharacter implements Character {
     this.face = this.npc ? createFace(this.head, group, body, config) : null;
     group.traverse((object) => {
       if (object instanceof Mesh) object.userData.stage = this.stage;
+      if (object.userData.stowAfloat) this.stowAfloat.push(object);
     });
     this.proceduralRests = proceduralBones([
       this.body,
@@ -355,7 +381,7 @@ export class RuntimeCharacter implements Character {
       weights.set('walk', Math.min(0.18, speed / RUN_SPEED) * (1 - startWeight));
       weights.set('run', Math.min(0.22, speed / RUN_SPEED) * (1 - startWeight));
       weights.set('idle', 0);
-    } else if (this.groundMode === 'wade' && this.actions.has('wade')) {
+    } else if (this.groundMode !== 'ground' && this.actions.has('wade')) {
       const wadeWeight = smoothstep(0.05, 0.45, speed);
       weights.set('idle', 1 - wadeWeight);
       weights.set('wade', wadeWeight);
@@ -376,6 +402,13 @@ export class RuntimeCharacter implements Character {
       }
     }
 
+    // Afloat: treading water still, the stroke as you swim (the swim layer, over the wade).
+    this.stroke = this.swim && this.afloat > 0 ? (this.strokeGiven ?? smoothstep(0.08, 0.55, speed)) : 0;
+    this.swimRate = Math.max(
+      0.25,
+      (Math.max(0.6, speed) / SWIM_STROKE_METERS) * (this.swim?.swimDuration ?? 1),
+    );
+
     for (const [name, action] of this.actions) setBlendWeight(action, weights.get(name) ?? 0);
     syncStride(walk, speed, WALK_STRIDE_METERS);
     if (jog) syncStride(jog, speed, JOG_STRIDE_METERS);
@@ -392,6 +425,14 @@ export class RuntimeCharacter implements Character {
       this.landBlend = Math.max(this.landBlend, impact);
     }
     this.groundMode = next;
+    this.afloat = next === 'air' ? 0 : MathUtils.clamp(state.afloat ?? 0, 0, 1);
+    this.strokeGiven = state.stroke === undefined ? null : MathUtils.clamp(state.stroke, 0, 1);
+    // Swapped half afloat, when the hips are well under water.
+    const stow = this.afloat > 0.5;
+    if (stow !== this.stowed) {
+      this.stowed = stow;
+      for (const o of this.stowAfloat) o.visible = !stow;
+    }
     this.verticalSpeed = state.verticalSpeed ?? this.verticalSpeed;
     this.groundAt = state.groundAt ?? null;
   }
@@ -455,6 +496,10 @@ export class RuntimeCharacter implements Character {
       this.nodPitch = 0;
       this.updateOverlay(step);
       this.mixer.update(step);
+      if (this.swim && this.afloat > 0) {
+        this.swim.advance(step, this.swimRate);
+        this.swim.apply(this.afloat, this.stroke);
+      }
       this.handPoseL = this.handPoseR = REST_POSE;
       this.applyProceduralPolish(step);
       this.applyHands();
@@ -665,7 +710,9 @@ export class RuntimeCharacter implements Character {
     const accel = (this.visualSpeed - this.previousVisualSpeed) / Math.max(0.001, dt);
     this.previousVisualSpeed = this.visualSpeed;
     const speed01 = MathUtils.clamp(this.visualSpeed / RUN_SPEED, 0, 1);
-    const move = smoothstep(0.05, 0.75, this.visualSpeed);
+    // Afloat, the walk's polish (bob, sway, lean, the arm carry) fades out: the swim clips move the body.
+    const dry = 1 - this.afloat;
+    const move = smoothstep(0.05, 0.75, this.visualSpeed) * dry;
     const stride =
       this.visualSpeed > 2.8
         ? RUN_STRIDE_METERS
@@ -688,7 +735,7 @@ export class RuntimeCharacter implements Character {
       this.baseScale * (1 + squash * 0.55 - stretch * 0.35),
     );
 
-    const pitch = MathUtils.clamp((-speed01 * 0.055 - accel * 0.006) * npcScale, -0.13, 0.1);
+    const pitch = MathUtils.clamp((-speed01 * 0.055 - accel * 0.006) * npcScale * dry, -0.13, 0.1);
     const bank = MathUtils.clamp(
       (-turnRate * 0.045 - Math.sin(this.locomotionClock) * 0.012 * move) * npcScale,
       -0.16,
@@ -702,7 +749,8 @@ export class RuntimeCharacter implements Character {
     const bob =
       Math.max(0, Math.cos(twoStep)) * 0.026 * move - this.landBlend * 0.05 - this.stopBlend * 0.016;
     const breath = Math.sin(this.idleClock * 2.1) * (1 - move) * 0.006;
-    if (this.body) this.body.position.y += (bob + breath) * this.rigMeters;
+    if (this.body) this.body.position.y += (bob + breath * dry) * this.rigMeters;
+    if (this.afloat > 0) this.applyFloat();
     this.hips?.rotateZ(hipSway);
     this.abdomen?.rotateZ(-hipSway * 0.42);
     this.torso?.rotateZ(-hipSway * 0.62);
@@ -712,11 +760,23 @@ export class RuntimeCharacter implements Character {
     this.footL?.rotateX(Math.sin(this.locomotionClock + Math.PI) * 0.05 * move);
     this.footR?.rotateX(Math.sin(this.locomotionClock) * 0.05 * move);
 
-    this.applyArmMask(move, npcScale);
+    this.applyArmMask(move, npcScale, dry);
     this.applyFootPlant(move, dt);
     this.applyIdleLife(dt, move, npcScale);
     if (this.gesture?.active) this.applyGesture(this.gesture);
     else if (this.talking) this.applyTalkBeat(npcScale);
+  }
+
+  /**
+   * Afloat: the stroke lays the body along the water, so it's drawn back over the feet's spot by its
+   * chest (SWIM_BACK) and the chin lifts to keep the face up; treading water, the head stays level.
+   */
+  private applyFloat(): void {
+    const k = this.afloat * this.stroke;
+    if (k <= 0) return;
+    if (this.body) this.body.position.z -= SWIM_BACK * k * this.rigMeters;
+    this.rotateInRoot(this.neck, AXIS_X, -SWIM_CHIN * 0.4 * k);
+    this.rotateInRoot(this.head, AXIS_X, -SWIM_CHIN * 0.6 * k);
   }
 
   /**
@@ -918,12 +978,12 @@ export class RuntimeCharacter implements Character {
     }
   }
 
-  private applyArmMask(move: number, npcScale: number): void {
+  private applyArmMask(move: number, npcScale: number, dry = 1): void {
     if (move < 0.05 || this.groundMode === 'air') return;
     const swing = Math.sin(this.locomotionClock) * move * npcScale;
     const carry = (bone: Bone | null, strength = 0.92) => {
       const pose = bone ? this.armCarry.get(bone) : null;
-      if (bone && pose) bone.quaternion.slerp(pose, strength);
+      if (bone && pose) bone.quaternion.slerp(pose, strength * dry);
     };
     const gentleSwing = (side: -1 | 1, upper: Bone | null, lower: Bone | null, shoulder: Bone | null) => {
       carry(shoulder);
@@ -1025,7 +1085,7 @@ export class RuntimeCharacter implements Character {
 
   private applyIdleLife(dt: number, move: number, npcScale: number): void {
     this.idleClock += dt;
-    if (move > 0.1 || this.groundMode === 'air' || this.talking || this.overlay) {
+    if (move > 0.1 || this.groundMode === 'air' || this.afloat > 0 || this.talking || this.overlay) {
       this.idleFidget = 0;
       return;
     }

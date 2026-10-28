@@ -24,7 +24,8 @@ export async function loadClipPack(url: string): Promise<Map<CharacterClip, Anim
   }
 }
 
-function parseLocoPack(buffer: ArrayBuffer): Map<CharacterClip, AnimationClip> {
+/** Parses a clip pack's bytes (the prop and swim audits read the packs from disk). */
+export function parseLocoPack(buffer: ArrayBuffer): Map<CharacterClip, AnimationClip> {
   const view = new DataView(buffer);
   if (view.getUint32(0, true) !== LOCO_MAGIC) throw new Error('Bad locomotion pack');
   const jsonLength = view.getUint32(4, true);

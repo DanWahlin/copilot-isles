@@ -486,6 +486,9 @@ export function normalizeClips(
     // Hands on the wheel are posed procedurally over the idle (runtime-character's applyPoseLife).
     ['helm', find('|Idle|') ?? find('Idle') ?? motion('helm')],
     ['wade', find('|Walk|') ?? find('Walk') ?? motion('wade')],
+    // Swimming and treading water: the locomotion pack's (Quaternius's Universal Animation Library).
+    ['swim', motion('swim')],
+    ['tread', motion('tread')],
   ];
   for (const [name, clip] of mapping) {
     if (!clip) continue;

@@ -64,6 +64,7 @@ import { Hud } from './hud';
 import { Interactions, type Interactable } from './interaction';
 import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
+import { SWIM_BAND, SwimBounds, placeShipKeepOut, type SwimKeepOut } from './swim-bounds';
 import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, currentQuest, npcScript } from './cove-quests';
@@ -343,6 +344,10 @@ const SIGHTING_SHORE = 8;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
+/** Metres a swim stroke carries you (one pull of the arms: a ripple and a soft splash). */
+const STROKE_LENGTH = 1.25;
+/** Treading water, a ripple about this often (s). */
+const TREAD_RIPPLE = 1.4;
 const DOCK_RANGE = 38;
 /** Seconds of visible assisted approach before the fade tidies the ship into the berth. */
 const DOCK_ASSIST_MAX = 6;
@@ -547,6 +552,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.group.position.set(player.x, player.y, player.z);
     hero.group.rotation.y = player.heading;
   };
+  // Swimming: a band off the shore of the island you're on, clear of decks and the moored ship.
+  const shipKeepOut: SwimKeepOut = { x0: 0, z0: 0, x1: 0, z1: 0, r: 0 };
+  const swimBounds = new SwimBounds(world, {
+    band: () => ISLANDS[island].swimBand ?? SWIM_BAND,
+    inWaters: (x, z) => ISLANDS[island].contains(x, z),
+    wadeMax: player.tune.wadeMax,
+    deck: (x, z) => world.surfaceHeightAt(x, z) !== null,
+  });
+  swimBounds.keepOuts.push(shipKeepOut);
+  player.swimLimit = swimBounds;
   placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
   // Character levels of detail go by this camera, and keep full detail near the player.
@@ -2097,7 +2112,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** Watches for a walker or a ship that's trying to move and can't (called each frame). */
   function watchStuck(dt: number, s: InputState): void {
     if (mode === 'walk') {
-      const pushing = Math.hypot(s.moveX, s.moveY) > 0.5 && !dialogue.active && !scriptRunning && !riding();
+      // Held at the swim's soft edge isn't stuck: that's as far as you go (its own tip says so).
+      const atSwimEdge = player.mode === 'swim' && player.swimRoom < player.tune.swimSoft;
+      const pushing =
+        Math.hypot(s.moveX, s.moveY) > 0.5 && !dialogue.active && !scriptRunning && !riding() && !atSwimEdge;
       const moved = Math.hypot(player.x - pushFrom.x, player.z - pushFrom.z);
       if (!pushing || moved > STUCK_RADIUS) {
         pushFrom.x = player.x;
@@ -2208,6 +2226,67 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       intensity,
     );
   };
+
+  /** Ripples where the hands pull through the surface, either side of the head. */
+  const puffHand = (side: number, intensity: number) => {
+    const s = Math.sin(player.heading);
+    const c = Math.cos(player.heading);
+    const ahead = 0.25 + 0.25 * player.stroke;
+    footstepPuffs.spawn(
+      player.x + c * side * 0.32 + s * ahead,
+      player.waterY,
+      player.z - s * side * 0.32 + c * ahead,
+      'water',
+      player.heading,
+      intensity,
+    );
+  };
+  const puffStroke = (intensity = 1) => {
+    puffHand(-1, intensity);
+    puffHand(1, intensity);
+  };
+  /** Distance swum toward the next stroke, the next ripple treading water, and the edge's tip shown. */
+  let strokeRun = 0;
+  let treadIn = TREAD_RIPPLE;
+  let swimEdgeTold = false;
+  /**
+   * Afloat: a soft splash and ripples each stroke, a ripple now and then treading water, and
+   * Wingman off the shoulder (he'd be in the water) until you're standing again.
+   */
+  const updateSwim = (dt: number) => {
+    if (player.mode === 'swim') {
+      const pace = player.animSpeed;
+      if (pace > 0.25 && player.stroke > 0.3) {
+        strokeRun += pace * dt;
+        if (strokeRun > STROKE_LENGTH) {
+          strokeRun -= STROKE_LENGTH;
+          audio?.sfx.footstep('water', player);
+          puffStroke(0.55 + 0.35 * Math.min(1, pace / player.tune.swimRunSpeed));
+        }
+        treadIn = TREAD_RIPPLE;
+      } else if ((treadIn -= dt) <= 0) {
+        treadIn = TREAD_RIPPLE;
+        puffStroke(0.35);
+      }
+      if (!swimEdgeTold && player.swimRoom < player.tune.swimSoft * 0.5 && !dialogue.active) {
+        swimEdgeTold = true;
+        hud.toast('That’s as far out as you can swim. The shore’s behind you.', 4);
+      }
+    } else strokeRun = 0;
+    if (!wingman) return;
+    const afloat = player.mode === 'swim' && player.afloat > 0.6;
+    if (afloat && !wingmanSwimming && wingman.phase === 'perched' && !welcomeRunning && !scriptRunning) {
+      hero.group.getWorldPosition(flightView.captain);
+      camera.getWorldPosition(flightView.eye);
+      wingman.takeOff(flightView as FlightView);
+      wingmanSwimming = true;
+    } else if (wingmanSwimming && player.afloat < 0.3) {
+      wingmanSwimming = false;
+      wingman.land();
+    }
+  };
+  /** Wingman's off the shoulder because you're swimming (he lands once you stand). */
+  let wingmanSwimming = false;
 
   /** Seconds the HUD stays calm after the last busy frame. */
   const CALM_HOLD = 0.6;
@@ -2699,6 +2778,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         const moored = mode !== 'sail' && mode !== 'docking' && shipDocked();
         if (moored) shipCams.place(dyn.pose.x, ship.group.position.y, dyn.pose.z, dyn.pose.heading);
         else shipCams.park();
+        placeShipKeepOut(shipKeepOut, mode === 'walk' ? dyn.pose : null);
         for (let i = 0; i < contentList.length; i++)
           contentList[i]!.moored?.(moored && island === contentIds[i]);
         ship.setGangway(gangwayDown ? plank.foot : null);
@@ -2724,14 +2804,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           grounding.mode = player.mode;
           grounding.verticalSpeed = player.vy;
           grounding.landed = player.landed;
+          grounding.afloat = player.afloat;
+          grounding.stroke = player.stroke;
           hero.setGrounding(grounding);
           const wading = player.mode === 'wade' && sp > 0.15;
           if (wading && anim !== 'wade') hero.play('wade');
           else if (!wading && anim === 'wade') hero.play('idle');
           anim = wading ? 'wade' : 'move';
-          hero.setSpeed(sp);
+          hero.setSpeed(player.animSpeed);
+          updateSwim(dt);
 
-          if (player.mode !== 'air' && sp > 0.3) {
+          if (player.mode === 'swim') {
+            // Strokes, not footsteps (updateSwim).
+          } else if (player.mode !== 'air' && sp > 0.3) {
             stride += sp * dt;
             const len = sp > 3 ? STEP_RUN : STEP_WALK;
             if (stride > len) {
@@ -2740,7 +2825,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               puffFootstep(sp > 3 ? 1.25 : 0.9);
             }
           }
-          if (player.landed) {
+          if (player.landed && player.mode === 'swim') {
+            audio?.sfx.oneShot('splash', player, 0.5);
+            puffStroke(1.6);
+          } else if (player.landed) {
             audio?.sfx.footstep(footstep(player.surface), player);
             puffFootstep(1.35);
           }

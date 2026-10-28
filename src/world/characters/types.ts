@@ -84,6 +84,8 @@ export const CHARACTER_CLIPS = [
   'sit',
   'helm',
   'wade',
+  'swim',
+  'tread',
 ] as const;
 
 export type PlayerBody = (typeof PLAYER_BODIES)[number];
@@ -91,10 +93,17 @@ export type NpcId = (typeof NPC_IDS)[number];
 export type CharacterBody = (typeof CHARACTER_BODIES)[number];
 export type CharacterClip = (typeof CHARACTER_CLIPS)[number];
 export type LookTarget = Vector3 | Object3D | null;
-export type CharacterGroundMode = 'ground' | 'wade' | 'air';
+export type CharacterGroundMode = 'ground' | 'wade' | 'swim' | 'air';
 
 export interface CharacterGrounding {
   mode: CharacterGroundMode;
+  /**
+   * How far the body floats (0 standing or wading, 1 swimming): the swim stroke and treading water
+   * blend in over the walk and wade as the bed falls away, so there's no pop between them.
+   */
+  afloat?: number;
+  /** How much of floating is the swim stroke (0 treading water); from the pace when not given. */
+  stroke?: number;
   verticalSpeed?: number;
   landed?: boolean;
   groundAt?: (x: number, z: number) => number;
