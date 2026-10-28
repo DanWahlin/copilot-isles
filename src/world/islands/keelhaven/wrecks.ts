@@ -12,6 +12,7 @@ import {
 } from '../../wreck/wreck';
 import { WreckFrame, type WreckPose } from '../../wreck/frame';
 import { box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
+import { lampHead } from './lamps';
 import {
   BRIGANTINE_HALF_LENGTH,
   deckHeightAt,
@@ -261,9 +262,26 @@ export function hulkDressing(b: Buckets, out: ShipyardOut, lite: boolean): void 
   const pipe = P(-0.9, deck + 2.6, -7.2);
   rod(b, 'metal', pipe, { x: pipe.x, y: pipe.y + 1.4, z: pipe.z }, 0.11, 6, YARD_PAINT.iron);
   cone(b, 'metal', pipe.x, pipe.y + 1.4, pipe.z, 0.22, 0.18, 6, YARD_PAINT.iron);
-  const lamp = P(1.95, deck + 2.1, -3.2);
-  const glow = box(b, 'glow', lamp.x, lamp.y, lamp.z, 0.2, 0.28, 0.2, heading, 0xffffff);
-  lanternPaint(glow, 4.2);
+  // A lantern on an iron shelf bracket out of the cabin's wall (x 1.9): its glass stood half in the
+  // wall with no cap or bracket (issue 363).
+  const lamp = P(2.04, deck + 1.92, -3.2);
+  const head = lampHead(b, b, {
+    x: lamp.x,
+    y: lamp.y,
+    z: lamp.z,
+    w: 0.2,
+    h: 0.28,
+    yaw: heading,
+    capR: 0.18,
+    capH: 0.15,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.2);
+  const foot = P(2.04, deck + 1.92 - 0.14 - 0.02, -3.2);
+  box(b, 'metal', foot.x, foot.y, foot.z, 0.24, 0.04, 0.24, heading, YARD_PAINT.iron);
+  const shelf = P(1.88, deck + 1.92 - 0.14 - 0.06, -3.2);
+  const shelfEnd = P(2.1, deck + 1.92 - 0.14 - 0.06, -3.2);
+  rod(b, 'metal', shelf, shelfEnd, 0.02, 4, YARD_PAINT.iron);
   // A stair up her port side to the deck, by a gap in her rail.
   const zs = 2.5;
   const steps = lite ? 5 : 10;

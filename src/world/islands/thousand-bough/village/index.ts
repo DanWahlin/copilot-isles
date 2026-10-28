@@ -2,9 +2,13 @@ import { Group, type Mesh } from 'three/webgpu';
 import type { TierSettings } from '../../../../engine/quality';
 import { SignSet, type PaintedSign } from '../../../sites/sign';
 import type { VillageKit } from '../../../village/kit';
-import { makeBuckets, meshesFromBuckets, PAINT, box, cone, lanternPaint, rod, type Buckets } from './pieces';
+import { makeBuckets, meshesFromBuckets, PAINT, beam, box, cone, lanternPaint, type Buckets } from './pieces';
 import { buildHouses } from './houses';
-import { buildStructureSteps, type StructureOut } from './structure';
+import { buildStructureSteps, type StructureOut, type TreeLantern } from './structure';
+import { hangerHeight, lampHanger } from '../../../village/lamp-hanger';
+import { seatBlock } from '../../../characters/seat-fit';
+import { THOUSAND_BOUGH as TB } from '../layout';
+import { thousandBoughHeight } from '../height';
 import type { WalkClearance } from './clearance';
 import { createFlumeTerrace, type FlumeTerrace } from '../flume';
 import { createSetPieces, type SetPieces } from '../set-pieces';
@@ -27,22 +31,30 @@ export interface TreeVillage {
   dispose(): void;
 }
 
-/** One hanging or standing lantern: an iron cap and frame round a glowing glass. */
-function lantern(buckets: Buckets, l: { x: number; y: number; z: number; hang: boolean }): void {
+/**
+ * One hanging or standing lantern: an iron cap and base round a glowing glass. A hung one hangs by
+ * the shared hanger from what's over it, or from an iron arm out of its post or wall (their rods once
+ * stopped in the air: issue 363).
+ */
+export function lantern(buckets: Buckets, l: TreeLantern): void {
   const g = box(buckets, 'glow', l.x, l.y, l.z, 0.2, 0.28, 0.2, 0.4, 0xffffff);
   lanternPaint(g);
   cone(buckets, 'metal', l.x, l.y + 0.14, l.z, 0.19, 0.16, 6, PAINT.iron);
   box(buckets, 'metal', l.x, l.y - 0.16, l.z, 0.22, 0.04, 0.22, 0.4, PAINT.iron);
-  if (l.hang)
-    rod(
-      buckets,
-      'metal',
-      { x: l.x, y: l.y + 0.28, z: l.z },
-      { x: l.x, y: l.y + 0.44, z: l.z },
-      0.012,
-      3,
-      PAINT.iron,
-    );
+  if (!l.hang) return;
+  const top = l.y + 0.3;
+  let under = l.under;
+  if (l.arm) {
+    under ??= top + hangerHeight() + 0.03;
+    // The arm runs from `arm` (2 cm into the post or wall) to 4 cm past the ring.
+    const dx = l.x - l.arm.x;
+    const dz = l.z - l.arm.z;
+    const d = Math.hypot(dx, dz) || 1;
+    const end = { x: l.x + (dx / d) * 0.04, y: under + 0.02, z: l.z + (dz / d) * 0.04 };
+    beam(buckets, 'metal', { x: l.arm.x, y: under + 0.02, z: l.arm.z }, end, 0.04, 0.04, PAINT.iron);
+  }
+  if (under === undefined) throw new Error(`a hung lantern at (${l.x}, ${l.z}) has nothing to hang from`);
+  lampHanger(buckets.metal, l.x, l.z, top, under, PAINT.iron, 1, 0.4);
 }
 
 /**
@@ -92,6 +104,12 @@ export async function createTreeVillage(
   out.cameraBoxes.push(...flume.cameraBoxes);
   group.add(flume.group);
   await breathe();
+  // The seated islanders' seat blocks, under their anchors (seat-fit.ts): the hall's floor, the shore.
+  for (const [a, floor] of [
+    [TB.anchors.extraWeaver, 18.5],
+    [TB.anchors.extraFisher, thousandBoughHeight(TB.anchors.extraFisher.x, TB.anchors.extraFisher.z)],
+  ] as const)
+    seatBlock(buckets, a.x, a.z, a.heading, floor, a.y);
   for (const l of out.lanterns) {
     lantern(buckets, l);
     // The camera keeps out of it too (they hang at head height beside the walks and on the rails).

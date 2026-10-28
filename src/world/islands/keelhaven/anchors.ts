@@ -2,6 +2,7 @@ import type { VillageAnchor } from '../../village/kit';
 import { BOOTH_LAYOUT } from '../../market-stall/booth';
 import { stallToWorld, type StallPlace } from '../../market-stall/layout';
 import { keelhavenHeight } from './height';
+import { SIT } from '../../characters/seat-fit';
 import { toWorld } from './layout';
 import { CANAL, DOCKS, PADS, QUAY, WALL } from './works';
 import { BOARD, GATE_LIGHT } from './town';
@@ -24,6 +25,11 @@ export function headingUv(du: number, dv: number): number {
 function anchor(u: number, v: number, du: number, dv: number, y?: number): VillageAnchor {
   const p = toWorld(u, v);
   return { x: p.x, y: y ?? keelhavenHeight(p.x, p.z), z: p.z, heading: headingUv(du, dv) };
+}
+
+/** An anchor raised to the top of a seat block on its ground (seat-fit.ts `SIT.height`). */
+function seated(a: VillageAnchor): VillageAnchor {
+  return { ...a, y: a.y + SIT.height };
 }
 
 /** Bram's booth on the Old Town quay, west of the landing, its front to the landing (MODEL-MARKET §2). */
@@ -60,7 +66,11 @@ export const KEELHAVEN_ANCHORS = {
   // The islanders.
   extraKids: anchor(36, -21, 0, 1),
   extraCaulker: anchor(150, -32, 0, -1),
-  extraFisher: anchor(-6, 34, -1, 0),
+  // Old Salter sits on a seat block (town-build.ts) whose top is his anchor (seat-fit.ts): on the dry
+  // sand at the back of the beach north of the footbridge (1.8 m over the sea), a few metres landward
+  // of the beach path, clear of the houses and palms, looking out over the cove. At (-6, 34) his block
+  // stood in the surf (issue 363).
+  extraFisher: seated(anchor(18, 16, -1, 0)),
   extraLamplighter: anchor(40, CANAL.v + CANAL.half + WALL + 1.4, 0, 1),
   // The barge's skipper on the cut's near coping by her mooring (circuit.ts `BARGE`), off the towpath,
   // facing her over the wall: a captain on the coping can talk to him.

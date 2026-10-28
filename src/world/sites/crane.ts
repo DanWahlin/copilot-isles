@@ -13,6 +13,7 @@ import {
   Vector3,
 } from 'three/webgpu';
 import { color, sin } from 'three/tsl';
+import { SIT } from '../characters/seat-fit';
 import type { TierSettings } from '../../engine/quality';
 import type { CircleObstacle } from '../contracts';
 import { COVE } from '../layout';
@@ -506,8 +507,18 @@ export function createCrane(o: CraneOptions): CraneSite {
     craneCapstan: { x: C.x, y: DECK, z: C.z + 2.0, heading: Math.PI },
     craneDry: { x: levers.dry.x, y: DECK, z: levers.dry.z + 0.8, heading: Math.PI },
     craneYes: { x: levers.yes.x, y: DECK, z: levers.yes.z + 0.8, heading: Math.PI },
-    /** Old Finn's fishing spot, moved down the pier from the crane. */
-    finn: { x: COVE.pier.x - 1.85, y: DECK, z: -104.5, heading: -Math.PI / 2 },
+    /**
+     * Old Finn's fishing spot, moved down the pier from the crane: on the west edge beam (0.29 m out
+     * from the deck's edge, its top 5 cm over the deck: village.ts `addPierSideStructure`), facing the
+     * water with his legs over it (the sit's front edge on the beam's: seat-fit.ts), his boots on the
+     * footboard under him (`addPierFootboard`).
+     */
+    finn: {
+      x: COVE.pier.x - COVE.pier.width / 2 - 0.29 + SIT.front,
+      y: DECK + 0.05,
+      z: COVE.finn.z,
+      heading: -Math.PI / 2,
+    },
   };
 
   function boardLines(n: number): string[] {

@@ -19,7 +19,8 @@ import {
   villageWalkable,
   type Rect,
 } from './surfaces';
-import type { StructureOut } from './structure';
+import { LANTERN_STAND, type StructureOut } from './structure';
+import { wrapAngle } from '../../../../util/math';
 import { branchSignLines } from './branch-sign';
 import { hasActiveCourse, islandSign } from '../../../../course/active';
 import { byActs, puzzleMaybe } from '../../../../course/puzzles';
@@ -382,13 +383,16 @@ function crewHut(
   const wheelY = thousandBoughHeight(wp.x, wp.z) + 2.6;
   const edge = { x: h.x + fx * plat * 0.8, y: y - 0.2, z: h.z + fz * plat * 0.8 };
   rod(buckets, 'rope', { x: wp.x, y: wheelY, z: wp.z }, edge, 0.03, 4, PAINT.rope);
-  // Lanterns at the door.
-  out.lanterns.push({
-    x: h.x + fx * (R + 0.35) + Math.cos(face) * 0.9,
-    y: y + 2.1,
-    z: h.z + fz * (R + 0.35) - Math.sin(face) * 0.9,
-    hang: true,
-  });
+  // A lantern at the door, on an iron arm out of the wall: from the middle of the wall's facet on the
+  // line from the hut's middle (facet k's middle plane is R out at its angle, R / cos δ off it).
+  const lx = h.x + fx * (R + 0.35) + Math.cos(face) * 0.9;
+  const lz = h.z + fz * (R + 0.35) - Math.sin(face) * 0.9;
+  const la = Math.atan2(lx - h.x, lz - h.z);
+  const k = Math.round((wrapAngle(la - face) / TAU) * sides - 0.5);
+  // From 2 cm inside the wall's outer face (it's 14 cm thick).
+  const wr = (R + 0.05) / Math.cos(wrapAngle(la - ((k + 0.5) / sides) * TAU - face));
+  const wall = { x: h.x + Math.sin(la) * wr, z: h.z + Math.cos(la) * wr };
+  out.lanterns.push({ x: lx, y: y + 2.1, z: lz, hang: true, arm: wall });
   addBox(out, h.x, h.z, R * 1.05, 0, y - 0.5, y + wallH + 3.2);
   // The roof's overhang (past the walls' box).
   out.cameraBoxes.push({
@@ -589,8 +593,9 @@ function deckHouse(
   // A lantern either side of the door (the Practice Bough's clear of its sign's ends: a long branch
   // name fills the board).
   for (const s of [-1, 1]) {
-    const p = rectWorld(r, u - hd - 0.3, s * (id === 'L2S' ? 1.45 : 0.9));
-    out.lanterns.push({ x: p.x, y: y + 2.2, z: p.z, hang: true });
+    const v = s * (id === 'L2S' ? 1.45 : 0.9);
+    const p = rectWorld(r, u - hd - 0.3, v);
+    out.lanterns.push({ x: p.x, y: y + 2.2, z: p.z, hang: true, arm: rectWorld(r, u - hd - 0.06, v) });
   }
   // A string of pennants along each long eave, the crews' three colours in turn.
   const crews = [PAINT.blue, PAINT.green, PAINT.teal];
@@ -700,7 +705,14 @@ function boathouse(buckets: Buckets, out: StructureOut): void {
       10,
       PAINT.rope,
     );
-  out.lanterns.push({ x: cx + 2.4, y: y + 2.3, z: cz + 2.0, hang: true });
+  // Off the corner post's outer side, on an arm (it hung with the post through it).
+  out.lanterns.push({
+    x: cx + 2.62,
+    y: y + 2.3,
+    z: cz + 2.22,
+    hang: true,
+    arm: { x: cx + 2.48, z: cz + 2.08 },
+  });
   // The roof keeps the camera out (you stand under it; it can't swing up through the thatch).
   out.cameraBoxes.push({ x: cx, z: cz, hx: 3.1, hz: 2.6, rot: 0, y0: y + 2.7, y1: y + 5.2 });
 }
@@ -799,7 +811,10 @@ function booths(buckets: Buckets, out: StructureOut): void {
       y0: y + 2.25,
       y1: y + 4.3,
     });
-    out.lanterns.push({ x: b.x + b.r + 0.1, y: y + 2.1, z: b.z, hang: true });
+    // Hung from the thatch's underside: the cone's 10 facets put its +x side mid-facet (cos 18°).
+    const eave = b.r * 1.3 * Math.cos(Math.PI / 10);
+    const under = y + 2.35 + 1.9 * (1 - (b.r + 0.1) / eave);
+    out.lanterns.push({ x: b.x + b.r + 0.1, y: y + 2.1, z: b.z, hang: true, under });
   }
 }
 
@@ -955,8 +970,11 @@ function fernWalkLanterns(
       const ground = thousandBoughHeight(x, z);
       rod(buckets, 'wood', { x, y: ground - 0.4, z }, { x, y: ground + 2.5, z }, 0.09, 6, PAINT.weathered);
       const arm = { x: x + uz * side * 0.55, y: ground + 2.4, z: z - ux * side * 0.55 };
-      beam(buckets, 'wood', { x, y: ground + 2.4, z }, arm, 0.06, 0.06, PAINT.weathered);
-      out.lanterns.push({ x: arm.x, y: arm.y - 0.42, z: arm.z, hang: true });
+      // The arm runs 4 cm past the lantern's hanger.
+      const tip = { x: x + uz * side * 0.59, y: ground + 2.4, z: z - ux * side * 0.59 };
+      const root = { x: x + uz * side * 0.07, y: ground + 2.4, z: z - ux * side * 0.07 };
+      beam(buckets, 'wood', root, tip, 0.06, 0.06, PAINT.weathered);
+      out.lanterns.push({ x: arm.x, y: arm.y - 0.42, z: arm.z, hang: true, under: arm.y - 0.03 });
       out.circles.push({ x, z, r: 0.18, y0: ground - 1, y1: ground + 2.6, height: 2.6 });
       side = -side;
     }
@@ -1030,10 +1048,11 @@ function portSigns(
       rod(buckets, 'wood', { x, y: e.y - 0.3, z }, { x, y: e.y + 3.3, z }, 0.11, 6, PAINT.teakDark);
       out.circles.push({ x, z, r: 0.18, y0: e.y - 0.5, y1: e.y + 3.4, height: 3.4 });
       out.lanterns.push({
-        x: x + sx * Math.sign(k) * 0.25,
+        x: x + sx * Math.sign(k) * 0.3,
         y: e.y + 2.6,
-        z: z + sz * Math.sign(k) * 0.25,
+        z: z + sz * Math.sign(k) * 0.3,
         hang: true,
+        arm: { x: x + sx * Math.sign(k) * 0.09, z: z + sz * Math.sign(k) * 0.09 },
       });
     }
     beam(
@@ -1077,7 +1096,7 @@ function pathMarkers(buckets: Buckets, out: StructureOut): void {
     const z = first.z - dz * 1.2 + dx * s * half;
     const ground = Math.min(thousandBoughHeight(x, z), first.y);
     rod(buckets, 'wood', { x, y: ground - 0.4, z }, { x, y: ground + 2.3, z }, 0.09, 6, PAINT.weathered);
-    out.lanterns.push({ x, y: ground + 2.5, z, hang: false });
+    out.lanterns.push({ x, y: ground + 2.3 + LANTERN_STAND, z, hang: false });
     out.circles.push({ x, z, r: 0.18, y0: ground - 1, y1: ground + 2.4, height: 2.4 });
   }
 }

@@ -1,4 +1,5 @@
 import { withCourseVoices, type NpcSpec } from './npcs';
+import { BENCH_OUT } from '../world/characters/seat-fit';
 
 /**
  * Port Meridian's cast (Chapter 01), each at their town anchor and standing on the town's real walk
@@ -40,7 +41,8 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       anchor: 'extraFisher',
       clip: 'sit',
       keepY: true,
-      seatDrop: 0.22,
+      // The anchor is the bench's middle: the sitter steps out to its front (seat-fit.ts).
+      out: BENCH_OUT,
     },
     {
       id: 'mer_matron',
@@ -48,7 +50,7 @@ export function meridianExtras(anchors: Readonly<Record<string, { x: number; z: 
       anchor: 'extraBench',
       clip: 'sit',
       keepY: true,
-      seatDrop: 0.22,
+      out: BENCH_OUT,
     },
     {
       id: 'mer_vendor',

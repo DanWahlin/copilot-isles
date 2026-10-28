@@ -97,6 +97,8 @@ import { islandCourseBoard } from '../../../learn/course-board';
 import { addCourseBoardTimber } from '../../sites/course-board';
 import { COURSE_BOARDS } from '../course-boards';
 import { addAnchorageMarket } from './model-market';
+import { hangerHeight, lampHanger } from '../../village/lamp-hanger';
+import { SIT } from '../../characters/seat-fit';
 
 interface VillageMetrics {
   staticDraws: number;
@@ -774,7 +776,7 @@ function addColonialBuildingDetails(
 
   const doorSign = localToWorld(spec.x, spec.z, spec.rot, -footprint.w * 0.34, frontZ - 0.08);
   const lamp = houseDoorSideSpot(houseSpecForBuilding(spec, baseY, false));
-  addDoorLantern(buckets, lamp, lamp.y + 1.5);
+  addWallLantern(buckets, lamp, lamp.y + 1.5);
   if (spec.sign) addHangingShopSign(buckets, doorSign.x, baseY + 2.1, doorSign.z, spec.rot, spec.sign);
   if (spec.awning) {
     addDoorAwning(buckets, spec.x, baseY + 2.2, spec.z, spec.rot, footprint.w, frontZ, spec.awning);
@@ -818,28 +820,31 @@ function addFlowerBox(
 }
 
 /**
- * A small lantern on a wall bracket beside a door: a plate on the wall, an arm straight out, and the
- * lantern hanging from its end. `spot` is on the wall surface, `heading` facing out; `y` is the
- * lantern's base.
+ * A small lantern on a wall bracket (beside a door, up the lighthouse's stair): a plate on the wall,
+ * an arm straight out, and the lantern hanging from its end by the shared hanger. `spot` is on the
+ * wall surface, `heading` facing out; `y` is the lantern's base.
  */
-function addDoorLantern(
+export function addWallLantern(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   spot: { x: number; z: number; heading: number },
   y: number,
+  scale = 0.52,
+  reach = 0.36,
 ): void {
   const nx = Math.sin(spot.heading);
   const nz = Math.cos(spot.heading);
   // addBox's length runs along its local x; this yaw points it out of the wall.
   const out = spot.heading - Math.PI / 2;
-  const reach = 0.36;
   const at = (d: number) => ({ x: spot.x + nx * d, z: spot.z + nz * d });
   const plate = at(0.015);
+  const lamp = at(reach - 0.04);
+  const top = addLanternFixture(buckets, lamp.x, y, lamp.z, spot.heading, scale);
+  // The arm's underside a hand over the ring, so the ring and a short link show under it.
+  const armY = top + hangerHeight(scale) + 0.03;
   const arm = at(reach * 0.5);
-  const lamp = at(reach - 0.02);
-  addBox(buckets.metal, plate.x, y + 0.38, plate.z, 0.03, 0.22, 0.12, out, 0x5f574f);
-  addBox(buckets.metal, arm.x, y + 0.5, arm.z, reach, 0.04, 0.04, out, 0x5f574f);
-  addBox(buckets.metal, lamp.x, y + 0.39, lamp.z, 0.016, 0.12, 0.016, out, 0x5f574f);
-  addLanternFixture(buckets, lamp.x, y, lamp.z, spot.heading, 0.52);
+  addBox(buckets.metal, plate.x, armY - 0.12, plate.z, 0.03, 0.22, 0.12, out, 0x5f574f);
+  addBox(buckets.metal, arm.x, armY, arm.z, reach, 0.04, 0.04, out, 0x5f574f);
+  lampHanger(buckets.metal, lamp.x, lamp.z, top, armY, 0x5f574f, scale, spot.heading);
 }
 
 function addHangingShopSign(
@@ -990,8 +995,7 @@ function addQuay(
   addLadder(buckets, -91.5, q.z - 2.9, 0.1, q.height + 0.45);
   addLadder(buckets, -144.5, q.z - 2.9, 0.1, q.height + 0.45);
   shipObstacles.push({ x: q.x0, z: q.z - 1.5, r: 3.2 }, { x: q.x1, z: q.z - 1.5, r: 3.2 });
-  // Salt's bench, looking out over the harbour. The seated rig tucks its feet under the seat, so it
-  // needs a bench with open space beneath (a barrel put his legs through the staves).
+  // Salt's bench, looking out over the harbour, built to the sit (seat-fit.ts): he sits at the anchor.
   const salt = { x: -88.5, z: q.z + 5.2, faces: -0.4 + Math.PI };
   const seatTop = addQuayBench(buckets, colliders, salt.x, q.height + 0.06, salt.z, salt.faces);
   anchors.quayBenches = { x: salt.x, y: seatTop, z: salt.z, heading: -0.4 };
@@ -1046,7 +1050,7 @@ function addChartTable(
  * A plank bench with a backrest for someone sitting at (x, z) facing `faces`; the seat sits a little
  * behind that point so their knees clear the front edge. Returns the seat's top height.
  */
-function addQuayBench(
+export function addQuayBench(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   colliders: { boxes: VillageBoxCollider[] },
   x: number,
@@ -1060,19 +1064,34 @@ function addQuayBench(
   const rot = faces;
   const tx = Math.cos(rot);
   const tz = -Math.sin(rot);
-  const cx = x - fx * 0.1;
-  const cz = z - fz * 0.1;
-  const seat = 0.4;
-  addBox(buckets.wood, cx, floor + seat, cz, 1.5, 0.07, 0.42, rot, 0x7a5232);
+  // Built to the sit (seat-fit.ts): its top at the sitter's hips, its front edge just behind his
+  // shins, low enough for his boots to stand on the quay (his legs went through a higher, deeper seat).
+  const plank = 0.07;
+  const seat = SIT.height - plank;
+  const mid = SIT.front - SIT.depth / 2;
+  const cx = x + fx * mid;
+  const cz = z + fz * mid;
+  addBox(buckets.wood, cx, floor + seat, cz, 1.5, plank, SIT.depth, rot, 0x7a5232);
+  const backAt = mid - SIT.depth / 2 - 0.025;
   for (const s of [-0.62, 0.62]) {
-    addBox(buckets.wood, cx + tx * s, floor, cz + tz * s, 0.08, seat, 0.36, rot, 0x5e3f25);
-    const bx = cx + tx * s - fx * 0.19;
-    const bz = cz + tz * s - fz * 0.19;
-    addBox(buckets.wood, bx, floor + seat + 0.07, bz, 0.07, 0.4, 0.05, rot, 0x5e3f25);
+    addBox(buckets.wood, cx + tx * s, floor, cz + tz * s, 0.08, seat, SIT.depth - 0.06, rot, 0x5e3f25);
+    const bx = x + tx * s + fx * backAt;
+    const bz = z + tz * s + fz * backAt;
+    addBox(buckets.wood, bx, floor, bz, 0.07, SIT.height + 0.45, 0.05, rot, 0x5e3f25);
   }
-  addBox(buckets.wood, cx - fx * 0.2, floor + seat + 0.3, cz - fz * 0.2, 1.46, 0.13, 0.04, rot, 0x7a5232);
-  colliders.boxes.push({ x: cx, z: cz, hx: 0.78, hz: 0.24, rot, height: 0.9 });
-  return floor + seat + 0.07;
+  addBox(
+    buckets.wood,
+    x + fx * backAt,
+    floor + SIT.height + 0.22,
+    z + fz * backAt,
+    1.46,
+    0.13,
+    0.04,
+    rot,
+    0x7a5232,
+  );
+  colliders.boxes.push({ x: cx, z: cz, hx: 0.78, hz: SIT.depth / 2 + 0.05, rot, height: SIT.height + 0.6 });
+  return floor + SIT.height;
 }
 
 function addQuayFrontBand(buckets: Record<MaterialKey, BufferGeometry[]>): void {
@@ -1349,7 +1368,8 @@ function addPier(
       addCylinder(buckets.wood, x, p.deck + 0.06, z, 0.08, 0.1, 1.28, 8, 0, 0x6a4b31);
     }
   }
-  if (!low) addPierSideStructure(buckets, p, minZ, maxZ);
+  addPierSideStructure(buckets, p, minZ, maxZ, low);
+  addPierFootboard(buckets, p);
   for (let z = minZ + 1.2; z <= maxZ - 1.2; z += 3) {
     addShipObstacle(shipObstacles, { x: p.x - p.width * 0.5 - 0.75, z, r: 1.2 });
     addShipObstacle(shipObstacles, { x: p.x + p.width * 0.5 + 0.75, z, r: 1.2 });
@@ -1360,11 +1380,16 @@ function addPier(
   anchors.pierEnd = { x: p.x, y: p.deck, z: p.z1 + 2.2, heading: Math.PI };
 }
 
-function addPierSideStructure(
+/**
+ * The pier's edge beams (a kerb 5 cm over the deck, on every tier: Old Finn sits on the west one) and,
+ * above Low, a stringer under each and the cross braces.
+ */
+export function addPierSideStructure(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   pier: typeof COVE.pier,
   minZ: number,
   maxZ: number,
+  low: boolean,
 ): void {
   const length = maxZ - minZ;
   const centerZ = (minZ + maxZ) * 0.5;
@@ -1372,11 +1397,46 @@ function addPierSideStructure(
     const x = pier.x + side * (pier.width * 0.5 + 0.2);
     // Top 1 cm under the boathouse floor (deck + 0.06), which it runs beneath: flush, they z-fought.
     addBox(buckets.rope, x, pier.deck - 0.36, centerZ, 0.18, 0.41, length - 1.2, 0, 0x806b56);
-    addBox(buckets.rope, x, pier.deck - 0.18, centerZ, 0.14, 0.14, length - 1.0, 0, 0x927861);
+    if (!low) addBox(buckets.rope, x, pier.deck - 0.18, centerZ, 0.14, 0.14, length - 1.0, 0, 0x927861);
   }
+  if (low) return;
   for (const z of [-111.5, -95.5]) {
     addPierCrossBrace(buckets, pier.x - pier.width * 0.5 - 0.74, z);
     addPierCrossBrace(buckets, pier.x + pier.width * 0.5 + 0.74, z + 1.6);
+  }
+}
+
+/**
+ * Old Finn's footboard (every tier): a plank bracketed to the pier's west edge beam under where he
+ * sits on it (`COVE.finn`), its top `SIT.height` under the beam's, so his boots rest on it. They hung
+ * over the water (issue 363).
+ */
+export function addPierFootboard(
+  buckets: Record<MaterialKey, BufferGeometry[]>,
+  pier: typeof COVE.pier,
+): void {
+  // The edge beam's outer face and top (addPierSideStructure).
+  const face = pier.x - pier.width * 0.5 - 0.29;
+  const beamTop = pier.deck + 0.05;
+  const plank = 0.06;
+  const top = beamTop - SIT.height;
+  const out = 0.4;
+  const along = 0.9;
+  // 1 cm into the beam, so no seam shows between them.
+  addBox(
+    buckets.rope,
+    face - out / 2 + 0.01,
+    top - plank,
+    COVE.finn.z,
+    out + 0.02,
+    plank,
+    along,
+    0,
+    0x927861,
+  );
+  for (const dz of [-0.36, 0.36]) {
+    const bottom = pier.deck - 0.36;
+    addBox(buckets.rope, face - 0.14, bottom, COVE.finn.z + dz, 0.3, top - plank - bottom, 0.07, 0, 0x806b56);
   }
 }
 
@@ -1561,7 +1621,7 @@ function addCargoStack(
   }
 }
 
-function addPierPostLantern(
+export function addPierPostLantern(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   colliders: { circles: CircleObstacle[] },
   x: number,
@@ -1570,15 +1630,17 @@ function addPierPostLantern(
   side: -1 | 1,
 ): void {
   addCylinder(buckets.wood, x, y, z, 0.11, 0.14, 2.7, 8, 0, 0x6b523c);
-  addBox(buckets.metal, x + side * 0.28, y + 2.1, z, 0.62, 0.055, 0.055, 0, 0x4d463d);
-  addBox(buckets.metal, x + side * 0.54, y + 1.86, z, 0.035, 0.34, 0.035, 0, 0x5f574f);
-  addLanternFixture(buckets, x + side * 0.58, y + 1.42, z, 0, 0.6);
+  // The arm runs from 2 cm into the post (0.117 m across here) to a little past the lantern, which
+  // hangs from it by the shared hanger.
+  addBox(buckets.metal, x + side * 0.3635, y + 2.1, z, 0.533, 0.055, 0.055, 0, 0x4d463d);
+  const top = addLanternFixture(buckets, x + side * 0.58, y + 1.6, z, 0, 0.6);
+  lampHanger(buckets.metal, x + side * 0.58, z, top, y + 2.1, 0x4d463d, 0.6);
   colliders.circles.push({ x, z, r: 0.35 });
   // Camera only: the post, its arm and the lantern out over the water.
   cameraBlockers.push({ x: x + side * 0.3, z, hx: 0.5, hz: 0.22, rot: 0, y0: y, y1: y + 2.8 });
 }
 
-function addBoathouse(
+export function addBoathouse(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   colliders: { boxes: VillageBoxCollider[] },
   shipObstacles: CircleObstacle[],
@@ -1614,7 +1676,10 @@ function addBoathouse(
   colliders.boxes.push({ x: x + 1.18, z, hx: 0.12, hz: 1.75, rot, height: 0.6 });
   addNetRack(buckets, x + 1.62, z - 0.8, deck, 0.05);
   addRopeCoil(buckets, x - 0.72, deck + 0.05, z - 1.15, -0.2, 0.68);
-  addLanternFixture(buckets, x - 0.9, deck + 2.05, z - 2.22, rot, 0.72);
+  // The lantern hangs from the west roof slab's underside (the slab rolled 0.56 about its middle).
+  const lampTop = addLanternFixture(buckets, x - 0.9, deck + 2.05, z - 2.22, rot, 0.72);
+  const slabUnder = roof + 0.09 + (-0.09 + (-0.9 + 0.62) * Math.sin(0.56)) / Math.cos(0.56);
+  lampHanger(buckets.metal, x - 0.9, z - 2.22, lampTop, slabUnder, 0x5b534b, 0.72, rot);
   addShipObstacle(shipObstacles, { x, z: z + 0.2, r: 2.35 });
 }
 
@@ -1904,9 +1969,7 @@ function addRoundSquare(
     const z = cz + Math.sin(a) * (R - 0.5);
     const y = heightField.heightAt(x, z) + 0.13;
     const side = Math.cos(a) > 0 ? -1 : 1;
-    addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
-    addLampBracket(buckets, x, y, z, side);
-    addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
+    addPostLamp(buckets, x, y, z, side);
     colliders.circles.push({ x, z, r: 0.38 });
     addLampHeadBlocker(x, y, z, side);
   }
@@ -2888,8 +2951,9 @@ function addLighthouse(
   // Lanterns up the stair (they glow at night).
   for (const h of [2.6, 7.4, 12.2]) {
     const a = STAIR_START + ((h / T.rise - 1) / T.perTurn) * Math.PI * 2 + TREAD_ANGLE * 0.5;
-    const p = at(a, T.inner - 0.16);
-    addLanternFixture(buckets, p.x, floor + h + 1.7, p.z, a, 0.8);
+    // On a bracket from the shaft's wall (its facets lie between 0.997 and 1 of T.inner + 0.02).
+    const p = at(a, T.inner + 0.015);
+    addWallLantern(buckets, { x: p.x, z: p.z, heading: a + Math.PI }, floor + h + 1.6, 0.8, 0.24);
   }
 
   // Gallery: a flared corbel (tall enough to carry the wide deck), the deck (a ring, open over the
@@ -3231,9 +3295,7 @@ function addLanterns(
   for (let i = 0; i < max; i += 1) {
     const [x, z, side] = points[i]!;
     const y = walkable(x, z) ?? heightField.heightAt(x, z);
-    addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
-    addLampBracket(buckets, x, y, z, side);
-    addLanternFixture(buckets, x + side * 0.92, y + 1.68, z, 0, 1);
+    addPostLamp(buckets, x, y, z, side);
     colliders.circles.push({ x, z, r: 0.38 });
     addLampHeadBlocker(x, y, z, side);
   }
@@ -3244,57 +3306,74 @@ function addLampHeadBlocker(x: number, y: number, z: number, side: -1 | 1): void
   cameraBlockers.push({ x: x + side * 0.55, z, hx: 0.6, hz: 0.22, rot: 0, y0: y + 1.65, y1: y + 2.5 });
 }
 
-function addLampBracket(
+/**
+ * A street lamp (the quay's, the square's): a post, an arm with its brace, and a lantern hung from
+ * near the arm's end by the shared hanger (it hung under the arm with sky between them: issue 363).
+ */
+export function addPostLamp(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   x: number,
   y: number,
   z: number,
   side: -1 | 1,
 ): void {
+  addBox(buckets.wood, x, y, z, 0.16, 2.6, 0.16, 0, 0x593b23);
   const armY = y + 2.35;
-  addBox(buckets.wood, x + side * 0.42, armY, z, 0.86, 0.1, 0.1, 0, 0x6b4a2d);
+  // From 2 cm into the post to 3 cm past the lantern's hanger.
+  addBox(buckets.wood, x + side * 0.505, armY, z, 0.89, 0.1, 0.1, 0, 0x6b4a2d);
   // A diagonal brace from the post up to the underside of the arm (it meets both).
   addBox(buckets.metal, x + side * 0.27, y + 2.03, z, 0.5, 0.05, 0.05, 0, 0x6c6258, 0, side * 0.62);
-  addBox(buckets.metal, x + side * 0.88, armY - 0.18, z, 0.045, 0.24, 0.045, 0, 0x6c6258);
+  const top = addLanternFixture(buckets, x + side * 0.92, y + 1.62, z, 0, 1);
+  lampHanger(buckets.metal, x + side * 0.92, z, top, armY, 0x6c6258);
 }
 
-function addLanternFixture(
+/**
+ * A square iron lantern with its base at `y`: a base plate, four corner posts, four glass panes, a
+ * candle and its flame, and the cap seated on the posts' tops. Returns the cap's tip (the top a
+ * hanger stands on).
+ */
+export function addLanternFixture(
   buckets: Record<MaterialKey, BufferGeometry[]>,
   x: number,
   y: number,
   z: number,
   rot: number,
   scale: number,
-): void {
+): number {
   const s = scale;
   const h = 0.46 * s;
   const w = 0.31 * s;
   const post = 0.035 * s;
-  const capY = y + h + 0.08 * s;
+  // The cap sits on the corner posts, sunk 8 mm over their tops (it floated 4.5 cm over them).
+  const capY = y + 0.035 * s + h - 0.008 * s;
+  // Offsets in the lantern's own frame, turned with it (a turned lantern's posts and panes once kept
+  // their unturned places, each turned on its own middle).
+  const c = Math.cos(rot);
+  const sn = Math.sin(rot);
+  const px = (lx: number, lz: number) => x + lx * c + lz * sn;
+  const pz = (lx: number, lz: number) => z - lx * sn + lz * c;
   addBox(buckets.metal, x, y, z, w, 0.045 * s, w, rot, 0x5f574f);
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
-      addBox(
-        buckets.metal,
-        x + sx * w * 0.44,
-        y + 0.035 * s,
-        z + sz * w * 0.44,
-        post,
-        h,
-        post,
-        rot,
-        0x6f665c,
-      );
+      const lx = sx * w * 0.44;
+      const lz = sz * w * 0.44;
+      addBox(buckets.metal, px(lx, lz), y + 0.035 * s, pz(lx, lz), post, h, post, rot, 0x6f665c);
     }
   }
-  addGlassPane(buckets, x, y + 0.11 * s, z + w * 0.5, w * 0.72, h * 0.72, 0.018 * s, rot, 0xffc987);
-  addGlassPane(buckets, x, y + 0.11 * s, z - w * 0.5, w * 0.72, h * 0.72, 0.018 * s, rot, 0xffc987);
-  addGlassPane(buckets, x + w * 0.5, y + 0.11 * s, z, 0.018 * s, h * 0.72, w * 0.72, rot, 0xffc987);
-  addGlassPane(buckets, x - w * 0.5, y + 0.11 * s, z, 0.018 * s, h * 0.72, w * 0.72, rot, 0xffc987);
-  addBox(buckets.glow, x, y + 0.12 * s, z, 0.06 * s, 0.12 * s, 0.06 * s, rot, 0xff9c45);
-  addBox(buckets.glow, x, y + 0.22 * s, z, 0.05 * s, 0.11 * s, 0.05 * s, rot, 0xffc36a);
+  // Each pane's edges are let into the corner posts.
+  const pw = w * 0.86;
+  const ph = h * 0.72;
+  const t = 0.018 * s;
+  const py = y + 0.11 * s;
+  for (const side of [-1, 1]) {
+    addGlassPane(buckets, px(0, side * w * 0.5), py, pz(0, side * w * 0.5), pw, ph, t, rot, 0xffc987);
+    addGlassPane(buckets, px(side * w * 0.5, 0), py, pz(side * w * 0.5, 0), t, ph, pw, rot, 0xffc987);
+  }
+  // The candle stands on the base plate and its flame on the candle (they floated in the glass).
+  addBox(buckets.glow, x, y + 0.04 * s, z, 0.06 * s, 0.12 * s, 0.06 * s, rot, 0xff9c45);
+  addBox(buckets.glow, x, y + 0.155 * s, z, 0.05 * s, 0.11 * s, 0.05 * s, rot, 0xffc36a);
   addLanternCap(buckets, x, capY, z, rot, w * 0.62, 0.14 * s, 0x5b534b);
-  addTorus(buckets.metal, x, capY + 0.12 * s, z, 0.09 * s, 0.012 * s, 10, 0x756b60, Math.PI / 2, 0, 0);
+  return capY + 0.14 * s;
 }
 
 function addGlassPane(

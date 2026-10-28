@@ -37,10 +37,27 @@ export interface StructureOut {
   circles: CircleObstacle[];
   cameraBoxes: CameraBlockerBox[];
   /** Lantern spots (the glass's centre), in the order the Seal's cascade lights them (top first later). */
-  lanterns: { x: number; y: number; z: number; hang: boolean }[];
+  lanterns: TreeLantern[];
   /** Colliders that only apply once a late bridge is open, keyed by bridge id (R3's end gates). */
   lateColliders: Map<string, BoxCollider[]>;
 }
+
+/**
+ * A lantern: standing (its base on a post's or rail's top), or hung by the shared hanger from what's
+ * over it (`under`, the underside's height) or from an iron arm out of a post or wall at `arm`.
+ */
+export interface TreeLantern {
+  x: number;
+  y: number;
+  z: number;
+  hang: boolean;
+  under?: number;
+  /** Where an arm starts: 2 cm into the post's or wall's face. */
+  arm?: { x: number; z: number };
+}
+
+/** A standing lantern's glass centre over what it stands on (its base plate's foot). */
+export const LANTERN_STAND = 0.18;
 
 export function emptyStructure(): StructureOut {
   return { colliders: [], circles: [], cameraBoxes: [], lanterns: [], lateColliders: new Map() };
@@ -115,7 +132,8 @@ export function rail(
       sinceLantern += Math.hypot(p.x - prev.x, p.z - prev.z);
       if (o.lanternEvery && sinceLantern >= o.lanternEvery) {
         sinceLantern = 0;
-        out.lanterns.push({ x: p.x, y: p.y + H + 0.55, z: p.z, hang: false });
+        // On the top rail, over its post (it stood 33 cm over the rail with nothing under it).
+        out.lanterns.push({ x: p.x, y: p.y + H + 0.045 + LANTERN_STAND, z: p.z, hang: false });
       }
       prev = p;
     }

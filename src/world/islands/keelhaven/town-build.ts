@@ -3,6 +3,9 @@ import { HOUSE_STOREY_HEIGHT, type HouseSide } from '../../village/house-builder
 import type { MaterialKey, VillageKit } from '../../village/kit';
 import { box, cone, lanternPaint, rod, rope, type Buckets } from '../../village/pieces';
 import { lampHead } from './lamps';
+import { KEELHAVEN_ANCHORS } from './anchors';
+import { SIT, seatBlock } from '../../characters/seat-fit';
+import { hangerHeight, lampHanger } from '../../village/lamp-hanger';
 import { addVerandaHouse, tintFor } from '../../village/veranda-house';
 import { mulberry32 } from '../../../util/math';
 import { keelhavenHeight } from './height';
@@ -231,29 +234,10 @@ function house(
     );
   }
   if (lite) return;
-  // A lantern on a bracket by the door (lower under a veranda's roof).
   const porch = h.porch.front > 0;
-  const lamp = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.28);
-  const lp = at(lamp.u, base + (porch && h.storeys === 1 ? 2.05 : 2.5), lamp.v);
-  const head = lampHead(b, b, {
-    x: lp.x,
-    y: lp.y,
-    z: lp.z,
-    w: 0.2,
-    h: 0.28,
-    yaw,
-    capR: 0.18,
-    capH: 0.15,
-    capColour: YARD_PAINT.iron,
-  });
-  lanternPaint(head.glass, 4.2);
-  const wall = at(
-    housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.02).u,
-    lp.y + 0.35,
-    housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.02).v,
-  );
-  rod(b, 'metal', wall, { x: lp.x, y: lp.y + 0.3, z: lp.z }, 0.02, 3, YARD_PAINT.iron);
-  out.cameraBoxes.push({ x: lp.x, z: lp.z, hx: 0.2, hz: 0.2, rot: yaw, y0: lp.y - 0.2, y1: lp.y + 0.35 });
+  // A lantern on a bracket by the door (lower under a veranda's roof), Medium and up: Low's town view
+  // was at its 500k triangles before the lanterns' hangers (issue 363).
+  if (!sparse) doorLantern(b, out, h, base, porch, yaw);
   // An awning over the door: striped canvas sloping out on two posts.
   if (!porch && rand() < 0.55) {
     const [c0, c1] = AWNINGS[Math.floor(rand() * AWNINGS.length)]!;
@@ -441,13 +425,49 @@ function armYaw(du: number, dv: number): number {
   return Math.atan2(-dz, dx);
 }
 
+/** A house's door lantern: on an iron arm out of the wall, hung by the shared hanger. */
+function doorLantern(
+  b: Buckets,
+  out: ShipyardOut,
+  h: TownHouse,
+  base: number,
+  porch: boolean,
+  yaw: number,
+): void {
+  const lamp = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.28);
+  const lp = at(lamp.u, base + (porch && h.storeys === 1 ? 2.05 : 2.5), lamp.v);
+  const head = lampHead(b, b, {
+    x: lp.x,
+    y: lp.y,
+    z: lp.z,
+    w: 0.2,
+    h: 0.28,
+    yaw,
+    capR: 0.18,
+    capH: 0.15,
+    capColour: YARD_PAINT.iron,
+  });
+  lanternPaint(head.glass, 4.2);
+  // An iron arm level out of the wall to 4 cm past the lantern, which hangs from it by the shared
+  // hanger (the arm used to end on the cap's tip).
+  const capTip = lp.y + 0.14 + 0.008 + 0.15;
+  const under = capTip + hangerHeight() + 0.03;
+  const wp = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 - 0.02);
+  const tip = housePoint(h, h.w * 0.25 + 0.4, h.d / 2 + 0.32);
+  rod(b, 'metal', at(wp.u, under + 0.02, wp.v), at(tip.u, under + 0.02, tip.v), 0.02, 3, YARD_PAINT.iron);
+  lampHanger(b.metal, lp.x, lp.z, capTip, under, YARD_PAINT.iron, 1, yaw);
+  out.cameraBoxes.push({ x: lp.x, z: lp.z, hx: 0.2, hz: 0.2, rot: yaw, y0: lp.y - 0.2, y1: lp.y + 0.35 });
+}
+
 /** A lamp post: a tarred post, an arm, a lantern hanging from it. */
-function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: number): void {
+export function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: number): void {
   const g = ground(u, v);
   const p = at(u, g, v);
   rod(b, 'wood', { x: p.x, y: g - 0.3, z: p.z }, { x: p.x, y: g + 3.4, z: p.z }, 0.09, 6, YARD_PAINT.tar);
   const arm = { x: p.x + Math.cos(armYaw) * 0.7, y: g + 3.3, z: p.z - Math.sin(armYaw) * 0.7 };
-  rod(b, 'wood', { x: p.x, y: g + 3.3, z: p.z }, arm, 0.04, 4, YARD_PAINT.tar);
+  // The arm from 2 cm into the post.
+  const root = { x: p.x + Math.cos(armYaw) * 0.07, y: g + 3.3, z: p.z - Math.sin(armYaw) * 0.07 };
+  rod(b, 'wood', root, arm, 0.04, 4, YARD_PAINT.tar);
   const head = lampHead(b, b, {
     x: arm.x,
     y: arm.y - 0.45,
@@ -460,7 +480,17 @@ function lampPost(b: Buckets, out: ShipyardOut, u: number, v: number, armYaw: nu
     capColour: YARD_PAINT.iron,
   });
   lanternPaint(head.glass, 4.6);
-  rod(b, 'metal', arm, { x: arm.x, y: arm.y - 0.3, z: arm.z }, 0.015, 3, YARD_PAINT.iron);
+  // The shared hanger from the cap's tip up into the arm (a rod ran down through the cap).
+  lampHanger(
+    b.metal,
+    arm.x,
+    arm.z,
+    arm.y - 0.45 + 0.15 + 0.008 + 0.16,
+    arm.y - 0.03,
+    YARD_PAINT.iron,
+    1,
+    armYaw,
+  );
   out.circles.push({ x: p.x, z: p.z, r: 0.2, y0: g - 0.5, y1: g + 3.4, height: 3.4 });
   // The camera keeps out of the lantern out on its arm, and the arm.
   const mid = { x: (p.x + arm.x) / 2, z: (p.z + arm.z) / 2 };
@@ -1358,6 +1388,9 @@ export function* buildTown(
   /** Lite and Low: the second row up the flat left out, and fewer windows (PLAN §12.1). */
   sparse = lite,
 ): Generator<void, void, void> {
+  // Old Salter's seat block on the ground under his anchor (seat-fit.ts).
+  const salter = KEELHAVEN_ANCHORS.extraFisher;
+  seatBlock(b, salter.x, salter.z, salter.heading, salter.y - SIT.height, salter.y);
   const list = townHouses().filter((h) => !sparse || !h.back);
   list.forEach((h, i) => {
     house(b, kit, out, h, lite, sparse, 0x7000 + i * 31);

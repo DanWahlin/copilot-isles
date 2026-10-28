@@ -19,6 +19,7 @@ import {
   type Material,
 } from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { SIT } from './seat-fit';
 import { createTricornGeometry, type TricornFit } from './tricorn';
 import type { CharacterBody, NpcId } from './types';
 
@@ -1213,9 +1214,9 @@ function addFishingRod(root: Group): void {
 }
 
 function addBucket(root: Group, color: ColorHex, side: -1 | 1): void {
-  // On the ground by the feet (it stays put while its owner idles).
+  // On the seat behind its owner's hip (Old Finn's pier edge: seat-fit.ts), clear of his arm and legs.
   const bucket = mesh(new CylinderGeometry(0.12, 0.1, 0.18, 8), mat(color), 'fish bucket');
-  bucket.position.set(side * 0.36, 0.09, 0.02);
+  bucket.position.set(side * 0.36, SIT.drop + 0.09, SIT.front - 0.44);
   // On the rig's root bone (it doesn't animate), so it merges into the skinned accessories: alone
   // on the character's root it kept a material, and a shader, of its own.
   addRoot(root, bucket, 'Root');

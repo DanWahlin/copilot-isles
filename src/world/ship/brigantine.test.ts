@@ -149,11 +149,11 @@ const HIGH_TIER_MESH_SIGNATURES: MeshSignature[] = [
   },
   {
     name: 'lantern hanger',
-    vertices: 114,
-    indices: 324,
-    position: '04bfa6ab',
-    uv: '68814c25',
-    color: '65444cf9',
+    vertices: 138,
+    indices: 360,
+    position: '16538043',
+    uv: '565c57a5',
+    color: '6e986a69',
   },
   {
     name: 'stern lantern',

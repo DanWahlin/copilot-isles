@@ -510,7 +510,7 @@ function mitreGate(
  * lamp of the island's lamp set (`lock:<i>`, upstream first): the circuits run it, and the Seal turns
  * every one green.
  */
-function lockLamp(
+export function lockLamp(
   b: Buckets,
   out: ShipyardOut,
   key: string,
@@ -520,8 +520,9 @@ function lockLamp(
   colour: 'red' | 'green',
 ): void {
   const p = at(u, y, v);
-  rod(b, 'wood', p, { x: p.x, y: y + 3.2, z: p.z }, 0.11, 6, YARD_PAINT.tar);
-  box(b, 'wood', p.x, y + 3.25, p.z, 0.6, 0.1, 0.12, YAW_U + Math.PI / 2, YARD_PAINT.tar);
+  // The post stops 1 cm into the glass, and the crossbar is a shelf under it (it ran through the cap).
+  rod(b, 'wood', p, { x: p.x, y: y + 2.84, z: p.z }, 0.11, 6, YARD_PAINT.tar);
+  box(b, 'wood', p.x, y + 2.775, p.z, 0.6, 0.1, 0.12, YAW_U + Math.PI / 2, YARD_PAINT.tar);
   lampGlass(
     out,
     key,
@@ -546,8 +547,11 @@ function lockLamp(
   }
 }
 
-/** How far (u) a lock lamp's plates stand off its post's middle: post 0.11, a gap, half a plate. */
-export const LAMP_PLATE_OFF = 0.11 + 0.012 + 0.02;
+/**
+ * How far (u) a lock lamp's plates stand off its post's middle: against the post's flats (its six
+ * sides are 0.095 across the flats), then half a plate. They stood 2.7 cm clear of it (issue 363).
+ */
+export const LAMP_PLATE_OFF = 0.09 + 0.02;
 
 /** A gabled, open-sided shed (posts, a ridge, two roof slopes of planks), long along u. */
 export function shed(
@@ -1192,7 +1196,8 @@ function quay(b: Buckets, out: ShipyardOut): void {
   out.shipObstacles.push({ x: head.x, z: head.z, r: q.half + 1 });
   // A lamp at the head, a crane and stores at the root.
   const lamp = at(q.u0 + 1.5, q.top, q.v);
-  rod(b, 'wood', lamp, { x: lamp.x, y: q.top + 4.2, z: lamp.z }, 0.14, 6, YARD_PAINT.tar);
+  // The post stops 1 cm into the glass (it ran up inside it to the collar).
+  rod(b, 'wood', lamp, { x: lamp.x, y: q.top + 3.81, z: lamp.z }, 0.14, 6, YARD_PAINT.tar);
   const lampTop = lampHead(b, b, {
     x: lamp.x,
     y: q.top + 4.0,

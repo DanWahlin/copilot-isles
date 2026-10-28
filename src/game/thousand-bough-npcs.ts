@@ -64,7 +64,6 @@ export function thousandBoughExtras(
       anchor: 'extraWeaver',
       clip: 'sit',
       keepY: true,
-      seatDrop: 0.22,
     },
     {
       id: 'tb_operator',
@@ -78,7 +77,6 @@ export function thousandBoughExtras(
       anchor: 'extraFisher',
       clip: 'sit',
       keepY: true,
-      seatDrop: 0.22,
     },
   ];
   // Lani keeps the Model Market's booth on Bough Landing (her counter's E is the way to talk shop: no
