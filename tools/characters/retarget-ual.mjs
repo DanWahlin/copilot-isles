@@ -64,6 +64,8 @@ const CLIPS = {
   sit: 'Sitting_Idle_Loop',
   helm: 'Driving_Loop',
   wade: 'Walk_Loop',
+  swim: 'Swim_Fwd_Loop',
+  tread: 'Swim_Idle_Loop',
 };
 
 const BONE_MAP = {
