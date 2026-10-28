@@ -1,5 +1,5 @@
 import type { Color, PerspectiveCamera, Group, Object3D, WebGPURenderer } from 'three/webgpu';
-import type { HeightField, Tier } from '../contracts';
+import type { CircleObstacle, HeightField, Tier } from '../contracts';
 import type { TierSettings } from '../../engine/quality';
 import type { VegetationExclude } from './exclusions';
 import type { SeededRandom } from './random';
@@ -141,6 +141,8 @@ export interface PlantPatchLook {
 /** Plants added after the island's own (another island's), drawn only while `group` is visible. */
 export interface VegetationPatch {
   group: Group;
+  /** Walkers' colliders round its trunks and big plants (`plantColliders`), for its island's session. */
+  colliders: readonly CircleObstacle[];
 }
 
 export interface VegetationSystem {
@@ -160,6 +162,8 @@ export interface VegetationSystem {
   removePlants(patch: VegetationPatch): void;
   /** The first island's own plants (batches, casters, grass, impostors), not the patches. */
   home(): Object3D[];
+  /** Walkers' colliders round the first island's trunks and big plants (`plantColliders`). */
+  homeColliders(): readonly CircleObstacle[];
   /** Stops (or resumes) updating the first island's own plants while it's dormant. */
   setHomeAwake(on: boolean): void;
   dispose(): void;

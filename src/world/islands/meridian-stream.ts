@@ -39,6 +39,9 @@ import { SilhouetteSwap } from './silhouette-swap';
 import { createMeridianWaterMesh } from './meridian-water-mesh';
 import { SMALL_ROCKS } from './stream-stones';
 
+/** No plant colliders (the island's plants aren't in). */
+const NO_COLLIDERS: readonly CircleObstacle[] = [];
+
 /**
  * Port Meridian's stream (its registry entry, src/islands/meridian.ts, holds its ranges and outline):
  * its world is the town, with the camera-only blockers of its coastal rocks.
@@ -213,6 +216,9 @@ export function createMeridianStream(ctx: IslandStreamCreateContext): MeridianSt
       // A load that's needed now raises a prefetch's priority for whatever it hasn't fetched yet.
       if (life.state !== 'loading' || p !== 'low') priority = p;
       return life.load(retry);
+    },
+    get plantColliders() {
+      return plants?.colliders ?? NO_COLLIDERS;
     },
     get world(): MeridianTownSystem | null {
       return self.town;

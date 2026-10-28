@@ -325,7 +325,7 @@ export class CollisionWorld {
     const b = this.cellAt(x, z);
     if (!b) return false;
     for (const c of b.circles) {
-      if (c.r < 1.5 || Math.hypot(x - c.x, z - c.z) >= c.r + pad) continue;
+      if (c.r < 1.5 || c.camera === false || Math.hypot(x - c.x, z - c.z) >= c.r + pad) continue;
       if (y < this.groundAt(c.x, c.z) + (c.height ?? 12)) return true;
     }
     return false;
@@ -408,7 +408,7 @@ export class CollisionWorld {
     floor: number,
   ): number {
     for (const c of list) {
-      if (c.y1 === undefined || c.y0 === undefined || c.y0 - pad <= floor) continue;
+      if (c.camera === false || c.y1 === undefined || c.y0 === undefined || c.y0 - pad <= floor) continue;
       if (y < c.y0 - pad || y > c.y1 + pad) continue;
       const r = c.r + pad;
       if ((x - c.x) ** 2 + (z - c.z) ** 2 < r * r) y = c.y0 - pad - CEIL_GAP;
@@ -481,6 +481,7 @@ export class CollisionWorld {
   }
 
   private circleBlocksEye(c: CircleObstacle, x: number, y: number, z: number, pad: number): boolean {
+    if (c.camera === false) return false;
     const dx = x - c.x,
       dz = z - c.z,
       r = c.r + pad;

@@ -1,4 +1,5 @@
 import type { CircleObstacle, Tier } from '../contracts';
+import { PLANT_SPECIES } from '../vegetation/blockers';
 import { MERIDIAN, meridianHeight, meridianWater } from '../islands/meridian';
 import type { PlantInstance, PlantSpecies } from '../vegetation/types';
 import {
@@ -268,11 +269,16 @@ function groundAt(x: number, z: number): number {
   return meridianHeight(x, z);
 }
 
-/** Trunks you bump into (palms, trees, cypress); bushes and flowers you walk through. */
-export function meridianTownPlantColliders(tier: Tier): CircleObstacle[] {
-  return meridianTownPlants(tier)
-    .filter((p) => TRUNKS.has(p.species))
-    .map((p) => ({ x: p.x, z: p.z, r: p.species === 'broadleafTree' ? 0.5 : 0.35 }));
+/**
+ * The town's trunks (palms, trees, cypress), which the follow camera keeps out of as well as walkers,
+ * from the species data (`PLANT_SPECIES`). The vegetation's own colliders (`plantColliders`) block
+ * walkers at every big plant; these keep the town's camera as it was.
+ */
+export function meridianTownTrunks(tier: Tier): CircleObstacle[] {
+  const out: CircleObstacle[] = [];
+  for (const p of meridianTownPlants(tier)) {
+    const spec = PLANT_SPECIES[p.species];
+    if (spec.trunk) out.push({ x: p.x, z: p.z, r: spec.base * p.scale });
+  }
+  return out;
 }
-
-const TRUNKS = new Set<PlantSpecies>(['palmTall', 'palmCluster', 'palmYoung', 'broadleafTree', 'cypress']);

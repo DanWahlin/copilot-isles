@@ -1,8 +1,8 @@
 import { naturalWaterAt } from '../world/islands/fresh-water-natural';
+import { meridianTownTrunks } from '../world/meridian-town/plantings';
 import { meridianQuayHeight, meridianWater } from '../world/islands/meridian';
 import { MERIDIAN } from '../world/islands/meridian-layout';
 import type { MeridianTownSystem } from '../world/meridian-town';
-import { meridianTownPlantColliders } from '../world/meridian-town/plantings';
 import { MERIDIAN_CHESTS, currentQuest } from './cove-quests';
 import { MERIDIAN_NPCS, meridianExtras } from './meridian-npcs';
 import type { IslandCode } from './island-code';
@@ -45,7 +45,7 @@ export const MERIDIAN_CODE: IslandCode = {
       },
       { heightAt: meridianQuayHeight, kind: 'stone' },
     ],
-    circles: meridianTownPlantColliders(tier.tier),
+    circles: meridianTownTrunks(tier.tier),
     // The tarn, cascade, brook, lake and outflow, as they're drawn over this tier's ground.
     inland: (x, z, g, out) => naturalWaterAt(meridianWater(), x, z, g, out),
   }),

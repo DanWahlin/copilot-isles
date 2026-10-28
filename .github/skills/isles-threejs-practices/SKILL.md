@@ -675,6 +675,29 @@ hook (release it when the site is freed).
 - **Prove a move bit for bit:** Anchorage's wreck moved behind a design (`src/world/wreck/`); hashing
   its geometry, obstacles, blockers and perches per tier before and after showed it unchanged, and
   the bake hashes held. Do the same for any shared refactor that must not move a thing.
+- **Big plants block, small ones bend (issue 364):** a walker's collider round a plant comes from its
+  species' data (`PLANT_SPECIES` in vegetation/blockers.ts: height, base radius, trunk), never from a
+  list of ids: a plant blocks when its base is over 0 and it stands `BLOCK_HEIGHT` (1.2 m) or more.
+  The colliders span the plant's height (a deck over it passes) and have `camera: false`, so the
+  follow camera and sight lines pass through foliage as before. They come and go with the plants:
+  a streamed island's `plantColliders` go into the session's world when its world is in and out when
+  it's freed. Small plants and grass bend aside instead: each pusher has a tail that follows its
+  feet `PUSH_EASE` behind, and blades along the line from the tail to the feet lean away, most at the
+  feet (`floraPushAt`, one TS source for CPU tests and the shader).
+- **Grass drew in ahead of the captain (issue 364):** the field was centred on the follow camera,
+  which is behind the captain, so less than two thirds of its reach lay ahead of him and its edge's
+  fade (the last 16 % of the reach) grew a blade from nothing in half a second as he ran, most
+  plainly on a hill, where the edge stands up in the view. The field's centre now leads the camera
+  along its view (`GRASS_LEAD`, `grassCentre`), the fade runs over the last 40 % (`REACH_FADE`), and
+  blades take the ground's tone as they shrink. Thinned tussocks shrink over a fifth of the reach
+  (`THIN_RAMP`), not 2-4 m. Bands stay measured from the camera; the reach, its thinning and the
+  flowers from the centre, on the CPU and in the shader alike. The lead costs no clumps (the same
+  disc, moved to where you look), only the few more of it that are in view. Measure a pop on a path
+  that misses every trunk: a probe camera walking through a tree reads as a re-pick pop.
+- **A parrot's eye through a leaf isn't a depth bug (issue 364):** faces and the shoulder parrots
+  draw in the opaque pass with depth tested (`face-depth.test.ts`). With the captain inside a big
+  plant, the leaf cards passed through him, and the parrot's head stood in front of a leaf. Keep
+  characters out of geometry (colliders) before you look at depth state.
 
 ## 6. Verify like this
 
