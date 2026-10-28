@@ -6,7 +6,7 @@
 export function showFallback(reason: 'no-webgl2' | 'software'): void {
   const message =
     reason === 'no-webgl2'
-      ? "Your browser doesn't support WebGL2, so the 3D isles can't load here."
+      ? "Your browser couldn't start 3D graphics, so the isles can't load. If your browser supports WebGL2 or WebGPU, its graphics may be restarting: try again in a moment, or restart your browser."
       : "Your browser isn't using the graphics card (hardware acceleration may be off), so 3D would be too slow.";
   const root = document.getElementById('loading');
   if (!root) return;
@@ -21,6 +21,16 @@ export function showFallback(reason: 'no-webgl2' | 'software'): void {
   const p = document.createElement('p');
   p.textContent = `${message} A 2D Chart & Logbook mode is coming. Until then, you can follow the course directly.`;
   box.append(h, p);
+  if (reason === 'no-webgl2') {
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.id = 'fallbackRetry';
+    retry.textContent = 'Try again';
+    retry.style.cssText =
+      'min-height:44px;min-width:44px;padding:0 1.2em;margin:0 0 1em;font:inherit;cursor:pointer';
+    retry.addEventListener('click', () => location.reload());
+    box.append(retry);
+  }
   root.append(box);
   void import('../course/catalog')
     .then(({ COURSES }) => {

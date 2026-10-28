@@ -76,6 +76,30 @@ export function detectWebGL2(doc: Document = document): GpuInfo {
   return { webgl2: true, renderer, kind: classifyRenderer(renderer) };
 }
 
+/**
+ * Waits between tries when neither WebGPU nor WebGL2 answers. Both missing at once on a browser that
+ * has them means its GPU process is restarting (after a GPU reset, or under load), which takes a moment.
+ */
+export const PROBE_RETRY_MS: readonly number[] = [400, 1200, 2400];
+
+/**
+ * Probes until a backend is found or the retries run out. Only "no WebGL2" is retried: software
+ * rendering is a setting, not a moment, so a retry wouldn't change it.
+ */
+export async function probeBackend(
+  probe: () => Promise<{ webgpu: WebGpuInfo; webgl: GpuInfo; choice: BackendChoice }>,
+  wait: (ms: number) => Promise<void>,
+  delays: readonly number[] = PROBE_RETRY_MS,
+): Promise<{ webgpu: WebGpuInfo; webgl: GpuInfo; choice: BackendChoice }> {
+  let result = await probe();
+  for (const ms of delays) {
+    if (result.choice.backend || result.choice.reason !== 'no-webgl2') break;
+    await wait(ms);
+    result = await probe();
+  }
+  return result;
+}
+
 export type BackendChoice =
   { backend: Backend; reason: string } | { backend: null; reason: 'no-webgl2' | 'software' };
 
