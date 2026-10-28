@@ -14,6 +14,7 @@ import {
   MeshStandardNodeMaterial,
   RedFormat,
   Texture,
+  Vector2,
   Vector3,
   Vector4,
 } from 'three/webgpu';
@@ -74,6 +75,7 @@ import {
 } from '../flora/nodes';
 import type { HeightGrid } from './types';
 import { BLADE_RANK_STEP, MID_ALONG, bladeBandShape, type BandMath, type BladeBands } from './blade-bands';
+import { REACH_FADE, THIN_RAMP } from './grass-reach';
 
 // three's TSL fluent node typings do not cover the mixed scalar/vector graph assembled here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -498,6 +500,13 @@ const PUSH_NODES: PushMath<AnyNode> = {
   smoothstep: (e0, e1, x) => smoothstep(e0, e1, x),
 };
 
+/**
+ * The grass field's centre (x, z): ahead of the camera along its view, shared by every grass material
+ * (`GrassField.update` sets it). The reach's fades and thinning go by the distance from it, so the
+ * field reaches further ahead, where you look, and less behind the camera, where nothing shows.
+ */
+export const grassCentre = uniform(new Vector2()).setName('grassCentre');
+
 /** How an island's grass is coloured beyond its blade tints (from its flora palette). */
 export interface GrassLook {
   /** The ground's tone under the blades (sRGB hex): the roots fade into it, so no pale soil shows. */
@@ -624,9 +633,13 @@ export function createGrassMaterial(
   const toCamera = (vec3 as AnyNode)(worldXZ.x, terrainY, worldXZ.y).distance(cameraPosition);
   // Flowers draw over the nearer part of the reach (the terrain's speckle carries their drifts on).
   const farEdge = reachU.y.mul(mix(float(1), float(FLOWER_REACH), flower));
-  const outer = float(1).sub(smoothstep(farEdge.mul(0.84), farEdge, groundDist));
-  const keep = float(1).sub(smoothstep(reachU.x, reachU.y, groundDist).mul(float(1).sub(reachU.z)));
-  const thin = clamp(keep.sub(clumpShape.x).div(0.12), float(0), float(1));
+  // The reach goes by the distance from the field's centre (ahead of the camera), with a long fade at
+  // its edge: blades shrink in from `REACH_FADE` of the reach, so none grows fast in front of you.
+  const fromCentre = centre.sub(grassCentre as AnyNode).length();
+  const outer = float(1).sub(smoothstep(farEdge.mul(REACH_FADE), farEdge, fromCentre));
+  const keep = float(1).sub(smoothstep(reachU.x, reachU.y, fromCentre).mul(float(1).sub(reachU.z)));
+  // A thinned clump shrinks away over `THIN_RAMP` of the keep (a few metres), not in a step.
+  const thin = clamp(keep.sub(clumpShape.x).div(THIN_RAMP), float(0), float(1));
   const sizeFade = clumpShape.y.mul(outer).mul(thin);
   const bladeGate = edgeGate(0.02, 1, MID_ALONG).mul(sizeFade);
   const gust = gustNode(worldXZ) as AnyNode;
@@ -695,7 +708,12 @@ export function createGrassMaterial(
   const rootMatch = float(1)
     .sub(smoothstep(float(0), float(0.4), shade))
     .mul(0.6);
-  const grassColor = mix(lit, groundU, rootMatch).mul(gust.sub(1).mul(0.24).mul(shade).add(1));
+  // As blades shrink toward the reach's edge they also take the ground's tone, so they come in over
+  // the colour they grow out of, not as a lighter band.
+  const edgeMatch = float(1).sub(outer).mul(0.6);
+  const grassColor = mix(mix(lit, groundU, rootMatch), groundU, edgeMatch).mul(
+    gust.sub(1).mul(0.24).mul(shade).add(1),
+  );
   const seedColor = mix(
     color(0x756331),
     color(0xc9b77a),

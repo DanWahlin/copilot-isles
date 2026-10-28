@@ -25,7 +25,7 @@ import type { TierSettings } from '../../engine/quality';
 import type { GrassKind, HeightGrid } from './types';
 import type { VegetationExclude } from './exclusions';
 import { smoothstep } from '../../util/math';
-import { createGrassMaterial, type GrassReach } from './materials';
+import { createGrassMaterial, grassCentre, type GrassReach } from './materials';
 import {
   BLADE_COUNTS,
   BLADE_RANK_STEP,
@@ -35,7 +35,7 @@ import {
   setBladeMorph,
   type BladeBands,
 } from './blade-bands';
-import { GRASS_REACH, grassReachScale } from './grass-reach';
+import { GRASS_REACH, grassFieldCentre, grassReachScale } from './grass-reach';
 import type { FloraRules, HeadForm } from '../flora/types';
 import { FLORA_CELL, scatterFlora, type FloraCell, type FloraClump } from '../flora/scatter';
 import { createFlowerGeometry } from '../flora/heads';
@@ -432,6 +432,9 @@ export class GrassField {
   private readonly lastEye = new Vector3();
   private readonly lastLook = new Vector3();
   private readonly look = new Vector3();
+  /** The field's centre (x, z in x, y): ahead of the camera (`grassFieldCentre`), now and at the last re-pick. */
+  private readonly centre = { x: 0, y: 0 };
+  private readonly lastCentre = { x: 0, y: 0 };
   private readonly frustum = new Frustum();
   private readonly viewProj = new Matrix4();
   private readonly sphere = new Sphere();
@@ -574,9 +577,14 @@ export class GrassField {
   update(camera: PerspectiveCamera): void {
     const eye = camera.position;
     camera.getWorldDirection(this.look);
+    grassFieldCentre(eye.x, eye.z, this.look.x, this.look.z, this.reach.far, this.centre);
+    // Every field of a tier has the same reach, so each writes the same centre.
+    grassCentre.value.set(this.centre.x, this.centre.y);
     if (
       this.built &&
       eye.distanceToSquared(this.lastEye) < REPICK_MOVE * REPICK_MOVE &&
+      (this.centre.x - this.lastCentre.x) ** 2 + (this.centre.y - this.lastCentre.y) ** 2 <
+        REPICK_MOVE * REPICK_MOVE &&
       this.look.dot(this.lastLook) > REPICK_TURN_COS
     ) {
       return;
@@ -585,6 +593,8 @@ export class GrassField {
     this.built = true;
     this.lastEye.copy(eye);
     this.lastLook.copy(this.look);
+    this.lastCentre.x = this.centre.x;
+    this.lastCentre.y = this.centre.y;
     camera.updateMatrixWorld();
     this.viewProj.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.viewProj);
@@ -597,9 +607,10 @@ export class GrassField {
     const blades = this.blades;
     const flowers = this.flowers!;
     const seeds = this.seeds!;
+    const c = this.centre;
     for (const cell of this.packedCells) {
-      const dx = cell.x - eye.x,
-        dz = cell.z - eye.z;
+      const dx = cell.x - c.x,
+        dz = cell.z - c.y;
       if (Math.sqrt(dx * dx + dz * dz) - cellRadius > far) continue;
       this.sphere.center.set(cell.x, cell.y + 0.3, cell.z);
       // Padded so a small turn between re-picks never shows an empty edge.
@@ -623,13 +634,16 @@ export class GrassField {
 
   /**
    * Copies clump `i` into its mesh (`target`, or the blade band for its distance) when in reach. The
-   * shader fades, thins and changes detail by the clump centre's ground distance, as measured here, so
-   * allowing for a re-pick's move leaves out nothing it would show before the next re-pick.
+   * shader fades and thins by the clump centre's ground distance from the field's centre, and changes
+   * detail by its distance from the camera, as measured here, so allowing for a re-pick's move (of
+   * either) leaves out nothing it would show before the next re-pick.
    */
   private place(pack: Packed, i: number, eye: Vector3, far: number, target: TierMesh | null): void {
-    const dx = pack.pos[i * 2]! - eye.x,
-      dz = pack.pos[i * 2 + 1]! - eye.z;
-    const d = Math.sqrt(dx * dx + dz * dz);
+    const px = pack.pos[i * 2]!,
+      pz = pack.pos[i * 2 + 1]!;
+    const cx = px - this.centre.x,
+      cz = pz - this.centre.y;
+    const d = Math.sqrt(cx * cx + cz * cz);
     if (d > far) return;
     let mesh = target;
     if (!mesh) {
@@ -637,8 +651,11 @@ export class GrassField {
       const near = Math.max(0, d - REPICK_MOVE);
       const keep = 1 - smoothstep(this.reach.full, this.reach.far, near) * (1 - this.reach.keep);
       if (pack.shapes[i * 4]! >= keep) return;
+      const ex = px - eye.x,
+        ez = pz - eye.z;
+      const dEye = Math.sqrt(ex * ex + ez * ez);
       for (const m of this.bladeMeshes) {
-        if (d < m.maxDistance) {
+        if (dEye < m.maxDistance) {
           mesh = m;
           break;
         }

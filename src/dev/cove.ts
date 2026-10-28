@@ -224,6 +224,8 @@ const frozenAt = new Vector3();
 const frozenDir = new Vector3();
 (window as unknown as { __dev: object }).__dev = {
   ready: true,
+  /** The page's camera (probes that ray-test the view, tmp tools). */
+  camera,
   setTime,
   setView,
   shot,
