@@ -515,10 +515,11 @@ export const THOUSAND_BOUGH = {
     boothC: { x: 1927.2, y: 7.3, z: -1505.0, heading: -2.0 },
     extraSwing: { x: 1940, y: 9.9, z: -1505, heading: 0 },
     // On the Root Hall's open south-east side (the west strip by the stair's wall is too narrow).
-    extraWeaver: { x: 2023.8, y: 18.5, z: -1543.5, heading: -2.4 },
+    // Seated NPCs' anchors are their seat blocks' tops (village/index.ts builds them on the floor).
+    extraWeaver: { x: 2023.8, y: 18.5 + 0.175, z: -1543.5, heading: -2.4 },
     // By the Sky Basket, out at the hall's rim (3 m clear of the stair's wall).
     extraLift: { x: 1987.7, y: 18.5, z: -1564.7, heading: 1.2 },
-    extraFisher: { x: 1839.6, y: 1.2, z: -1344, heading: 1.6 },
+    extraFisher: { x: 1839.6, y: 1.15 + 0.175, z: -1344, heading: 1.6 },
     extraLook: { x: 2066.5, y: 27, z: -1597, heading: -0.5 },
     /**
      * Lani's Model Market in Bough Landing's south-east corner (village/model-market.ts): the booth's

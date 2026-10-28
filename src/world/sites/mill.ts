@@ -127,6 +127,21 @@ const IRON = 0x3a3836;
 const sbox = (w: number, h: number, d: number, p: Parameters<typeof box>[3], hex: number) =>
   box(w, h, d, p, hex, SUV);
 
+/** A terrace corner's lantern post: a stone foot, a post, the glass between two iron plates, a cap. */
+export function millLantern(
+  into: { stone: BufferGeometry[]; wood: BufferGeometry[]; iron: BufferGeometry[]; glow: BufferGeometry[] },
+  lx: number,
+  lz: number,
+  top: number,
+): void {
+  into.stone.push(sbox(0.34, 0.22, 0.34, { x: lx, y: top, z: lz }, COPING));
+  into.wood.push(plank(0.14, 2.1, 0.14, { x: lx, y: top + 0.2, z: lz }, WOOD_DARK, TRIM.dark));
+  into.iron.push(box(0.34, 0.06, 0.34, { x: lx, y: top + 2.3, z: lz }, IRON));
+  into.iron.push(box(0.3, 0.05, 0.3, { x: lx, y: top + 1.95, z: lz }, IRON));
+  into.glow.push(box(0.24, 0.3, 0.24, { x: lx, y: top + 2.0, z: lz }, 0xffd9a0, 1, true));
+  into.iron.push(cylinder(0.02, 0.2, 0.12, { x: lx, y: top + 2.36, z: lz }, IRON, 6));
+}
+
 /**
  * P0.1's set piece (POC §4.5): a low limestone terrace with a 3 × 4 grid of rotatable channel
  * tiles, the Actions spring spouting from rocks into a gated basin, an outlet flume feeding a
@@ -424,14 +439,7 @@ export function createMill(o: MillOptions): MillSite {
     [tx1 - 0.3, tz1 - 0.3],
   ];
   const glowParts: BufferGeometry[] = [];
-  for (const [lx, lz] of lanterns) {
-    stone.push(sbox(0.34, 0.22, 0.34, { x: lx, y: top, z: lz }, COPING));
-    wood.push(plank(0.14, 2.1, 0.14, { x: lx, y: top + 0.2, z: lz }, WOOD_DARK, TRIM.dark));
-    iron.push(box(0.34, 0.06, 0.34, { x: lx, y: top + 2.3, z: lz }, IRON));
-    iron.push(box(0.3, 0.05, 0.3, { x: lx, y: top + 1.95, z: lz }, IRON));
-    glowParts.push(box(0.24, 0.3, 0.24, { x: lx, y: top + 2.0, z: lz }, 0xffd9a0, 1, true));
-    iron.push(cylinder(0.02, 0.2, 0.12, { x: lx, y: top + 2.36, z: lz }, IRON, 6));
-  }
+  for (const [lx, lz] of lanterns) millLantern({ stone, wood, iron, glow: glowParts }, lx, lz, top);
 
   // Signpost at the foot of the stairs.
   const post = { x: stairX0 - 0.7, z: M.z + 1.9 };

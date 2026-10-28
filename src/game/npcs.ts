@@ -6,6 +6,7 @@ import type { VillageAnchor } from '../world/village/kit';
 import type { CollisionWorld } from './collision';
 import { wrapAngle } from '../util/math';
 import { onCourseSelected } from '../course/catalog';
+import { SIT } from '../world/characters/seat-fit';
 
 export interface NpcSpec {
   /** Who they are in scripts and interactions (`npc:<id>`). */
@@ -36,8 +37,6 @@ export interface NpcSpec {
   keepY?: boolean;
   /** Collision radius in place of the body's, for someone standing in a narrow spot (the gallery). */
   obstacleR?: number;
-  /** Visual drop from the anchor to put a seated rig's pelvis on the seat top. */
-  seatDrop?: number;
   /** Optional anchor-local talk framing: +x is right of heading, +z is forward. */
   talkShot?: {
     shotLocal: readonly [x: number, y: number, z: number];
@@ -116,10 +115,8 @@ export const COVE_NPCS: NpcSpec[] = withCourseVoices([
     id: 'fisherman',
     name: 'Old Finn',
     anchor: 'finn',
-    headingOffset: Math.PI / 2,
     clip: 'sit',
     keepY: true,
-    seatDrop: 0.22,
   },
   {
     id: 'old_sailor',
@@ -128,7 +125,6 @@ export const COVE_NPCS: NpcSpec[] = withCourseVoices([
     headingOffset: Math.PI,
     clip: 'sit',
     keepY: true,
-    seatDrop: 0.22,
   },
   {
     id: 'child',
@@ -173,7 +169,6 @@ export const COVE_NPCS: NpcSpec[] = withCourseVoices([
     anchor: 'lyra',
     clip: 'sit',
     keepY: true,
-    seatDrop: 0.14,
     talkShot: {
       shotLocal: [4.5, 1.35, -3.0],
       targetLocal: [0, 1.0, 0],
@@ -355,9 +350,11 @@ export class NpcCrowd {
         n.heading = Math.atan2(-Math.sin(a), Math.cos(a));
         moving = true;
       }
-      if (n.faceTarget)
+      // A seated NPC keeps facing the way its seat does and only turns its head to you (turning
+      // the whole body sat Salt sideways across his bench: issue 363).
+      if (s.clip !== 'sit' && n.faceTarget)
         n.heading = turn(n.heading, Math.atan2(n.faceTarget.x - n.x, n.faceTarget.z - n.z), dt, 5);
-      else if (!moving && (near || n.talking))
+      else if (s.clip !== 'sit' && !moving && (near || n.talking))
         n.heading = turn(n.heading, Math.atan2(player.x - n.x, player.z - n.z), dt, 5);
       if (!s.keepY) n.y = this.world.groundAt(n.x, n.z);
       n.obstacle.x = n.x;
@@ -421,8 +418,9 @@ function turn(h: number, target: number, dt: number, rate: number): number {
   return wrapAngle(h + wrapAngle(target - h) * (1 - Math.exp(-rate * dt)));
 }
 
+/** A seated NPC's origin under its anchor (the seat's top): the shared sit's fit (seat-fit.ts). */
 function seatedVisualDrop(spec: NpcSpec): number {
-  return spec.clip === 'sit' ? (spec.seatDrop ?? 0.18) : 0;
+  return spec.clip === 'sit' ? SIT.drop : 0;
 }
 
 function npcHeading(spec: NpcSpec, home: VillageAnchor): number {

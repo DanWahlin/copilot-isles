@@ -242,30 +242,32 @@ function addCompass(b: Buckets, p: Pose, vertical: boolean, detail: Detail): voi
   );
 }
 
-function addLantern(b: Buckets, p: Pose, _vertical: boolean, detail: Detail): void {
+/** The rack's lantern (the gear you set on its shelf): a standing lantern with a carrying ring. */
+export function addLantern(b: Buckets, p: Pose, _vertical: boolean, detail: Detail): void {
   const y = p.y + 0.04;
   const w = 0.28;
-  b.metal.push(box(w, 0.035, w, { x: p.x, y, z: p.z, ry: p.rot }, IRON, 1, true));
+  // Offsets in the lantern's frame, turned with it (each part used to turn on its own middle).
+  const c = Math.cos(p.rot);
+  const s = Math.sin(p.rot);
+  const at = (lx: number, lz: number, py: number) => ({
+    x: p.x + lx * c + lz * s,
+    y: py,
+    z: p.z - lx * s + lz * c,
+    ry: p.rot,
+  });
+  b.metal.push(box(w, 0.035, w, at(0, 0, y), IRON, 1, true));
   for (const sx of [-1, 1])
     for (const sz of [-1, 1])
-      b.metal.push(
-        box(
-          0.028,
-          0.42,
-          0.028,
-          { x: p.x + sx * 0.12, y: y + 0.02, z: p.z + sz * 0.12, ry: p.rot },
-          IRON,
-          1,
-          true,
-        ),
-      );
-  b.glow.push(box(0.18, 0.31, 0.018, { x: p.x, y: y + 0.08, z: p.z + 0.14, ry: p.rot }, 0xffc987, 1, true));
-  b.glow.push(box(0.18, 0.31, 0.018, { x: p.x, y: y + 0.08, z: p.z - 0.14, ry: p.rot }, 0xffc987, 1, true));
-  b.glow.push(box(0.018, 0.31, 0.18, { x: p.x + 0.14, y: y + 0.08, z: p.z, ry: p.rot }, 0xffc987, 1, true));
-  b.glow.push(box(0.018, 0.31, 0.18, { x: p.x - 0.14, y: y + 0.08, z: p.z, ry: p.rot }, 0xffc987, 1, true));
-  b.glow.push(box(0.05, 0.13, 0.05, { x: p.x, y: y + 0.08, z: p.z, ry: p.rot }, 0xff9c45, 1, true));
+      b.metal.push(box(0.028, 0.42, 0.028, at(sx * 0.12, sz * 0.12, y + 0.02), IRON, 1, true));
+  // The panes' edges are let into the corner posts, and the candle stands on the base (both floated).
+  for (const side of [-1, 1]) {
+    b.glow.push(box(0.22, 0.31, 0.018, at(0, side * 0.12, y + 0.08), 0xffc987, 1, true));
+    b.glow.push(box(0.018, 0.31, 0.22, at(side * 0.12, 0, y + 0.08), 0xffc987, 1, true));
+  }
+  b.glow.push(box(0.05, 0.13, 0.05, at(0, 0, y + 0.03), 0xff9c45, 1, true));
   b.metal.push(coneCap(p.x, y + 0.43, p.z, p.rot, 0.2, 0.12, IRON));
-  b.metal.push(torus(0.09, 0.012, { x: p.x, y: y + 0.55, z: p.z, rx: Math.PI / 2 }, 0x74695f, detail.cyl));
+  // The carrying ring stands on the cap's tip (it lay flat round the tip, touching nothing).
+  b.metal.push(torus(0.09, 0.012, { x: p.x, y: y + 0.55 + 0.098, z: p.z, ry: p.rot }, 0x74695f, detail.cyl));
 }
 
 function addRope(b: Buckets, p: Pose): void {

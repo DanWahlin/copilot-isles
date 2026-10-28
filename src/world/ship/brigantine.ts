@@ -618,27 +618,9 @@ export function createBrigantine({
   const lanternPivot = new Group();
   lanternPivot.name = 'stern lantern pendulum';
   lanternPivot.position.set(0, 3.65, -12.05);
-  const lanternRig = new MeshBuilder();
-  lanternRig.setRegion(4);
-  lanternRig.setColor(0x17110c);
-  for (const x of [-0.72, 0, 0.72]) {
-    lanternRig.addCylinderBetween({ x, y: 0, z: 0 }, { x, y: -0.58, z: 0 }, 0.018, 6);
-    lanternRig.addBox(x, -0.2, 0, 0.2, 0.04, 0.2);
-  }
-  const lanternHanger = addMesh(lanternPivot, lanternRig.build(), shipMaterial, 'lantern hanger', false);
-  const lanternGeo = new MeshBuilder();
-  lanternGeo.setRegion(6);
-  lanternGeo.setColor(0xffb060);
-  for (const x of [-0.72, 0, 0.72]) {
-    lanternGeo.addBox(x, -0.74, 0, 0.24, 0.3, 0.24);
-    lanternGeo.setRegion(4);
-    lanternGeo.setColor(0x17110c);
-    lanternGeo.addBox(x, -0.74, 0, 0.31, 0.04, 0.31);
-    lanternGeo.addBox(x, -0.58, 0, 0.28, 0.04, 0.28);
-    lanternGeo.setRegion(6);
-    lanternGeo.setColor(0xffb060);
-  }
-  const lantern = addMesh(lanternPivot, lanternGeo.build(), shipMaterial, 'stern lantern', false);
+  const sternLamps = sternLanternGeometry();
+  const lanternHanger = addMesh(lanternPivot, sternLamps.hanger, shipMaterial, 'lantern hanger', false);
+  const lantern = addMesh(lanternPivot, sternLamps.lanterns, shipMaterial, 'stern lantern', false);
   // They swing together on one pivot.
   if (lowTier) mergeStaticParts(lanternPivot, [lanternHanger, lantern], 'stern lantern and hanger (merged)');
   group.add(lanternPivot);
@@ -926,4 +908,33 @@ export function createBrigantine({
       .catch(() => undefined);
   }
   return api;
+}
+
+/**
+ * The stern lanterns in their pivot's frame (the pivot is the stern bracket's end): a bar across the
+ * bracket's end, three rods down from it, and a lantern on each (the outer two hung from nothing
+ * until the bar: issue 363).
+ */
+export function sternLanternGeometry(): { hanger: BufferGeometry; lanterns: BufferGeometry } {
+  const rig = new MeshBuilder();
+  rig.setRegion(4);
+  rig.setColor(0x17110c);
+  rig.addBox(0, 0, 0, 1.5, 0.04, 0.04);
+  for (const x of [-0.72, 0, 0.72]) {
+    rig.addCylinderBetween({ x, y: 0.01, z: 0 }, { x, y: -0.58, z: 0 }, 0.018, 6);
+    rig.addBox(x, -0.2, 0, 0.2, 0.04, 0.2);
+  }
+  const geo = new MeshBuilder();
+  geo.setRegion(6);
+  geo.setColor(0xffb060);
+  for (const x of [-0.72, 0, 0.72]) {
+    geo.addBox(x, -0.74, 0, 0.24, 0.3, 0.24);
+    geo.setRegion(4);
+    geo.setColor(0x17110c);
+    geo.addBox(x, -0.74, 0, 0.31, 0.04, 0.31);
+    geo.addBox(x, -0.58, 0, 0.28, 0.04, 0.28);
+    geo.setRegion(6);
+    geo.setColor(0xffb060);
+  }
+  return { hanger: rig.build(), lanterns: geo.build() };
 }

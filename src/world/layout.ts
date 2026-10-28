@@ -42,6 +42,11 @@ export const COVE = {
    */
   christening: { x: -107.0, y: 1.8, z: -116.6, heading: 0 },
   /**
+   * Old Finn fishes from the pier's west edge beam at this z (sites/crane.ts), his boots on a
+   * footboard bracketed to the beam under him (anchorage/village.ts `addPierFootboard`).
+   */
+  finn: { z: -104.5 },
+  /**
    * Ezra's chart table and Bo's gear rack sit on the quay just west of the pier foot,
    * so Anchorage's setup runs Nell → Ezra → Bo → down the pier without doubling back.
    */

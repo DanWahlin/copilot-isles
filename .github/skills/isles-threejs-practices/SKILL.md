@@ -535,6 +535,18 @@ hook (release it when the site is freed).
   cross-fade on one surface in one look: the pool's ring takes the stream's surface where the stream
   runs, and fades out as the stream fades in, drawn in the pool's look (per-vertex `kind`, `fill` in
   `QuadCorners`), then eases to its own look over a few metres (`joinPool`).
+- **Lamps hanging in the air, legs through a bench (issue 363):** a lantern hung under its arm with
+  sky between them, caps floated over their glass, a turned lantern's parts each turned on their own
+  middle, and a seated NPC's shins folded back through the seat. Hang every lantern by the shared
+  hanger (`lampHanger`, village/lamp-hanger.ts) from its arm's underside, run arms from 2 cm into
+  the post to past the hanger, and turn a lantern's part offsets with it. Build seats to the sit's
+  fit (`SIT`, `seatBlock` in characters/seat-fit.ts) on what's drawn under it (paving stands over
+  its ground), with something under the boots (Port Meridian's benches were taller than the legs, so
+  the boots hung; a pier edge gets a footboard), and above the high-water line (Salter's block stood
+  in the surf). `lamps.test.ts` (every part within 1 cm of another, none more than 3 cm in) and
+  `seat-audit.test.ts` (no leg skin more than 2 cm in a seat, boots within 3 cm of a surface, the
+  seat's ground over the default sea's highest crest) measure the built geometry: add a new lamp or
+  seat to them.
 - **Props stuck through an arm:** Rhea's spyglass sat on her forearm, placed for the bind pose, and
   her commander's hip fist went on the spyglass hand, so it stuck out through her arm in talk. Now a
   carried prop goes in the fist (`holdInFist`/`inFist` in npc-accessories: on the palm bone, its

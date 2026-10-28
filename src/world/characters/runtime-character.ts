@@ -145,6 +145,9 @@ export class RuntimeCharacter implements Character {
   private readonly lowerLegEndL: Bone | null;
   private readonly lowerLegEndR: Bone | null;
   private readonly footL: Bone | null;
+  /** Each foot bone's offset from its shin's end in the rest pose (in the foot's parent's space). */
+  private readonly footOffL: Vector3 | null;
+  private readonly footOffR: Vector3 | null;
   private readonly footR: Bone | null;
   private readonly proceduralRests: readonly BoneRest[];
   private readonly head: Bone | null;
@@ -284,6 +287,9 @@ export class RuntimeCharacter implements Character {
     this.lowerLegEndR = bone(group, 'LowerLegR_end');
     this.footL = bone(group, 'FootL');
     this.footR = bone(group, 'FootR');
+    group.updateMatrixWorld(true);
+    this.footOffL = footOffset(this.footL, this.lowerLegEndL);
+    this.footOffR = footOffset(this.footR, this.lowerLegEndR);
     this.head = bone(group, 'Head');
     this.neck = bone(group, 'Neck');
     this.face = this.npc ? createFace(this.head, group, body, config) : null;
@@ -843,6 +849,15 @@ export class RuntimeCharacter implements Character {
     bone.quaternion.premultiply(LOCAL_Q);
   }
 
+  /** Puts a foot bone where it stands under its shin's end in the rig's rest pose. */
+  private seatFoot(foot: Bone | null, end: Bone | null, off: Vector3 | null): void {
+    if (!foot?.parent || !end || !off) return;
+    end.updateWorldMatrix(true, false);
+    end.getWorldPosition(FOOT_AT);
+    foot.parent.worldToLocal(FOOT_AT);
+    foot.position.copy(FOOT_AT).add(off);
+  }
+
   private applyPoseLife(dt: number, npcScale: number): void {
     this.idleClock += dt;
     const breath = Math.sin(this.idleClock * 2.1) * 0.004;
@@ -851,12 +866,15 @@ export class RuntimeCharacter implements Character {
       const settle = Math.sin(this.idleClock * 0.9) * npcScale;
       this.hips?.rotateX(-0.08);
       this.torso?.rotateX(0.06);
-      this.upperLegL?.rotateX(-1.22);
-      this.upperLegR?.rotateX(-1.22);
-      this.lowerLegL?.rotateX(1.42);
-      this.lowerLegR?.rotateX(1.42);
-      this.footL?.rotateX(-0.28);
-      this.footR?.rotateX(-0.28);
+      // Thighs level along the seat, shins plumb down from its front edge, and the feet (bones of
+      // their own off the rig's root) under the shins, flat (the knees once folded the shins back
+      // through the seat, and the feet stayed where a standing rig's are: issue 363).
+      this.upperLegL?.rotateX(-0.78);
+      this.upperLegR?.rotateX(-0.78);
+      this.lowerLegL?.rotateX(0.17);
+      this.lowerLegR?.rotateX(0.17);
+      this.seatFoot(this.footL, this.lowerLegEndL, this.footOffL);
+      this.seatFoot(this.footR, this.lowerLegEndR, this.footOffR);
       this.shoulderL?.rotateZ(0.1);
       this.shoulderR?.rotateZ(-0.1);
       this.torso?.rotateY(settle * 0.025);
@@ -1132,6 +1150,14 @@ function firstChildBone(parent: Bone | null): Bone | null {
 function bone(root: Group, name: string): Bone | null {
   const found = root.getObjectByName(name);
   return found instanceof Bone ? found : null;
+}
+
+const FOOT_AT = new Vector3();
+
+function footOffset(foot: Bone | null, end: Bone | null): Vector3 | null {
+  if (!foot?.parent || !end) return null;
+  const at = foot.parent.worldToLocal(end.getWorldPosition(new Vector3()));
+  return foot.position.clone().sub(at);
 }
 
 function proceduralBones(bones: readonly (Bone | null)[]): BoneRest[] {

@@ -760,3 +760,55 @@ function closest(p: Vector3, pos: Float32Array, a: number, b: number, c: number,
   const w = vc * denom;
   return set(1 - v - w, v, w);
 }
+
+/** A seated NPC's skin in its own frame (+z forward, y up from its feet's level), by part. */
+export interface SeatedSkin {
+  /** Vertices the hips and legs move most: x, y, z, and 0 hips, 1 thigh, 2 shin, 3 foot. */
+  readonly legs: Float32Array;
+}
+
+const LEG_PART: Record<string, number> = {
+  Hips: 0,
+  UpperLegL: 1,
+  UpperLegR: 1,
+  LowerLegL: 2,
+  LowerLegR: 2,
+  FootL: 3,
+  FootR: 3,
+};
+
+/** Plays the sit (and talks, as seated NPCs do) for `seconds` and returns the hips' and legs' skin. */
+export function seatedSkin(source: RigSource, body: NpcId, seconds = 2): SeatedSkin {
+  const realRandom = Math.random;
+  Math.random = mulberry32(7);
+  try {
+    const character = buildAuditNpc(source, body);
+    character.play('sit', 0);
+    character.setTalking(true);
+    for (let t = 0; t < seconds; t += 1 / 60) character.update(1 / 60);
+    character.group.updateMatrixWorld(true);
+    const mesh = bodyMesh(character.group) as SkinnedMesh;
+    const g = mesh.geometry;
+    const skinIndex = g.getAttribute('skinIndex');
+    const skinWeight = g.getAttribute('skinWeight');
+    const names = mesh.skeleton.bones.map((b) => b.name);
+    const out: number[] = [];
+    const v = new Vector3();
+    for (let i = 0; i < g.getAttribute('position').count; i++) {
+      let best = -1;
+      let bestW = 0;
+      for (let k = 0; k < 4; k++) {
+        const w = skinWeight.getComponent(i, k);
+        if (w > bestW) [best, bestW] = [skinIndex.getComponent(i, k), w];
+      }
+      const part = LEG_PART[names[best] ?? ''];
+      if (part === undefined) continue;
+      mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld);
+      out.push(v.x, v.y, v.z, part);
+    }
+    character.dispose();
+    return { legs: new Float32Array(out) };
+  } finally {
+    Math.random = realRandom;
+  }
+}

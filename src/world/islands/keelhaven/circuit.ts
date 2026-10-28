@@ -101,7 +101,7 @@ export const CIRCUIT_SPOTS: {
 export const GATE2_LAMPS = 4;
 
 /** A post with a station lamp on it (its glass is `key` in the lamp set). */
-function stationPost(
+export function stationPost(
   b: Buckets,
   out: ShipyardOut,
   key: string,
@@ -111,7 +111,8 @@ function stationPost(
   h = 2.6,
 ): void {
   const p = at(u, y, v);
-  rod(b, 'wood', p, { x: p.x, y: y + h, z: p.z }, 0.09, 6, YARD_PAINT.tar);
+  // The post stops 1 cm into the glass's foot (it ran up inside it).
+  rod(b, 'wood', p, { x: p.x, y: y + h - 0.26, z: p.z }, 0.09, 6, YARD_PAINT.tar);
   lampGlass(
     out,
     key,

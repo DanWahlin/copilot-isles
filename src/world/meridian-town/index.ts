@@ -74,6 +74,7 @@ import {
   dressTerraceWall,
 } from './plaza-dressing';
 import { addBox, type Buckets } from './plaza-kit';
+import { SIT, seatBlock } from '../characters/seat-fit';
 import { addTiledRoof } from './plaza-roofs';
 import { addPlazaRim, plazaRimWalk } from './plaza-rim';
 import { MARKET_LAYOUT, MODEL_MARKET, addModelMarketStall, marketToWorld } from './model-market';
@@ -194,6 +195,10 @@ const TAVERN_LANE = {
 const SHIPYARD_APRON = { x0: 570, x1: 612, z0: -775, z1: -735, height: MERIDIAN.harbor.quay.height } as const;
 const MOLE_CONNECTOR = { x0: 572, x1: 592, z0: -735, z1: -706, height: MERIDIAN.mole.height } as const;
 const PLAZA = { x0: 638, x1: 698, z0: -819, z1: -780, height: MERIDIAN.pads.plaza.height } as const;
+/** The top of the mole's paving (8 cm over the mole's ground), what Old Bruno's bench stands on. */
+export const MOLE_PAVING_TOP = MERIDIAN.mole.height + 0.08;
+/** The top of the paving on Signora Rosa's bench platform by the east quay (what her bench stands on). */
+export const EXTRA_BENCH_PAVING = 3.51;
 const TAVERN_PAD = { x0: 607, x1: 637, z0: -813, z1: -779, height: MERIDIAN.pads.tavern.height } as const;
 const CITADEL = { x: MERIDIAN.pads.citadel.x, z: MERIDIAN.pads.citadel.z, r: 39, height: 40 } as const;
 /** The Hall of Records on the citadel, raised on a stone podium with a paved portico in front. */
@@ -686,7 +691,7 @@ function addHarbour(
   for (const z of [-760, -742, -724, -666])
     addBollard(buckets, colliders, perches, eastArm.x1 - 3.3, deck, z);
 
-  const extraBenchFloor = 3.42;
+  const extraBenchFloor = EXTRA_BENCH_PAVING - 0.09;
   addBox(
     buckets,
     'stone',
@@ -706,7 +711,8 @@ function addHarbour(
     { x: 684.2, z: -764.2, hx: 3.0, hz: 2.0, rot: 0, y0: deck - 0.1, y1: extraBenchFloor },
     { x: 684.2, z: -762.4, hx: 2.9, hz: 0.18, rot: 0, y0: extraBenchFloor, y1: extraBenchFloor + 0.36 },
   );
-  const extraBenchY = addBenchSeat(buckets, 684.2, extraBenchFloor, -764.2, 0, 1.0);
+  // Rosa's bench stands on the platform's paving (its top 9 cm over the stone).
+  const extraBenchY = addBenchSeat(buckets, 684.2, EXTRA_BENCH_PAVING, -764.2, 0, 1.0);
   anchor('extraBench', {
     x: 684.2,
     y: extraBenchY,
@@ -991,7 +997,7 @@ function addMoleAndLighthouse(
   const rot = Math.atan2(dx, dz);
   const cx = (m.start.x + m.end.x) / 2;
   const cz = (m.start.z + m.end.z) / 2;
-  addBox(buckets, 'paving', cx, m.height - 0.08, cz, m.width * 1.45, 0.16, len, rot, 0xbfa06f);
+  addBox(buckets, 'paving', cx, MOLE_PAVING_TOP - 0.16, cz, m.width * 1.45, 0.16, len, rot, 0xbfa06f);
   addBox(
     buckets,
     'stone',
@@ -1021,7 +1027,8 @@ function addMoleAndLighthouse(
   const edgeX = m.start.x + dx * 0.58 + dz * invLen * (m.width * 0.56);
   const edgeZ = m.start.z + dz * 0.58 - dx * invLen * (m.width * 0.56);
   const seaHeading = Math.atan2(dz * invLen, -dx * invLen);
-  const fisherSeatY = addBenchSeat(buckets, edgeX, m.height, edgeZ, seaHeading, 0.74);
+  // Bruno's bench stands on the mole's paving.
+  const fisherSeatY = addBenchSeat(buckets, edgeX, MOLE_PAVING_TOP, edgeZ, seaHeading, 0.74);
   anchor('extraFisher', {
     x: edgeX,
     y: fisherSeatY,
@@ -1429,9 +1436,11 @@ function addTavern(
       6,
     );
   if (high) addBougainvillea(buckets, 612.4, TAVERN_PAD.height + 2.3, -804.2, 0, 1.1, colliders.camera);
+  // Lyra sits on a block on the stage (its top 0.60 over the pad), built to the sit (seat-fit.ts).
+  seatBlock(buckets, 618.5, -787.1, Math.PI, TAVERN_PAD.height + 0.6, TAVERN_PAD.height + 0.6 + SIT.height);
   anchor('lyra', {
     x: 618.5,
-    y: TAVERN_PAD.height + 0.62,
+    y: TAVERN_PAD.height + 0.6 + SIT.height,
     z: -787.1,
     heading: Math.PI,
     tx: 622,
@@ -3651,7 +3660,8 @@ function addBollard(
   perches.push(new Vector3(x, y + 0.72, z));
 }
 
-function addLampPost(
+/** A harbour lamp post: an iron post, an arm across its top, and the lamp's glass under its cap. */
+export function addLampPost(
   buckets: Buckets,
   colliders: ColliderSet,
   perches: Vector3[],
@@ -3660,10 +3670,13 @@ function addLampPost(
   z: number,
   rot: number,
 ): void {
-  addCylinderGeom(buckets.metal, x, y, z, 0.09, 0.13, 3.2, 8, 0, METAL);
-  addBox(buckets, 'metal', x, y + 3.05, z, 0.18, 0.18, 1.2, rot, METAL);
+  // The post stops 2 cm into the arm, and the arm 2 cm into the lamp's cap.
+  addCylinderGeom(buckets.metal, x, y, z, 0.09, 0.13, 3.07, 8, 0, METAL);
+  const mid = localToWorld(x, z, rot, 0, -0.095);
+  addBox(buckets, 'metal', mid.x, y + 3.05, mid.z, 0.18, 0.18, 1.01, rot, METAL);
   const end = localToWorld(x, z, rot, 0, 0.58);
-  addCylinderGeom(buckets.glow, end.x, y + 2.58, end.z, 0.28, 0.22, 0.45, 8, 0, 0xffa34d);
+  // The glass's top is 5 mm into the cap and the arm (it stopped 2 cm under them: issue 363).
+  addCylinderGeom(buckets.glow, end.x, y + 2.58, end.z, 0.28, 0.22, 0.475, 8, 0, 0xffa34d);
   addCone(buckets.metal, end.x, y + 3.05, end.z, 0.34, 0.42, 8, 0, METAL);
   colliders.circles.push({ x, z, r: 0.32 });
   perches.push(new Vector3(x, y + 3.4, z));
@@ -4040,43 +4053,57 @@ function addBench(
   colliders.boxes.push({ x, z, hx: 1.05, hz: 0.42, rot, height: 1.2 });
 }
 
-function addBenchSeat(buckets: Buckets, x: number, y: number, z: number, heading: number, s: number): number {
-  const seatY = y + 0.46 * s;
-  addBox(buckets, 'wood', x, seatY, z, 1.65 * s, 0.16 * s, 0.48 * s, heading, 0x7a5232);
-  addBox(
-    buckets,
-    'wood',
-    x - Math.sin(heading) * 0.28 * s,
-    seatY + 0.38 * s,
-    z - Math.cos(heading) * 0.28 * s,
-    1.6 * s,
-    0.48 * s,
-    0.12 * s,
-    heading,
-    0x6b4427,
-  );
-  for (const lx of [-0.62, 0.62])
-    for (const lz of [-0.14, 0.14]) {
-      const p = localToWorld(x, z, heading, lx * s, lz * s);
-      addBox(buckets, 'wood', p.x, y, p.z, 0.1 * s, 0.46 * s, 0.1 * s, heading, DARK_WOOD);
+/**
+ * A bench for a seated townsperson at (x, z), its middle there, facing `heading`, `s` its length's
+ * scale. Built to the sit (seat-fit.ts): its seat `SIT.depth` deep with its top `SIT.height` over the
+ * floor, so the sitter (stepped out `BENCH_OUT`) has his boots on the ground. Its seat was once
+ * 0.46–0.62 m high and Bruno's and Rosa's feet hung clear of the ground (issue 363). The back stands
+ * on two posts behind the seat. Returns the seat's top.
+ */
+export function addBenchSeat(
+  buckets: Buckets,
+  x: number,
+  y: number,
+  z: number,
+  heading: number,
+  s: number,
+): number {
+  const plank = 0.07;
+  const top = y + SIT.height;
+  const half = SIT.depth / 2;
+  addBox(buckets, 'wood', x, top - plank, z, 1.65 * s, plank, SIT.depth, heading, 0x7a5232);
+  for (const lx of [-0.62, 0.62]) {
+    for (const lz of [-(half - 0.06), half - 0.06]) {
+      const p = localToWorld(x, z, heading, lx * s, lz);
+      addBox(buckets, 'wood', p.x, y, p.z, 0.08, SIT.height - plank, 0.08, heading, DARK_WOOD);
     }
-  return seatY + 0.16 * s;
+    const p = localToWorld(x, z, heading, lx * s, -(half + 0.025));
+    addBox(buckets, 'wood', p.x, y, p.z, 0.07, SIT.height + 0.45, 0.05, heading, DARK_WOOD);
+  }
+  const back = localToWorld(x, z, heading, 0, -(half + 0.025));
+  addBox(buckets, 'wood', back.x, top + 0.2, back.z, 1.6 * s, 0.24, 0.04, heading, 0x6b4427);
+  return top;
 }
 
-function addStringLanterns(
+/**
+ * Lanterns strung on a rope from a to b: each hangs by a cord from the rope where the rope really is
+ * (its two straight halves; the lanterns once followed a deeper curve and hung clear of it, issue 363).
+ */
+export function addStringLanterns(
   buckets: Buckets,
   a: { x: number; y: number; z: number },
   b: { x: number; y: number; z: number },
   count: number,
 ): void {
   addSagRope(buckets, a, b);
+  const midY = sagMid(a, b).y;
   for (let i = 1; i < count; i += 1) {
     const t = i / count;
     const x = a.x + (b.x - a.x) * t;
     const z = a.z + (b.z - a.z) * t;
-    const sag = Math.sin(t * Math.PI) * 0.7;
-    const y = a.y + (b.y - a.y) * t - sag;
-    addTube(buckets.rope, 0.025, { x, y: y + 0.1, z }, { x, y: y - 0.12, z }, 0x8a6642, 5);
+    const y = t <= 0.5 ? a.y + (midY - a.y) * t * 2 : midY + (b.y - midY) * (t - 0.5) * 2;
+    // The cord from 2 cm into the rope (radius 4.5 cm) to 1 cm into the lantern's top.
+    addTube(buckets.rope, 0.025, { x, y: y - 0.025, z }, { x, y: y - 0.12, z }, 0x8a6642, 5);
     addCylinderGeom(buckets.glow, x, y - 0.45, z, 0.16, 0.13, 0.34, 8, 0, 0xffa352);
   }
 }
@@ -4500,16 +4527,21 @@ function addTube(
   target.push(tubeBetween(radius, a, b, colour, segments));
 }
 
+/** A rope's middle, sagged by 2.5 % of its span. */
+function sagMid(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }) {
+  return {
+    x: (a.x + b.x) * 0.5,
+    y: (a.y + b.y) * 0.5 - Math.hypot(a.x - b.x, a.z - b.z) * 0.025,
+    z: (a.z + b.z) * 0.5,
+  };
+}
+
 function addSagRope(
   buckets: Buckets,
   a: { x: number; y: number; z: number },
   b: { x: number; y: number; z: number },
 ): void {
-  const mid = {
-    x: (a.x + b.x) * 0.5,
-    y: (a.y + b.y) * 0.5 - Math.hypot(a.x - b.x, a.z - b.z) * 0.025,
-    z: (a.z + b.z) * 0.5,
-  };
+  const mid = sagMid(a, b);
   addTube(buckets.rope, 0.045, a, mid, 0x8a6642, 8);
   addTube(buckets.rope, 0.045, mid, b, 0x8a6642, 8);
 }

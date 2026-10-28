@@ -45,7 +45,7 @@ export function keelhavenExtras(anchors: Readonly<Record<string, { x: number; z:
       speed: 2.3,
     },
     { id: 'kh_moll', name: 'Caulker Moll', anchor: 'extraCaulker', clip: 'idle' },
-    { id: 'kh_salter', name: 'Old Salter', anchor: 'extraFisher', clip: 'sit', seatDrop: 0.05 },
+    { id: 'kh_salter', name: 'Old Salter', anchor: 'extraFisher', clip: 'sit', keepY: true },
     { id: 'kh_kit', name: 'Kit', anchor: 'extraLamplighter', clip: 'idle' },
     // On his barge's deck in the cut (the ground under her is the cut's floor).
     { id: 'kh_skipper', name: 'Skipper Rourke', anchor: 'extraTug', clip: 'idle' },
