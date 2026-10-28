@@ -1,5 +1,5 @@
 import { WebGPURenderer } from 'three/webgpu';
-import { chooseBackend, detectWebGL2, detectWebGPU, type Backend } from './detect';
+import { chooseBackend, detectWebGL2, detectWebGPU, probeBackend, type Backend } from './detect';
 import { showFallback } from './fallback';
 import {
   detectPlatform,
@@ -32,12 +32,21 @@ async function boot(): Promise<void> {
   // ?tier= overrides the quality tier; ?forceGpu / ?forceSoftware are test overrides.
   const q = new URLSearchParams(location.search);
   // Always probe WebGPU: even with ?webgl, a device without WebGL2 should still get WebGPU (not the 2D stub).
-  const [webgpu, webgl] = [await detectWebGPU(), detectWebGL2()];
-  const choice = chooseBackend(webgpu, webgl, {
-    preferWebGL: q.has('webgl'),
-    force: q.has('forceGpu'),
-    forceSoftware: q.has('forceSoftware'),
-  });
+  const { webgpu, webgl, choice } = await probeBackend(
+    async () => {
+      const [gpu, gl] = [await detectWebGPU(), detectWebGL2()];
+      const options = {
+        preferWebGL: q.has('webgl'),
+        force: q.has('forceGpu'),
+        forceSoftware: q.has('forceSoftware'),
+      };
+      return { webgpu: gpu, webgl: gl, choice: chooseBackend(gpu, gl, options) };
+    },
+    (ms) => {
+      stage(0.05, 'Waking the graphics card');
+      return new Promise((r) => setTimeout(r, ms));
+    },
+  );
   if (!choice.backend) return showFallback(choice.reason);
   let backend: Backend = choice.backend;
 

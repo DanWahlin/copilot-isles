@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { chooseBackend, classifyAdapter, classifyRenderer, type GpuInfo, type WebGpuInfo } from './detect';
+import {
+  chooseBackend,
+  classifyAdapter,
+  classifyRenderer,
+  probeBackend,
+  type BackendChoice,
+  type GpuInfo,
+  type WebGpuInfo,
+} from './detect';
 
 describe('classifyRenderer', () => {
   it.each([
@@ -68,5 +76,50 @@ describe('chooseBackend', () => {
   it('lets tests force the 3D path on software rendering', () => {
     expect(chooseBackend(gpu('none'), gl('software'), { force: true }).backend).toBe('webgl2');
     expect(chooseBackend(gpu('hardware'), gl('hardware'), { forceSoftware: true }).backend).toBeNull();
+  });
+});
+
+describe('probeBackend', () => {
+  const none: WebGpuInfo = { available: false, kind: 'none', vendor: '', architecture: '', features: [] };
+  const noGl: GpuInfo = { webgl2: false, renderer: '', kind: 'none' };
+  const result = (choice: BackendChoice) => ({ webgpu: none, webgl: noGl, choice });
+  const missing = result({ backend: null, reason: 'no-webgl2' });
+
+  it('retries while the GPU process restarts, then takes the backend', async () => {
+    const answers = [missing, missing, result({ backend: 'webgpu', reason: 'webgpu adapter' })];
+    const waits: number[] = [];
+    const out = await probeBackend(
+      async () => answers.shift()!,
+      async (ms) => void waits.push(ms),
+      [10, 20, 30],
+    );
+    expect(out.choice.backend).toBe('webgpu');
+    expect(waits).toEqual([10, 20]);
+  });
+
+  it('gives up after the last retry', async () => {
+    let probes = 0;
+    const out = await probeBackend(
+      async () => (probes++, missing),
+      async () => {},
+      [1, 2],
+    );
+    expect(out.choice).toEqual({ backend: null, reason: 'no-webgl2' });
+    expect(probes).toBe(3);
+  });
+
+  it("doesn't retry software rendering or a found backend", async () => {
+    for (const choice of [
+      { backend: null, reason: 'software' } as const,
+      { backend: 'webgl2', reason: 'webgl2 fallback' } as const,
+    ]) {
+      let probes = 0;
+      await probeBackend(
+        async () => (probes++, result(choice)),
+        async () => {},
+        [1, 2],
+      );
+      expect(probes).toBe(1);
+    }
   });
 });
