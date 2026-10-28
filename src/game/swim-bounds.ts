@@ -61,6 +61,8 @@ for (let i = 0; i < RAYS; i++) {
  */
 export class SwimBounds implements SwimLimit {
   readonly keepOuts: SwimKeepOut[] = [];
+  /** What the last `roomAt` was nearest: the band off the shore, a deck, or a keep-out. */
+  limit: 'shore' | 'deck' | 'keepOut' = 'shore';
   /** The last shore search: where, the distance found and the way back to it. */
   private atX = Number.NaN;
   private atZ = Number.NaN;
@@ -90,10 +92,12 @@ export class SwimBounds implements SwimLimit {
     let room = band - Math.max(0, this.shore - moved);
     back.x = this.shoreX;
     back.z = this.shoreZ;
+    this.limit = 'shore';
     if (this.deck < Infinity) {
       const near = this.deck - ((x - this.atX) * this.deckX + (z - this.atZ) * this.deckZ) - DECK_CLEAR;
       if (near < room) {
         room = near;
+        this.limit = 'deck';
         back.x = -this.deckX;
         back.z = -this.deckZ;
       }
@@ -109,6 +113,7 @@ export class SwimBounds implements SwimLimit {
       const d = Math.hypot(ox, oz);
       if (d - k.r >= room) continue;
       room = d - k.r;
+      this.limit = 'keepOut';
       // Away from the keep-out (from its very line, across it).
       if (d > 1e-6) {
         back.x = ox / d;

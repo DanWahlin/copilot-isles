@@ -411,7 +411,8 @@ water use the same water strips with flat, still surfaces.
 | **Drydocks 1–3** | s −175 → −135; centres t 99, 120, 141; 14 m wide, 40 m long | dry floor 1.0; flooded to 6.0 by the caisson's sluice | caissons at s −175 (walkable tops, y 7.0) |
 | **Canal and locks** | t 125, 12 m wide, from the basin (s −245) to the sea (s −495) | basin 6.0 → **Lock 1** (s −255…−280) → 4.0 → **Lock 2** (−305…−330) → 2.0 → **Lock 3** (−355…−380) → 0 → **Sea Gate** (s −470) | mitre gates at each end of each chamber; balance beams on the towpath side |
 
-Wading: the river and the pools have a 2 m wading shelf; the deep middle stops you (`inland`). The basin,
+Wading: the river and the pools have a 2 m wading shelf; past shoulder depth you swim (`inland`,
+`game/swim-bounds.ts`). The basin,
 the docks and the canal are behind walls and rails: you can't fall in. Far terrain levels keep under the
 falls and the river (`TerrainWaterCaps`).
 

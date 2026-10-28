@@ -88,7 +88,7 @@ const SWIM_STROKE_METERS = 1.25;
  */
 const SWIM_BACK = 0.24;
 /** The chin lifts this much (rad) in the stroke, so the head rides up out of the water. */
-const SWIM_CHIN = 0.45;
+const SWIM_CHIN = 0.65;
 /** The swim clips play through the swim layer (swim-layer.ts), not the mixer. */
 const SWIM_CLIPS: ReadonlySet<CharacterClip> = new Set(['swim', 'tread']);
 /** The wrist stops this far short of the grip, so the hand, not the wrist, closes on it (m). */

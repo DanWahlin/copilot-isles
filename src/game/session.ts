@@ -2268,7 +2268,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         treadIn = TREAD_RIPPLE;
         puffStroke(0.35);
       }
-      if (!swimEdgeTold && player.swimRoom < player.tune.swimSoft * 0.5 && !dialogue.active) {
+      if (
+        !swimEdgeTold &&
+        player.swimRoom < player.tune.swimSoft * 0.5 &&
+        swimBounds.limit === 'shore' &&
+        !dialogue.active
+      ) {
         swimEdgeTold = true;
         hud.toast('That’s as far out as you can swim. The shore’s behind you.', 4);
       }

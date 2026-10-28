@@ -33,7 +33,13 @@ function setup(
 ) {
   const world = new CollisionWorld({ ground: beach, waves: flatSea, ...o });
   const player = new PlayerController();
-  const bounds = new SwimBounds(world, { band: () => SWIM_BAND, inWaters, wadeMax: player.tune.wadeMax });
+  // As the session's: the band, the island's waters, and decks and quays to keep clear of.
+  const bounds = new SwimBounds(world, {
+    band: () => SWIM_BAND,
+    inWaters,
+    wadeMax: player.tune.wadeMax,
+    deck: (x, z) => world.surfaceHeightAt(x, z) !== null,
+  });
   player.swimLimit = bounds;
   return { world, player, bounds };
 }
@@ -122,7 +128,7 @@ describe('swimming', () => {
   });
 
   it('slows and turns you back softly at the band’s edge, never past it', () => {
-    const { world, player } = setup();
+    const { world, player, bounds } = setup();
     player.teleport(world, 0, 10);
     let far = 0;
     let lastVz = Number.NaN;
@@ -138,6 +144,7 @@ describe('swimming', () => {
     expect(player.z).toBeLessThan(EDGE);
     expect(jolt).toBeLessThan(0.05);
     expect(player.swimRoom).toBeLessThan(player.tune.swimSoft);
+    expect(bounds.limit).toBe('shore');
     // Let go, and the drift carries you back in a little.
     const z = player.z;
     run(player, world, still, 0, 8);
@@ -175,6 +182,7 @@ describe('swimming', () => {
     run(player, world, fast, 0, 80, 0, () => (far = Math.max(far, player.z)));
     expect(far).toBeLessThan(55 - 6 + 0.5);
     expect(far).toBeGreaterThan(55 - 6 - player.tune.swimSoft);
+    expect(bounds.limit).toBe('keepOut');
   });
 
   it('stops hard at the island’s waters, should anything carry you there', () => {
@@ -246,6 +254,22 @@ describe('swimming', () => {
     expect(player.mode).toBe('wade');
     expect(player.afloat).toBe(0);
     expect(-bed(player.z)).toBeLessThanOrEqual(player.tune.wadeMax + 0.05);
+  });
+
+  it('keeps a swimmer clear of a pier over the water', () => {
+    // A pier from the beach out over the water along x = 0 (|x| < 2): swimming at it across the bay.
+    const { world, player, bounds } = setup({
+      surfaces: [{ heightAt: (x, z) => (Math.abs(x) < 2 && z > 15 && z < 70 ? 1.2 : null), kind: 'wood' }],
+    });
+    player.teleport(world, -20, 10);
+    run(player, world, ahead, 0, 35);
+    expect(player.mode).toBe('swim');
+    let near = Infinity;
+    run(player, world, ahead, Math.PI / 2, 30, 0, () => (near = Math.min(near, -2 - player.x)));
+    // Held off its edge, never under it.
+    expect(near).toBeGreaterThan(1.5);
+    expect(near).toBeLessThan(4);
+    expect(bounds.limit).toBe('deck');
   });
 
   it('never steps off a quay into deep water', () => {
