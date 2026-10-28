@@ -18,7 +18,7 @@ import type { Engine } from '../engine/engine';
 import type { Input, InputState } from '../engine/input';
 import type { Character, CharacterLibrary, PlayerBody } from '../world/characters';
 import type { CharacterGrounding } from '../world/characters/types';
-import { ParrotFlight, type FlightView } from '../world/characters/parrot-flight';
+import { ParrotFlight, travelDirection, type FlightView } from '../world/characters/parrot-flight';
 import { clearCharacterLodView, setCharacterLodView } from '../world/characters/character-lod';
 import type { CoveScene } from '../world/cove-scene';
 import type { FarCull } from '../world/far-cull';
@@ -64,6 +64,7 @@ import { Hud } from './hud';
 import { Interactions, type Interactable } from './interaction';
 import { COVE_NPCS, NpcCrowd, type Npc } from './npcs';
 import { PlayerController } from './player-controller';
+import { SWIM_BAND, SwimBounds, placeShipKeepOut, type SwimKeepOut } from './swim-bounds';
 import type { LearnStore } from '../learn/store';
 import { createChest, type TreasureChest } from './chest';
 import { COVE_CHESTS, currentQuest, npcScript } from './cove-quests';
@@ -267,8 +268,8 @@ export interface GameSession {
      * (`resume`), Wingman's recap (`recap`, leaving out `except`'s chapter), or both.
      */
     learningPause(what: { resume?: boolean; recap?: boolean; except?: string }): void;
-    /** Wingman's flight phase and position (tests). */
-    wingman(): { phase: string; x: number; y: number; z: number } | null;
+    /** Wingman's flight phase, position and the way his body faces (yaw, rad; tests). */
+    wingman(): { phase: string; x: number; y: number; z: number; yaw: number } | null;
     /** The arrival flyover's phase and seconds in (tests). */
     arrival(): { island: string; phase: ArrivalPhase; time: number; eye: number } | null;
     /** Plays an island's arrival flyover again (tests, screenshots); `fromChart`: the short one. */
@@ -343,6 +344,11 @@ const SIGHTING_SHORE = 8;
 
 const STEP_WALK = 0.78;
 const STEP_RUN = 1.15;
+/** Where a hand goes into the water swimming the crawl, from the feet's spot (m out, m ahead). */
+const ENTRY_OUT = 0.42;
+const ENTRY_AHEAD = 0.32;
+/** Treading water, a ripple about this often (s). */
+const TREAD_RIPPLE = 1.4;
 const DOCK_RANGE = 38;
 /** Seconds of visible assisted approach before the fade tidies the ship into the berth. */
 const DOCK_ASSIST_MAX = 6;
@@ -547,6 +553,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     hero.group.position.set(player.x, player.y, player.z);
     hero.group.rotation.y = player.heading;
   };
+  // Swimming: a band off the shore of the island you're on, clear of decks and the moored ship.
+  const shipKeepOut: SwimKeepOut = { x0: 0, z0: 0, x1: 0, z1: 0, r: 0 };
+  const swimBounds = new SwimBounds(world, {
+    band: () => ISLANDS[island].swimBand ?? SWIM_BAND,
+    inWaters: (x, z) => ISLANDS[island].contains(x, z),
+    wadeMax: player.tune.wadeMax,
+    deck: (x, z) => world.surfaceHeightAt(x, z) !== null,
+  });
+  swimBounds.keepOuts.push(shipKeepOut);
+  player.swimLimit = swimBounds;
   placePlayer(start.x, start.z, start.heading);
   engine.scene.add(hero.group);
   // Character levels of detail go by this camera, and keep full detail near the player.
@@ -558,12 +574,16 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
     height: number;
     eye: Vector3;
     ahead: { x: number; z: number } | null;
+    travel: { x: number; z: number } | null;
   } = {
     captain: new Vector3(),
     height: hero.capsule.height,
     eye: new Vector3(),
     ahead: null,
+    travel: null,
   };
+  /** The swimming captain's travel, for Wingman's escort (`flightView.travel` while he swims). */
+  const swimTravel = { x: 0, z: 1 };
   const updateWingman = (dt: number) => {
     if (!wingman || wingman.phase === 'perched') return;
     hero.group.getWorldPosition(flightView.captain);
@@ -2097,7 +2117,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
   /** Watches for a walker or a ship that's trying to move and can't (called each frame). */
   function watchStuck(dt: number, s: InputState): void {
     if (mode === 'walk') {
-      const pushing = Math.hypot(s.moveX, s.moveY) > 0.5 && !dialogue.active && !scriptRunning && !riding();
+      // Held at the swim's soft edge isn't stuck: that's as far as you go (its own tip says so).
+      const atSwimEdge = player.mode === 'swim' && player.swimRoom < player.tune.swimSoft;
+      const pushing =
+        Math.hypot(s.moveX, s.moveY) > 0.5 && !dialogue.active && !scriptRunning && !riding() && !atSwimEdge;
       const moved = Math.hypot(player.x - pushFrom.x, player.z - pushFrom.z);
       if (!pushing || moved > STUCK_RADIUS) {
         pushFrom.x = player.x;
@@ -2208,6 +2231,74 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
       intensity,
     );
   };
+
+  /** Ripples where a hand (side 1 the left) pulls through the surface, beside the head. */
+  const puffHand = (side: number, intensity: number, out = 0.32, ahead = 0.25 + 0.25 * player.stroke) => {
+    const s = Math.sin(player.heading);
+    const c = Math.cos(player.heading);
+    footstepPuffs.spawn(
+      player.x + c * side * out + s * ahead,
+      player.waterY,
+      player.z - s * side * out + c * ahead,
+      'water',
+      player.heading,
+      intensity,
+    );
+  };
+  const puffStroke = (intensity = 1) => {
+    puffHand(-1, intensity);
+    puffHand(1, intensity);
+  };
+  /** The next ripple treading water, and the edge's tip shown. */
+  let treadIn = TREAD_RIPPLE;
+  let swimEdgeTold = false;
+  /**
+   * Afloat: a soft splash and a ripple as each hand goes in (the crawl's own timing), a ripple now and
+   * then treading water, and Wingman off the shoulder (he'd be in the water) until you're standing again.
+   */
+  const updateSwim = (dt: number) => {
+    // Asked every frame, so a hand that went in while wading doesn't splash later.
+    const entries = hero.strokeEntries();
+    if (player.mode === 'swim') {
+      const pace = player.animSpeed;
+      if (pace > 0.25 && player.stroke > 0.3) {
+        const intensity = 0.55 + 0.35 * Math.min(1, pace / player.tune.swimRunSpeed);
+        if (entries) audio?.sfx.footstep('water', player);
+        if (entries & 1) puffHand(1, intensity, ENTRY_OUT, ENTRY_AHEAD);
+        if (entries & 2) puffHand(-1, intensity, ENTRY_OUT, ENTRY_AHEAD);
+        treadIn = TREAD_RIPPLE;
+      } else if ((treadIn -= dt) <= 0) {
+        treadIn = TREAD_RIPPLE;
+        puffStroke(0.35);
+      }
+      if (
+        !swimEdgeTold &&
+        player.swimRoom < player.tune.swimSoft * 0.5 &&
+        swimBounds.limit === 'shore' &&
+        !dialogue.active
+      ) {
+        swimEdgeTold = true;
+        hud.toast('That’s as far out as you can swim. The shore’s behind you.', 4);
+      }
+    }
+    if (!wingman) return;
+    const afloat = player.mode === 'swim' && player.afloat > 0.6;
+    // Off the shoulder for a swim he escorts you, facing the way you're going (parrot-flight.ts).
+    flightView.travel =
+      afloat || wingmanSwimming ? travelDirection(player.vx, player.vz, player.heading, swimTravel) : null;
+    if (afloat && !wingmanSwimming && wingman.phase === 'perched' && !welcomeRunning && !scriptRunning) {
+      hero.group.getWorldPosition(flightView.captain);
+      camera.getWorldPosition(flightView.eye);
+      wingman.takeOff(flightView as FlightView);
+      wingmanSwimming = true;
+    } else if (wingmanSwimming && player.afloat < 0.3) {
+      wingmanSwimming = false;
+      flightView.travel = null;
+      wingman.land();
+    }
+  };
+  /** Wingman's off the shoulder because you're swimming (he lands once you stand). */
+  let wingmanSwimming = false;
 
   /** Seconds the HUD stays calm after the last busy frame. */
   const CALM_HOLD = 0.6;
@@ -2699,6 +2790,7 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
         const moored = mode !== 'sail' && mode !== 'docking' && shipDocked();
         if (moored) shipCams.place(dyn.pose.x, ship.group.position.y, dyn.pose.z, dyn.pose.heading);
         else shipCams.park();
+        placeShipKeepOut(shipKeepOut, mode === 'walk' ? dyn.pose : null);
         for (let i = 0; i < contentList.length; i++)
           contentList[i]!.moored?.(moored && island === contentIds[i]);
         ship.setGangway(gangwayDown ? plank.foot : null);
@@ -2724,14 +2816,19 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
           grounding.mode = player.mode;
           grounding.verticalSpeed = player.vy;
           grounding.landed = player.landed;
+          grounding.afloat = player.afloat;
+          grounding.stroke = player.stroke;
           hero.setGrounding(grounding);
           const wading = player.mode === 'wade' && sp > 0.15;
           if (wading && anim !== 'wade') hero.play('wade');
           else if (!wading && anim === 'wade') hero.play('idle');
           anim = wading ? 'wade' : 'move';
-          hero.setSpeed(sp);
+          hero.setSpeed(player.animSpeed);
+          updateSwim(dt);
 
-          if (player.mode !== 'air' && sp > 0.3) {
+          if (player.mode === 'swim') {
+            // Strokes, not footsteps (updateSwim).
+          } else if (player.mode !== 'air' && sp > 0.3) {
             stride += sp * dt;
             const len = sp > 3 ? STEP_RUN : STEP_WALK;
             if (stride > len) {
@@ -2740,7 +2837,10 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               puffFootstep(sp > 3 ? 1.25 : 0.9);
             }
           }
-          if (player.landed) {
+          if (player.landed && player.mode === 'swim') {
+            audio?.sfx.oneShot('splash', player, 0.5);
+            puffStroke(1.6);
+          } else if (player.landed) {
             audio?.sfx.footstep(footstep(player.surface), player);
             puffFootstep(1.35);
           }
@@ -3126,6 +3226,12 @@ export async function createSession(o: SessionOptions): Promise<GameSession> {
               x: +wingman.root.position.x.toFixed(2),
               y: +wingman.root.position.y.toFixed(2),
               z: +wingman.root.position.z.toFixed(2),
+              yaw: +Math.atan2(
+                2 *
+                  (wingman.root.quaternion.x * wingman.root.quaternion.z +
+                    wingman.root.quaternion.w * wingman.root.quaternion.y),
+                1 - 2 * (wingman.root.quaternion.x ** 2 + wingman.root.quaternion.y ** 2),
+              ).toFixed(3),
             }
           : null,
       arrival: () =>

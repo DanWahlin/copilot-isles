@@ -18,6 +18,7 @@ import { unreflected } from '../reflection';
  * hides and a flyer takes its exact place: the same geometry and material (+0 programs) plus two
  * spread wings built here, which flap about the shoulders. It lifts off, hovers in front of and
  * above the captain facing the camera while he talks, then glides back and lands on the shoulder.
+ * While the captain swims he escorts him instead: alongside, facing the way the captain's going.
  */
 
 export type FlightPhase = 'perched' | 'takeoff' | 'hover' | 'landing';
@@ -25,12 +26,15 @@ export type FlightPhase = 'perched' | 'takeoff' | 'hover' | 'landing';
 /**
  * What the flyer needs each frame: the captain (feet), their height, the camera, and which way is
  * "in front" (the captain's facing for a framed intro; by default, where the camera looks).
+ * `travel` (a unit direction on the ground) makes it an escort: he flies alongside the captain
+ * facing the way he's going (swimming, see `travelDirection`), not hovering to face the camera.
  */
 export interface FlightView {
   readonly captain: Vector3;
   readonly height: number;
   readonly eye: Vector3;
   readonly ahead?: { readonly x: number; readonly z: number } | null;
+  readonly travel?: { readonly x: number; readonly z: number } | null;
 }
 
 type Cell = readonly [col: number, row: number];
@@ -77,6 +81,21 @@ const TAKEOFF_S = 0.95;
 const LANDING_S = 1.15;
 /** Hover spot relative to the captain's head: ahead (toward where the camera looks), up, and aside. */
 export const HOVER = { ahead: 1.2, up: 0.34, aside: 0.45 };
+/** Escorting: a little ahead along the captain's travel and out to the side, so he's beside him. */
+export const ESCORT = { ahead: 0.55, up: 0.3, aside: 0.8 };
+/**
+ * Escorting, he turns to the captain's travel on a critically damped spring of this rate (per
+ * second): a turn eases in and out, an about-turn takes about a second and a half, never a snap.
+ * And how far he banks into the turn (rad per rad/s, and at most).
+ */
+const ESCORT_TURN = 4;
+const ESCORT_BANK = 0.06;
+const ESCORT_BANK_MAX = 0.3;
+/** The fastest turn of the captain's travel the escort matches (rad/s); a sudden flip is eased. */
+const AIM_RATE_MAX = 3;
+/** The captain's speed (m/s) over which his facing hands over to his velocity as the travel. */
+const TRAVEL_FROM = 0.15;
+const TRAVEL_TO = 0.45;
 
 const UP = new Vector3(0, 1, 0);
 const TMP_M = new Matrix4();
@@ -115,15 +134,40 @@ export function wingPose(
   };
 }
 
-/** Where Wingman hovers: above and ahead of the captain's head as the camera sees it, on his side. */
+/**
+ * Where Wingman hovers: above and ahead of the captain's head as the camera sees it, on his side;
+ * escorting, beside him and a little ahead along his travel.
+ */
 export function hoverPoint(view: FlightView, side: number, out = new Vector3()): Vector3 {
-  const [ax, az] = aheadOf(view);
+  const { x: ax, z: az } = aheadOf(view);
+  const at = view.travel ? ESCORT : HOVER;
   // Screen-right of a view along (ax, az) is (-az, ax).
   return out.set(
-    view.captain.x + ax * HOVER.ahead - az * HOVER.aside * side,
-    view.captain.y + view.height + HOVER.up,
-    view.captain.z + az * HOVER.ahead + ax * HOVER.aside * side,
+    view.captain.x + ax * at.ahead - az * at.aside * side,
+    view.captain.y + view.height + at.up,
+    view.captain.z + az * at.ahead + ax * at.aside * side,
   );
+}
+
+/**
+ * The captain's direction of travel on the ground (unit, into `out`): his velocity once he's moving,
+ * his facing when he's still or turning on the spot, blended between so it never jumps.
+ */
+export function travelDirection(
+  vx: number,
+  vz: number,
+  heading: number,
+  out: { x: number; z: number },
+): { x: number; z: number } {
+  const speed = Math.hypot(vx, vz);
+  const w = MathUtils.smoothstep(speed, TRAVEL_FROM, TRAVEL_TO);
+  const x = Math.sin(heading) * (1 - w) + (speed > 1e-6 ? (vx / speed) * w : 0);
+  const z = Math.cos(heading) * (1 - w) + (speed > 1e-6 ? (vz / speed) * w : 0);
+  const len = Math.hypot(x, z);
+  // Straight back against his facing at the hand-over: keep the facing.
+  out.x = len < 1e-4 ? Math.sin(heading) : x / len;
+  out.z = len < 1e-4 ? Math.cos(heading) : z / len;
+  return out;
 }
 
 export class ParrotFlight {
@@ -140,6 +184,10 @@ export class ParrotFlight {
   private time = 0;
   private side = 1;
   private yaw = 0;
+  /** How fast he's turning (rad/s), and how fast the way he's aiming for turns, for the escort's spring. */
+  private yawVel = 0;
+  private aim = Number.NaN;
+  private aimRate = 0;
   private pitch = 0;
   private roll = 0;
   /** 0 → 1 while he hovers: how much of his slow talking sway (head turn and tilt) shows. */
@@ -213,6 +261,9 @@ export class ParrotFlight {
     this.pos.copy(this.perchPos);
     TMP_E.setFromQuaternion(this.perchQ, 'YXZ');
     this.yaw = TMP_E.y;
+    this.yawVel = 0;
+    this.aim = Number.NaN;
+    this.aimRate = 0;
     this.pitch = 0;
     this.roll = 0;
     this.sway = 0;
@@ -284,24 +335,48 @@ export class ParrotFlight {
     const vy = (this.pos.y - prev.y) / dt;
     const vz = (this.pos.z - prev.z) / dt;
     const flat = Math.hypot(vx, vz);
-    const faceYaw = Math.atan2(view.eye.x - this.pos.x, view.eye.z - this.pos.z);
+    // Escorting he faces the captain's travel; otherwise, hovering, the camera.
+    const escort = view.travel ?? null;
+    const faceYaw = escort
+      ? Math.atan2(escort.x, escort.z)
+      : Math.atan2(view.eye.x - this.pos.x, view.eye.z - this.pos.z);
     const travelYaw = flat > 0.25 ? Math.atan2(vx, vz) : this.yaw;
     // While he talks he doesn't stare: a slow look a little left and right, and a curious tilt.
-    this.sway = MathUtils.damp(this.sway, this.state === 'hover' ? 1 : 0, 1.5, dt);
+    this.sway = MathUtils.damp(this.sway, this.state === 'hover' && !escort ? 1 : 0, 1.5, dt);
     const swayYaw = (Math.sin(this.time * 0.9) * 0.15 + Math.sin(this.time * 1.7 + 1.3) * 0.05) * this.sway;
     const swayRoll = Math.sin(this.time * 0.6 + 0.4) * 0.07 * this.sway;
     let yawTarget = faceYaw + swayYaw;
     if (this.state === 'takeoff')
       yawTarget = lerpAngle(travelYaw, faceYaw, MathUtils.smoothstep(this.u, 0.45, 0.95));
     else if (this.state === 'landing') yawTarget = travelYaw;
-    else if (flat > 1.4) yawTarget = travelYaw;
+    else if (flat > 1.4 && !escort) yawTarget = travelYaw;
     const before = this.yaw;
-    this.yaw = dampAngle(this.yaw, yawTarget, 7, dt);
+    if (escort) {
+      // The spring matches the turn of the captain's travel too, so a steady turn doesn't lag behind.
+      const raw = Number.isNaN(this.aim) ? 0 : wrapAngle(yawTarget - this.aim) / dt;
+      this.aimRate = MathUtils.damp(this.aimRate, MathUtils.clamp(raw, -AIM_RATE_MAX, AIM_RATE_MAX), 8, dt);
+      const h = Math.min(dt, 0.1);
+      const w = ESCORT_TURN;
+      this.yawVel += (w * w * wrapAngle(yawTarget - this.yaw) + 2 * w * (this.aimRate - this.yawVel)) * h;
+      this.yaw = wrapAngle(this.yaw + this.yawVel * h);
+      this.aim = yawTarget;
+    } else {
+      this.yaw = dampAngle(this.yaw, yawTarget, 7, dt);
+      this.aim = Number.NaN;
+      this.aimRate = 0;
+    }
     const yawRate = wrapAngle(this.yaw - before) / dt;
+    this.yawVel = yawRate;
+    // Escorting, a level glide: the swell's bob barely tips him.
     const pitchTarget =
-      this.state === 'hover' && flat < 1.4 ? -0.42 : -0.12 - MathUtils.clamp(vy * 0.22, -0.3, 0.35);
+      this.state === 'hover' && flat < 1.4 && !escort
+        ? -0.42
+        : -0.12 - MathUtils.clamp(vy * (escort ? 0.06 : 0.22), -0.3, 0.35);
     this.pitch = MathUtils.damp(this.pitch, pitchTarget, 5, dt);
-    this.roll = MathUtils.damp(this.roll, -MathUtils.clamp(yawRate * 0.2, -0.5, 0.5) + swayRoll, 5, dt);
+    const bank = escort
+      ? MathUtils.clamp(yawRate * ESCORT_BANK, -ESCORT_BANK_MAX, ESCORT_BANK_MAX)
+      : MathUtils.clamp(yawRate * 0.2, -0.5, 0.5);
+    this.roll = MathUtils.damp(this.roll, -bank + swayRoll, 5, dt);
     TMP_E.set(this.pitch, this.yaw, this.roll, 'YXZ');
     this.flyQ.setFromEuler(TMP_E);
 
@@ -343,17 +418,24 @@ export class ParrotFlight {
   }
 }
 
-/** The unit "in front" direction on the ground: the view's own, or from the camera to the captain. */
-function aheadOf(view: FlightView): [x: number, z: number] {
-  const fx = view.ahead ? view.ahead.x : view.captain.x - view.eye.x;
-  const fz = view.ahead ? view.ahead.z : view.captain.z - view.eye.z;
+/**
+ * The unit "in front" direction on the ground: the view's own, the captain's travel, or from the
+ * camera to the captain.
+ */
+function aheadOf(view: FlightView): { readonly x: number; readonly z: number } {
+  const given = view.ahead ?? view.travel;
+  const fx = given ? given.x : view.captain.x - view.eye.x;
+  const fz = given ? given.z : view.captain.z - view.eye.z;
   const len = Math.hypot(fx, fz) || 1;
-  return [fx / len, fz / len];
+  AHEAD.x = fx / len;
+  AHEAD.z = fz / len;
+  return AHEAD;
 }
+const AHEAD = { x: 0, z: 1 };
 
 /** Which side of the captain (screen-right +1, left -1) the perched parrot sits on. */
 function perchSide(view: FlightView, perch: Vector3): number {
-  const [ax, az] = aheadOf(view);
+  const { x: ax, z: az } = aheadOf(view);
   const d = (perch.x - view.captain.x) * -az + (perch.z - view.captain.z) * ax;
   return d < 0 ? -1 : 1;
 }

@@ -176,6 +176,11 @@ export interface IslandEntry extends IslandBerth {
   /** When it opens; null: always (the home island). */
   open: IslandGate | null;
   ranges: IslandRanges;
+  /**
+   * How far (m) past the last ground you can wade on you may swim off its shores, when it isn't the
+   * game's `SWIM_BAND` (game/swim-bounds.ts).
+   */
+  swimBand?: number;
   /** Its outline: the ranges go by the distance to it (`footprintDistance`). */
   footprint: IslandFootprint;
   /** The starfish to find there (the Logbook's list and the HUD's count). */

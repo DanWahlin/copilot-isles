@@ -73,6 +73,8 @@ export function stowPlayerWeapon(root: Group, body: PlayerBody): void {
   weapon.scale.setScalar((CUTLASS_LENGTH / 2) * unit);
   weapon.updateMatrixWorld(true);
   hips.attach(weapon);
+  // Swimming, the kick sweeps the legs through where it hangs: it's put away (under water) till he stands.
+  weapon.userData.stowAfloat = true;
   if (import.meta.env.DEV) checkStowedCutlass(root, weapon);
 }
 

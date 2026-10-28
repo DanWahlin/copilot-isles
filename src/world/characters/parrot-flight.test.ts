@@ -1,5 +1,6 @@
 import {
   BufferGeometry,
+  Euler,
   Float32BufferAttribute,
   Group,
   Mesh,
@@ -13,6 +14,7 @@ import {
   bodyFrame,
   buildWing,
   hoverPoint,
+  travelDirection,
   wingPose,
   type FlightView,
 } from './parrot-flight';
@@ -112,6 +114,86 @@ describe('Wingman flight', () => {
       expect(upward).toBe(pos.count / 3);
       wing.dispose();
     }
+  });
+
+  it("takes the swimmer's travel from his velocity, or his facing when he's still, without a jump", () => {
+    const out = { x: 0, z: 0 };
+    travelDirection(0, 0, Math.PI / 2, out);
+    expect(out.x).toBeCloseTo(1);
+    expect(out.z).toBeCloseTo(0);
+    // Swimming one way while facing another (the soft edge's drift): the velocity wins.
+    travelDirection(0, -0.9, Math.PI / 2, out);
+    expect(out.z).toBeCloseTo(-1);
+    // Speeding up from still, facing +x and moving along +z: the direction turns, never jumps.
+    let last = Math.PI / 2;
+    for (let v = 0; v <= 1; v += 0.01) {
+      travelDirection(0, v, Math.PI / 2, out);
+      const yaw = Math.atan2(out.x, out.z);
+      expect(Math.abs(yaw - last)).toBeLessThan(0.1);
+      expect(Math.hypot(out.x, out.z)).toBeCloseTo(1);
+      last = yaw;
+    }
+    expect(last).toBeCloseTo(0);
+  });
+
+  it('escorts a swimmer facing his travel, turning smoothly with him and steady on the swell', () => {
+    const { hero, flight, view } = flightRig();
+    const travel = { x: 1, z: 0 };
+    const escort: FlightView = { ...view, travel };
+    const e = new Euler(0, 0, 0, 'YXZ');
+    const yawOf = () => e.setFromQuaternion(flight.root.quaternion, 'YXZ').y;
+    const off = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+    let t = 0;
+    // He swims along the travel at 0.95 m/s, riding a swell.
+    const step = () => {
+      t += 1 / 60;
+      hero.position.x += travel.x * 0.95 * (1 / 60);
+      hero.position.z += travel.z * 0.95 * (1 / 60);
+      hero.position.y = Math.sin(t * 1.4) * 0.3;
+      hero.updateMatrixWorld(true);
+      escort.captain.copy(hero.position);
+      flight.update(1 / 60, escort);
+    };
+    flight.takeOff(escort);
+    for (let i = 0; i < 180; i++) step();
+    expect(flight.phase).toBe('hover');
+    // Settled: within a few degrees of +x, and the swell doesn't swing him.
+    let worst = 0;
+    for (let i = 0; i < 120; i++) {
+      step();
+      worst = Math.max(worst, off(yawOf(), Math.PI / 2));
+    }
+    expect(worst).toBeLessThan((3 * Math.PI) / 180);
+    // A quick about-turn: no snap, a little bank into it, and he's round within two seconds.
+    travel.x = -1;
+    let last = yawOf();
+    let fastest = 0;
+    let bank = 0;
+    for (let i = 0; i < 120; i++) {
+      step();
+      fastest = Math.max(fastest, off(yawOf(), last));
+      bank = Math.max(bank, Math.abs(e.setFromQuaternion(flight.root.quaternion, 'YXZ').z));
+      last = yawOf();
+    }
+    expect(fastest).toBeLessThan(0.1);
+    expect(bank).toBeGreaterThan(0.05);
+    expect(bank).toBeLessThan(0.4);
+    expect(off(yawOf(), -Math.PI / 2)).toBeLessThan((3 * Math.PI) / 180);
+    // Turning steadily (as he does turning on the spot, ~90° a second), he keeps up with the turn.
+    let travelYaw = -Math.PI / 2;
+    let lag = 0;
+    for (let i = 0; i < 150; i++) {
+      travelYaw += 1.6 / 60;
+      travel.x = Math.sin(travelYaw);
+      travel.z = Math.cos(travelYaw);
+      step();
+      if (i > 60) lag = Math.max(lag, off(yawOf(), travelYaw));
+    }
+    expect(lag).toBeLessThan((6 * Math.PI) / 180);
+    // Standing again he glides back to the shoulder.
+    flight.land();
+    for (let i = 0; i < 90; i++) flight.update(1 / 60, view);
+    expect(flight.phase).toBe('perched');
   });
 
   it('lifts off the shoulder, hovers, and lands back where it started', () => {

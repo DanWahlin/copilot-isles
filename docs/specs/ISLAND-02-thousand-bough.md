@@ -301,7 +301,8 @@ look only if the census allows (otherwise `grassHill` tinted dark green by a reg
 | **Silver Thread** (waterfall) | W cliff lip (1878, −1650, y 60) → Silver Pool | 3 m wide, 48 m drop (tall, thin) | Silver Run → joins Fernrun at (1898, −1468) |
 | **Great Falls** | E cliff lip (2150, −1652, y 70) → Mirror Pool | 22 m wide, 55 m drop (the biggest) | Thunder Run → (2170, −1500) → East Beach |
 
-Wading: every pool has a 2 m wading shelf; the deep middle stops you (the session's `inland`). No
+Wading: every pool has a 2 m wading shelf; past shoulder depth you swim its deep middle (the session's
+`inland`; swimming, `game/swim-bounds.ts`, keeps you inside the banks). No
 stream the player must cross is deeper than wading; the Fern Walk crosses Fernrun on plank bridge
 **B0** near (1957, −1518). You wade the water as it's drawn on every tier (`naturalWaterAt`, issue
 259): where a coarse tier's ground fills a stream's bed or a small pool, the water rides over it and

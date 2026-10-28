@@ -244,6 +244,17 @@ export class CollisionWorld {
     return this.inland?.(x, z, g, this.fresh) ? Math.min(g, this.fresh.floor) : g;
   }
 
+  /**
+   * How deep the water lies at rest at (x, z): the sea's mean level (0) or fresh water over it, down
+   * to the terrain or the bed under fresh water (man-made surfaces aside). The swim limit's shore search
+   * asks this a few hundred times, so it skips the waves.
+   */
+  stillDepthAt(x: number, z: number): number {
+    const g = this.ground.heightAt(x, z);
+    if (!this.inland?.(x, z, g, this.fresh)) return -g;
+    return Math.max(0, this.fresh.level) - Math.min(g, this.fresh.floor);
+  }
+
   /** Terrain normal y (1 = flat). Man-made surfaces count as flat. */
   slopeAt(x: number, z: number, y?: number): number {
     if (this.surfaceHeightAt(x, z, y) !== null) return 1;
