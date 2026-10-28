@@ -77,6 +77,7 @@ const LEAVE = '·leave';
 const SKIP = '·skip';
 const HOIST = '·hoist';
 const SEAL = '·seal';
+const ACT = '·act';
 
 export function createCircuit(host: CircuitHost, name: string): Puzzle {
   const file = puzzleContent<CircuitFile>(name);
@@ -184,7 +185,12 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
     return at;
   };
   const wait = (ms: number) => new Promise((r) => setTimeout(r, host.reducedMotion() ? ms * 0.6 : ms));
-  const head = (s: CircuitStation) => ({ eyebrow: T('title'), title: s.title });
+  /** The card's heading: the circuit, the step, and under it the place in the app (the pack's `means`). */
+  const head = (s: CircuitStation) => ({
+    eyebrow: T('title'),
+    title: s.title,
+    sub: file.places[s.at]?.means,
+  });
   const leave = (): SeaChoiceOption => ({ id: LEAVE, label: T('leave') });
   const nameOf = (key: string) => file.places[key]?.name ?? key;
 
@@ -216,8 +222,8 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
 
   /** Runs one station; false if the player left it. */
   async function station(s: CircuitStation): Promise<boolean> {
-    lampOf(s, 'running');
-    host.stage.station(where(s), 'open', s.seconds);
+    // A watch station with an action plays its demo once you've acted.
+    if (!(s.kind === 'watch' && s.action)) demoStarts(s);
     if (s.image) host.image(s.image, s.caption);
     if (s.line) {
       // The card shows the station while its line plays (its buttons wait).
@@ -290,8 +296,24 @@ export function createCircuit(host: CircuitHost, name: string): Puzzle {
     }
   }
 
+  function demoStarts(s: CircuitStation): void {
+    lampOf(s, 'running');
+    host.stage.station(where(s), 'open', s.seconds);
+  }
+
   async function watch(s: CircuitStation): Promise<boolean> {
     const r = run!;
+    if (s.action) {
+      const go = await host.ask({
+        ...head(s),
+        prompt: s.prompt ?? '',
+        options: [{ id: ACT, label: s.action }, leave()],
+        ordered: true,
+      });
+      if (!go || go === LEAVE) return leaveStation(s);
+      host.sfx('lamp', host.player);
+      demoStarts(s);
+    }
     const ms = (s.seconds ?? 3) * 1000;
     const asked = host.ask({ ...head(s), prompt: s.text ?? '', options: [{ id: SKIP, label: T('skip') }] });
     const timer = setTimeout(() => host.card.choose(SKIP), ms);

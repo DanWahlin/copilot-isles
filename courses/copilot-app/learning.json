@@ -775,6 +775,11 @@
       "link": {
         "label": "The course’s exact prompts",
         "url": "https://github.com/github/copilot-app-for-beginners/blob/main/03-development-workflows/README.md#assignment"
+      },
+      "check": {
+        "kind": "prOpened",
+        "excludeHeads": ["fix-empty-state-copy", "practice-failing-stats-check", "feature-reading-dashboard"],
+        "atLeast": 2
       }
     },
     {

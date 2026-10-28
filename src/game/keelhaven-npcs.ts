@@ -14,7 +14,15 @@ export const KEELHAVEN_NPCS: NpcSpec[] = withCourseVoices([
   { id: 'barty', name: 'Barty Quist', anchor: 'barty', clip: 'idle' },
   { id: 'stroud', name: 'Harbourmaster Stroud', anchor: 'stroud', clip: 'idle' },
   { id: 'arlo', name: 'Arlo Fenwick', anchor: 'arlo', clip: 'idle' },
-  { id: 'ottoline', name: 'Ottoline Gage', anchor: 'ottoline', clip: 'idle', keepY: true },
+  // Talked to from the stair's head, about 5 m off across the light's bench (issue 360).
+  {
+    id: 'ottoline',
+    name: 'Ottoline Gage',
+    anchor: 'ottoline',
+    clip: 'idle',
+    keepY: true,
+    talkRadius: 6.5,
+  },
 ]);
 
 /**

@@ -199,6 +199,12 @@
               "items": { "type": "string", "minLength": 1 },
               "minItems": 1,
               "uniqueItems": true
+            },
+            "atLeast": {
+              "description": "prOpened: how many such pull requests there must be (default 1), so a later task's pull request counts only once an earlier task's is there too.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
             }
           }
         }

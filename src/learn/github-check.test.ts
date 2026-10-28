@@ -129,6 +129,24 @@ describe('the opt-in GitHub checks', () => {
     ).toBe('found');
   });
 
+  it('counts a later task’s pull request only once an earlier one is there too (`atLeast`)', async () => {
+    const seeded = ['fix-empty-state-copy', 'practice-failing-stats-check', 'feature-reading-dashboard'];
+    const check = { kind: 'prOpened' as const, excludeHeads: seeded, atLeast: 2 };
+    const run = async (body: unknown) =>
+      (
+        await runCheck(
+          check,
+          ctx,
+          vi.fn(async () => reply(200, body)),
+          0,
+        )
+      ).status;
+    const pr = (ref: string) => ({ head: { ref } });
+    expect(await run([...seeded.map(pr), pr('robin-bright-otter')])).toBe('missing');
+    expect(await run([...seeded.map(pr), pr('robin-bright-otter'), pr('robin-card-polish')])).toBe('found');
+    expect(checkUrl({ kind: 'prOpened', atLeast: 2 }, ctx)).toContain('per_page=30');
+  });
+
   it('waits out a rate limit without asking again', async () => {
     const limited = vi.fn(async () =>
       reply(

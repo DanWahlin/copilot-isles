@@ -1,6 +1,7 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PadEdges, standardPad } from '../../game/puzzles/pad-edges';
+import { Bold } from '../components/Bold';
 import { isTyping } from '../typing';
 import './sea-choice.css';
 
@@ -22,6 +23,8 @@ export interface SeaChoiceView {
   open: boolean;
   eyebrow: string;
   title: string;
+  /** A line under the title (where a circuit's station is in the app), `**bold**` for the app's names. */
+  sub?: string;
   /** The order or question. */
   prompt: string;
   /** Lines listed under the prompt (the plan under review). */
@@ -97,6 +100,11 @@ function SeaChoice({ store }: { store: SeaChoiceStore }) {
         <header className="ci-sc-head">
           <p className="ci-sc-eyebrow">{v.eyebrow}</p>
           <h2>{v.title}</h2>
+          {v.sub ? (
+            <p className="ci-sc-sub">
+              <Bold text={v.sub} />
+            </p>
+          ) : null}
         </header>
         {v.prompt ? <p className="ci-sc-prompt">{v.prompt}</p> : null}
         {v.detail.length ? (

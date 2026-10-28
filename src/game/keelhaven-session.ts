@@ -574,6 +574,11 @@ export function createKeelhavenContent(host: IslandContentHost): KeelhavenConten
         gateStairTreads()
           .filter((_, k) => k % 4 === 2)
           .map((t) => ({ ...toWorld(t.u, t.v), y: t.y, heading: headingUv(t.tu, t.tv) })),
+      /** Where each stair comes out at its top (its last tread): where a climber arrives. */
+      stairHeads: () => {
+        const t = gateStairTreads().at(-1)!;
+        return [{ ...toWorld(t.u, t.v), y: t.y }];
+      },
     },
     dispose() {
       disposed = true;

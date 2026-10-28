@@ -45,6 +45,8 @@ export interface CircuitStation {
   lamps?: readonly { id: string; text: string }[];
   planks?: number;
   seconds?: number;
+  /** A `watch` station's one thing to do (its button), shown with `prompt`; then its demo plays. */
+  action?: string;
   again?: string;
   image?: string;
   caption?: string;
@@ -66,7 +68,8 @@ export interface CircuitLap {
 
 export interface CircuitFile extends PuzzleFile {
   circuit: CircuitKind;
-  places: Readonly<Record<string, { acts: string; name: string; means: string }>>;
+  /** Each place: the game's place, its name, and where it is in the app (`means`, with its `cite`). */
+  places: Readonly<Record<string, { acts: string; name: string; means: string; cite?: string }>>;
   laps: readonly CircuitLap[];
 }
 

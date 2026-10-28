@@ -27,11 +27,14 @@ export async function answerCard(page, c, { shot, fail, seen, plan = {} }) {
     seen.add(key);
     return true;
   };
-  const small = await page.evaluate(() =>
-    [...document.querySelectorAll('.ci-lj-card button, .ci-lj-card a.ci-btn')]
+  // Measured once the card's entrance (a rise with a slight scale) has finished, as a player taps it.
+  const small = await page.evaluate(async () => {
+    const card = document.querySelector('.ci-lj-card');
+    await Promise.all((card?.getAnimations({ subtree: true }) ?? []).map((a) => a.finished.catch(() => {})));
+    return [...document.querySelectorAll('.ci-lj-card button, .ci-lj-card a.ci-btn')]
       .map((e) => ({ t: e.textContent?.trim(), h: Math.round(e.getBoundingClientRect().height) }))
-      .filter((b) => b.h > 0 && b.h < 44),
-  );
+      .filter((b) => b.h > 0 && b.h < 44);
+  });
   if (small.length) fail(`learning card: targets under 44 px: ${JSON.stringify(small)}`);
   if (c.appTask) {
     const { id, phase } = c.appTask;

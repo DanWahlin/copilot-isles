@@ -227,12 +227,12 @@ export interface GameSession {
     talk(id: string): boolean;
     /** Where to stand to read each island's course notice board, facing it (tests). */
     courseBoards(): { island: IslandId; x: number; y: number; z: number; heading: number }[];
-    /** Interactions within `r` metres of (x, z) and whether each is usable now (tests). */
+    /** Interactions within `r` metres of (x, z), their reach, and whether each is usable now (tests). */
     near(
       x: number,
       z: number,
       r: number,
-    ): { id: string; x: number; y: number; z: number; d: number; on: boolean }[];
+    ): { id: string; x: number; y: number; z: number; d: number; radius: number; on: boolean }[];
     /** The lift's raw anchors (tests: tx/ty/tz are the car's ends). */
     liftAnchors(): { liftBottom: unknown; liftTop: unknown };
     /** The lift ride's camera spot and how many of its samples are blocked (tests). */

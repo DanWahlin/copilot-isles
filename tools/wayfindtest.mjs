@@ -11,8 +11,9 @@
 //  4. In irons by Port Meridian's harbour, Wingman's tacking tip plays once a voyage.
 //  5. Reach: on each island in `--reach` (Keelhaven by default), a walker follows the compass's route
 //     from the landing to every interact point (each NPC, chest, bottle, board and circuit station, each
-//     part's spot) and must come within talking range; and on every stair with rails (Keelhaven's Gate
-//     Light), a walker pushed at each rail must stay on the treads.
+//     part's spot) and must come within talking range; on every stair with rails (Keelhaven's Gate
+//     Light), a walker pushed at each rail must stay on the treads; and anyone waiting by a stair's
+//     head on its level can be talked to from the head (where the compass says you've arrived).
 // node tools/wayfindtest.mjs [--base=http://127.0.0.1:5301] [--out=<dir>] [--only=legs,sea,sitting,tack,reach]
 //                            [--islands=<id,…>] [--reach=<id,…>] [--webgl] [--verbose]
 import { mkdirSync } from 'node:fs';
@@ -191,6 +192,16 @@ if (only.includes('reach')) {
             bad.push(
               `stair at (${tr.x.toFixed(1)}, ${tr.y.toFixed(1)}, ${tr.z.toFixed(1)}): pushed ${dir > 0 ? 'right' : 'left'}, off the treads at (${P.x.toFixed(1)}, ${P.y.toFixed(1)}, ${P.z.toFixed(1)})`,
             );
+        }
+      }
+      // Where a stair comes out at its top, a climber has arrived: anyone waiting near its head on the
+      // same level (the compass reads a few metres) can be talked to from there.
+      for (const h of s.debug.island(id)?.stairHeads?.() ?? []) {
+        for (const t of s.debug.near(h.x, h.z, 12)) {
+          if (!t.id.startsWith('npc:') || Math.abs(t.y - h.y) > 3 || t.d <= t.radius) continue;
+          bad.push(
+            `${t.id}: ${t.d.toFixed(1)} m from the stair's head at (${h.x.toFixed(1)}, ${h.y.toFixed(1)}, ${h.z.toFixed(1)}), talk radius ${t.radius} m`,
+          );
         }
       }
       return { targets: targets.length, treads: rails.length, bad };

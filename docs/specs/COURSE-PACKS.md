@@ -759,7 +759,7 @@ next". These systems are generic and data-driven: a pack opts in with data, and 
 | **Reflection** before each Seal (after the Trial's last answer, before the banner), once, skippable | `reflections[]` (the Key Takeaways as choices) | `LearnStore.askReflection` in `runTrial` |
 | **Seal card and certificate**: an image drawn in the browser and the words to copy; nothing uploaded | `course.json` (title, repository, island labels) and each chapter's Trial Seal | `src/learn/badge.ts`, `BadgeCard` |
 | **Where you left off** on Continue: island, task, last thing learned, next step, app steps waiting (no streaks) | none | `src/learn/resume.ts`, `session.ts` (`resume`) |
-| **GitHub checks** (opt-in, Settings): a public, unauthenticated API request per check, rate-limit aware; failure keeps the player's word | a task's `check: { kind: repoExists \| branchExists \| prOpened, branch? }` (`{practiceBranch}`) | `src/learn/github-check.ts` |
+| **GitHub checks** (opt-in, Settings): a public, unauthenticated API request per check, rate-limit aware; failure keeps the player's word | a task's `check: { kind: repoExists \| branchExists \| prOpened, branch?, excludeHeads?, atLeast? }` (`{practiceBranch}`) | `src/learn/github-check.ts` |
 
 ```json
 {
