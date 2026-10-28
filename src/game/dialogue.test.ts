@@ -102,4 +102,36 @@ describe('Dialogue.cancel', () => {
     dialogue.cancel();
     await done;
   });
+
+  it('holds a line a card follows to its last word, then moves on as it ends (issue 360)', async () => {
+    const { dialogue } = fakes();
+    const hud = (dialogue as unknown as { hud: { line: () => unknown } }).hud;
+    hud.line = () => ({
+      id: 'l',
+      speaker: 'Barty',
+      text: 'Back again. Did you try it?',
+      duration: 3,
+      words: [
+        { word: 'Back', start: 0, end: 0.4 },
+        { word: 'it', start: 2.2, end: 2.5 },
+      ],
+    });
+    let done = false;
+    const run = dialogue.play(['l'], undefined, true).then(() => (done = true));
+    await vi.advanceTimersByTimeAsync(500);
+    dialogue.next();
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(done).toBe(false);
+    await vi.advanceTimersByTimeAsync(600);
+    await run;
+    expect(done).toBe(true);
+    // Not held: a skip moves on at once.
+    done = false;
+    const free = dialogue.play(['l']).then(() => (done = true));
+    await vi.advanceTimersByTimeAsync(500);
+    dialogue.next();
+    await vi.advanceTimersByTimeAsync(0);
+    await free;
+    expect(done).toBe(true);
+  });
 });

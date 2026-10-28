@@ -171,6 +171,49 @@ function openTo(self: Chamber, u: number, v: number): boolean {
  * apart from the next's, so overlapping copings never fight), stepped altars down the docks' sides,
  * and a rail of posts and a top rail along every walkable edge over water or a drop.
  */
+/**
+ * A wall run's stone as a collider wherever no pad backs it (sampled along the run every 0.5 m), from
+ * under the sea bed to just under its coping: a walker on the coping or a pad passes over it, and one
+ * in the water or on the sand can't walk in under the coping and stick (issue 360).
+ */
+function solidWhereOpen(
+  out: ShipyardOut,
+  s: { along: 'u' | 'v'; out: number; u?: number; v?: number },
+  r0: number,
+  r1: number,
+  top: number,
+  low: number,
+): void {
+  const line = s.along === 'v' ? s.u! + (s.out * WALL) / 2 : s.v! + (s.out * WALL) / 2;
+  const backAt = (t: number) =>
+    s.along === 'v'
+      ? padFlatAt(s.u! + s.out * (WALL + 0.7), t) === null
+      : padFlatAt(t, s.v! + s.out * (WALL + 0.7)) === null;
+  let start: number | null = null;
+  for (let t = r0; t <= r1 + 1e-6; t += 0.5) {
+    const open = backAt(t);
+    const end = t + 0.5 > r1 + 1e-6;
+    if (open && start === null) start = t;
+    if ((!open || end) && start !== null) {
+      // On into the pad's sloping edge: a walker up on the pad (above the span) passes over it.
+      const a = Math.max(r0, start - 3);
+      const e = Math.min(r1, open ? r1 : t + 3);
+      const mid = (a + e) / 2;
+      const p = s.along === 'v' ? toWorld(line, mid) : toWorld(mid, line);
+      const along = (e - a) / 2;
+      out.colliders.push({
+        ...p,
+        hx: s.along === 'v' ? WALL / 2 : along,
+        hz: s.along === 'v' ? along : WALL / 2,
+        rot: YAW_U,
+        y0: low - 3,
+        y1: top - 0.75,
+      });
+      start = null;
+    }
+  }
+}
+
 function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): void {
   const top = c.top + index * 0.012;
   const low = c.floor - 0.4;
@@ -240,6 +283,8 @@ function chamberWalls(b: Buckets, out: ShipyardOut, c: Chamber, index: number): 
       const hu = (s.along === 'v' ? WALL + 0.16 + apron : len) / 2;
       const hv = (s.along === 'v' ? len : WALL + 0.16 + apron) / 2;
       out.decks.push(uvDeck(cu + du - hu, cu + du + hu, cv + dv - hv, cv + dv + hv, top, false));
+      // Where no pad backs the wall (the cut's arms out over the beach), its stone is solid.
+      solidWhereOpen(out, s, r0e, r1, top, low);
       // A rail along the inner edge, posts every 2.4 m (not on the cut's low quay walls, nor the basin's
       // quay faces, where boats tie up).
       // The canal's rails leave a gap at each gate's hinge, where you step onto its walkway.

@@ -53,7 +53,12 @@
             "$ref": "#/$defs/text"
           },
           "means": {
+            "description": "Where the place is in the app's work, shown under each station card's title (`**bold**` for the app's names).",
             "$ref": "#/$defs/text"
+          },
+          "cite": {
+            "description": "A key of `cites`: the section `means` comes from.",
+            "$ref": "#/$defs/id"
           }
         }
       }
@@ -185,6 +190,10 @@
         },
         "caption": {
           "description": "The spyglass's caption for `image`.",
+          "$ref": "#/$defs/text"
+        },
+        "action": {
+          "description": "A `watch` station's one thing to do (its button's label), shown with `prompt`; the demo plays once it's done.",
           "$ref": "#/$defs/text"
         },
         "seconds": {

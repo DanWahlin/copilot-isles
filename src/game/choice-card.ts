@@ -5,6 +5,8 @@ import type { SeaChoiceOption, SeaChoiceView } from '../ui/puzzles/SeaChoice';
 export interface ChoiceAsk {
   eyebrow: string;
   title: string;
+  /** A line under the title (a circuit station's place in the app), `**bold**` for the app's names. */
+  sub?: string;
   prompt: string;
   detail?: readonly string[];
   options: readonly SeaChoiceOption[];
@@ -46,6 +48,7 @@ export function createChoiceCard(o: { blocked(): boolean; reduced(): boolean }):
     open: false,
     eyebrow: '',
     title: '',
+    sub: '',
     prompt: '',
     detail: [],
     options: [],
@@ -94,6 +97,7 @@ export function createChoiceCard(o: { blocked(): boolean; reduced(): boolean }):
         open: true,
         eyebrow: a.eyebrow,
         title: a.title,
+        sub: a.sub ?? '',
         prompt: a.prompt,
         detail: a.detail ?? [],
         options: a.ordered ? a.options : orderOptions(a.options, cardKey(a), (x) => x.id.startsWith('·')),

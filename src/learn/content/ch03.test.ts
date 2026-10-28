@@ -22,7 +22,11 @@ const QUESTS = json<{
 }>('quests/keelhaven.json');
 type Station = { image?: string; caption?: string; title: string };
 const PUZZLES = ['drydock-ring', 'lock-flight'].map((n) =>
-  json<{ cites: Record<string, { anchor: string }>; laps: { stations: Station[] }[] }>(`puzzles/${n}.json`),
+  json<{
+    cites: Record<string, { anchor: string }>;
+    places: Record<string, { means: string }>;
+    laps: { stations: Station[] }[];
+  }>(`puzzles/${n}.json`),
 );
 const LEARNING = json<{
   appTasks: {
@@ -93,15 +97,16 @@ describe('Chapter 03 content', () => {
   it('names only UI the chapter names, on its cards and pages', () => {
     const texts = [
       ...TASKS.flatMap((t) => [...t.steps, t.seen?.explain ?? '']),
+      ...PUZZLES.flatMap((p) => Object.values(p.places).map((pl) => pl.means)),
       ...CH03.pages.map((p) => p.caption),
       ...CH03.quizzes.flatMap((q) => ('options' in q ? q.options.map((o) => o.text) : [])),
     ];
     for (const name of new Set(texts.flatMap(bold))) expect(README, name).toContain(name);
   });
 
-  it("has ten app cards; only A3.6 has a GitHub check, and it leaves out the setup's pull requests", () => {
+  it("has ten app cards; A3.6 and A3.9 have GitHub checks that leave out the setup's pull requests", () => {
     expect(TASKS.map((t) => t.id)).toEqual(Array.from({ length: 10 }, (_, i) => `A3.${i + 1}`));
-    for (const t of TASKS) if (t.id !== 'A3.6') expect(t.check, t.id).toBeUndefined();
+    for (const t of TASKS) if (t.id !== 'A3.6' && t.id !== 'A3.9') expect(t.check, t.id).toBeUndefined();
     const check = TASKS.find((t) => t.id === 'A3.6')!.check as AppTaskCheck;
     expect(check.kind).toBe('prOpened');
     expect(check.excludeHeads).toEqual([
@@ -109,6 +114,9 @@ describe('Chapter 03 content', () => {
       'practice-failing-stats-check',
       'feature-reading-dashboard',
     ]);
+    // The assignment's pull request is the player's second (A3.6's is the first, §5).
+    const assignment = TASKS.find((t) => t.id === 'A3.9')!.check as AppTaskCheck;
+    expect(assignment).toEqual({ ...check, atLeast: 2 });
   });
 
   it('runs a ten-item scenario Trial over every key takeaway, with no answer hint', () => {

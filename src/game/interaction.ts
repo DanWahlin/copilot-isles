@@ -85,7 +85,7 @@ export class Interactions {
     x: number,
     z: number,
     r: number,
-  ): { id: string; x: number; y: number; z: number; d: number; on: boolean }[] {
+  ): { id: string; x: number; y: number; z: number; d: number; radius: number; on: boolean }[] {
     return this.items
       .map((it) => ({
         id: it.id,
@@ -93,6 +93,7 @@ export class Interactions {
         y: it.y,
         z: it.z,
         d: Math.hypot(it.x - x, it.z - z),
+        radius: it.radius,
         on: !it.enabled || it.enabled(),
       }))
       .filter((it) => it.d <= r)

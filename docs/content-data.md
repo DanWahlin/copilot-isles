@@ -181,7 +181,10 @@ so VS Code and other editors check your edit as you type and show each field's d
   `redLamp`, `barge`, `gate2`, `seaGate`; src/game/puzzles/circuit/places.ts), each once. `laps` (one
   or two) each run while their `quest` is at `step`; the lap's end sets `solved` and plays the
   island's `close` script. A station has a `kind` (`choose`, `watch`, `sound`, `seal`, `tiles`,
-  `gate`), the place it's `at`, and the section it teaches (`cite`, a key of `cites`). Every station
+  `gate`), the place it's `at`, and the section it teaches (`cite`, a key of `cites`). Each place's
+  `means` (where it is in the app, `**bold**` for the app's names, with its `cite`) shows under each
+  station card's title. A `watch` station can have an `action` (one button, shown with its `prompt`):
+  its demo plays when the player selects it. Every station
   with options has a right one, and every wrong option has its `reason`, the place it goes back to
   (`backTo`) and its `cite`; a claim that doesn't stick (`tiles`) has its `reason` and `cite` too.
 - **`text`**: the puzzle's words by key (labels, readouts, signs, the overlay, Wingman's hints).
@@ -234,7 +237,8 @@ so VS Code and other editors check your edit as you type and show each field's d
   fork), the `quest` it belongs to, an optional `seen` ("What did you see?": a prompt, two to four
   options, the `answer` and an `explain` that says what the course says you'll see; any answer is
   fine), an optional `check` (an opt-in GitHub check: `repoExists` for the fork, `branchExists` with a
-  `branch`, `prOpened`; `{practiceBranch}` is `course.json`'s `practice.branch`). A script hands
+  `branch`, `prOpened`, with `excludeHeads` to leave out the setup's pull requests and `atLeast` to need
+  more than one; `{practiceBranch}` is `course.json`'s `practice.branch`). A script hands
   each one off with `{ "appTask": "<id>" }` right where the NPC teaches it; every task needs one.
   Where an NPC sends you off to do it and asks when you're back (Thousand-Bough's exercises and
   assignment), hand it off `quiet` at the brief and show the card at the return beat, with the

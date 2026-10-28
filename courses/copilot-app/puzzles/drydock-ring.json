@@ -10,27 +10,32 @@
     "post": {
       "acts": "post",
       "name": "The work-order post",
-      "means": "Understand the task, and later, your seal: is it ready?"
+      "means": "Understand the task in **Plan** mode, and at the end, your seal: is it ready?",
+      "cite": "fix"
     },
     "stack": {
       "acts": "stack",
       "name": "The plank stack",
-      "means": "Make a focused change"
+      "means": "Make a focused change in **Interactive** mode",
+      "cite": "fix"
     },
     "slate": {
       "acts": "slate",
       "name": "The slate",
-      "means": "Inspect the diff (Changes)"
+      "means": "Inspect the diff in **Changes**",
+      "cite": "fix"
     },
     "caisson": {
       "acts": "caisson",
       "name": "The caisson",
-      "means": "Run the tests and the build (Terminal)"
+      "means": "Run the tests and the build in **Terminal**",
+      "cite": "validate"
     },
     "lookout": {
       "acts": "lookout",
       "name": "The lookout",
-      "means": "Preview the behavior (Browser)"
+      "means": "Preview the behavior in **Browser**",
+      "cite": "validate"
     }
   },
   "laps": [
@@ -86,8 +91,10 @@
           "at": "stack",
           "kind": "watch",
           "title": "Change",
+          "prompt": "Moll’s crew is at the plank stack. They wait for your plan.",
+          "action": "Hand Moll the plan",
           "text": "Moll’s crew fits two planks to the tally gear, and carries one more to Drydock 1’s hull.",
-          "seconds": 8,
+          "seconds": 5,
           "cite": "fix"
         },
         {
@@ -336,8 +343,10 @@
           "at": "lookout",
           "kind": "watch",
           "title": "Preview",
-          "text": "The trial run again: Fantasy and Unread, and the tally still reads 1.",
-          "seconds": 4,
+          "prompt": "The trial run again, with the new gauge on.",
+          "action": "Hoist the trial flag",
+          "text": "Fantasy and Unread, and the tally still reads 1.",
+          "seconds": 3,
           "cite": "validate"
         },
         {

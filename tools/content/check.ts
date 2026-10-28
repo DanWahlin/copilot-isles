@@ -1223,6 +1223,9 @@ function checkCircuit(rel: string, p: PuzzleFile & Record<string, unknown>, issu
     if (key === undefined) issue(rel, path, 'needs a "cite": the section its reason comes from');
     else known(issue, rel, path, key, cites, 'a key of "cites"');
   };
+  // Each place's `means` shows on its station cards: it cites where it comes from.
+  for (const [k, v] of Object.entries(p.places as Record<string, { cite?: string }>))
+    cited(`places.${k}.cite`, v.cite);
   type Station = {
     at: string;
     kind: string;
@@ -1231,6 +1234,8 @@ function checkCircuit(rel: string, p: PuzzleFile & Record<string, unknown>, issu
     tiles?: { sticks: boolean; reason?: string; cite?: string }[];
     lamps?: unknown[];
     planks?: number;
+    action?: string;
+    prompt?: string;
   };
   ((p.laps ?? []) as { stations: Station[] }[]).forEach((lap, i) =>
     lap.stations.forEach((st, j) => {
@@ -1241,6 +1246,10 @@ function checkCircuit(rel: string, p: PuzzleFile & Record<string, unknown>, issu
         st.kind
       ] as keyof Station | undefined;
       if (needs && st[needs] === undefined) issue(rel, path, `a "${st.kind}" station needs "${needs}"`);
+      if (st.action !== undefined && st.kind !== 'watch')
+        issue(rel, `${path}.action`, 'only a "watch" station acts');
+      if (st.action !== undefined && !st.prompt)
+        issue(rel, path, 'a station with an "action" needs its "prompt"');
       if (st.options) {
         if (!st.options.some((o) => o.right)) issue(rel, `${path}.options`, 'needs a right option');
         st.options.forEach((o, k) => {

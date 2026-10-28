@@ -10,57 +10,68 @@
     "ledger": {
       "acts": "ledger",
       "name": "The work-order ledger",
-      "means": "Start from a GitHub issue"
+      "means": "Start from an issue in **Issues**",
+      "cite": "start"
     },
     "bell": {
       "acts": "bell",
       "name": "The slipway bell",
-      "means": "Start the session"
+      "means": "Start the session: **Create from**, then **Branches**",
+      "cite": "start"
     },
     "slate": {
       "acts": "slate",
       "name": "Lock 1's slate",
-      "means": "Review the diff"
+      "means": "Review the diff in **Changes**",
+      "cite": "start"
     },
     "gate1": {
       "acts": "gate1",
       "name": "Gate 1",
-      "means": "The first approval gate"
+      "means": "The first approval gate: you decide the diff is ready",
+      "cite": "outer"
     },
     "petition": {
       "acts": "petition",
       "name": "The petition mast",
-      "means": "Open the pull request"
+      "means": "Open the pull request with **Create PR**",
+      "cite": "start"
     },
     "lamps": {
       "acts": "lamps",
       "name": "The lock lamps",
-      "means": "Checks run on the pull request"
+      "means": "Checks run on the pull request, in the **Pull requests** view",
+      "cite": "evidence"
     },
     "note": {
       "acts": "note",
       "name": "The chalk note",
-      "means": "A review comment"
+      "means": "A review comment on the pull request",
+      "cite": "comment"
     },
     "redLamp": {
       "acts": "redLamp",
       "name": "The red lamp",
-      "means": "A failing check"
+      "means": "A failing check: the **Book app web** check",
+      "cite": "check"
     },
     "barge": {
       "acts": "barge",
       "name": "The repair barge",
-      "means": "A new session from the pull request"
+      "means": "A **New session** from the pull request",
+      "cite": "check"
     },
     "gate2": {
       "acts": "gate2",
       "name": "Gate 2",
-      "means": "The second approval gate"
+      "means": "The second approval gate: you decide it’s ready to merge",
+      "cite": "outer"
     },
     "seaGate": {
       "acts": "seaGate",
       "name": "The Sea Gate",
-      "means": "The merge"
+      "means": "The merge",
+      "cite": "outer"
     }
   },
   "laps": [
@@ -78,6 +89,8 @@
           "at": "ledger",
           "kind": "watch",
           "title": "Issue",
+          "prompt": "The ledger holds the open work orders.",
+          "action": "Open the work order",
           "text": "You open the work order Make search case-insensitive in the Issues ledger.",
           "seconds": 3,
           "cite": "start"
@@ -119,8 +132,10 @@
           "at": "bell",
           "kind": "watch",
           "title": "The inner loop",
+          "prompt": "Your hull’s on Drydock 3’s slip, and its crew waits for the word.",
+          "action": "Ring the slipway bell",
           "text": "Drydock 3’s crew runs the ring: five lamps light in turn, and the lookout shows hobbit and HOBBIT giving the same result.",
-          "seconds": 6,
+          "seconds": 5,
           "cite": "start"
         },
         {
@@ -236,9 +251,11 @@
           "at": "lamps",
           "kind": "watch",
           "title": "Checks",
-          "text": "Lockfall’s leat fills Lock 1 by itself. The Book app web lamp runs amber, then green.",
+          "prompt": "Your petition’s up: the pull request is open.",
+          "action": "Read the lamps",
+          "text": "Lockfall’s leat fills Lock 1. The Book app web lamp runs amber, then green.",
           "line": "kh.stroud.08",
-          "seconds": 5,
+          "seconds": 4,
           "cite": "check"
         },
         {
@@ -324,7 +341,9 @@
           "at": "lamps",
           "kind": "watch",
           "title": "Push",
-          "text": "Commit and push. The pull request shows your new commit, and Lockfall runs the lamp again. Green.",
+          "prompt": "The revision’s ready in your session.",
+          "action": "Commit and push",
+          "text": "The pull request shows your new commit, and Lockfall runs the lamp again. Green.",
           "line": "kh.arlo.04",
           "seconds": 4,
           "cite": "comment"
@@ -374,6 +393,8 @@
           "at": "barge",
           "kind": "watch",
           "title": "The inner loop",
+          "prompt": "The barge comes alongside your hull.",
+          "action": "Haul in the barge’s line",
           "text": "The barge’s own small ring: the tests, the build and the preview.",
           "seconds": 4,
           "cite": "check"
@@ -383,9 +404,11 @@
           "at": "lamps",
           "kind": "watch",
           "title": "Push",
-          "text": "Push: the check runs again. Green.",
+          "prompt": "The fix passed the barge’s ring.",
+          "action": "Commit and push",
+          "text": "The check runs again. Green.",
           "line": "kh.arlo.06",
-          "seconds": 4,
+          "seconds": 3,
           "cite": "check"
         },
         {

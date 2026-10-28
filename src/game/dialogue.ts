@@ -21,6 +21,9 @@ export class Dialogue {
   private timers: number[] = [];
   private wake: (() => void) | null = null;
   private token = 0;
+  /** A held line's last word ends then (performance.now() ms); a skip before it waits for it. */
+  private holdUntil = 0;
+  private skipped = false;
 
   constructor(
     private readonly hud: Hud,
@@ -28,8 +31,11 @@ export class Dialogue {
     private readonly onLine: LineHook | null = null,
   ) {}
 
-  /** `onLine` hears each line as it starts (Wingman heads back to the shoulder on his last). */
-  async play(ids: readonly string[], onLine?: (id: string) => void): Promise<void> {
+  /**
+   * `onLine` hears each line as it starts (Wingman heads back to the shoulder on his last). `hold`: a
+   * card opens after the run, so a skip waits for the last line's last word (the question it asks).
+   */
+  async play(ids: readonly string[], onLine?: (id: string) => void, hold = false): Promise<void> {
     const token = ++this.token;
     this.active = true;
     this.preload(ids);
@@ -46,10 +52,21 @@ export class Dialogue {
         this.timers.push(window.setTimeout(() => this.hud.showSpoken(id, i), w.start * 1000));
       });
       if (voiced) void this.audio?.playVoice(id).catch(() => undefined);
+      const last = hold && id === ids[ids.length - 1] ? (line.words[line.words.length - 1]?.end ?? 0) : 0;
+      this.holdUntil = last > 0 ? performance.now() + last * 1000 : 0;
+      this.skipped = false;
       await new Promise<void>((resolve) => {
         this.wake = resolve;
         this.timers.push(window.setTimeout(resolve, (line.duration + 0.55) * 1000));
+        // A skip pressed before the last word moves on as that word ends.
+        if (last > 0)
+          this.timers.push(
+            window.setTimeout(() => {
+              if (this.skipped) resolve();
+            }, last * 1000),
+          );
       });
+      this.holdUntil = 0;
       // A newer run took over (it owns the timers and the voice now): leave them to it.
       if (token !== this.token) return;
       this.clearTimers();
@@ -80,8 +97,12 @@ export class Dialogue {
     return audio.voiceReady(id);
   }
 
-  /** Skips the current line. */
+  /** Skips the current line (a held line, once its last word ends). */
   next(): void {
+    if (this.holdUntil > performance.now()) {
+      this.skipped = true;
+      return;
+    }
     this.wake?.();
   }
 
@@ -106,6 +127,7 @@ export class Dialogue {
     // The voice is shared (the opening's cabin talk uses it too), so only stop a line this started.
     const speaking = this.active;
     this.token++;
+    this.holdUntil = 0;
     const wake = this.wake;
     this.clearTimers();
     wake?.();

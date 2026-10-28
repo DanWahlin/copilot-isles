@@ -71,6 +71,15 @@
   margin: 4px 0 0;
   font: 600 1.28rem/1.2 var(--ci-display, Fraunces, Georgia, serif);
 }
+.ci-sc-sub {
+  margin: 2px 0 0;
+  color: var(--ci-muted, rgba(246, 236, 214, 0.72));
+  font: 500 0.88rem/1.35 var(--ci-ui, Manrope, Inter, system-ui, sans-serif);
+}
+.ci-sc-sub b {
+  color: var(--ci-gold, #e8c88a);
+  font-weight: 700;
+}
 .ci-sc-prompt {
   margin: 6px 0 10px;
   font: 600 1rem/1.42 var(--ci-display, Fraunces, Georgia, serif);

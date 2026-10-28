@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Progress } from '../learn/progress';
 import { LearnStore } from '../learn/store';
 import type { Dialogue } from './dialogue';
-import { runScript, voicedLines } from './script';
+import { opensCard, runScript, voicedLines } from './script';
 
 describe('runScript', () => {
   it('waits for the Logbook to close before the next step', async () => {
@@ -119,5 +119,31 @@ describe('runScript', () => {
     expect(voicedLines(steps)).toEqual(['a', 'fork.line', 'setup.line', 'b']);
     await runScript([{ say: 'a' }, { say: 'b' }], { dialogue, learn: null, speaker: 'Nell' });
     expect(preloaded).toEqual([['a', 'b']]);
+  });
+
+  it('holds a line to its last word when a card opens after it (issue 360)', async () => {
+    const holds: [string, boolean][] = [];
+    const dialogue = {
+      play: async (ids: readonly string[], _on?: unknown, hold = false) => void holds.push([ids[0]!, hold]),
+      say: async () => undefined,
+      preload: () => undefined,
+    } as unknown as Dialogue;
+    expect(opensCard({ appTask: 'A1', quiet: true })).toBe(false);
+    expect(opensCard({ appTask: 'A1', orStop: true })).toBe(true);
+    expect(opensCard({ quiz: 'K1' })).toBe(true);
+    expect(opensCard({ say: 'x' })).toBe(false);
+    expect(opensCard(undefined)).toBe(false);
+    await runScript([{ say: 'ask' }, { quest: 'Q', step: 'try' }, { say: 'back' }], {
+      dialogue,
+      learn: null,
+      speaker: 'Barty',
+    });
+    expect(holds).toEqual([
+      ['ask', false],
+      ['back', false],
+    ]);
+    holds.length = 0;
+    await runScript([{ say: 'ask' }, { quiz: 'K1' }], { dialogue, learn: null, speaker: 'Barty' });
+    expect(holds).toEqual([['ask', true]]);
   });
 });

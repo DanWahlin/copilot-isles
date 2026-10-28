@@ -68,17 +68,28 @@ export function voicedLines(steps: readonly ScriptStep[]): string[] {
   return ids;
 }
 
+/**
+ * Whether a step opens a card over the conversation (a quiz, a Trial, a fork or setup form, an app
+ * card): the line before it plays to its last word, even if it's skipped (it asks the card's question).
+ */
+export function opensCard(s: ScriptStep | undefined): boolean {
+  if (!s) return false;
+  if ('appTask' in s) return !s.quiet;
+  return 'quiz' in s || 'trial' in s || 'askFork' in s || 'askSetup' in s;
+}
+
 /** Runs a script; resolves false if a quiz was abandoned (the NPC will ask again next time). */
 export async function runScript(steps: readonly ScriptStep[], ctx: ScriptContext): Promise<boolean> {
   const { dialogue, learn } = ctx;
   // The whole conversation's voice loads as it starts, so no line waits for a download.
   dialogue.preload(voicedLines(steps));
   try {
-    for (const s of steps) {
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i]!;
       // NPCs tell you to press J; if you do, the conversation waits until you close the Logbook.
       if (learn?.getState().logbook.open) await learn.logbookClosed();
       if (ctx.cancelled?.()) return false;
-      if ('say' in s) await dialogue.play([s.say]);
+      if ('say' in s) await dialogue.play([s.say], undefined, opensCard(steps[i + 1]));
       else if ('text' in s) await dialogue.say(s.speaker ?? ctx.speaker, ctx.format?.(s.text) ?? s.text);
       else if ('show' in s) learn?.showImage(s.show, s.caption ?? null);
       else if ('hide' in s) learn?.hideImage();
