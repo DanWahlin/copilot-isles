@@ -291,8 +291,13 @@ async function circuit(name, quest) {
       ([x, z, y]) => window.__dev.session().debug.teleport(x, z, undefined, y + 0.3),
       [spot.x, spot.z, spot.y],
     );
-    await page.waitForTimeout(450);
-    const prompt = await S(() => document.querySelector('.hud-prompt.show')?.textContent ?? null);
+    // The prompt shows once a talking crew member's line is done (a held line keeps it back).
+    const prompt = await page
+      .waitForFunction(() => document.querySelector('.hud-prompt.show')?.textContent ?? null, null, {
+        timeout: 8000,
+      })
+      .then((h) => h.jsonValue())
+      .catch(() => null);
     if (!prompt) fail(`${name} ${st.at}: no prompt at the station`);
     await tap('KeyE');
     await page.waitForTimeout(600);
